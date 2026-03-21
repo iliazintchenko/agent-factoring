@@ -70,7 +70,20 @@ export ANTHROPIC_API_KEY="$CLAUDE_CODE_API_KEY"
 
 # Install system dependencies
 if ! command -v gcc &> /dev/null || ! command -v git &> /dev/null; then
-  sudo dnf install -y gcc gcc-c++ gmp-devel gmp-ecm-devel cmake make git hwloc-devel python3-flask python3-requests
+  sudo dnf install -y gcc gcc-c++ gmp-devel cmake make git hwloc-devel python3-flask python3-requests autoconf automake libtool
+fi
+
+# Build gmp-ecm from source if not installed (not in Amazon Linux default repos)
+if ! pkg-config --exists ecm 2>/dev/null && [ ! -f /usr/local/lib/libecm.a ]; then
+  cd /tmp
+  git clone --depth 1 https://gitlab.inria.fr/zimmerma/ecm.git gmp-ecm-build
+  cd gmp-ecm-build
+  autoreconf -i
+  ./configure --disable-shared --enable-static
+  make -j"$(nproc)"
+  sudo make install
+  sudo ldconfig
+  cd /tmp && rm -rf gmp-ecm-build
 fi
 
 # Install Claude Code if not present
