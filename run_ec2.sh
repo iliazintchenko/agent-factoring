@@ -27,6 +27,11 @@ if [ -z "$HOST" ] || [ -z "$NUM_AGENTS" ]; then
   exit 1
 fi
 
+# Source .env locally so GITHUB_ACCESS_TOKEN is available for URL rewriting
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  set -a; source "$SCRIPT_DIR/.env"; set +a
+fi
+
 REPO_URL="${REPO_URL:-$(git -C "$SCRIPT_DIR" remote get-url origin)}"
 GIT_USER_NAME="${GIT_USER_NAME:-$(git config user.name)}"
 GIT_USER_EMAIL="${GIT_USER_EMAIL:-$(git config user.email)}"
@@ -67,11 +72,10 @@ NUM_AGENTS="$1"; REPO_URL="$2"; GIT_USER_NAME="$3"; GIT_USER_EMAIL="$4"
 
 source ~/.env
 export ANTHROPIC_API_KEY="$CLAUDE_CODE_API_KEY"
+export PATH="$HOME/.local/bin:$PATH"
 
-# Install system dependencies
-if ! command -v gcc &> /dev/null || ! command -v git &> /dev/null; then
-  sudo dnf install -y gcc gcc-c++ gmp-devel cmake make git hwloc-devel python3-flask python3-requests autoconf automake libtool
-fi
+# Install system dependencies (dnf is idempotent, always run to ensure nothing is missing)
+sudo dnf install -y gcc gcc-c++ gmp-devel cmake make git hwloc-devel python3-flask python3-requests autoconf automake libtool tmux jq
 
 # Build gmp-ecm from source if not installed (not in Amazon Linux default repos)
 if ! pkg-config --exists ecm 2>/dev/null && [ ! -f /usr/local/lib/libecm.a ]; then
@@ -95,6 +99,13 @@ fi
 mkdir -p ~/.claude
 printf '%s\n' '{"permissions":{"defaultMode":"bypassPermissions"},"model":"opus[1m]","effortLevel":"max","skipDangerousModePermissionPrompt":true}' > ~/.claude/settings.json
 
+# Ensure ANTHROPIC_API_KEY is set for all future shells (including tmux panes)
+grep -q 'ANTHROPIC_API_KEY' ~/.bashrc 2>/dev/null || cat >> ~/.bashrc <<'BASHRC'
+source ~/.env 2>/dev/null
+export ANTHROPIC_API_KEY="$CLAUDE_CODE_API_KEY"
+export PATH="$HOME/.local/bin:$PATH"
+BASHRC
+
 # Clone repos — each agent gets its own directory
 for i in $(seq 1 "$NUM_AGENTS"); do
   REPO_DIR="/tmp/agent-factoring-$i"
@@ -113,11 +124,6 @@ for i in $(seq 1 "$NUM_AGENTS"); do
     git clone --depth 1 https://gitlab.inria.fr/cado-nfs/cado-nfs.git "$REPO_DIR/cado-nfs" && rm -rf "$REPO_DIR/cado-nfs/.git"
   fi
 done
-
-# Install tmux if not present
-if ! command -v tmux &> /dev/null; then
-  sudo dnf install -y tmux
-fi
 
 # Launch tmux session — one window per agent
 for i in $(seq 1 "$NUM_AGENTS"); do
