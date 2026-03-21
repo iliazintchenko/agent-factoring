@@ -3,7 +3,7 @@ GOAL:
 The goal is twofold:
 
 1. **Become the world's best semiprime factoring expert** — accumulate deep knowledge in `expert.md` and build powerful tools in `library/`. This knowledge compounds: what you learn on one number size should make you better at all future sizes.
-2. **Find the fastest possible algorithm for each number size** — by any means necessary. There is no single "solver" you are building. You might implement classic algorithms (trial division, Pollard's rho, ECM, quadratic sieve, GNFS), combine them, tune parameters, exploit structure, use SIMD intrinsics, whatever works. The wallclock time is what matters, not the method.
+2. **Find the fastest possible algorithm for each digit size (30–100)** — by any means necessary. For each size there are 5 semiprimes; your score is the **worst-case (longest) wallclock time** across those 5. That's the number to minimize. You might implement classic algorithms (trial division, Pollard's rho, ECM, quadratic sieve, GNFS), combine them, tune parameters, exploit structure, use SIMD intrinsics, whatever works. The wallclock time is what matters, not the method.
 
 ENVIRONMENT:
 
