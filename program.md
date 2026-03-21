@@ -24,7 +24,8 @@ ENVIRONMENT:
   ```
   `time` is the worst-case (maximum) wallclock time across the 5 semiprimes of a given digit count — this is the number to minimize. `run` is a self-contained shell command that compiles and runs the relevant library code on a given number, e.g. `"gcc -O2 library/pollard_rho.c -o pollard_rho -lgmp && ./pollard_rho <N>"`. Keep it up to date whenever you find a faster approach.
 - semiprimes.json: the frozen test suite. Contains balanced semiprimes from 30 to 100 digits, 5 random ones per size. Format: `{"30": ["num1", "num2", ...], "31": [...], ...}`. **Do not modify this file.**
-- cado-nfs/: a local copy of the CADO-NFS factoring suite. You can use it as a reference or call its binaries, but your library code should be self-contained C/C++.
+- yafu/: a local copy of YAFU (Yet Another Factoring Utility). Automated factoring tool that picks the best algorithm based on input size. Has a strong SIQS implementation. You can build it, call its binaries, or study its source for ideas.
+- cado-nfs/: a local copy of the CADO-NFS factoring suite. Best-in-class NFS implementation. You can build it, call its binaries, or study its source for ideas.
 
 RULES:
 
@@ -33,8 +34,7 @@ RULES:
 - Maximize parallelism. Run as many compilations and factoring processes in parallel as the server can handle — monitor CPU usage and keep idle resources near zero. If cores are sitting idle, launch more work.
 - Never stop. Only the user can stop you. Nobody else.
 - You can use the browser, read papers, or any other tool at your disposal.
-- All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic. You may also use other C/C++ libraries if they help.
-- You can install any system packages freely (e.g. `libgmp-dev`).
+- All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic and GMP-ECM (`-lecm`) for elliptic curve factoring. You may also use other C/C++ libraries if they help. If calling yafu or cado-nfs binaries is fastest for a given size, that's fine too — the `run` field in best-algos.json just needs to be a reproducible command.
 - Make sure any code you write is fast — use `-O2` or `-O3`, consider SIMD, avoid unnecessary allocations, profile hotspots.
 - There are multiple agents working on this repo simultaneously. Pull before starting work and commit+push frequently — every improvement to `best-algos.json`, every update to `expert.md`, every new or changed file in `library/`, every batch of `experiments.log` entries. Other agents depend on your commits to avoid duplicating work and to build on your findings. If you haven't committed in 10 minutes, you're falling behind.
 
