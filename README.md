@@ -43,7 +43,7 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 
 ```bash
 # Install dependencies (macOS)
-brew install gmp gmp-ecm cmake hwloc
+brew install gmp ecm cmake hwloc
 
 # Install dependencies (Ubuntu/Debian)
 sudo apt install gcc g++ libgmp-dev libecm-dev cmake make libhwloc-dev python3-flask python3-requests
