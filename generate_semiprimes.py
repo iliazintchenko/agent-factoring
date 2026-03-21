@@ -60,7 +60,7 @@ def generate_test_suite(digit_counts, count_per_size=5, seed=42):
         suite[d] = []
         for i in range(count_per_size):
             n, p, q = generate_balanced_semiprime(d)
-            suite[d].append({"n": str(n), "p": str(p), "q": str(q)})
+            suite[d].append(str(n))
             print(f"  [{i+1}/{count_per_size}] done")
 
     return suite
@@ -88,4 +88,4 @@ if __name__ == "__main__":
         entries = suite[d]
         print(f"\n{d} digits:")
         for e in entries:
-            print(f"  {e['n']}")
+            print(f"  {e}")
