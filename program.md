@@ -41,9 +41,8 @@ RULES:
 TIPS:
 
 - Start by understanding the benchmark landscape — look at semiprimes.json to see the range (30–100 digits) and sample sizes.
-- Establish baselines early. A simple algorithm (trial division, Pollard's rho) across a few sizes tells you where the easy/hard boundary is.
-- Different algorithms dominate at different sizes: trial division for tiny numbers, Pollard's rho up to ~40 digits, ECM for medium, quadratic sieve for 50–100 digits. Find the crossover points.
-- You don't need to work through sizes in order. Jump to where you think you can make the most progress.
-- After significant progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
+- Different approaches may be most suitable at different sizes. Find the crossover points.
+- After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
 - If you're not making progress on a size, move on to a different one or a different approach. Revisit later with fresh knowledge.
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into best-algos.json.
+- Always run the 5 semiprimes of a given size in parallel. 
