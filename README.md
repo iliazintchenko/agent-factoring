@@ -43,10 +43,10 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 
 ```bash
 # Install dependencies (macOS)
-brew install gmp cmake
+brew install gmp gmp-ecm cmake hwloc
 
 # Install dependencies (Ubuntu/Debian)
-sudo apt install gcc g++ libgmp-dev cmake make
+sudo apt install gcc g++ libgmp-dev libecm-dev cmake make libhwloc-dev python3-flask python3-requests
 
 # Clone reference factoring tools (vendored without git history)
 git clone --depth 1 https://github.com/bbuhrow/yafu.git && rm -rf yafu/.git

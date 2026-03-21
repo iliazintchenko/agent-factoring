@@ -70,7 +70,7 @@ export ANTHROPIC_API_KEY="$CLAUDE_CODE_API_KEY"
 
 # Install system dependencies
 if ! command -v gcc &> /dev/null || ! command -v git &> /dev/null; then
-  sudo dnf install -y gcc gcc-c++ gmp-devel git make cmake
+  sudo dnf install -y gcc gcc-c++ gmp-devel gmp-ecm-devel cmake make git hwloc-devel python3-flask python3-requests
 fi
 
 # Install Claude Code if not present
