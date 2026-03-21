@@ -39,8 +39,27 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
           F = factoring process
 ```
 
+## Local setup
+
 ```bash
-# Launch on EC2 (handles everything: installs deps, clones repo, downloads everything else that is needed, launches agents in tmux)
+# Install dependencies (macOS)
+brew install gmp cmake
+
+# Install dependencies (Ubuntu/Debian)
+sudo apt install gcc g++ libgmp-dev cmake make
+
+# Clone reference factoring tools (vendored without git history)
+git clone --depth 1 https://github.com/bbuhrow/yafu.git && rm -rf yafu/.git
+git clone --depth 1 https://gitlab.inria.fr/cado-nfs/cado-nfs.git && rm -rf cado-nfs/.git
+
+# Run locally
+./run_local.sh
+```
+
+## EC2 deploy
+
+```bash
+# Launch on EC2 (handles everything: installs deps, clones repo, launches agents in tmux)
 ./run_ec2.sh --host ec2-user@<ip> --agents 3
 ```
 
