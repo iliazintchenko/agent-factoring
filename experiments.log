@@ -1,0 +1,1 @@
+[2026-03-21 23:55:00] size: 30-50 | approach: parallel ECM (48 workers, GMP-ECM) | time: 0.06-20s | notes: 30-38d: <0.15s, 39-48d: <4.2s, 49-50d: ~20s worst case. Fork-based parallelism with escalating B1.

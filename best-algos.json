@@ -1,0 +1,23 @@
+{
+  "30": {"time": 0.060, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "31": {"time": 0.060, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "32": {"time": 0.051, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "33": {"time": 0.091, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "34": {"time": 0.101, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "35": {"time": 0.100, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "36": {"time": 0.125, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "37": {"time": 0.114, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "38": {"time": 0.120, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "39": {"time": 0.441, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "40": {"time": 0.396, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "41": {"time": 3.394, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "42": {"time": 0.789, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "43": {"time": 3.084, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "44": {"time": 0.735, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "45": {"time": 2.849, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "46": {"time": 3.371, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "47": {"time": 3.710, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "48": {"time": 4.159, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "49": {"time": 21.178, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"},
+  "50": {"time": 20.038, "run": "gcc -O3 -march=native library/factor.c -I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm -o factor && LD_LIBRARY_PATH=/usr/local/lib ./factor <N>"}
+}
