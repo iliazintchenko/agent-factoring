@@ -33,8 +33,14 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 fi
 
 REPO_URL="${REPO_URL:-$(git -C "$SCRIPT_DIR" remote get-url origin)}"
-GIT_USER_NAME="${GIT_USER_NAME:-$(git config user.name)}"
-GIT_USER_EMAIL="${GIT_USER_EMAIL:-$(git config user.email)}"
+GIT_USER_NAME="${GIT_USER_NAME:-$(git config user.name 2>/dev/null)}"
+GIT_USER_EMAIL="${GIT_USER_EMAIL:-$(git config user.email 2>/dev/null)}"
+if [ -z "$GIT_USER_NAME" ] || [ -z "$GIT_USER_EMAIL" ]; then
+  echo "Error: git user.name and user.email must be set."
+  echo "  git config --global user.name \"Your Name\""
+  echo "  git config --global user.email \"you@example.com\""
+  exit 1
+fi
 
 # Convert SSH URL to HTTPS and inject token for authenticated access on remote
 if [[ "$REPO_URL" == git@github.com:* ]]; then
