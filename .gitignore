@@ -1,0 +1,5 @@
+agent.log
+*.swp
+.venv_name
+.env
+
