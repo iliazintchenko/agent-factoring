@@ -1,13 +1,13 @@
 #!/bin/bash
 # EC2 instance: c8a.12xlarge (48 vCPUs, 96GB RAM, AMD EPYC 5th gen)
-#   Instance ID: i-02d0c8c6970c9915f
-#   IP: 44.211.98.254
+#   Instance ID: i-097c43774a5e86e69
+#   IP: 44.200.192.220
 #
-# Launch (or reattach):  ./run_ec2.sh --host ec2-user@44.211.98.254 --agents 3
+# Launch (or reattach):  ./run_ec2.sh --host ec2-user@44.200.192.220 --agents 3
 # Detach:                Ctrl-b d
-# Reattach:              ssh -t ec2-user@44.211.98.254 'tmux attach -t factoring'
+# Reattach:              ssh -t ec2-user@44.200.192.220 'tmux attach -t factoring'
 # Switch agent windows:  Ctrl-b n (next) / Ctrl-b p (prev) / Ctrl-b <number>
-# Kill:                  ssh ec2-user@44.211.98.254 'tmux kill-session -t factoring'
+# Kill:                  ssh ec2-user@44.200.192.220 'tmux kill-session -t factoring'
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
