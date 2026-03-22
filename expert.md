@@ -140,6 +140,8 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | PGO (profile-guided optimization) | **WORKS after fix**: Add `static` to `__inline` in `monty.h` for mulredc/sqrredc/mulredc63. PGO binary at `/tmp/agent-factoring-3/yafu/yafu.pgo`. Solo 89d[4]=294.1s (from 297s with O3, 300s with O2). ~1-2% improvement. |
 | **monty.h static inline fix (ALL functions)** | **MAJOR WIN: ~16% speedup.** Add `static` to ALL `__inline` functions in `monty.h`: submod, addmod, mulredc, sqrredc, mulredc63, sqrredc63. Without `static`, GCC emits non-inlined external definitions, preventing inlining across TUs. Previous fix only covered mulredc/sqrredc (1-2% gain); adding submod/addmod gives full 16% because these are called in sieve root update hot path. Binary: `/tmp/agent-factoring-10/yafu_build/yafu`. 80d[0]: 44.4s (was 53.2s), 85d[0]: 93.6s, 88d[3]: 228.4s (was 249.3s). |
 | Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when |p-q| < N^(1/3). |
+| Custom SIQS (library/cqs/siqs_gmp.c) | Working SIQS in C+GMP. 30d: 0.04s, 40d: 2.9s, 50d: 4.1s. Factors 30-50d but ~50x slower than YAFU for 50d. Missing: Gray code self-init (generates new 'a' per poly instead of 2^(s-1) B values), AVX512 sieve, optimized trial division. The gap is fundamental engineering, not algorithmic. |
+| YAFU 48KB sieve blocks | BLOCKSIZE is hardcoded to 32768 with values scattered throughout AVX512BW assembly. Changing to 48KB (AMD L1D size) would require extensive surgery. Not viable. |
 
 ### Sieve Architecture (for future optimization attempts)
 - **Hot function**: `med_sieveblock_32k_avx512bw()` — 32-way SIMD, 64 scattered byte subtractions per iteration
