@@ -5,9 +5,10 @@
 ### yafu/yafu - Single-threaded SIQS (AVX512BW)
 - **Usage**: `echo "siqs(<N>)" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 1 -seed 42`
 - **Build**: `make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48`
-- **Performance**: 30d: 0.04s, 60d: 0.7s, 70d: 5.8s, 80d: 47s, 85d: 142s, 88d: 252s
-- **Limit**: 88 digits (89d needs >300s for hardest numbers)
-- **Critical**: Binary MUST be rebuilt with SKYLAKEX=1 to enable AVX512BW sieve kernels. Default build misses them.
+- **Performance**: 30d: 0.04s, 60d: 0.7s, 70d: 5.8s, 80d: 47s, 85d: 142s, 87d: 196s, 88d: 230s
+- **Limit**: 88 digits (89d needs >300s for hardest number; 4/5 pass)
+- **Critical**: Binary MUST be rebuilt with SKYLAKEX=1 to enable AVX512BW sieve kernels. Use system GMP for 5-13% speedup.
+- **Tip**: Use `-siqsNB 16` for 85+ digit numbers (3-5% improvement)
 
 ## Other Tools
 
