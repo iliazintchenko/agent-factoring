@@ -22,12 +22,12 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 | 71-74  | 8.0-13.3s      | |
 | 75-78  | 18.4-29.2s     | |
 | 79-80  | 40.1-47.1s     | |
-| 81-84  | 56.3-98.9s     | |
-| 85-86  | 142.2-155.4s   | |
-| 87     | 199.7s         | |
-| 88     | 252.6s         | Close to 280s limit |
-| 89     | 511.7s (worst) | 4/5 numbers under 280s, worst=512s. IMPOSSIBLE. |
-| 90+    | >600s          | Not achievable single-core |
+| 81-84  | 54.8-95.7s     | With -siqsNB 16 |
+| 85-86  | 138.8-151.6s   | With -siqsNB 16 |
+| 87     | 193.7s         | With -siqsNB 16 |
+| 88     | 228.5s         | With -siqsNB 16 |
+| 89     | 307s (worst)   | 4/5 under 300s, 89d[4] needs 301s sieving |
+| 90+    | >300s          | Not achievable single-core |
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
@@ -47,7 +47,7 @@ All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
 | Parameter | Values Tested | Result |
 |-----------|--------------|--------|
 | siqsB (FB size) | 40000, 50000, 55000, 60000, 90000 vs default 69888 | Default is optimal. Smaller FB = slower sieve, larger FB = slower LA. |
-| siqsNB (sieve blocks) | 1, 8 (default) | NB=1 much slower (555s). Default NB=8 is optimal. |
+| siqsNB (sieve blocks) | 1, 8 (default), 12, 16, 24 | **NB=16 is best for 80+d (2-10% improvement)**. NB=1 much slower. NB=16 hurts <80d. |
 | siqsM (LP multiplier) | 50 vs default | No improvement (324s vs 318s) |
 | forceDLP | Yes vs default | No effect (DLP already used by default at this size) |
 | forceTLP | Yes | Crashes (unsupported) |
