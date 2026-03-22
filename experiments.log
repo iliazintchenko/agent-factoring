@@ -132,38 +132,29 @@
 [2026-03-22 23:07:00] size: 90 | approach: CADO-NFS las standalone 90d[1] | time: FAIL (partial) | notes: 206K rels in 240s (857 rels/sec). Much slower than GGNFS (3100/sec). Needs ~500K+ rels. Not viable even on idle machine.
 [2026-03-22 23:06:00] size: 90 | approach: CADO-NFS polyselect | time: 16s | notes: Degree 4, admax=100K, found poly with exp_E=25.37. Faster than YAFU/msieve poly select (50-167s).
 [2026-03-22 23:15:00] size: ALL | approach: Novel algorithm analysis | time: N/A | notes: Comprehensive research: lattice sieve QS, batch smoothness, enhanced LP, balanced semiprime exploitation, hybrid ECM+SIQS — all dead ends. Hardware bottleneck (no vpscatterb on AMD Zen4) is fundamental. Only paths forward: (1) source-level SIQS tweaks, (2) GNFS on idle machine.
-[2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf+VBITS512 NB=20 B=120K on 90d[0] | time: RUNNING (load=23) | notes: sieve rate ~4800 rels/sec under high load, ETA ~300s. closnuf change (digits_n+1 vs +3) didn't clearly help at high load.
+[2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf+VBITS512 NB=20 B=120K on 90d[0] | time: TIMEOUT (load=23) | notes: sieve rate ~4800 rels/sec under high load, ETA ~300s. closnuf change (digits_n+1 vs +3) didn't clearly help at high load.
 [2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf NB=18 B=100K on 90d[0] | time: FAIL (>295s) | notes: ~4120-4250 rels/sec. NB=18/B=100K significantly slower than NB=20/B=120K for 90d.
-[2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf NB=24 B=130K on 90d[0] | time: RUNNING | notes: ~5400 rels/sec initially but needs 130K rels (more than 120K). Net effect unclear.
-[2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf NB=16 B=110K on 90d[0] | time: RUNNING | notes: ~4650 rels/sec. Slightly slower than NB=20/B=120K.
-[2026-03-22 23:26:00] size: 50 | approach: gnfs_simple (custom GNFS line siever) | time: 0.27s (only 317/6811 rels) | notes: GNFS line sieve too slow for competition. 1172 rels/sec. Fast poly root finding via modular GCD works. Need lattice sieve for NFS to be competitive.
-[2026-03-22 23:26:00] size: 60 | approach: gnfs_simple (custom GNFS) | time: ~41 rels/sec | notes: FB construction fast (0.19s for 60K bound). Sieve is the bottleneck. Not competitive.
-[2026-03-22 23:00:00] size: 90 | approach: yafu_mod VBITS=512+closnuf SIQS NB=20 B=120K | time: TIMEOUT | notes: closnuf +1 (was +3 for 90d). All 5 timed out under load=40-60. Sieve rates 4600-5400 rels/sec.
-[2026-03-22 23:10:00] size: 90 | approach: GNFS YAFU+GGNFS lasieve5_64/bin/ sievers | time: FAIL | notes: GGNFS sievers lacked +x permission (chmod fix). After fixing, sievers work but GNFS too slow: 487s sieve for 1.46M rels at 3000 rels/sec. Total ~590s.
-[2026-03-22 23:12:00] size: 90 | approach: GNFS fast (no ECM, min poly) | time: FAIL | notes: Even skipping ECM pretesting (43s) and using -psearch min (15s), sieve still needs ~487s. NFS not viable for 90d single-core.
-[2026-03-22 23:17:00] size: 89 | approach: yafu_mod VBITS=512+closnuf SIQS NB=18 B=100K | time: 283.7 | notes: 89d[0-3]: 235.5, 227.1, 264.3, 283.7s. 89d[4] timed out under load=24. VBITS=512 does NOT affect QS BL (uses msieve uint64_t code). closnuf change from 92→88 for 89d.
-[2026-03-22 23:22:00] size: 50 | approach: custom siqs_optimized.c SLP+DLP | time: 5.4 | notes: Working custom SIQS, 30-45x slower than YAFU. 30d:0.33s, 50d:5.4s. Scalar sieve is the bottleneck.
-[2026-03-22 23:31:25] size: 85 | approach: yafu_mod (closnuf+proximity bonus) vs original YAFU 85d[0] | time: 118.8 vs 104.6 | notes: proximity bonus HURTS (14% slower), reverted. False positive overhead dominates.
-[2026-03-22 23:31:25] size: 85 | approach: yafu_mod (closnuf only) vs original YAFU 85d[0] | time: 99.1 vs 95.1 | notes: Within noise (4%), closnuf unchanged for 85d
+[2026-03-22 23:26:00] size: 50 | approach: gnfs_simple (custom GNFS line siever) | time: 0.27s (only 317/6811 rels) | notes: GNFS line sieve too slow for competition.
+[2026-03-22 23:00:00] size: 90 | approach: yafu_mod VBITS=512+closnuf SIQS NB=20 B=120K | time: TIMEOUT | notes: closnuf +1 (was +3 for 90d). All 5 timed out under load=40-60.
+[2026-03-22 23:17:00] size: 89 | approach: yafu_mod VBITS=512+closnuf SIQS NB=18 B=100K | time: 283.7 | notes: 89d[0-3]: 235.5, 227.1, 264.3, 283.7s. VBITS=512 does NOT affect QS BL (uses msieve uint64_t code).
+[2026-03-22 23:22:00] size: 50 | approach: custom siqs_optimized.c SLP+DLP | time: 5.4 | notes: Working custom SIQS, 30-45x slower than YAFU.
+[2026-03-22 23:31:25] size: 85 | approach: yafu_mod (closnuf+proximity bonus) vs original YAFU 85d[0] | time: 118.8 vs 104.6 | notes: proximity bonus HURTS (14% slower), reverted.
 [2026-03-22 23:31:25] size: 89 | approach: yafu_mod (closnuf only) vs original YAFU 89d[0] | time: 228.9 vs 232.3 | notes: Within noise (1.5%), closnuf unchanged for 89d
-[2026-03-22 23:31:25] size: 90 | approach: YAFU GNFS 90d[1] (load 17-24) | time: FAIL | notes: Timed out at 295s. Sieve at q=304879 (of needed ~350K+). Load 17-24 causes cache contention. 0.18ms/rel.
-[2026-03-22 23:31:25] size: 90 | approach: CADO-NFS polyselect 90d[1] (admin=0 admax=20K) | time: 6s | notes: Best exp_E 30.07 in 6s. CADO polyselect works standalone.
-[2026-03-22 23:31:25] size: 90 | approach: msieve poly select 90d[0] (nps 1,5000) | time: 3s | notes: Very fast narrow poly search. Quality unknown.
-[2026-03-22 23:31:25] size: 90 | approach: Parameter sweep NB=16-24 B=100K-140K on 90d[0] | time: FAIL | notes: All 25 combos timeout on 90d[0] (hardest). Run under heavy load (44 processes), unreliable.
+[2026-03-22 23:31:25] size: 90 | approach: YAFU GNFS 90d[1] (load 17-24) | time: FAIL | notes: Timed out at 295s. GNFS not viable under load.
+[2026-03-22 23:31:25] size: 90 | approach: Parameter sweep NB=16-24 B=100K-140K on 90d[0] | time: FAIL | notes: All combos timeout on 90d[0] (hardest). Run under heavy load, unreliable.
 [2026-03-22 23:31:25] size: 70 | approach: hybrid_factor (ECM 5s + YAFU SIQS) 70d[0] | time: 6.8 | notes: ECM finds nothing on balanced semiprime (expected), SIQS succeeds.
 [2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+2 noopt NB=20 B=120K 90d[1] | time: 250.7 | notes: loaded machine (load ~24), nice -20. Closnuf adjusted from +3 to +2 for 90-95d. VBITS=512 BL.
 [2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[1] | time: 273.5 | notes: loaded machine (load ~40). Closnuf +1 was too aggressive.
-[2026-03-22 23:34:49] size: 90 | approach: YAFU GNFS psearch=min plan=none noecm xover=85 90d[0] | time: FAIL | notes: timed out at 295s still sieving. Machine was initially idle (load 0.6) but load increased during run.
+[2026-03-22 23:34:49] size: 90 | approach: YAFU GNFS psearch=min plan=none noecm xover=85 90d[0] | time: FAIL | notes: timed out at 295s still sieving.
 [2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[0] | time: FAIL | notes: loaded machine (load ~40). Sieving ETA 35s remaining at timeout.
-[2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[2] | time: FAIL | notes: sieving completed but BL did not finish. VBITS=512 should help.
-[2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[3] | time: FAIL | notes: sieving completed but BL did not finish.
-[2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[4] | time: FAIL | notes: sieving completed but BL did not finish.
-[2026-03-22 23:34:49] size: 89 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=18 B=100K 89d[4] | time: FAIL | notes: loaded machine. closnuf+1 too aggressive for 89d; sieve rate 4572 vs 4750 baseline. Reverted to +5 for <90d.
-[2026-03-22 23:00:00] size: 89 | approach: yafu_mod closnuf(digits_n+1 for 88-94d) SIQS | time: 235.2 | notes: Too aggressive closnuf change (4 points lower for 89d). More false positives, 15% SLOWER than baseline.
-[2026-03-22 23:05:00] size: 90 | approach: yafu_mod closnuf SIQS NB=20 B=120K (5 parallel) | time: FAIL | notes: All 5 timeout at 295s. Closnuf mod ineffective under heavy load (load=60).
-[2026-03-22 23:10:00] size: 90 | approach: GNFS YAFU+GGNFS (ggnfs_build sievers) | time: FAIL | notes: GGNFS siever from /tmp/ggnfs_build crashes (code 134) when invoked by YAFU. Works fine directly.
-[2026-03-22 23:12:00] size: 90 | approach: GGNFS I=12 direct sieve rate test | time: n/a | notes: 4200 rels/sec under load=38. With lpb=26: 5800 rels/sec but needs 1.89M rels.
-[2026-03-22 23:15:00] size: 90 | approach: CADO-NFS las siever (lpb=23 I=11) | time: n/a | notes: 1458 rels/sec single-threaded. 852K target = 584s. Too slow.
-[2026-03-22 23:20:00] size: 90 | approach: GNFS msieve filtering test (877K rels) | time: n/a | notes: msieve filtering needs ~1.875M rels (877K insufficient, "wants 1M more").
-[2026-03-22 23:28:00] size: 90 | approach: GNFS YAFU post-processing (1.64M rels collected) | time: 28.5 | notes: Filter+LA+sqrt in 28.5s. Factors found: P45 * P45. YAFU filtering needs only 1.46M rels (vs msieve's 1.875M).
-[2026-03-22 23:29:00] size: 90 | approach: GNFS key finding: agent-1 sievers work, ggnfs_build crash | time: n/a | notes: Working sievers at /tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/. Different binary from /tmp/ggnfs_build/.
+[2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[2-4] | time: FAIL | notes: sieving completed but BL did not finish on several.
+[2026-03-22 23:34:49] size: 89 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=18 B=100K 89d[4] | time: FAIL | notes: loaded machine. closnuf+1 too aggressive for 89d.
+[2026-03-22 23:28:00] size: 89 | approach: A/B closnuf+1 vs baseline on 89d[3] (simultaneous) | time: 271s vs 276s | notes: Modified slightly faster (2%) but within noise. Load ~20.
+[2026-03-22 23:28:00] size: 90 | approach: A/B closnuf+1 vs baseline on 90d[1] (simultaneous) | time: 253s vs 249s | notes: Modified slightly slower (2%) but within noise. Load ~20.
+[2026-03-22 23:28:00] size: 90 | approach: yafu_mod3 (90d-only closnuf) on 90d[1] | time: 252.5s | notes: Same as broader closnuf mod. No benefit from targeted change.
+[2026-03-22 23:30:00] size: 90 | approach: yafu_zen4 (-march=znver4) on 90d[1] | time: pending | notes: Testing AMD-optimized build vs skylake-avx512.
+[2026-03-22 23:30:00] size: 90 | approach: yafu_best (znver4+O3+closnuf) on 90d[1] | time: pending | notes: Combined optimizations.
+[2026-03-22 23:28:00] size: 89 | approach: A/B closnuf+1 vs baseline on 89d[3] (simultaneous) | time: 271s vs 276s | notes: Modified slightly faster (2%) but within noise. Load ~20.
+[2026-03-22 23:28:00] size: 90 | approach: A/B closnuf+1 vs baseline on 90d[1] (simultaneous) | time: 253s vs 249s | notes: Modified slightly slower (2%) but within noise. Load ~20.
+[2026-03-22 23:28:00] size: 90 | approach: yafu_mod3 (90d-only closnuf) on 90d[1] | time: 252.5s | notes: Same as broader closnuf mod. No benefit from targeted change.
+[2026-03-22 23:30:00] size: 90 | approach: yafu_zen4 (-march=znver4) | time: pending | notes: Testing AMD-optimized build vs skylake-avx512.

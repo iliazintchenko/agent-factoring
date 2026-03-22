@@ -180,15 +180,25 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 90d not achievable with YAFU SIQS parameter tuning alone.
 
 ### YAFU Source Modifications (yafu_mod/)
-Modifications to YAFU source code in yafu_mod/ directory:
-1. **VBITS=512 Block Lanczos**: Extended common/lanczos/lanczos.h to support 512-bit vectors. **CRITICAL: QS BL uses msieve's code (factor/qs/msieve/lanczos.c) which is hardcoded to uint64_t (64 bits). VBITS only affects NFS BL.** To speed up QS BL, must modify the msieve BL code directly. QS BL is ~2-5% of 89-90d time.
-2. **closnuf threshold for 90d (agent-7 variant)**: More aggressive than agent-10: changed DLP closnuf from digits_n+5 to digits_n+3 for 82-87d, digits_n+3 to digits_n+1 for 88-92d, digits_n+1 to digits_n for 93-99d. Under high load (load ~23), sieve rates were ~4800-5260 rels/sec for 90d — similar to unmodified. Needs low-load testing to determine if closnuf change actually helps.
-3. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190).
-4. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
-5. **DO_UPM1**: Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves. May speed up DLP cofactoring by ~5-10%.
-6. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
+Multiple modification variants tested by multiple agents:
 
-Build: `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
+1. **VBITS=512 Block Lanczos** (yafu_mod/): Extended lanczos.h and lanczos.c to support 512-bit vectors. Adds BIT4-BIT7 macros, loop-based v_and/v_or/v_xor. Builds successfully with `VBITS=512`. **CRITICAL: QS BL uses msieve's code (factor/qs/msieve/lanczos.c) which is hardcoded to uint64_t (64 bits). VBITS only affects NFS BL.** QS BL is ~2-5% of 89-90d time.
+2. **closnuf threshold for 90-95d** (yafu_mod3/): Changed DLP closnuf from `digits_n + 3` to `digits_n + 1` for 90-95d range only (SIQS.c:4717-4718). Lowers sieve threshold by 2 (with AVX512: total -2 bits). A/B test on 90d[1]: 252.5s vs 249s baseline — marginal, within noise.
+3. **Broader closnuf change**: Changed 88-95d from +5/+3 to +1. Lowers 88-89d threshold by 4, which is too aggressive — 89d runs slower than baseline (A/B test: 271s vs 276s on 89d[3], but 233s vs 217s on 89d[0] under different load — inconclusive).
+4. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190). Swapped conditions so larger check comes first.
+5. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
+6. **DO_UPM1** (agent-7): Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves.
+7. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
+
+Build yafu_mod3 (recommended): `cd yafu_mod3 && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48`
+Build yafu_mod (VBITS=512): `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
+
+### closnuf Impact Analysis
+The DLP closnuf threshold (SIQS.c:4710-4727) controls which sieve candidates get trial divided:
+- **Lower closnuf** = more candidates pass sieve scan = more trial division = more DLP relations per polynomial
+- **Too low** = excess trial division overhead outweighs extra DLP relations (seen at 89d: baseline +5 is optimal, +1 is too aggressive, 8% slower)
+- **Optimal for 90d**: likely between +1 and +3 (testing in progress under varying load)
+- Key: each 1-point reduction in closnuf roughly doubles the candidate count (uint8 underflow detection), so changes > ±2 points are dramatic
 
 ### GNFS Pipeline for 90d (agent-6 findings)
 GGNFS sievers work from `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`. Earlier crash reports may have been from different binaries.
