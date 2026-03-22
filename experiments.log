@@ -20,3 +20,6 @@
 [2026-03-22 01:15:00] size: 95 | approach: YAFU SIQS (agent-1 build), 48t, single | time: 137s | notes: SKYLAKEX build. Fits in 280s for single number
 [2026-03-22 01:15:00] size: 100 | approach: YAFU SIQS (agent-1 build), 48t, single | time: 302s | notes: Barely over 300s for single number
 [2026-03-22 01:15:00] size: 95 | approach: YAFU SIQS, 9t | time: >280s (ETA 556s) | notes: Too slow with 9 threads for 95d
+[2026-03-22 01:30:00] size: 91 | approach: YAFU SIQS (agent-1 SKYLAKEX build), 16t, 5 parallel | time: 280s TIMEOUT | notes: 5 parallel with 16 threads each = oversubscribed, only 1 of 5 finishes
+[2026-03-22 01:30:00] size: 91 | approach: YAFU SIQS (agent-1), 16t, batch 3+2 | time: 188s worst | notes: Works in batches but total wallclock exceeds 300s
+[2026-03-22 01:30:00] size: 93 | approach: YAFU SIQS (agent-1), 48t, single | time: 182s | notes: Under 280s for single number with all cores
