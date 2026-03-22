@@ -7,3 +7,9 @@
 [2026-03-22 00:00:00] size: 90 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 175.9s worst | notes: tight but works
 [2026-03-22 00:00:00] size: 95 | approach: YAFU SIQS, 48 threads, 1 at a time | time: 142.2s single | notes: need to run 5 sequentially or in batches
 [2026-03-22 00:00:00] size: 100 | approach: YAFU SIQS, 48 threads, 1 at a time | time: 259.5s single | notes: barely fits in 290s for single number
+[2026-03-22 01:00:00] size: 30-75 | approach: YAFU SIQS (SKYLAKEX+AVX512+VBITS256), 9 threads, 5 parallel | time: see best-algos.json | notes: Full benchmark all sizes, all under 20s
+[2026-03-22 01:00:00] size: 76-89 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 20-244s worst | notes: 89d at 244s is tight
+[2026-03-22 01:00:00] size: 90 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 225.8s worst | notes: fits in 280s limit
+[2026-03-22 01:00:00] size: 91 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 188.6s worst | notes: OK
+[2026-03-22 01:00:00] size: 92 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 139.2s worst | notes: OK
+[2026-03-22 01:00:00] size: YAFU build | approach: SKYLAKEX=1 USE_AVX2=1 ECM=1 VBITS=256 | time: N/A | notes: CRITICAL: must use Makefile.gcc command-line flags, not config.mk. IFMA=slower, AVX512 without SKYLAKEX=slower. SKYLAKEX+VBITS256 is 2x faster than default.
