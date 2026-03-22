@@ -37,7 +37,34 @@
 3. msieve is reliable but wastes 47/48 cores during sieving
 4. For 80-100d balanced semiprimes, need either fixed YAFU or a custom multi-threaded SIQS
 
+## SKYLAKEX YAFU Build (from /tmp/agent-factoring-1/yafu/yafu)
+- Built with: SKYLAKEX=1 USE_AVX2=1 ECM=1 VBITS=256
+- Uses AVX-512 SIMD for sieving: 16-lane vectorization, 2x faster than SSE2
+- Performance with all 48 threads on single number:
+  - 80d: 15s | 85d: ~35s | 90d: ~90s | 91d: 59s | 93d: 182s | 95d: 137s | 100d: 302s
+- No hang bugs observed with `siqs()` command
+- CRITICAL: must use `siqs()` not `factor()` (latter may hang)
+- Must run in own temp directory (working dir conflicts)
+
+## 91-100 Digit Challenge
+- 5 numbers must be factored in parallel within 280s wallclock
+- With 48 cores split 5 ways (~10 threads each), 91d numbers timeout
+- Single number with 48 threads: 91d=59s, 93d=182s, 95d=137s, 100d=302s
+- Key bottleneck: thread scaling is sublinear (7x speedup from 1 to 48 threads)
+- For 95-100d: even single number barely fits in 300s
+- Possible improvements: better polynomial selection, NFS for 95+
+
+## SIQS Architecture (from YAFU source study)
+- Sieve: 32KB blocks (L1 cache fit), byte array with log-prime subtraction
+- SIMD: AVX2 processes 8 primes/cycle, AVX512 does 16 primes/cycle
+- Bucket sieving for large primes with AVX512 gather/scatter
+- Linear algebra: Block Lanczos (not Gaussian) - multi-threaded, ~64 dependencies
+- Large prime: single, double, and triple LP variations for better relation yield
+- Multiplier selection: optimizes kN mod 8 for best sieve efficiency
+- Factor base: 175 primes at 30d, scales to 115,500 at 100d
+
 ## Reference Implementations
-- yafu/yafu: Full YAFU with multi-threaded SIQS (best when it doesn't hang)
+- /tmp/agent-factoring-1/yafu/yafu: SKYLAKEX YAFU - fastest, use this
+- yafu/yafu: Our YAFU build - crashes on 80+d (missing SKYLAKEX flags)
 - yafu/msieve: msieve SIQS, reliable single-threaded fallback
 - cado-nfs/: GNFS implementation for very large numbers (100+d)
