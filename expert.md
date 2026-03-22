@@ -118,8 +118,13 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | Custom SIQS | library/siqs.c exists but broken |
 | VBITS=512 | Not supported by msieve's lanczos.h (limited to 64/128/256) |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
+| yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
 | TLP (forceTLP) | 44% slower than DLP on 85d. Overhead outweighs benefit at <100d. |
 | GNFS (YAFU -xover 85) | ~365s for 90d. Too slow for 300s budget. |
+| USE_BATCHPOLY build | 11% slower (80d: 52.9s vs 47.0s). Batch polynomial root updates hurt performance. |
+| inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
+| CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
+| PGO (profile-guided optimization) | Build fails: GCC's -fprofile-use changes inlining for `__inline` functions (mulredc, sqrredc). Would require adding `static` to all inline declarations. |
 | Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when |p-q| < N^(1/3). |
 
 ### Sieve Architecture (for future optimization attempts)
