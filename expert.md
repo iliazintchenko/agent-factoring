@@ -87,14 +87,20 @@ YAFU supports TLP (use_dlp=2) with `-forceTLP`. Key findings:
 - The `-siqsBT` parameter controls batch size (default 1M, but works with smaller values for testing)
 - Code location: batch processing in `tdiv.c:574-434`, TLP filtering in `SIQS.c:325` (was disabled with `if(0)` but the tdiv.c code path works)
 
-### GNFS for 90d Analysis
-YAFU GNFS with `-xover 85` on 90d:
-- Polynomial selection: ~47s (degree 4 poly)
-- Sieve: needs 1,460,000 relations at ~4500 rels/sec = ~325s
-- Total: ~365-380s — **65-80s over budget**
-- GGNFS lattice sievers are functional but not fast enough single-threaded
-- CADO-NFS single-thread (built at /tmp/agent-factoring-5/cado-nfs/build/): ~580s total CPU for 90d (525s sieve + LA/sqrt). Nearly 2x over budget.
-- Msieve standalone NFS: has built-in line sieve (5x slower than lattice sieve), not viable
+### GNFS for 89-90d Analysis
+YAFU GNFS with `-xover 85` and default GGNFS sievers:
+- **90d[0] completed in 280s wallclock (259s user)** on low-load machine (load ~8.75)
+  - Poly select: ~47s (degree 4, score 4.512e-08)
+  - Sieve: ~220s (1.46M rels needed, GGNFS I=12, lpb=25/25, ~23K rels per 5s batch)
+  - Filter+LA+sqrt: ~13s
+- On loaded machine (load ~10+), same config times out at >295s due to cache contention
+- **AVX512 GGNFS sievers are SLOWER** than default sievers (timed out vs 280s)
+- `-psearch min` reduces poly select from 47s to 15s but worse poly increases sieve time
+- Custom params (lpb=24, I=11 from CADO-NFS) produce 3x fewer rels/q = much slower sieving
+- Sieve rate highly sensitive to L3 cache contention from parallel processes
+- CADO-NFS las siever crashes with C++ exception (AVX512BW not in build flags)
+- msieve standalone NFS: poly select alone takes 148-167s for 89-90d, not viable
+- **Key insight**: GNFS is feasible for 89-90d only on idle/low-load machine (user time ~250-260s)
 
 ### YAFU SIQS on 90d — Closest Attempt
 NB=20 B=120K on 90d (all 5 semiprimes):
