@@ -17,3 +17,5 @@
 [2026-03-22 11:30:00] size: 75-78 | approach: NB=16 vs default | time: NB=16 slightly worse | notes: 75d: 18.7 vs 18.3 (default better), 76d: 20.6 vs 19.7, 77d: 24.7 vs 24.6, 78d: 29.0 vs 29.1. NB=16 crossover is at 79d.
 [2026-03-22 11:30:00] size: 89 | approach: GMP-ECM 100 curves B1=3e7 | time: 295s (20 curves done, no factor) | notes: ~15s/curve, ~0.15-0.3% per curve for 45d factor. Not viable.
 [2026-03-22 12:00:00] size: 88 | approach: GMP 6.3.0 build | time: 229.5s (vs 228.3 with GMP 6.2.1) | notes: No improvement from newer GMP. Same performance.
+[2026-03-22 11:31:17] size: 88 | approach: NB sweep (14/16/18/20/32) on hardest number | time: 225-238s | notes: NB=14:225s, NB=16:226s, NB=18:227s, NB=20:230s, NB=32:238s. NB=14-16 optimal, NB=16 best worst-case. taskset pinning: no benefit.
+[2026-03-22 11:31:17] size: 78-79 | approach: NB=16 | time: 29.3/39.3s | notes: 79d improved 40.1->39.3s with NB=16. 78d unchanged.
