@@ -14,7 +14,8 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 
 | Digits | Worst-case time | Notes |
 |--------|----------------|-------|
-| 30-50  | 0.04-0.12s     | Startup-dominated |
+| 30-44  | 0.014-0.018s   | **smallmpqs** command (3-7x faster than siqs) |
+| 45-50  | 0.08-0.12s     | siqs (smallmpqs segfaults for 45+d) |
 | 51-57  | 0.14-0.38s     | |
 | 58-62  | 0.58-1.2s      | |
 | 63-68  | 1.7-3.7s       | |
