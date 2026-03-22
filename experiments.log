@@ -7,3 +7,6 @@
 [2026-03-22 00:15:00] size: 79 | approach: msieve SIQS | time: INCOMPLETE | notes: Some 79-digit numbers exceed 280s deadline
 [2026-03-22 00:15:00] size: 80 | approach: msieve SIQS (single) | time: 289s | notes: Single 80-digit number took 289s - exceeds 280s deadline
 [2026-03-22 00:15:00] size: 80 | approach: msieve SIQS -t 48 | time: 319s | notes: Multi-threaded SLOWER due to SIQS sieve being single-threaded. Threads only help linear algebra.
+[2026-03-22 00:25:00] size: 80 | approach: msieve GNFS (-n -t 48) | time: 382s | notes: GNFS slower than SIQS for 80-digit balanced semiprimes
+[2026-03-22 00:25:00] size: 90 | approach: msieve SIQS | time: >23min (still running) | notes: 90-digit balanced semiprimes take 20+ minutes with msieve SIQS
+[2026-03-22 00:25:00] size: 79-81 | approach: msieve SIQS benchmark | time: INCOMPLETE | notes: All 5 numbers exceed 280s deadline for sizes 79-81
