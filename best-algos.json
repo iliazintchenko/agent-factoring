@@ -204,8 +204,8 @@
     "time": 7.1
   },
   "81": {
-    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR",
-    "time": 46.17
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 24 -seed 42 -siqsB 15000 && rm -rf $WORKDIR",
+    "time": 15.1
   },
   "82": {
     "run": "echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib yafu/yafu -threads 48 -seed 42 -siqsB 15000",
@@ -216,8 +216,8 @@
     "time": 11.3
   },
   "84": {
-    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR",
-    "time": 54.69
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 24 -seed 42 -siqsB 25000 && rm -rf $WORKDIR",
+    "time": 16.9
   },
   "85": {
     "run": "echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib yafu/yafu -threads 48 -seed 42 -siqsB 25000",
@@ -228,16 +228,16 @@
     "time": 55.1
   },
   "87": {
-    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR",
-    "time": 80.358
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 24 -seed 42 -siqsB 40000 && rm -rf $WORKDIR",
+    "time": 18.8
   },
   "88": {
     "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 24 -seed 42 -siqsB 37200 && rm -rf $WORKDIR",
     "time": 60.4
   },
   "89": {
-    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR",
-    "time": 142.388
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 24 -seed 42 -siqsB 40000 && rm -rf $WORKDIR",
+    "time": 35.8
   },
   "90": {
     "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib /tmp/agent-factoring-3/yafu/yafu -threads 24 -seed 42 -siqsB 38000 && rm -rf $WORKDIR",
