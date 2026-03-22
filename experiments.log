@@ -76,3 +76,8 @@
 [2026-03-22 19:35:00] size: 85 | approach: yamaquasi | time: 264.3s | notes: 2x slower than YAFU (136.4s). 88d timed out at 300s (~75% done, estimated ~400s).
 [2026-03-22 19:30:00] size: 88 | approach: inmem=100 on 88d[3] | time: 226.0s | notes: No improvement over default (222.4s). Machine loaded (34 avg).
 [2026-03-22 19:25:00] size: 80 | approach: inmem=100 | time: 47.5s | notes: Same as default (~47s). inmem only helps below 70d where it's already default.
+[2026-03-22 19:30:00] size: 79 | approach: NB sweep 11/12/14 | time: 39.2/39.2/39.8 worst | notes: NB=11 and NB=12 identical. Default optimal for <80d. Confirmed expert.md.
+[2026-03-22 19:30:00] size: 74-76 | approach: NB sweep 8/10/11/12 | time: no improvement | notes: Default NB optimal for 74-76d as expected.
+[2026-03-22 19:30:00] size: 85 | approach: NB=16/18/20 with B=70K | time: 139.2/138.6/pending | notes: NB=16 slightly worse than NB=18. NB=18 B=70K matches current best (136.4s within noise).
+[2026-03-22 19:30:00] size: 89 | approach: Per-number NB=16/18/20 B=100K | time: 277.6/275.7/275.6 for [3], all timeout for [4] | notes: NB makes <1s difference on same number. 89d[4] is ~296s borderline regardless of NB.
+[2026-03-22 19:30:00] size: ALL | approach: YAFU source analysis | time: N/A | notes: USE_BATCHPOLY disabled (forces FORCE_GENERIC). Param table uses NB averaging not interpolation. Store-to-load forwarding in sieve kernel unavoidable. No compile-time improvements available.

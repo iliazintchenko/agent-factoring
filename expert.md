@@ -146,6 +146,13 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 - M: 150, 200 — no help
 90d confirmed infeasible with any SIQS parameter combination.
 
+### YAFU Source-Level Analysis (compile-time options)
+- **USE_BATCHPOLY**: Commented out in `qs_impl.h`. Would batch bucket root updates every 4 polys. But sets `FORCE_GENERIC=1`, disabling AVX512BW sieve. Author's comment: "unable to get this to run faster."
+- **Parameter table** (`siqs_aux.c:327`): AVX512F table has NB=8 for 281-298 bits (85-90d). Our experiments show NB=14-18 + B=70-100K are optimal. But modifying the table hurts because the interpolation code averages NB from bounding rows instead of interpolating. Always use `-siqsNB` and `-siqsB` command-line overrides.
+- **Sieve kernel** (`med_sieve_32k_avx2.c:689`): Store-to-load forwarding stall in inner loop (512-bit store then 16-bit loads) is unavoidable on AMD Zen4. No vpscatterb instruction exists.
+- **Block Lanczos**: Only 2-8% of total time at 85-89d. VBITS=512 would halve BL time but isn't supported.
+- **DLP cofactoring**: Batch GCD path disabled (`&& 0`). Online microECM per candidate is faster for DLP.
+
 ### Resume Feature
 YAFU can save/resume via siqs.dat. Key findings:
 - Use `-siqsT <seconds>` for clean shutdown (avoids corrupted save files)
