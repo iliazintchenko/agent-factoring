@@ -138,14 +138,22 @@ for i in $(seq 1 "$NUM_AGENTS"); do
   nohup bash -c "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json" > "$LOG" 2>&1 &
 done
 
-# Single tmux window showing human-readable messages from all agents
-TAIL_CMD=""
-for i in $(seq 1 "$NUM_AGENTS"); do
-  LOG="/tmp/agent-factoring-$i/agent.log"
-  TAIL_CMD="$TAIL_CMD (tail -f $LOG | jq --unbuffered -r 'select(.type==\"assistant\" and .message.content) | .message.content[] | select(.type==\"text\") | \"[agent-$i] \" + .text' 2>/dev/null) &"
+# Write a monitor script that tails all agent logs with prefixed output
+cat > /tmp/monitor-agents.sh <<'MONITOR'
+#!/bin/bash
+for log in /tmp/agent-factoring-*/agent.log; do
+  agent=$(echo "$log" | grep -o 'agent-factoring-[0-9]*' | grep -o '[0-9]*')
+  (tail -f "$log" | jq --unbuffered -r '
+    select(.type=="assistant" and .message.content)
+    | .message.content[]
+    | select(.type=="text")
+    | "[agent-'"$agent"'] " + .text
+  ' 2>/dev/null) &
 done
-TAIL_CMD="$TAIL_CMD wait"
-tmux new-session -s factoring -d "bash -c '$TAIL_CMD'"
+wait
+MONITOR
+chmod +x /tmp/monitor-agents.sh
+tmux new-session -s factoring -d /tmp/monitor-agents.sh
 REMOTE
 
 ssh -t "$HOST" 'tmux attach -t factoring'
