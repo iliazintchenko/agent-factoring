@@ -2,7 +2,7 @@
 """Run all 5 semiprimes for each size, single-threaded, and update best-algos.json."""
 import json, subprocess, time, sys, os, tempfile, datetime
 
-YAFU = "/tmp/agent-factoring-2/yafu/yafu"
+YAFU = "/tmp/agent-factoring-2/yafu/yafu"  # SKYLAKEX+AVX512+VBITS=256 build
 
 with open("semiprimes.json") as f:
     semiprimes = json.load(f)
