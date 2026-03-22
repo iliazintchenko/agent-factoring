@@ -5,3 +5,11 @@ agent.log
 cado-nfs
 yafu
 
+siqs.dat
+factor.log
+session.log
+*.o
+__pycache__/
+factor
+msieve
+siqs
