@@ -20,3 +20,4 @@
 [2026-03-22 11:31:17] size: 88 | approach: NB sweep (14/16/18/20/32) on hardest number | time: 225-238s | notes: NB=14:225s, NB=16:226s, NB=18:227s, NB=20:230s, NB=32:238s. NB=14-16 optimal, NB=16 best worst-case. taskset pinning: no benefit.
 [2026-03-22 11:31:17] size: 78-79 | approach: NB=16 | time: 29.3/39.3s | notes: 79d improved 40.1->39.3s with NB=16. 78d unchanged.
 [2026-03-22 13:00:00] size: ALL | approach: YAFU source analysis | time: N/A | notes: Comprehensive analysis of SIQS implementation. Key findings: 3-tier sieve (small skipped, medium ASM, large bucket), self-init Gray code poly switching, DLP at 70+d with mini-SIQS cofactorization, 48-row post-Lanczos optimization. All well-optimized, no opportunities found.
+[2026-03-22 14:00:00] size: 30-44 | approach: YAFU smallmpqs vs siqs | time: 14-18ms vs 40-77ms | notes: smallmpqs is 3-7x faster for 30-44d. Uses tiny self-contained SIQS with less startup overhead. Segfaults for 45+d.
