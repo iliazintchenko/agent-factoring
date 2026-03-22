@@ -12,12 +12,13 @@
 
 ## Custom Implementations
 
-### siqs2.c - Custom SIQS (WORKING)
+### siqs2.c - Custom SIQS (WORKING, agent-6 rewrite)
 - **Compile**: `gcc -O2 -march=native -o siqs2 library/siqs2.c -lgmp -lm`
 - **Usage**: `timeout 295 ./siqs2 <N>`
-- **Performance**: 30d: 0.04s, 50d: 6.3s, 55d: ~30s
-- **Status**: Working but 100-1000x slower than YAFU. Scalar sieve, no Gray code self-init.
-- **Improvement areas**: SIMD sieve, Gray code poly switching, resieve-based tdiv, Block Lanczos
+- **Performance**: 30d: 0.044s, 40d: 0.8s, 50d: 10s
+- **Status**: Working. Full SIQS with Gray code self-init, Knuth-Schroeppel multiplier, block sieving, single LP.
+- **3-80x slower than YAFU** (no AVX512 sieve, GMP-based trial division)
+- **Key algorithms**: Gray code b-enumeration, CRT polynomial generation, dynamic a-factor selection
 
 ### mpqs.c - Custom MPQS (PARTIAL)
 - **Compile**: `gcc -O3 -march=native library/mpqs.c -o mpqs -lgmp -lm`
@@ -38,9 +39,10 @@
 - **Usage**: `gcc -O3 library/factor.c -lgmp -lecm -o factor && ./factor <N>`
 - **Not competitive** for balanced semiprimes above 40 digits
 
-## Benchmark Scripts
+## Benchmark & Driver Scripts
+- **factor_driver.sh**: Optimal factoring driver (auto-selects best YAFU params per digit size)
+- **bench_all.py**: Comprehensive benchmark (all sizes 30-89d, all 5 per size in parallel)
 - **bench_single.py**: Main benchmark (runs 5 semiprimes per size in parallel)
-- **bench_all.sh**: Benchmark all 5 semiprimes for a given size
 - **update_best.py**: Updates best-algos.json with benchmark results
 - **bench_yafu.py**: YAFU benchmark with parameter control
 - **nb_sweep.sh**: NB parameter sweep

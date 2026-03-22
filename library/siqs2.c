@@ -950,21 +950,39 @@ int main(int argc, char *argv[]) {
                 int smooth = 1;
                 int sign_exp = neg ? 1 : 0;
 
-                /* Divide by 2 */
-                int exp2 = 0;
-                while (mpz_even_p(residue)) {
-                    mpz_tdiv_q_2exp(residue, residue, 1);
-                    exp2++;
-                }
+                /* OPTIMIZED trial division: use sieve roots to identify
+                 * which FB primes divide Q(x), then divide only by those.
+                 * For prime p: if x ≡ soln1 (mod p) or x ≡ soln2 (mod p),
+                 * then p | Q(x).
+                 */
 
-                /* Divide by odd FB primes */
+                /* Divide by 2 */
+                while (mpz_even_p(residue))
+                    mpz_tdiv_q_2exp(residue, residue, 1);
+
+                /* Divide by odd FB primes using sieve root check */
                 for (int i = 1; i < fb->size; i++) {
                     unsigned int p = fb->prime[i];
+                    if (ps.soln1[i] == 0xFFFFFFFF) continue;
+                    /* Check if this prime divides Q(x) at this position */
+                    long xpos = x;
+                    long r1 = (long)ps.soln1[i];
+                    long r2 = (long)ps.soln2[i];
+                    long xmod = ((xpos % (long)p) + p) % p;
+                    if (xmod != r1 && xmod != r2) continue;
+                    /* This prime divides Q(x) - divide it out */
                     if (mpz_divisible_ui_p(residue, p)) {
                         do {
                             mpz_divexact_ui(residue, residue, p);
                         } while (mpz_divisible_ui_p(residue, p));
                     }
+                }
+                /* Also try small primes we skipped in sieve */
+                for (int i = 0; i < fb->size && fb->prime[i] < (unsigned int)skip_bound; i++) {
+                    unsigned int p = fb->prime[i];
+                    if (p <= 2) continue; /* already handled 2 */
+                    while (mpz_divisible_ui_p(residue, p))
+                        mpz_divexact_ui(residue, residue, p);
                 }
 
                 /* Check residue */

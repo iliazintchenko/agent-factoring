@@ -181,20 +181,25 @@ YAFU can save/resume via siqs.dat. Key findings:
 
 ## Custom SIQS Implementations
 
-### siqs2.c — Working Custom SIQS
-- **Status**: Working, 30-60d factoring confirmed
-- **Performance**: 30d: 0.042s, 50d: 6.3s, 55d: ~30s
-- **Comparison to YAFU**: 100-1000x slower (YAFU: 30d=0.014s, 50d=0.12s, 55d=0.29s)
-- **Key bottlenecks**:
+### siqs2.c — Working Custom SIQS (agent-6 rewrite)
+- **Status**: Working, 30-50d factoring confirmed, correct results
+- **Performance**: 30d: 0.044s, 40d: 0.8s, 50d: 10s
+- **Comparison to YAFU**: 3-80x slower (YAFU: 30d=0.014s, 40d=0.017s, 50d=0.12s)
+- **Features implemented**:
+  - Knuth-Schroeppel multiplier selection
+  - Self-initializing polynomials with Gray code b-value enumeration
+  - 32KB block sieving for L1D cache efficiency
+  - Single large prime variation with hash table
+  - Dynamic a-coefficient selection (auto-determines num_a_factors)
+  - Correct a*Q(x) tracking for GF(2) matrix
+- **Key bugs fixed**:
+  - Sieve offset computation: must NOT add M to block_start (was marking wrong positions)
+  - GF(2) matrix: must include 'a' coefficient primes (store a*Q(x), not Q(x))
+  - Loop termination: was double-counting combined relations
+- **Remaining bottlenecks**:
   - Scalar sieve kernel (no SIMD) — YAFU uses AVX512BW 32-way sieve
-  - No Gray code B-switching (new A for every polynomial) — wastes time on root computation
-  - Pure Gaussian elimination for linear algebra vs YAFU's Block Lanczos
-  - Trial division uses mpz_divexact per prime vs YAFU's mod-inverse-based SIMD tdiv
-- **Improvement opportunities**:
-  - Add Gray code self-init (2^(s-1) B-polys per A)
-  - SIMD sieve kernel (even SSE2 would help 4x)
-  - Resieve-based trial division instead of per-prime GMP calls
-  - Block Lanczos for LA (saves 2-5x on large matrices)
+  - GMP-based trial division per candidate — sieve-guided approach only provides 2x speedup
+  - Pure Gaussian elimination vs YAFU's Block Lanczos
 
 ### mpqs.c — Custom MPQS (partial)
 - **Status**: Sieve + relation finding works, sqrt step has bug
