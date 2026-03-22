@@ -9,3 +9,6 @@
 [2026-03-22 07:30:00] size: 88 | approach: System GMP build | time: 240s (from 252s) | notes: System GMP 6.2.1 ~5-13% faster than bundled
 [2026-03-22 08:30:00] size: 87-88 | approach: YAFU SIQS -siqsNB 16 | time: 196s/230s worst | notes: Larger sieve interval gives 3-5% improvement
 [2026-03-22 08:30:00] size: 30-88 | approach: agent-3 YAFU build w/ system GMP + AVX512BW | time: best times | notes: Agent-3 build consistently faster due to system GMP and proper AVX512BW compilation
+[2026-03-22 09:00:00] size: 75-78 | approach: YAFU -siqsNB 8/12/16 | time: NB=8 fastest | notes: NB=16 only helps for 85+ digits. For 75-84d, default NB=8 is optimal.
+[2026-03-22 09:00:00] size: 89 | approach: agent-3 YAFU + NB=16 | time: 89d[3]=288s OK, 89d[4]=300s TIMEOUT | notes: NB=16 improved [3] from 296s to 288s but [4] still exceeds 300s.
+[2026-03-22 09:00:00] size: 88 | approach: inmem/siqsNobat/siqsMFBD | time: no improvement | notes: Default settings already optimal. inmem/nobat same speed. MFB tuning worse.
