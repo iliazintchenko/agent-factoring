@@ -14,3 +14,5 @@
 [2026-03-22 10:17:28] size: 89 | approach: NB=12/16/24 parameter sweep | time: 307-312s worst | notes: NB=16 optimal. NB=12=309s, NB=24=312s, default NB=8=318s. Combined with siqsB=60000: slower (316s).
 [2026-03-22 10:53:55] size: 70-88 | approach: YAFU SIQS -siqsNB 16 systematic benchmark | time: 6.5-228.5s worst | notes: NB=16 helps 80+d (2-10% improvement) but hurts <80d. Use NB=16 for 80+, default for smaller. 85d: 142.2->138.8s, 87d: 197.7->193.7s, 88d: 250.4->228.5s.
 [2026-03-22 10:54:11] size: 70-88 | approach: YAFU SIQS -siqsNB 16 | time: 6.5-228.5s worst | notes: NB=16 helps 80+d. 85d: 142.2->138.8s, 87d: 197.7->193.7s, 88d: 250.4->228.5s.
+[2026-03-22 11:30:00] size: 75-78 | approach: NB=16 vs default | time: NB=16 slightly worse | notes: 75d: 18.7 vs 18.3 (default better), 76d: 20.6 vs 19.7, 77d: 24.7 vs 24.6, 78d: 29.0 vs 29.1. NB=16 crossover is at 79d.
+[2026-03-22 11:30:00] size: 89 | approach: GMP-ECM 100 curves B1=3e7 | time: 295s (20 curves done, no factor) | notes: ~15s/curve, ~0.15-0.3% per curve for 45d factor. Not viable.
