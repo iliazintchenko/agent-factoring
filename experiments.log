@@ -1,1 +1,7 @@
 [2026-03-22 05:00:00] size: ALL | approach: CLEARED all previous results | time: N/A | notes: All prior results used multi-threaded YAFU (-threads 9/24/48), violating single-core rule. Re-running everything with -threads 1 -seed 42.
+[2026-03-22 07:13:42] size: 30-60 | approach: YAFU SIQS single-threaded w/ AVX512BW rebuild (-threads 1 -seed 42) | time: 0.04-0.70s worst-case | notes: AVX512BW sieve rebuild gives 3-7x speedup on small sizes (startup-dominated). Binary at /tmp/agent-factoring-3/yafu/yafu.
+[2026-03-22 07:13:42] size: 85 | approach: YAFU AVX512BW vs agent-1 YAFU | time: 95.8s vs 111s | notes: 14% faster with AVX512BW sieve rebuild
+[2026-03-22 07:13:42] size: 89 | approach: YAFU SIQS single-threaded default params, AVX512BW rebuild | time: 292-318s worst | notes: 89d[3]=292s OK, 89d[4]=318s FAIL. Down from 375/416 with old binary. Sieving is bottleneck (312s for hardest number).
+[2026-03-22 07:13:42] size: 89 | approach: YAFU siqsB=40000,50000,90000 | time: 327-403s | notes: Non-default FB sizes all slower. Default FB is optimal.
+[2026-03-22 07:13:42] size: 89 | approach: YAFU forceDLP, forceTLP, siqsLPB=30 | time: same or worse | notes: DLP already used by default. TLP crashes. Larger LPB doesn't help.
+[2026-03-22 07:13:42] size: 89 | approach: CADO-NFS NFS single-threaded | time: ~1561s CPU | notes: NFS overhead too high for 89d. Multiple worker processes violate single-core rule.
