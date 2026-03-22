@@ -72,3 +72,7 @@
 [2026-03-22 19:10:00] size: 85 | approach: PGO build attempt | time: FAIL | notes: PGO build had inline function issues (mulredc/sqrredc). GCC's -fprofile-use changes inlining decisions for __inline functions. Would need static keyword fixes.
 [2026-03-22 19:25:00] size: 89 | approach: NB=20 B=120K all 5 numbers | time: 295.0s worst | notes: 89d[0]=219.2, [1]=208.4, [2]=244.3, [3]=276.4, [4]=295.0. Machine loaded (34 avg). Essentially same as NB=18 B=100K (294.4s on quiet machine).
 [2026-03-22 19:22:00] size: 70 | approach: yamaquasi (Rust SIQS) | time: 13.58s | notes: 2.3x slower than YAFU (5.8s). Not competitive.
+[2026-03-22 19:35:00] size: 70 | approach: yamaquasi (Rust SIQS, --threads 1 --mode siqs) | time: 13.58s | notes: 2.3x slower than YAFU (5.8s). yamaquasi built with -C target-cpu=native.
+[2026-03-22 19:35:00] size: 85 | approach: yamaquasi | time: 264.3s | notes: 2x slower than YAFU (136.4s). 88d timed out at 300s (~75% done, estimated ~400s).
+[2026-03-22 19:30:00] size: 88 | approach: inmem=100 on 88d[3] | time: 226.0s | notes: No improvement over default (222.4s). Machine loaded (34 avg).
+[2026-03-22 19:25:00] size: 80 | approach: inmem=100 | time: 47.5s | notes: Same as default (~47s). inmem only helps below 70d where it's already default.
