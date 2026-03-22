@@ -53,14 +53,17 @@ All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
 | forceTLP | Yes | Crashes (unsupported) |
 | siqsLPB (LP bound, bits) | 30 vs default ~28 | Slightly slower (380s vs 375s) |
 
-### Why 89d+ Exceeds 280s Single-Core
-Timing breakdown for 89d[4] (hardest number, AVX512BW rebuild):
-- **Sieving**: ~340s (70K relations needed, ~3200 sieve ops/sec, ~190 useful rels/sec)
-- **Block Lanczos**: ~170s
-- **Total**: ~510s — neither phase alone fits in 280s
-- The other 4 numbers of 89d complete in 222-372s. Only the worst-case fails.
-- All parameter tuning exhaustively tested: siqsB (40K-100K), siqsM (100-200), siqsNB (12-20), forceDLP, forceTLP, siqsLPB — ALL time out on this number.
-- GNFS via YAFU refuses (gnfs_xover starts at 91d), GNFS via cado-nfs also times out.
+### Why 89d+ Exceeds 300s Single-Core
+Timing breakdown for 89d (system GMP build, -siqsNB 16):
+- **With NB=16**: 89d[0-3] = 207-282s (all pass). 89d[4] = >300s (timeout).
+- **Sieving dominates**: 222s of 228s total for 88d (98% sieve, 2% Block Lanczos)
+- 89d[4] needs ~70K relations at ~3200 sieve ops/sec, requiring ~300+s
+- **Branch misprediction**: perf shows 5.96% branch miss rate, ~20% cycle waste (inherent to sieve algorithm)
+- **IPC**: 2.67 instructions/cycle (good for AVX512 workload)
+- All parameters exhaustively tested: siqsB, siqsNB (8-64), siqsM, siqsMFBD, siqsSSidx, forceDLP, forceTLP, siqsLPB, -noopt, -siqsNobat, -inmem — none help
+- GNFS via YAFU refuses (gnfs_xover starts at 91d)
+- CADO-NFS single-core: ~720 CPU-sec (much slower)
+- PGO/LTO/O3/march=znver4: no improvement (hand-written AVX512 intrinsics)
 - Each additional digit adds ~35-50% more sieving time
 
 ### Alternatives Explored
