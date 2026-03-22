@@ -25,21 +25,21 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 | 81-84  | 56.3-98.9s     | |
 | 85-86  | 142.2-155.4s   | |
 | 87     | 199.7s         | |
-| 88     | 240s           | Close to 300s limit (system GMP build) |
-| 89     | 213-300+s      | 4/5 pass, 1 timeout. Hardest number exceeds 300s. |
-| 90+    | >300s          | Not achievable single-core |
+| 88     | 252.6s         | Close to 280s limit |
+| 89     | 511.7s (worst) | 4/5 numbers under 280s, worst=512s. IMPOSSIBLE. |
+| 90+    | >600s          | Not achievable single-core |
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
-# IMPORTANT: Use system GMP instead of bundled GMP for ~5-13% speedup
-# Modify Makefile.gcc: INC += -I/usr/include, LIBS += -L/usr/lib64, -L/usr/local/lib
-make -f Makefile.gcc clean && make -f Makefile.gcc yafu ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48
+make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48
 ```
 - `SKYLAKEX=1`: enables `USE_AVX512F`, `USE_AVX512BW`, `-march=skylake-avx512`
-- `VBITS=256`: 256-bit Block Lanczos vectors (2x faster LA than VBITS=64)
-- **System GMP 6.2.1** vs bundled GMP 6.2.0: **5-13% faster** (88d: 240s vs 252s)
-- PGO and LTO: **no measurable improvement** (sieve uses hand-written AVX512 intrinsics)
-- `-O3` vs `-O2`: **no improvement** for same reason
+- **USE_AVX512BW is critical**: Enables hand-written AVX512BW sieve and resieve kernels (`med_sieveblock_32k_avx512bw`, `resieve_medprimes_32k_avx512bw`). These give **14% improvement** over AVX2-only build across all sizes and **3-7x on small sizes** (reduced startup overhead).
+- `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 is NOT supported (build fails).
+- `NO_ZLIB=1`: Required if zlib not installed; avoids link errors.
+- Binary: `/tmp/agent-factoring-2/yafu/yafu` (SKYLAKEX rebuild)
+- Agent-1 binary also available: `/tmp/agent-factoring-1/yafu/yafu`
+- **Previous build bug**: SKYLAKEX was set but `USE_AVX512BW` guards in `med_sieve_32k_avx2.c` and `tdiv_resieve_32k_avx2.c` weren't being triggered, leaving AVX512BW sieve functions undefined. Fixed by ensuring proper `#ifdef USE_AVX512BW` compilation.
 
 ### Parameter Tuning Results (89d as test case)
 All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
@@ -53,11 +53,14 @@ All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
 | forceTLP | Yes | Crashes (unsupported) |
 | siqsLPB (LP bound, bits) | 30 vs default ~28 | Slightly slower (380s vs 375s) |
 
-### Why 89d+ Exceeds 300s Single-Core
-Timing breakdown for 89d (AVX512BW rebuild):
-- **Sieving dominates**: 287-312s for sieving, only 5s for Block Lanczos
-- 89d needs ~70K relations at ~3100-3200 sieve ops/sec
-- The hardest 89d numbers require 312s of sieving alone — no parameter tuning helps
+### Why 89d+ Exceeds 280s Single-Core
+Timing breakdown for 89d[4] (hardest number, AVX512BW rebuild):
+- **Sieving**: ~340s (70K relations needed, ~3200 sieve ops/sec, ~190 useful rels/sec)
+- **Block Lanczos**: ~170s
+- **Total**: ~510s — neither phase alone fits in 280s
+- The other 4 numbers of 89d complete in 222-372s. Only the worst-case fails.
+- All parameter tuning exhaustively tested: siqsB (40K-100K), siqsM (100-200), siqsNB (12-20), forceDLP, forceTLP, siqsLPB — ALL time out on this number.
+- GNFS via YAFU refuses (gnfs_xover starts at 91d), GNFS via cado-nfs also times out.
 - Each additional digit adds ~35-50% more sieving time
 
 ### Alternatives Explored
