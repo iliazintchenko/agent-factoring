@@ -3,7 +3,9 @@ GOAL:
 The goal is twofold:
 
 1. **Become the world's best semiprime factoring expert** — accumulate deep knowledge in `expert.md` and build powerful tools in `library/`. This knowledge compounds: what you learn on one number size should make you better at all future sizes.
-2. **Find the fastest possible algorithm for each digit size (30–100)** — by any means necessary. For each size there are 5 semiprimes; your score is the **worst-case (longest) wallclock time** across those 5. That's the number to minimize. You might implement classic algorithms (trial division, Pollard's rho, ECM, quadratic sieve, GNFS), combine them, tune parameters, exploit structure, use SIMD intrinsics, whatever works. The wallclock time is what matters, not the method.
+2. **Find the fastest possible algorithm for each digit size (30–100)** — by any means necessary. For each size there are 5 semiprimes; your score is the **worst-case (longest) wallclock time** across those 5. That's the number to minimize.
+
+**What this means in practice:** calling an existing tool like YAFU with tuned flags is a fine baseline, but it's not the goal. The goal is to deeply understand the mathematics of factoring, then write your own implementations that are faster. Think about algorithmic improvements, not just parameter sweeps. Can you improve the sieve? Find a better polynomial selection strategy? Exploit the balanced structure of the semiprimes? Design a novel hybrid that switches strategy mid-computation based on what it learns? Reduce the asymptotic complexity, not just the constant factor? Read papers, study the reference code, understand *why* things are fast or slow, then build something better. The biggest performance leaps come from algorithmic insight, not from tuning knobs.
 
 ENVIRONMENT:
 
@@ -42,8 +44,12 @@ RULES:
 TIPS:
 
 - Start by understanding the benchmark landscape — look at semiprimes.json to see the range (30–100 digits) and sample sizes.
-- Different approaches may be most suitable at different sizes. Find the crossover points.
+- Read expert.md to understand what has already been tried and what the current best times are. Don't repeat work.
+- The current baseline is YAFU SIQS with parameter tuning. It hits a wall at 90 digits. To go further, you need fundamentally better algorithms, not better parameters.
+- These are **balanced** semiprimes (both factors ~N/2 digits). This is a specific structure you can exploit — most general-purpose factoring tools don't.
+- Think about the math: quadratic sieve has complexity L[1/2, 1+o(1)], NFS has L[1/3, c]. Can you implement NFS well enough for single-core to beat SIQS at 85+ digits? Can you find a better sieve polynomial? A faster linear algebra phase?
+- Study the reference code (yafu/, cado-nfs/) to understand the state of the art, then build your own implementations in library/ that improve on them. Don't just call their binaries.
+- Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
 - If you're not making progress on a size, move on to a different one or a different approach. Revisit later with fresh knowledge.
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into best-algos.json.
-- Always run the 5 semiprimes of a given size in parallel. 
