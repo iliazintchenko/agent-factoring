@@ -202,5 +202,13 @@
   "93": {
     "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 24 && rm -rf $WORKDIR",
     "time": 90
+  },
+  "94": {
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 24 && rm -rf $WORKDIR",
+    "time": 137
+  },
+  "95": {
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 24 && rm -rf $WORKDIR",
+    "time": 191
   }
 }
