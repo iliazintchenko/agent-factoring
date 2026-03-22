@@ -3,3 +3,7 @@
 [2026-03-22 00:05:00] size: 70 | approach: msieve SIQS | time: 18.7s | notes: Initial measurement for 70-digit semiprimes
 [2026-03-22 00:05:00] size: 30-50 | approach: single-thread ECM (factor.c) | time: 0.5-7s | notes: Single-threaded ECM much slower than msieve or parallel ECM
 [2026-03-22 00:05:00] size: 64+ | approach: single-thread ECM | time: FAIL | notes: ECM cannot handle balanced semiprimes with factors >32 digits
+[2026-03-22 00:15:00] size: 66-78 | approach: msieve SIQS | time: 7-154s | notes: 66d:7s, 69d:21s, 70d:19s, 71d:61s, 75d:56s, 76d:102s, 77d:155s, 78d:154s
+[2026-03-22 00:15:00] size: 79 | approach: msieve SIQS | time: INCOMPLETE | notes: Some 79-digit numbers exceed 280s deadline
+[2026-03-22 00:15:00] size: 80 | approach: msieve SIQS (single) | time: 289s | notes: Single 80-digit number took 289s - exceeds 280s deadline
+[2026-03-22 00:15:00] size: 80 | approach: msieve SIQS -t 48 | time: 319s | notes: Multi-threaded SLOWER due to SIQS sieve being single-threaded. Threads only help linear algebra.
