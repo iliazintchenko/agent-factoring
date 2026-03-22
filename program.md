@@ -1,11 +1,10 @@
 GOAL:
 
-The goal is twofold:
+1. **Extend the frontier.** The primary metric is: what is the largest digit size where you can factor all 5 semiprimes in under 300 seconds each, on a single core? Push this number as high as possible. Going from 89 to 90 digits is worth more than shaving seconds off 70-digit times.
 
-1. **Become the world's best semiprime factoring expert** — accumulate deep knowledge in `expert.md` and build powerful tools in `library/`. This knowledge compounds: what you learn on one number size should make you better at all future sizes.
-2. **Find the fastest possible algorithm for each digit size (30–100)** — by any means necessary. For each size there are 5 semiprimes; your score is the **worst-case (longest) wallclock time** across those 5. That's the number to minimize.
+2. **Beat YAFU.** YAFU (in yafu/) is the baseline. Write your own factoring code in `library/` that is faster than YAFU on at least some size range. Calling YAFU with different flags or build options is not progress — that's just tuning someone else's tool. Write your own implementations, understand the algorithms deeply, and make them faster.
 
-**What this means in practice:** calling an existing tool like YAFU with tuned flags is a fine baseline, but it's not the goal. Parameter sweeps on existing tools are not productive — they yield marginal improvements lost in measurement noise. Instead, write your own code. Understand the mathematics deeply, then implement novel approaches that are fundamentally faster. Can you improve the sieve? Find a better polynomial selection strategy? Exploit the balanced structure of the semiprimes? Design a novel hybrid that switches strategy mid-computation based on what it learns? Reduce the asymptotic complexity, not just the constant factor? Read papers, study the reference code, understand *why* things are fast or slow, then build something better. The biggest performance leaps come from algorithmic insight, not from tuning knobs.
+3. **Build expertise.** Accumulate deep knowledge in `expert.md` and powerful tools in `library/`. This knowledge compounds: what you learn on one number size should make you better at all future sizes.
 
 ENVIRONMENT:
 
@@ -44,9 +43,9 @@ RULES:
 
 TIPS:
 
-- Start by understanding the benchmark landscape — look at semiprimes.json to see the range (30–100 digits) and sample sizes.
-- Read expert.md to understand what has already been tried and what the current best times are.
+- Read expert.md first to understand what has already been tried. Don't repeat failed experiments.
 - Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
-- After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
-- If you're not making progress on a size, move on to a different one or a different approach. Revisit later with fresh knowledge.
+- The frontier is currently at 89 digits. Pushing to 90+ likely requires NFS or a fundamentally different approach — SIQS hits a wall there.
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into best-algos.json.
+- After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
+- If you're not making progress, move on to a different approach. Revisit later with fresh knowledge.
