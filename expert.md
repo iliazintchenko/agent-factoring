@@ -106,16 +106,32 @@ YAFU GNFS with `-xover 85` and default GGNFS sievers:
 - CADO-NFS las siever crashes with C++ exception (AVX512BW not in build flags)
 - msieve standalone NFS: poly select alone takes 148-167s for 89-90d, not viable
 - **Key insight**: GNFS is feasible for 89-90d only on idle/low-load machine (user time ~250-260s)
+- **agent-4 GNFS test (load ~0.6)**: 90d[0] with `-psearch min -plan none -noecm -xover 85`: timed out at 295s still in sieve phase (q=269923, yield ~22K/batch at 0.00029 sec/rel). Poly select found score 4.512e-08. GNFS needs continuous low-load for full 280s+ run.
 
-### GGNFS Siever Build & Permissions (CRITICAL)
-- GGNFS sievers built from lasieve5_nfsathome source at `yafu/factor/lasieve5_64/bin/`
-- **Sievers need `chmod +x`** — pre-built binaries lost execute permission. YAFU treats permission-denied (exit 126) as a siever crash, logging "ggnfs returned code 134"
-- **Working sievers**: `lasieve5_64/bin/gnfs-lasieve4I{11,12,13}e` (pre-built, non-avx512)
-- **Crashing sievers**: `lasieve5_64/bin/avx512/gnfs-lasieve4I{11,12,13}e` (built from nfsathome source, crash after chmod fix too — different bug)
-- **yafu.ini required**: NFS silently falls back to SIQS if YAFU can't find yafu.ini with `ggnfs_dir`. Create `yafu.ini` in workdir with `ggnfs_dir=/path/to/sievers/`
-- **Must use `-xover 85`**: YAFU rejects NFS for <95d numbers by default ("non-snfs input of size 90 is better done by siqs")
-- NFS pipeline: 43s ECM pretesting + 60s poly select + 487s sieve (1.46M rels at ~3000 rels/sec) = **too slow for 90d single-core** (590s total)
-- Even skipping ECM: 0 + 15s poly + 487s sieve + 30s filter/LA = 532s. NFS needs ~6600 rels/sec to finish in 300s budget
+### GGNFS Siever Build & Compatibility (CRITICAL)
+- **Two builds exist**: (1) `agent-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I12e` (1.47MB, works with YAFU), (2) `/tmp/ggnfs_build/gnfs-lasieve4I12e` (778KB, crashes code 134 when YAFU invokes it but works standalone)
+- **Always use agent-1 sievers** for YAFU GNFS: `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I{11..16}e`
+- **ggnfs_build sievers work for direct invocation** (tested: 4200 rels/sec at Q=210K-340K with lpb=25)
+- **YAFU requires sievers in workdir**: Create symlinks to siever binaries in the YAFU working directory
+- **Must use `-xover 85`**: YAFU rejects NFS for <95d numbers by default
+- **Pre-computed polynomials**: Stored in `library/gnfs_polys/90d_{0-4}.job` for all 5 90d semiprimes. Saves ~50s of poly select.
+
+### GNFS Post-Processing Timing (agent-5 finding)
+- YAFU NFS post-processing (filter + Block Lanczos + sqrt): **~28s for 90d**
+- msieve NFS filtering requires ~1.875M rels (vs YAFU's 1.46M) — use YAFU for post-processing
+- YAFU post-processing with `-R -nc` flags resumes and skips sieving
+- **GNFS total budget**: 0s poly (precomputed) + sieve + 28s post = must sieve 1.46M rels in ~267s
+- **Required sieve rate**: 1.46M / 267 = **5470 rels/sec** — achieved on idle machine (6000-6500), NOT on loaded (4200-5200)
+- **CADO-NFS las siever**: 1458 rels/sec single-threaded with lpb=23. Too slow (584s for 852K rels).
+
+### GGNFS Siever Setup (CRITICAL)
+The GGNFS sievers at `yafu/factor/lasieve5_64/bin/` work correctly but need:
+1. **Execute permissions**: `chmod +x yafu/factor/lasieve5_64/bin/gnfs-lasieve4I*` — they ship without +x
+2. **yafu.ini in working directory**: Must contain `ggnfs_dir=/absolute/path/to/bin/`
+3. **YAFU uses I=12 for 90d** (not I=11) — both I11e and I12e need +x
+4. Direct siever invocation works: `gnfs-lasieve4I11e -f <startq> -c <qrange> -o <outfile> -n 0 -a <jobfile>`
+5. Previous "GGNFS crashes with SIGABRT" was actually **Permission denied** (no +x flag)
+6. Sieve rate: ~3500-3800 rels/sec on loaded machine, ~5000+ on idle
 
 ### YAFU SIQS on 90d — Closest Attempt
 NB=20 B=120K on 90d (all 5 semiprimes):
@@ -137,11 +153,17 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | CADO-NFS NFS | Uses multiprocessing. Violates single-core rule. |
 | AVX512 gather-scatter sieve | **20% slower** than scalar on AMD Zen4. AMD's scatter is ~10 cycles/element vs 1 cycle/element for scalar stores. |
 | Custom SIQS | See dedicated section below. 30-50x slower than YAFU due to scalar sieve. |
-| VBITS=512 | Implemented: modified lanczos.h/lanczos.c to support 512-bit vectors. Build succeeds (yafu_mod/). Halves BL iteration count but sieve time still dominates for 90d. Testing in progress. |
+| VBITS=512 | Implemented: modified lanczos.h/lanczos.c to support 512-bit vectors using loop-based v_and/v_or/v_xor. Build succeeds with VBITS=512. Halves BL iteration count. 90d[1]: 250.7s (vs 248.6s baseline on idle, this on loaded machine). Combined with closnuf +2 and -noopt, promising for 90d. |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
 | yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
 | TLP (forceTLP) | 44% slower than DLP on 85d. Overhead outweighs benefit at <100d. |
 | GNFS (YAFU -xover 85) | ~365s for 90d. Too slow for 300s budget. |
+| Poly-proximity bonus (tdiv_small.c) | 14% SLOWER. More false positives through trial division outweigh the benefit of better DLP yield near poly roots. |
+| msieve NFS (narrow poly search) | Poly select 3s with -nps "1,5000", total sieve still slow. Built-in siever is cache-hungry. |
+| CADO-NFS polyselect standalone | 6s for admin=0-20K, exp_E up to 30.07. Works as standalone binary. Could feed to GGNFS. |
+| GNFS under load (17-24) | GGNFS siever at 0.18ms/rel vs ~0.14ms at load < 10. Cache contention makes GNFS unreliable. |
+| CADO-NFS las single-core 90d | 115 rels/sec with GGNFS-style params, 25 rels/sec with default c90 params. **42x slower than GGNFS**. Not viable for 300s budget. |
+| PGO build (profile-guided opt) | 1% improvement on 80d. Hot path is hand-written AVX512 intrinsics — GCC can't improve them via profiling. |
 | USE_BATCHPOLY build | 11% slower (80d: 52.9s vs 47.0s). Batch polynomial root updates hurt performance. |
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
@@ -175,27 +197,44 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 90d not achievable with YAFU SIQS parameter tuning alone.
 
 ### YAFU Source Modifications (yafu_mod/)
-Modifications to YAFU source code in yafu_mod/ directory:
-1. **VBITS=512 Block Lanczos**: Extended common/lanczos/lanczos.h to support 512-bit vectors. **CRITICAL: QS BL uses msieve's code (factor/qs/msieve/lanczos.c) which is hardcoded to uint64_t (64 bits). VBITS only affects NFS BL.** To speed up QS BL, must modify the msieve BL code directly. QS BL is ~2-5% of 89-90d time.
-2. **closnuf threshold for 90d (agent-7 variant)**: More aggressive than agent-10: changed DLP closnuf from digits_n+5 to digits_n+3 for 82-87d, digits_n+3 to digits_n+1 for 88-92d, digits_n+1 to digits_n for 93-99d. Under high load (load ~23), sieve rates were ~4800-5260 rels/sec for 90d — similar to unmodified. Needs low-load testing to determine if closnuf change actually helps.
-3. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190).
-4. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
-5. **DO_UPM1**: Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves. May speed up DLP cofactoring by ~5-10%.
-6. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
+Multiple modification variants tested by multiple agents:
 
-Build: `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
+1. **VBITS=512 Block Lanczos** (yafu_mod/): Extended lanczos.h and lanczos.c to support 512-bit vectors. Adds BIT4-BIT7 macros, loop-based v_and/v_or/v_xor. Builds successfully with `VBITS=512`. **CRITICAL: QS BL uses msieve's code (factor/qs/msieve/lanczos.c) which is hardcoded to uint64_t (64 bits). VBITS only affects NFS BL.** QS BL is ~2-5% of 89-90d time.
+2. **closnuf threshold for 90-95d** (yafu_mod3/): Changed DLP closnuf from `digits_n + 3` to `digits_n + 1` for 90-95d range only (SIQS.c:4717-4718). Lowers sieve threshold by 2 (with AVX512: total -2 bits). A/B test on 90d[1]: 252.5s vs 249s baseline — marginal, within noise.
+3. **Broader closnuf change**: Changed 88-95d from +5/+3 to +1. Lowers 88-89d threshold by 4, which is too aggressive — 89d runs slower than baseline (A/B test: 271s vs 276s on 89d[3], but 233s vs 217s on 89d[0] under different load — inconclusive).
+4. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190). Swapped conditions so larger check comes first.
+5. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
+6. **DO_UPM1** (agent-7): Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves.
+7. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
 
-### GNFS Pipeline for 90d (agent-6 findings)
-GGNFS sievers work from `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`. Earlier crash reports may have been from different binaries.
+Build yafu_mod3 (recommended): `cd yafu_mod3 && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48`
+Build yafu_mod (VBITS=512): `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
+
+### closnuf Impact Analysis
+The DLP closnuf threshold (SIQS.c:4710-4727) controls which sieve candidates get trial divided:
+- **Lower closnuf** = more candidates pass sieve scan = more trial division = more DLP relations per polynomial
+- **Too low** = excess trial division overhead outweighs extra DLP relations (seen at 89d: baseline +5 is optimal, +1 is too aggressive, 8% slower)
+- **Optimal for 90d**: likely between +1 and +3 (testing in progress under varying load)
+- Key: each 1-point reduction in closnuf roughly doubles the candidate count (uint8 underflow detection), so changes > ±2 points are dramatic
+
+### GNFS Pipeline for 90d (combined findings)
+GGNFS sievers work from `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I*e` or `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`.
 - YAFU GNFS auto-selects degree 4, I=12, lpb=25/25 for 90d
 - Poly select: ~50s (deadline-based, produces decent poly)
-- Sieve rate on idle machine: ~6500 rels/sec (3100/sec under load 44)
-- Needs 1.46M relations → ~225s sieve on idle, ~470s under load 44
+- Sieve rate on idle machine: ~6500 rels/sec (3100-3800/sec under load 20-44)
+- Default needs 1.46M relations → ~225s sieve on idle, ~470s under load 44
 - Filter + LA + sqrt: ~13s
 - **Total on idle machine: ~288s** (tight but under 300s)
 - **Total under heavy load: >500s** (unusable)
 - CADO-NFS las siever standalone: 206K rels in 240s (857 rels/sec, much slower than GGNFS)
 - msieve NFS standalone: poly select alone takes 167s, not viable
+- **yafu.ini REQUIRED**: must contain `ggnfs_dir=<absolute-path-with-trailing-slash>` or YAFU silently fails to launch siever
+- **agent-7 GNFS optimization**: Modified yafu_mod to reduce minrels from 1.46M to 1.2M and poly deadline from 50s to 20s. Results:
+  - Poly select: 18s (score 4.196e-08, slightly worse than 50s search)
+  - Sieve: 1.2M rels at ~3800/sec under load = ~316s; at idle ~6500/sec = ~185s
+  - **Estimated idle total: ~216s** (if filtering works with 1.2M rels)
+  - Risk: if 1.2M rels insufficient for filtering, YAFU auto-collects more (adds ~30-50s)
+  - **Build**: `cd /tmp/agent-factoring-7/yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
 
 ### 90d Detailed Timing Breakdown
 For 90d[2] (NB=20 B=120K, VBITS=512):
@@ -262,8 +301,33 @@ YAFU can save/resume via siqs.dat. Key findings:
 5. **The a*g(x) factor**: For SIQS, exponent matrix must track a*g(x), not g(x).
 6. **Sieve threshold**: log2(M * sqrt(N)) minus small-prime correction. Too high = few candidates, too low = false positives.
 
+## Custom NFS Lattice Siever
+
+### nfs_siever.c — Working Custom NFS Lattice Siever
+- **Status**: Working, produces valid GGNFS-compatible relations
+- **Performance**: ~8-9 rels/sec (4000x slower than GGNFS due to non-bucket sieve)
+- **Compile**: `gcc -O3 -march=native -mavx512bw -o nfs_siever library/nfs_siever.c -lgmp -lm`
+- **Usage**: `./nfs_siever -f <startq> -c <qrange> -o <outfile> -a <jobfile>`
+- **Features**:
+  - Degree-4 polynomial support (for 85-95d numbers)
+  - Gauss/Lagrange 2D lattice reduction
+  - Polynomial root finding via GCD method (x^p - x) with Cantor-Zassenhaus splitting
+  - Dual-side sieving (algebraic + rational)
+  - Single large prime on each side (cofactor < 2^lpb)
+- **Key bugs fixed**:
+  - Coefficient reduction: `mpz_fdiv_ui` already handles negative numbers correctly — do NOT negate
+  - Sieve position: starting index is `(i_off + I/2) % p`, not `i_off - (I/2 % p)`
+  - Negative b: negate both (a,b) when b < 0 (standard NFS convention)
+- **Optimization needed**: Bucket sieving for large primes, skip small primes in sieve (trial divide instead)
+
+### nfs_factor.sh — NFS Orchestration Script
+- Orchestrates msieve poly select + GGNFS sieve + msieve filter/LA/sqrt
+- Works but msieve integration needs tuning (msieve.fb format conversion)
+
 ## Tools
 - `yafu/yafu`: YAFU baseline. Use `siqs(N)` with `-threads 1 -seed 42`.
+- `library/nfs_siever.c`: Custom NFS lattice siever (working, produces valid GGNFS-format relations)
+- `library/nfs_factor.sh`: NFS orchestration (msieve poly + GGNFS sieve + msieve filter/LA/sqrt)
 - `library/siqs2.c`: Custom SIQS (SLP, working 30-60d, 30-80x slower than YAFU)
 - `library/siqs_fast.c`: Custom SIQS with DLP (working 30-50d). Compile: `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
 - `library/mpqs.c`: Custom MPQS (sieve works, sqrt step buggy)

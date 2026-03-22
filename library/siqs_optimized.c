@@ -47,22 +47,27 @@ typedef struct {
 } params_t;
 
 static params_t get_params(int digits) {
+    /* Parameters tuned to match YAFU performance.
+     * Key: FB size must match L(N) smoothness, blocks control sieve range,
+     * lp_mult * largest_fb_prime = large prime bound.
+     * YAFU typically uses lp_mult ~ 40-80 for DLP.
+     */
     if (digits <= 30) return (params_t){150,   1, 40, 3, 60};
     if (digits <= 35) return (params_t){300,   1, 50, 3, 80};
     if (digits <= 40) return (params_t){600,   1, 60, 4, 100};
     if (digits <= 45) return (params_t){1200,  2, 80, 5, 100};
-    if (digits <= 50) return (params_t){2200,  3, 100, 6, 120};
-    if (digits <= 55) return (params_t){4000,  4, 120, 7, 120};
-    if (digits <= 60) return (params_t){7000,  5, 150, 7, 140};
-    if (digits <= 65) return (params_t){12000, 8, 200, 8, 150};
-    if (digits <= 70) return (params_t){22000, 10, 250, 9, 180};
-    if (digits <= 75) return (params_t){38000, 14, 300, 10, 200};
-    if (digits <= 80) return (params_t){60000, 18, 350, 11, 220};
-    if (digits <= 85) return (params_t){72000, 22, 400, 11, 200};
-    /* 90d: tuned for <300s single-core */
-    if (digits <= 90) return (params_t){90000, 24, 40, 12, 250};
-    if (digits <= 95) return (params_t){120000, 32, 50, 12, 300};
-    return (params_t){160000, 40, 60, 13, 350};
+    if (digits <= 50) return (params_t){2500,  3, 100, 6, 120};
+    if (digits <= 55) return (params_t){4500,  3, 100, 7, 120};
+    if (digits <= 60) return (params_t){7000,  5, 100, 7, 140};
+    if (digits <= 65) return (params_t){12000, 5, 100, 8, 150};
+    if (digits <= 70) return (params_t){18000, 6, 80, 9, 180};
+    if (digits <= 75) return (params_t){25000, 5, 40, 7, 200};
+    if (digits <= 80) return (params_t){40000, 8, 60, 9, 220};
+    if (digits <= 85) return (params_t){55000, 12, 60, 10, 200};
+    /* 90d: based on YAFU: FB~73K, 16 blocks, ~10 a-factors */
+    if (digits <= 90) return (params_t){73000, 16, 60, 10, 300};
+    if (digits <= 95) return (params_t){100000, 20, 60, 11, 350};
+    return (params_t){140000, 28, 60, 12, 400};
 }
 
 /* ==================== Global State ==================== */
@@ -554,25 +559,43 @@ static int new_poly_a(params_t *par) {
     if (hi >= fb_count) hi = fb_count - 1;
     if (hi <= lo + num_a_factors) hi = lo + num_a_factors + 30;
 
+    double best_ratio = 1e30;
+    int best_indices[MAX_AFACTORS];
     for (int att = 0; att < 500; att++) {
         mpz_set_ui(poly_a, 1);
+        int trial_idx[MAX_AFACTORS];
         for (int i = 0; i < num_a_factors; i++) {
             int idx, dup;
             do {
                 idx = lo + (int)gmp_urandomm_ui(g_rng, hi - lo);
                 dup = 0;
                 for (int j = 0; j < i; j++)
-                    if (a_indices[j] == idx) { dup = 1; break; }
+                    if (trial_idx[j] == idx) { dup = 1; break; }
             } while (dup);
-            a_indices[i] = idx;
+            trial_idx[i] = idx;
             mpz_mul_ui(poly_a, poly_a, fb_prime[idx]);
         }
         double ratio = mpz_get_d(poly_a) / td;
-        if (ratio > 0.7 && ratio < 1.5) {
-            mpz_clear(target);
-            return 1;
+        if (ratio < 1.0) ratio = 1.0 / ratio;
+        if (ratio < best_ratio) {
+            best_ratio = ratio;
+            memcpy(best_indices, trial_idx, num_a_factors * sizeof(int));
         }
+        if (best_ratio < 1.3) break;
     }
+    memcpy(a_indices, best_indices, num_a_factors * sizeof(int));
+    mpz_set_ui(poly_a, 1);
+    for (int i = 0; i < num_a_factors; i++)
+        mpz_mul_ui(poly_a, poly_a, fb_prime[a_indices[i]]);
+
+    static int a_debug = 0;
+    if (a_debug < 5) {
+        double ratio = mpz_get_d(poly_a) / td;
+        fprintf(stderr, "  A-poly: ratio=%.4f, s=%d, ideal_p=%.0f, center=%d [%d..%d]\n",
+                ratio, num_a_factors, ideal_prime, center, lo, hi);
+        a_debug++;
+    }
+
     mpz_clear(target);
     return 1;
 }
@@ -850,17 +873,11 @@ static int trial_divide(int sieve_pos, mpz_t Qval, int *exponents,
     }
 
     /*
-     * Optimized trial division using sieve roots.
-     *
-     * For each FB prime, we need to check if it divides Q(x).
-     * - Primes dividing 'a': always divide Q(x) (soln1[i] < 0)
-     * - Other primes: divide Q(x) iff sieve_pos ≡ soln1[i] or soln2[i] (mod p)
-     *
-     * Key optimization: precompute sieve_pos % p using the sieve root check,
-     * and once Q fits in 64 bits, switch to native integer division.
+     * Trial division using sieve roots for speed.
+     * For each FB prime, check if sieve position matches the root.
+     * For primes dividing 'a', always try to divide.
+     * Once Q fits in 64 bits, switch to native division.
      */
-    int use_gmp = (mpz_sizeinbase(q, 2) > 63);
-
     for (int i = fb_sieve_start; i < fb_count; i++) {
         uint32_t p = fb_prime[i];
 
@@ -872,32 +889,17 @@ static int trial_divide(int sieve_pos, mpz_t Qval, int *exponents,
         }
         /* Either soln1[i] < 0 (divides a) or sieve root matches */
 
-        if (use_gmp) {
+        if (mpz_sizeinbase(q, 2) > 63) {
             while (mpz_divisible_ui_p(q, p)) {
                 mpz_divexact_ui(q, q, p);
                 exponents[i]++;
             }
-            if (mpz_sizeinbase(q, 2) <= 63) {
-                use_gmp = 0;
-            }
-        }
-
-        if (!use_gmp) {
-            /* Fast path: Q fits in uint64 */
+        } else {
             uint64_t qv = mpz_get_ui(q);
-            if (qv == 1) {
-                mpz_clear(q);
-                return 1;
-            }
-            while (qv % p == 0) {
-                qv /= p;
-                exponents[i]++;
-            }
+            if (qv == 1) { mpz_clear(q); return 1; }
+            while (qv % p == 0) { qv /= p; exponents[i]++; }
             mpz_set_ui(q, qv);
-            if (qv == 1) {
-                mpz_clear(q);
-                return 1;
-            }
+            if (qv == 1) { mpz_clear(q); return 1; }
         }
     }
 
@@ -917,8 +919,12 @@ static int trial_divide(int sieve_pos, mpz_t Qval, int *exponents,
             return 2;
         }
 
-        /* Check for DLP: residue might be composite and splittable */
-        if (mpz_sizeinbase(q, 2) <= 52) {
+        /* Check for DLP: residue might be composite and splittable.
+         * Allow cofactors up to lp_bound^2 (about 2*log2(lp_bound) bits).
+         */
+        int dlp_bits = (int)(2.0 * log2((double)lp_bound)) + 2;
+        if (dlp_bits > 62) dlp_bits = 62;
+        if (mpz_sizeinbase(q, 2) <= (size_t)dlp_bits) {
             /* Quick primality check */
             if (mpz_probab_prime_p(q, 1)) {
                 mpz_clear(q);
@@ -1260,7 +1266,8 @@ int main(int argc, char *argv[]) {
     gmp_randseed_ui(g_rng, 42);
 
     /* Knuth-Schroeppel multiplier */
-    g_multiplier = select_multiplier(N_orig);
+    g_multiplier = 1; /* DISABLED for debugging */
+    /* g_multiplier = select_multiplier(N_orig); */
     mpz_init(kN);
     mpz_mul_ui(kN, N_orig, g_multiplier);
 
@@ -1309,13 +1316,43 @@ int main(int argc, char *argv[]) {
 
     uint8_t threshold;
     {
-        double log_M = log2((double)M);
-        double log_N = bits * 0.5;
-        double log_target = log_N + log_M;
+        /* Threshold computation:
+         * log2(max|Q(x)|) ≈ kN_bits/2 + log2(M)
+         * For DLP-aware sieving, we want threshold ≈ log2(max_Q) - trial_cutoff
+         * where trial_cutoff represents how many bits we can handle as cofactor.
+         *
+         * YAFU-style: trial_cutoff = about half of kN_bits (for 90d, ~86 bits)
+         * More precisely: trial_cutoff ≈ 2 * log2(lp_bound) for DLP
+         *
+         * threshold = log2(max_Q) * fraction
+         * For SIQS, threshold ~= log2(max_Q) * 0.5 works well
+         */
+        int kN_bits = (int)mpz_sizeinbase(kN, 2);
+        double log_Qmax = kN_bits * 0.5 + log2((double)M);
         int correction = tiny_prime_correction();
-        threshold = (uint8_t)(log_target * 0.72 - correction);
+
+        /* Threshold = fraction of log_Qmax.
+         * Typical QS: fraction 0.73-0.85 depending on LP/DLP mode.
+         * With DLP, we can afford a lower threshold (more candidates pass)
+         * but each candidate is more expensive to trial-divide.
+         * Sweet spot: ~0.73-0.77 for DLP-heavy sieving, ~0.80-0.85 for SLP.
+         *
+         * YAFU with DLP uses "trial factoring cutoff at 86 bits" for 90d (170 Qmax)
+         * => threshold = 170 - 86 = 84, fraction = 84/170 = 0.49. But that's
+         * because YAFU has very fast trial division.
+         *
+         * For our implementation: use ~0.73 which balances candidates vs speed.
+         */
+        /* For 75d: log_Qmax~140, YAFU threshold~77 => fraction = 0.55
+         * For 90d: log_Qmax~170, YAFU threshold~84 => fraction = 0.49
+         * Use 0.55 as a general-purpose value. For larger inputs, lower.
+         */
+        double frac = 0.56;
+        if (digits >= 80) frac = 0.52;
+        if (digits >= 90) frac = 0.50;
+        threshold = (uint8_t)(log_Qmax * frac - correction);
         if (threshold < 30) threshold = 30;
-        if (threshold > 130) threshold = 130;
+        if (threshold > 140) threshold = 140;
     }
 
     fprintf(stderr, "  target=%d rels, threshold=%d, LP_bound=%lu, M=%d\n",
@@ -1398,13 +1435,13 @@ int main(int argc, char *argv[]) {
             }
 
             /* Progress reporting */
-            if (total_polys % 200 == 0) {
+            if (total_polys % 100 == 0) {
                 double elapsed = elapsed_seconds();
                 if (elapsed > 290) {
                     fprintf(stderr, "TIMEOUT approaching at %.1fs\n", elapsed);
                     break;
                 }
-                if (total_polys % 2000 == 0) {
+                if (total_polys % 1000 == 0) {
                     fprintf(stderr, "  poly=%d rels=%d/%d (sm=%d slp=%d/%d dlp=%d/%d) cands=%d %.1fs\n",
                             total_polys, num_relations, target_relations,
                             total_smooth, slp_combined, slp_count,
