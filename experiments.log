@@ -14,3 +14,5 @@
 [2026-03-22 07:30:00] size: 89 | approach: YAFU siqsNB tuning | time: no significant improvement | notes: Default NB=8 is optimal. NB=16 marginally faster on easiest number only.
 [2026-03-22 07:30:00] size: 89 | approach: YAFU siqsM=50 | time: no improvement | notes: Larger large prime multiplier doesn't help sieving speed.
 [2026-03-22 07:30:00] size: 89 | approach: YAFU forceDLP/TLP | time: same or worse | notes: DLP already used by default. TLP crashes.
+[2026-03-22 09:05:54] size: 89 | approach: YAFU SIQS AVX512BW (-threads 1 -seed 42) individual runs | time: 214.9-318s | notes: 89d[0]=249.4s, [1]=214.9s, [2]=266.0s, [3]=294.5s, [4]=TIMEOUT(>310s). 4/5 under 300s, but worst case (89d[4]) needs 313s sieving alone.
+[2026-03-22 09:05:54] size: 83-88 | approach: YAFU SIQS AVX512BW rebenchmark on idle system | time: 85.5-251.0s | notes: Minor improvements from lower system load. 83d=85.5, 84d=98.8, 86d=155.3, 87d=197.7, 88d=251.0.

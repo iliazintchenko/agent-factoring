@@ -128,3 +128,195 @@
 03/21/26 23:43:50, SIQS elapsed time = 0.3977 seconds.
 03/21/26 23:43:50, 
 03/21/26 23:43:50, 
+03/22/26 04:39:25, starting SIQS on c92: 12159017188080758583884201218539180530526625052660742785624869582555429524509755926472787597
+03/22/26 04:39:25, random seed: 4021369823019239521
+03/22/26 04:39:54, starting SIQS on c88: 2126606105302319327015242720960147645394948766124632862761408559762849710142987337821417
+03/22/26 04:39:54, random seed: 1977740581682606560
+03/22/26 04:39:25, ==== sieve params ====
+03/22/26 04:39:25, n = 93 digits, 309 bits
+03/22/26 04:39:25, factor base: 77744 primes (max prime = 2088341)
+03/22/26 04:39:25, single large prime cutoff: 250600920 (120 * pmax)
+03/22/26 04:39:25, double large prime range from 4361168132281 to 3452374680888462
+03/22/26 04:39:25, DLP MFB = 1.85
+03/22/26 04:39:25, allocating 8 large prime slices of factor base
+03/22/26 04:39:25, buckets hold 2048 elements
+03/22/26 04:39:25, large prime hashtables have 1703936 bytes
+03/22/26 04:39:25, using AVX2 enabled 32k sieve core
+03/22/26 04:39:25, sieve interval: 13 blocks of size 32768
+03/22/26 04:39:25, polynomial A has ~ 12 factors
+03/22/26 04:39:25, using multiplier of 53
+03/22/26 04:39:25, using Q2(x) polynomials for kN mod 8 = 1
+03/22/26 04:39:25, using SPV correction of 20 bits, starting at offset 30
+03/22/26 04:39:25, trial factoring cutoff at 96 bits
+03/22/26 04:39:25, ==== sieving started (48 threads) ====
+03/22/26 04:40:45, trial division touched 36229643 sieve locations out of 630496362496
+03/22/26 04:40:45, total reports = 36229643, total surviving reports = 13888761
+03/22/26 04:40:45, total blocks sieved = 19242444, avg surviving reports per block = 0.72
+03/22/26 04:40:45, dlp-ecm: 1 failures, 1014147 attempts, 8137172 outside range, 4418299 prp, 820235 useful
+03/22/26 04:40:45, 80080 relations found: 22832 full + 57248 from 1116546 partial, using 740047 polys (912 A polys)
+03/22/26 04:40:45, on average, sieving found 1.54 rels/poly and 14212.65 rels/sec
+03/22/26 04:40:45, trial division touched 36229643 sieve locations out of 630496362496
+03/22/26 04:40:45, ==== post processing stage (msieve-1.38) ====
+03/22/26 04:43:29, starting SIQS on c93: 216446697047312460159838969810569634736623970077164942667463239022451461149357909626936010427
+03/22/26 04:43:29, random seed: 4021369823019239521
+03/22/26 04:44:44, starting SIQS on c89: 14466537158252119266168120218024515850717285744930099926991223232339817877776455021719421
+03/22/26 04:44:44, random seed: 9922407061223951448
+03/22/26 04:43:30, ==== sieve params ====
+03/22/26 04:43:30, n = 93 digits, 309 bits
+03/22/26 04:43:30, factor base: 82512 primes (max prime = 2230861)
+03/22/26 04:43:30, single large prime cutoff: 267703320 (120 * pmax)
+03/22/26 04:43:30, double large prime range from 4976740801321 to 3900851798846250
+03/22/26 04:43:30, DLP MFB = 1.85
+03/22/26 04:43:30, allocating 8 large prime slices of factor base
+03/22/26 04:43:30, buckets hold 2048 elements
+03/22/26 04:43:30, large prime hashtables have 1703936 bytes
+03/22/26 04:43:30, using AVX2 enabled 32k sieve core
+03/22/26 04:43:30, sieve interval: 13 blocks of size 32768
+03/22/26 04:43:30, polynomial A has ~ 12 factors
+03/22/26 04:43:30, using multiplier of 3
+03/22/26 04:43:30, using Q2(x) polynomials for kN mod 8 = 1
+03/22/26 04:43:30, using SPV correction of 19 bits, starting at offset 29
+03/22/26 04:43:30, trial factoring cutoff at 96 bits
+03/22/26 04:43:30, ==== sieving started (48 threads) ====
+03/22/26 04:45:23, trial division touched 51313314 sieve locations out of 933894946816
+03/22/26 04:45:23, total reports = 51313314, total surviving reports = 15859082
+03/22/26 04:45:23, total blocks sieved = 28501408, avg surviving reports per block = 0.56
+03/22/26 04:45:23, dlp-ecm: 1 failures, 1144985 attempts, 9426806 outside range, 4959710 prp, 923359 useful
+03/22/26 04:45:23, 84123 relations found: 22774 full + 61349 from 1228166 partial, using 1096162 polys (1443 A polys)
+03/22/26 04:45:23, on average, sieving found 1.14 rels/poly and 11019.15 rels/sec
+03/22/26 04:45:23, trial division touched 51313314 sieve locations out of 933894946816
+03/22/26 04:45:23, ==== post processing stage (msieve-1.38) ====
+03/22/26 04:48:08, starting SIQS on c93: 511608866816787230023170195809199025946401482112199592892045617596436305338976035328181977693
+03/22/26 04:48:08, random seed: 4021369823019239521
+03/22/26 04:48:08, ==== sieve params ====
+03/22/26 04:48:08, n = 94 digits, 311 bits
+03/22/26 04:48:08, factor base: 83712 primes (max prime = 2281219)
+03/22/26 04:48:08, single large prime cutoff: 273746280 (120 * pmax)
+03/22/26 04:48:08, double large prime range from 5203960125961 to 4065315149383133
+03/22/26 04:48:08, DLP MFB = 1.85
+03/22/26 04:48:08, allocating 8 large prime slices of factor base
+03/22/26 04:48:08, buckets hold 2048 elements
+03/22/26 04:48:08, large prime hashtables have 1703936 bytes
+03/22/26 04:48:08, using AVX2 enabled 32k sieve core
+03/22/26 04:48:08, sieve interval: 13 blocks of size 32768
+03/22/26 04:48:08, polynomial A has ~ 12 factors
+03/22/26 04:48:08, using multiplier of 5
+03/22/26 04:48:08, using Q2(x) polynomials for kN mod 8 = 1
+03/22/26 04:48:08, using SPV correction of 18 bits, starting at offset 25
+03/22/26 04:48:08, trial factoring cutoff at 97 bits
+03/22/26 04:48:08, ==== sieving started (48 threads) ====
+03/22/26 04:49:13, trial division touched 57256456 sieve locations out of 1041767727104
+03/22/26 04:49:13, total reports = 57256456, total surviving reports = 11226177
+03/22/26 04:49:13, total blocks sieved = 31793424, avg surviving reports per block = 0.35
+03/22/26 04:49:13, dlp-ecm: 0 failures, 1103462 attempts, 4885193 outside range, 4904939 prp, 909067 useful
+03/22/26 04:49:13, 85122 relations found: 23285 full + 61837 from 1218365 partial, using 1222778 polys (1303 A polys)
+03/22/26 04:49:13, on average, sieving found 1.02 rels/poly and 19068.04 rels/sec
+03/22/26 04:49:13, trial division touched 57256456 sieve locations out of 1041767727104
+03/22/26 04:49:13, ==== post processing stage (msieve-1.38) ====
+03/22/26 04:49:33, starting SIQS on c89: 10134530839814031251993688521137419976308392933161138489066568905931529167228158332009277
+03/22/26 04:49:33, random seed: 3298068552781121219
+03/22/26 04:49:33, ==== sieve params ====
+03/22/26 04:49:33, n = 89 digits, 293 bits
+03/22/26 04:49:33, factor base: 68528 primes (max prime = 1821923)
+03/22/26 04:49:33, single large prime cutoff: 200411530 (110 * pmax)
+03/22/26 04:49:33, double large prime range from 3319403417929 to 2283268586489290
+03/22/26 04:49:33, DLP MFB = 1.85
+03/22/26 04:49:33, allocating 8 large prime slices of factor base
+03/22/26 04:49:33, buckets hold 2048 elements
+03/22/26 04:49:33, large prime hashtables have 1572864 bytes
+03/22/26 04:49:33, using AVX2 enabled 32k sieve core
+03/22/26 04:49:33, sieve interval: 12 blocks of size 32768
+03/22/26 04:49:33, polynomial A has ~ 11 factors
+03/22/26 04:49:33, using multiplier of 1 (kn mod 8 == 5)
+03/22/26 04:49:33, using SPV correction of 20 bits, starting at offset 35
+03/22/26 04:49:33, trial factoring cutoff at 94 bits
+03/22/26 04:49:33, ==== sieving started (48 threads) ====
+03/22/26 04:49:58, trial division touched 20059085 sieve locations out of 289359790080
+03/22/26 04:49:58, total reports = 20059085, total surviving reports = 6850068
+03/22/26 04:49:58, total blocks sieved = 8831664, avg surviving reports per block = 0.78
+03/22/26 04:49:58, dlp-ecm: 0 failures, 688405 attempts, 2689864 outside range, 3178263 prp, 576595 useful
+03/22/26 04:49:58, 70165 relations found: 22575 full + 47590 from 847556 partial, using 367940 polys (744 A polys)
+03/22/26 04:49:58, on average, sieving found 2.36 rels/poly and 35426.79 rels/sec
+03/22/26 04:49:58, trial division touched 20059085 sieve locations out of 289359790080
+03/22/26 04:49:58, ==== post processing stage (msieve-1.38) ====
+03/22/26 04:49:13, QS elapsed time = 65.1169 seconds.
+03/22/26 04:49:14, begin singleton removal with 1241650 relations
+03/22/26 04:49:14, reduce to 209480 relations in 12 passes
+03/22/26 04:49:15, recovered 209480 relations
+03/22/26 04:49:15, recovered 192379 polynomials
+03/22/26 04:49:15, attempting to build 85122 cycles
+03/22/26 04:49:15, found 85122 cycles from 209480 relations in 6 passes
+03/22/26 04:49:15, distribution of cycle lengths:
+03/22/26 04:49:15,    length 1 : 23285
+03/22/26 04:49:15,    length 2 : 16904
+03/22/26 04:49:15,    length 3 : 14986
+03/22/26 04:49:15,    length 4 : 11064
+03/22/26 04:49:15,    length 5 : 7684
+03/22/26 04:49:15,    length 6 : 4836
+03/22/26 04:49:15,    length 7 : 2853
+03/22/26 04:49:15,    length 9+: 3510
+03/22/26 04:49:15, largest cycle: 18 relations
+03/22/26 04:49:15, matrix is 83712 x 85122 (22.6 MB) with weight 5239211 (61.55/col)
+03/22/26 04:49:15, sparse part has weight 5239211 (61.55/col)
+03/22/26 04:49:16, filtering completed in 3 passes
+03/22/26 04:49:16, matrix is 77920 x 77984 (20.5 MB) with weight 4744578 (60.84/col)
+03/22/26 04:49:16, sparse part has weight 4744578 (60.84/col)
+03/22/26 04:49:16, saving the first 48 matrix rows for later
+03/22/26 04:49:16, matrix is 77872 x 77984 (17.5 MB) with weight 4198374 (53.84/col)
+03/22/26 04:49:16, sparse part has weight 3813339 (48.90/col)
+03/22/26 04:49:16, matrix includes 64 packed rows
+03/22/26 04:49:16, using block size 31193 for processor cache size 196608 kB
+03/22/26 04:49:17, commencing Lanczos iteration
+03/22/26 04:49:17, memory use: 14.0 MB
+03/22/26 04:49:28, lanczos halted after 750 iterations (dim = 47425)
+03/22/26 04:49:28, linear algebra failed; retrying with different seed...
+03/22/26 04:49:28, commencing Lanczos iteration
+03/22/26 04:49:28, memory use: 14.0 MB
+03/22/26 04:49:39, lanczos halted after 550 iterations (dim = 34774)
+03/22/26 04:49:39, linear algebra failed; retrying with different seed...
+03/22/26 04:49:39, commencing Lanczos iteration
+03/22/26 04:49:39, memory use: 14.0 MB
+03/22/26 04:49:50, lanczos halted after 500 iterations (dim = 31621)
+03/22/26 04:49:50, linear algebra failed; retrying with different seed...
+03/22/26 04:49:50, commencing Lanczos iteration
+03/22/26 04:49:50, memory use: 14.0 MB
+03/22/26 04:50:01, lanczos halted after 650 iterations (dim = 41140)
+03/22/26 04:50:01, linear algebra failed; retrying with different seed...
+03/22/26 04:50:01, commencing Lanczos iteration
+03/22/26 04:50:01, memory use: 14.0 MB
+03/22/26 04:50:08, lanczos halted after 1233 iterations (dim = 77872)
+03/22/26 04:50:08, recovered 17 nontrivial dependencies
+03/22/26 04:50:08, prp47 = 98866395965324891806553527249172887939446082799
+03/22/26 04:50:08, prp46 = 5174749841151509564879038763313220436073921907
+03/22/26 04:50:08, Lanczos elapsed time = 23.2142 seconds.
+03/22/26 04:50:08, Sqrt elapsed time = 0.1569 seconds.
+03/22/26 04:50:08, SIQS elapsed time = 119.9814 seconds.
+03/22/26 04:50:08, 
+03/22/26 04:50:08, 
+03/22/26 04:50:08, starting SIQS on c93: 305825023319764604471821357334118355466358127971398975572786739414189158785555719343153647843
+03/22/26 04:50:08, random seed: 4021369823019239521
+03/22/26 04:50:08, ==== sieve params ====
+03/22/26 04:50:08, n = 93 digits, 309 bits
+03/22/26 04:50:08, factor base: 83712 primes (max prime = 2268577)
+03/22/26 04:50:08, single large prime cutoff: 272229240 (120 * pmax)
+03/22/26 04:50:08, double large prime range from 5146441604929 to 4023734584227390
+03/22/26 04:50:08, DLP MFB = 1.85
+03/22/26 04:50:08, allocating 8 large prime slices of factor base
+03/22/26 04:50:08, buckets hold 2048 elements
+03/22/26 04:50:08, large prime hashtables have 1703936 bytes
+03/22/26 04:50:08, using AVX2 enabled 32k sieve core
+03/22/26 04:50:08, sieve interval: 13 blocks of size 32768
+03/22/26 04:50:08, polynomial A has ~ 12 factors
+03/22/26 04:50:08, using multiplier of 3
+03/22/26 04:50:08, using Q2(x) polynomials for kN mod 8 = 1
+03/22/26 04:50:08, using SPV correction of 20 bits, starting at offset 35
+03/22/26 04:50:08, trial factoring cutoff at 96 bits
+03/22/26 04:50:08, ==== sieving started (48 threads) ====
+03/22/26 04:50:37, trial division touched 42183579 sieve locations out of 620651872256
+03/22/26 04:50:37, total reports = 42183579, total surviving reports = 14009327
+03/22/26 04:50:37, total blocks sieved = 18942014, avg surviving reports per block = 0.74
+03/22/26 04:50:37, dlp-ecm: 1 failures, 1065460 attempts, 7912998 outside range, 4683239 prp, 864445 useful
+03/22/26 04:50:37, 85743 relations found: 25473 full + 60270 from 1186602 partial, using 728492 polys (792 A polys)
+03/22/26 04:50:37, on average, sieving found 1.66 rels/poly and 42277.18 rels/sec
+03/22/26 04:50:37, trial division touched 42183579 sieve locations out of 620651872256
+03/22/26 04:50:37, ==== post processing stage (msieve-1.38) ====
