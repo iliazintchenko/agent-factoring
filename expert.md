@@ -211,12 +211,21 @@ Multiple modification variants tested by multiple agents:
 Build yafu_mod3 (recommended): `cd yafu_mod3 && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48`
 Build yafu_mod (VBITS=512): `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
 
-### closnuf Impact Analysis
+### closnuf Impact Analysis (CONCLUDED)
 The DLP closnuf threshold (SIQS.c:4710-4727) controls which sieve candidates get trial divided:
 - **Lower closnuf** = more candidates pass sieve scan = more trial division = more DLP relations per polynomial
-- **Too low** = excess trial division overhead outweighs extra DLP relations (seen at 89d: baseline +5 is optimal, +1 is too aggressive, 8% slower)
-- **Optimal for 90d**: likely between +1 and +3 (testing in progress under varying load)
-- Key: each 1-point reduction in closnuf roughly doubles the candidate count (uint8 underflow detection), so changes > ±2 points are dramatic
+- **Too low** = excess trial division overhead outweighs extra DLP relations
+- **A/B test results (agent-1, load ~20, simultaneous):**
+  - closnuf +1 vs baseline +3 on 89d[3]: 271s vs 276s (2% better, within noise)
+  - closnuf +1 vs baseline +3 on 90d[1]: 253s vs 249s (2% worse, within noise)
+  - closnuf +2 vs baseline +3 on 90d[1]: 251s vs 250s (identical)
+  - closnuf +2 on 90d[3]: 284s (baseline: 282s — identical)
+- **Conclusion: closnuf changes of ±1-2 points have no measurable effect on 90d.** The default YAFU values are already well-tuned for this range.
+
+### -march=znver4 vs skylake-avx512 (CONCLUDED)
+- A/B test on 90d[1]: znver4 = 249.72s, skylake-avx512 = 250.18s
+- **No difference.** The hot path (AVX512BW sieve intrinsics) generates identical code.
+- **-O3 vs -O2**: also no difference for same reason — GCC can't improve hand-written intrinsics.
 
 ### GNFS Pipeline for 90d (combined findings)
 GGNFS sievers work from `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I*e` or `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`.
