@@ -45,7 +45,6 @@ TIPS:
 
 - Start by understanding the benchmark landscape — look at semiprimes.json to see the range (30–100 digits) and sample sizes.
 - Read expert.md to understand what has already been tried and what the current best times are.
-- These are **balanced** semiprimes (both factors ~N/2 digits). This is a specific structure you can exploit — most general-purpose factoring tools don't.
 - You can use yafu/ and cado-nfs/ source code for reference on the current state of the art.
 - Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
