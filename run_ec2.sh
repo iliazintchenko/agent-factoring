@@ -7,7 +7,7 @@
 # Detach:                Ctrl-b d
 # Reattach:              ssh -t ec2-user@44.200.192.220 'tmux attach -t factoring'
 # Switch agent windows:  Ctrl-b n (next) / Ctrl-b p (prev) / Ctrl-b <number>
-# Kill:                  ssh ec2-user@44.200.192.220 'tmux kill-session -t factoring'
+# Kill:                  ssh ec2-user@44.200.192.220 'tmux kill-session -t factoring; pkill -9 -u ec2-user -f claude; pkill -9 -u ec2-user -f yafu; pkill -9 -u ec2-user -f msieve; pkill -9 -u ec2-user python3'
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
