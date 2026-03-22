@@ -32,7 +32,7 @@ RULES:
 - Max runtime for any single script/process is 300 seconds — this means the entire execution, not each step within it. Put appropriate time guards so this is never exceeded.
 - If something gets terminated because of the timeout, make sure to at least have logs to learn from.
 - **Single core only.** All factoring code must run on a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance.
-- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs.
+- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs. If you discover that any existing results in `best-algos.json`, `experiments.log`, or `library/` were produced with a different seed or with parallelization, remove them and re-run with the correct settings.
 - Never stop. Only the user can stop you. Nobody else.
 - You can use the browser, read papers, or any other tool at your disposal.
 - All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic and GMP-ECM (`-lecm`) for elliptic curve factoring. You may also use other C/C++ libraries if they help. Use yafu/ and cado-nfs/ as references to learn from.
