@@ -42,7 +42,7 @@ make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2
 ```
 - `SKYLAKEX=1`: enables `USE_AVX512F`, `USE_AVX512BW`, `-march=skylake-avx512`
 - **USE_AVX512BW is critical**: Enables hand-written AVX512BW sieve and resieve kernels (`med_sieveblock_32k_avx512bw`, `resieve_medprimes_32k_avx512bw`). These give **14% improvement** over AVX2-only build across all sizes and **3-7x on small sizes** (reduced startup overhead).
-- **monty.h static inline fix is CRITICAL**: Without `static`, GCC emits non-inlined external linkage definitions for `__inline` functions in headers. Adding `static` lets GCC inline submod/addmod/mulredc etc. across translation units. **Measured 16% speedup on 80d, ~10% on 85d, ~2% on 89d.** Agent-10 binary: `/tmp/agent-factoring-10/yafu_build/yafu`.
+- **monty.h static inline fix**: Add `static` to `__inline` in monty.h (submod/addmod/mulredc etc.). Required for PGO builds. Performance impact: **marginal (1-2%) at best** — initial measurement of 16% was a load-noise artifact. Confirmed by concurrent A/B test: fixed and unfixed binaries produce identical times (44.4s vs 44.7s on 80d[0], 42.0s vs 42.1s on 80d[2]).
 - `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 is NOT supported (build fails).
 - `NO_ZLIB=1`: Required if zlib not installed; avoids link errors.
 - Binary: `/tmp/agent-factoring-10/yafu_build/yafu` (monty.h fix + AVX512BW, best known build)
@@ -138,7 +138,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
 | PGO (profile-guided optimization) | **WORKS after fix**: Add `static` to `__inline` in `monty.h` for mulredc/sqrredc/mulredc63. PGO binary at `/tmp/agent-factoring-3/yafu/yafu.pgo`. Solo 89d[4]=294.1s (from 297s with O3, 300s with O2). ~1-2% improvement. |
-| **monty.h static inline fix (ALL functions)** | **MAJOR WIN: ~16% speedup.** Add `static` to ALL `__inline` functions in `monty.h`: submod, addmod, mulredc, sqrredc, mulredc63, sqrredc63. Without `static`, GCC emits non-inlined external definitions, preventing inlining across TUs. Previous fix only covered mulredc/sqrredc (1-2% gain); adding submod/addmod gives full 16% because these are called in sieve root update hot path. Binary: `/tmp/agent-factoring-10/yafu_build/yafu`. 80d[0]: 44.4s (was 53.2s), 85d[0]: 93.6s, 88d[3]: 228.4s (was 249.3s). |
+| **monty.h static inline fix (ALL functions)** | Marginal improvement (~1-2%). Add `static` to ALL `__inline` functions in monty.h. Initial "16% improvement" was **load-noise artifact** — A/B test with both binaries running concurrently shows identical times (44.4s vs 44.7s on 80d[0]). The fix is still useful for enabling PGO builds. |
 | Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when |p-q| < N^(1/3). |
 | Custom SIQS (library/cqs/siqs_gmp.c) | Working SIQS in C+GMP. 30d: 0.04s, 40d: 2.9s, 50d: 4.1s. Factors 30-50d but ~50x slower than YAFU for 50d. Missing: Gray code self-init (generates new 'a' per poly instead of 2^(s-1) B values), AVX512 sieve, optimized trial division. The gap is fundamental engineering, not algorithmic. |
 | YAFU 48KB sieve blocks | BLOCKSIZE is hardcoded to 32768 with values scattered throughout AVX512BW assembly. Changing to 48KB (AMD L1D size) would require extensive surgery. Not viable. |
