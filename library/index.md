@@ -1,5 +1,19 @@
 # Library Index
 
+## NFS (Number Field Sieve) Implementations
+
+### nfs_siever.c — Custom NFS Lattice Siever
+- **Compile**: `gcc -O3 -march=native -mavx512bw -o nfs_siever library/nfs_siever.c -lgmp -lm`
+- **Usage**: `./nfs_siever -f <startq> -c <qrange> -o <outfile> -a <jobfile>`
+- **Performance**: ~8-9 rels/sec (needs bucket sieve optimization)
+- **Features**: Degree-4 NFS, lattice reduction, GCD-based root finding, Cantor-Zassenhaus splitting, dual-side sieving
+- **Output**: GGNFS-compatible relations (a,b:alg_hex:rat_hex)
+
+### nfs_factor.sh — NFS Orchestration Script
+- **Usage**: `bash library/nfs_factor.sh <N> [timeout_secs]`
+- **Pipeline**: msieve poly select → GGNFS lattice sieve → msieve filter/LA/sqrt
+- **Status**: Sieving works; msieve post-processing integration needs tuning
+
 ## Custom SIQS Implementations
 
 ### siqs2.c — Working SIQS (Gray code, SLP, block sieve)

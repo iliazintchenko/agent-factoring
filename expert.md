@@ -118,6 +118,15 @@ YAFU GNFS with `-xover 85` and default GGNFS sievers:
 - NFS pipeline: 43s ECM pretesting + 60s poly select + 487s sieve (1.46M rels at ~3000 rels/sec) = **too slow for 90d single-core** (590s total)
 - Even skipping ECM: 0 + 15s poly + 487s sieve + 30s filter/LA = 532s. NFS needs ~6600 rels/sec to finish in 300s budget
 
+### GGNFS Siever Setup (CRITICAL)
+The GGNFS sievers at `yafu/factor/lasieve5_64/bin/` work correctly but need:
+1. **Execute permissions**: `chmod +x yafu/factor/lasieve5_64/bin/gnfs-lasieve4I*` — they ship without +x
+2. **yafu.ini in working directory**: Must contain `ggnfs_dir=/absolute/path/to/bin/`
+3. **YAFU uses I=12 for 90d** (not I=11) — both I11e and I12e need +x
+4. Direct siever invocation works: `gnfs-lasieve4I11e -f <startq> -c <qrange> -o <outfile> -n 0 -a <jobfile>`
+5. Previous "GGNFS crashes with SIGABRT" was actually **Permission denied** (no +x flag)
+6. Sieve rate: ~3500-3800 rels/sec on loaded machine, ~5000+ on idle
+
 ### YAFU SIQS on 90d — Closest Attempt
 NB=20 B=120K on 90d (all 5 semiprimes):
 - 90d[0]: timeout (>295s)
@@ -277,8 +286,33 @@ YAFU can save/resume via siqs.dat. Key findings:
 5. **The a*g(x) factor**: For SIQS, exponent matrix must track a*g(x), not g(x).
 6. **Sieve threshold**: log2(M * sqrt(N)) minus small-prime correction. Too high = few candidates, too low = false positives.
 
+## Custom NFS Lattice Siever
+
+### nfs_siever.c — Working Custom NFS Lattice Siever
+- **Status**: Working, produces valid GGNFS-compatible relations
+- **Performance**: ~8-9 rels/sec (4000x slower than GGNFS due to non-bucket sieve)
+- **Compile**: `gcc -O3 -march=native -mavx512bw -o nfs_siever library/nfs_siever.c -lgmp -lm`
+- **Usage**: `./nfs_siever -f <startq> -c <qrange> -o <outfile> -a <jobfile>`
+- **Features**:
+  - Degree-4 polynomial support (for 85-95d numbers)
+  - Gauss/Lagrange 2D lattice reduction
+  - Polynomial root finding via GCD method (x^p - x) with Cantor-Zassenhaus splitting
+  - Dual-side sieving (algebraic + rational)
+  - Single large prime on each side (cofactor < 2^lpb)
+- **Key bugs fixed**:
+  - Coefficient reduction: `mpz_fdiv_ui` already handles negative numbers correctly — do NOT negate
+  - Sieve position: starting index is `(i_off + I/2) % p`, not `i_off - (I/2 % p)`
+  - Negative b: negate both (a,b) when b < 0 (standard NFS convention)
+- **Optimization needed**: Bucket sieving for large primes, skip small primes in sieve (trial divide instead)
+
+### nfs_factor.sh — NFS Orchestration Script
+- Orchestrates msieve poly select + GGNFS sieve + msieve filter/LA/sqrt
+- Works but msieve integration needs tuning (msieve.fb format conversion)
+
 ## Tools
 - `yafu/yafu`: YAFU baseline. Use `siqs(N)` with `-threads 1 -seed 42`.
+- `library/nfs_siever.c`: Custom NFS lattice siever (working, produces valid GGNFS-format relations)
+- `library/nfs_factor.sh`: NFS orchestration (msieve poly + GGNFS sieve + msieve filter/LA/sqrt)
 - `library/siqs2.c`: Custom SIQS (SLP, working 30-60d, 30-80x slower than YAFU)
 - `library/siqs_fast.c`: Custom SIQS with DLP (working 30-50d). Compile: `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
 - `library/mpqs.c`: Custom MPQS (sieve works, sqrt step buggy)
