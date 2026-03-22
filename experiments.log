@@ -16,3 +16,5 @@
 [2026-03-22 10:30:00] size: 88 | approach: YAFU source mod (memset bucket reset) | time: no improvement | notes: Compiler already optimized scalar loop to memset with -O2
 [2026-03-22 10:30:00] size: 88 | approach: -march=znver4 build | time: no improvement | notes: Same perf as skylake-avx512 build
 [2026-03-22 10:30:00] size: 89 | approach: ICELAKE/IFMA build | time: build fails | notes: Linker error - missing AVX2 fallback functions when ICELAKE=1
+[2026-03-22 11:00:00] size: 89 | approach: agent-3 YAFU + NB=16, 5 parallel | time: 207,216,245,282,300+(timeout) | notes: NB=16 significant for 89d. [3] improved from 296s to 282s. 4/5 pass, 1 timeout.
+[2026-03-22 11:00:00] size: 88 | approach: NB fine-tuning (10-20) | time: NB=16 best (228s) | notes: NB=16 is optimal sweet spot. NB=14=229, NB=18=230, NB=12=232, NB=20=232, NB=10=234.
