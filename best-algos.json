@@ -190,5 +190,17 @@
   "77": {
     "run": "echo \"siqs(<N>)\" | LD_LIBRARY_PATH=/usr/local/lib yafu/yafu -threads 48",
     "time": 4.33
+  },
+  "91": {
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 24 && rm -rf $WORKDIR",
+    "time": 74
+  },
+  "92": {
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 24 && rm -rf $WORKDIR",
+    "time": 99
+  },
+  "93": {
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 24 && rm -rf $WORKDIR",
+    "time": 90
   }
 }
