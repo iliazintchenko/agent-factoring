@@ -2,7 +2,7 @@ GOAL:
 
 1. **Extend the frontier.** The primary metric is: what is the largest digit size where you can factor all 5 semiprimes in under 300 seconds each, on a single core? Push this number as high as possible. Going from 89 to 90 digits is worth more than shaving seconds off 70-digit times.
 
-2. **Beat YAFU.** YAFU (in yafu/) is the baseline. Write your own factoring code in `library/` that is faster than YAFU on at least some size range. Calling YAFU with different flags or build options is not progress — that's just tuning someone else's tool. Write your own implementations, understand the algorithms deeply, and make them faster.
+2. **Write your own code that is faster than existing tools.** Don't just reimplement what YAFU already does (SIQS) — explore the full space of factoring algorithms. NFS, ECM variants, lattice sieving, hybrid approaches, novel algorithms. The goal is to find approaches that scale better, not to rewrite YAFU in slightly different C. Diversity of approaches across agents is valuable — check what others are doing and try something different.
 
 3. **Build expertise.** Accumulate deep knowledge in `expert.md` and powerful tools in `library/`. This knowledge compounds: what you learn on one number size should make you better at all future sizes.
 
