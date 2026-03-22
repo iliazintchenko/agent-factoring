@@ -13,3 +13,5 @@ __pycache__/
 factor
 msieve
 siqs
+library/analyze
+library/siqs2
