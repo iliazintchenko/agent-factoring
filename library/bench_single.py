@@ -11,11 +11,11 @@ sizes = sorted(semiprimes.keys(), key=int)
 if len(sys.argv) > 1:
     sizes = sys.argv[1:]
 
-# Extra args for YAFU (e.g., -siqsB 10000)
-extra_args = ""
+# Extra args for YAFU
+extra_args = "-siqsNB 16"  # NB=16 gives 2-10% improvement over default NB=8
 if "--siqsB" in sys.argv:
     idx = sys.argv.index("--siqsB")
-    extra_args = f"-siqsB {sys.argv[idx+1]}"
+    extra_args += f" -siqsB {sys.argv[idx+1]}"
     sizes = [s for s in sizes if s not in ["--siqsB", sys.argv[idx+1]]]
 
 for size in sizes:
