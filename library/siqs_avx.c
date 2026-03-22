@@ -505,16 +505,16 @@ static int scan_sieve_avx512(uint8_t threshold, int *candidates) {
 
 typedef struct {
     mpz_t Qx;           /* Q(x) value */
-    uint32_t fb_exp[MAX_FB]; /* exponent vector (only non-zero entries stored) */
     int x_val;           /* x position */
     int num_factors;     /* number of distinct FB primes */
     int factor_idx[200]; /* indices of FB primes that divide Q(x) */
+    uint8_t factor_exp[200]; /* exponents (sparse) */
     uint64_t cofactor;   /* remaining cofactor after trial division */
     int lp_count;        /* 0=full, 1=SLP, 2=DLP */
     uint64_t lp1, lp2;  /* large primes */
 } relation_t;
 
-static relation_t relations[MAX_RELS];
+static relation_t *relations;
 static int num_rels = 0;
 
 /* Trial divide Q(x) by factor base, return cofactor */
@@ -523,13 +523,13 @@ static int trial_divide(mpz_t Qx, relation_t *rel) {
     mpz_init_set(rem, Qx);
 
     rel->num_factors = 0;
-    memset(rel->fb_exp, 0, fb_size * sizeof(uint32_t));
 
     /* Handle sign */
     if (mpz_sgn(rem) < 0) {
         mpz_neg(rem, rem);
-        rel->fb_exp[0] = 1; /* -1 factor */
-        rel->factor_idx[rel->num_factors++] = 0;
+        rel->factor_idx[rel->num_factors] = 0;
+        rel->factor_exp[rel->num_factors] = 1;
+        rel->num_factors++;
     }
 
     /* Divide by factor base primes */
@@ -541,8 +541,9 @@ static int trial_divide(mpz_t Qx, relation_t *rel) {
                 mpz_divexact_ui(rem, rem, p);
                 exp++;
             }
-            rel->fb_exp[i] = exp;
-            rel->factor_idx[rel->num_factors++] = i;
+            rel->factor_idx[rel->num_factors] = i;
+            rel->factor_exp[rel->num_factors] = (uint8_t)exp;
+            rel->num_factors++;
         }
     }
 
@@ -793,6 +794,10 @@ int main(int argc, char *argv[]) {
     int sieve_interval = BLOCKSIZE * params.num_blocks;
     mpz_tdiv_q_ui(target_a, target_a, sieve_interval);
 
+    /* Allocate relations array */
+    relations = calloc(fb_size + 500, sizeof(relation_t));
+    if (!relations) { fprintf(stderr, "Failed to allocate relations\n"); return 1; }
+
     int target_rels = fb_size + 50;
     int full_rels = 0, slp_rels = 0, dlp_rels = 0;
 
@@ -911,7 +916,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < num_rels; i++) {
         for (int j = 0; j < relations[i].num_factors; j++) {
             int idx = relations[i].factor_idx[j];
-            if (relations[i].fb_exp[idx] & 1)
+            if (relations[i].factor_exp[j] & 1)
                 matrix_set_bit(i, idx);
         }
     }
