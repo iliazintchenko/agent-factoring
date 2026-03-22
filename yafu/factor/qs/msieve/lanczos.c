@@ -1271,12 +1271,18 @@ uint64_t * yafu_block_lanczos_core(fact_obj_t *obj,
 
 		dim_solved += dim0;
 
-		/* Bail out if iteration takes too long (more than n*2 steps) */
-		if (iter > (uint32_t)n * 2 + 1000) {
-			fprintf(stderr, "lanczos: bailing at iter %u (dim %u/%u)\n",
-				iter, dim_solved, n);
-			dim0 = 0;
-			break;
+		/* Bail out if iteration takes too long.
+		 * Use wall-clock time: if the Lanczos phase exceeds 10 seconds
+		 * for the first attempt, bail and retry with different seed. */
+		if (iter % 50 == 0 && iter > 100) {
+			time_t now = time(NULL);
+			double la_elapsed = difftime(now, first_time);
+			if (la_elapsed > 10.0) {
+				fprintf(stderr, "lanczos: bailing at iter %u (dim %u/%u, %.1fs)\n",
+					iter, dim_solved, n, la_elapsed);
+				dim0 = 0;
+				break;
+			}
 		}
 
 		if (report_interval) {

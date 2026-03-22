@@ -1,36 +1,35 @@
 # Library Index
 
-## Factoring Tools
+## Factoring Tools (Best to Worst)
 
-### msieve (compiled from yafu/)
+### race_factor.sh - BEST for 65-100 digits
+- **Usage**: `bash library/race_factor.sh <N> [timeout]`
+- **Method**: Races 6 YAFU SIQS instances with different random seeds (8 threads each), falls back to msieve
+- **Why**: YAFU's block Lanczos has a hang bug on ~20% of inputs. Different seeds avoid the hang.
+- **Performance**: 65d: 2-5s, 75d: 3-8s, 85d: 10-30s, needs benchmarking for 90-100d
+
+### fast_factor.sh - Simple YAFU+msieve fallback
+- **Usage**: `bash library/fast_factor.sh <N> [timeout]`
+- **Method**: Single YAFU attempt with timeout, fallback to msieve
+- **Best for**: 60-77 digits where YAFU usually doesn't hang
+
+### yafu/yafu - Multi-threaded SIQS
+- **Usage**: `echo "siqs(<N>)" | LD_LIBRARY_PATH=/usr/local/lib yafu/yafu -threads 48`
+- **Performance**: 10-50x faster than msieve for 65-85d when it doesn't hang
+- **Bug**: Hangs in block Lanczos on ~20-30% of inputs at 80+d
+
+### msieve (compiled from yafu/) - Reliable single-threaded SIQS
 - **Binary**: `./msieve -q -s <session_file> <N>`
-- **Method**: Auto-selects trial division → ECM → SIQS → GNFS based on input size
-- **Status**: Working. Primary factoring tool for all sizes.
-- **Performance**: See best-algos.json for per-size benchmarks
+- **Performance**: 30-60d: <2s, 70d: 19s, 75d: ~100s, 80d: ~250s, 85d+: >300s
+- **Limitation**: Single-threaded sieving, too slow for 80+ digits
 
-### factor.c - ECM-based factoring
-- **Compile**: `gcc -O2 -o factor library/factor.c -lgmp -lecm -lm`
-- **Usage**: `./factor <N> [deadline_seconds]`
-- **Method**: Trial division + Pollard rho + GMP-ECM
-- **Best for**: 30-60 digit balanced semiprimes (factors up to ~30 digits)
-- **Status**: Working
+### factor.c / pfactor.c - Parallel ECM
+- **Usage**: `./factor <N>` or `./pfactor <N>`
+- **Best for**: Unbalanced semiprimes (one factor much smaller)
+- **Not competitive** for balanced semiprimes above 60 digits
 
-### factorize.sh - Best-method wrapper
-- **Usage**: `./library/factorize.sh <N> [deadline]`
-- **Method**: Tries msieve first, falls back to ECM
-- **Status**: Working
-
-## Benchmark Tools
-
-### run_all.sh - Full benchmark suite
-- **Usage**: `bash library/run_all.sh [tool] [start_digits] [end_digits] [deadline]`
-- **Status**: Working
-
-## In Development
-
-### siqs.c - Custom SIQS implementation
-- **Status**: Buggy (square root extraction fails). Using msieve instead.
-- **Issue**: Exponent vectors for combined partial relations produce trivial null vectors.
-
-### qs.c - Basic QS (single polynomial)
-- **Status**: Too slow for practical use. Single polynomial yields insufficient smooth values.
+## Benchmark Scripts
+- bench_race.py - Benchmark race_factor.sh
+- bench_fast.py - Benchmark fast_factor.sh
+- bench_yafu.py - Benchmark YAFU SIQS directly
+- bench_msieve.py - Benchmark msieve
