@@ -25,20 +25,21 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 | 81-84  | 56.3-98.9s     | |
 | 85-86  | 142.2-155.4s   | |
 | 87     | 199.7s         | |
-| 88     | 252.4s         | Close to 300s limit |
-| 89     | 292-318s       | Hardest numbers exceed 300s |
+| 88     | 240s           | Close to 300s limit (system GMP build) |
+| 89     | 213-300+s      | 4/5 pass, 1 timeout. Hardest number exceeds 300s. |
 | 90+    | >300s          | Not achievable single-core |
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
-make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48
+# IMPORTANT: Use system GMP instead of bundled GMP for ~5-13% speedup
+# Modify Makefile.gcc: INC += -I/usr/include, LIBS += -L/usr/lib64, -L/usr/local/lib
+make -f Makefile.gcc clean && make -f Makefile.gcc yafu ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48
 ```
 - `SKYLAKEX=1`: enables `USE_AVX512F`, `USE_AVX512BW`, `-march=skylake-avx512`
-- **USE_AVX512BW is critical**: Enables hand-written AVX512BW sieve and resieve kernels (`med_sieveblock_32k_avx512bw`, `resieve_medprimes_32k_avx512bw`). These give **14% improvement** over AVX2-only build across all sizes and **3-7x on small sizes** (reduced startup overhead).
-- `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 is NOT supported (build fails).
-- `NO_ZLIB=1`: Required if zlib not installed; avoids link errors.
-- Binary: `/tmp/agent-factoring-3/yafu/yafu`
-- **Previous build bug**: SKYLAKEX was set but `USE_AVX512BW` guards in `med_sieve_32k_avx2.c` and `tdiv_resieve_32k_avx2.c` weren't being triggered, leaving AVX512BW sieve functions undefined. Fixed by ensuring proper `#ifdef USE_AVX512BW` compilation.
+- `VBITS=256`: 256-bit Block Lanczos vectors (2x faster LA than VBITS=64)
+- **System GMP 6.2.1** vs bundled GMP 6.2.0: **5-13% faster** (88d: 240s vs 252s)
+- PGO and LTO: **no measurable improvement** (sieve uses hand-written AVX512 intrinsics)
+- `-O3` vs `-O2`: **no improvement** for same reason
 
 ### Parameter Tuning Results (89d as test case)
 All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
