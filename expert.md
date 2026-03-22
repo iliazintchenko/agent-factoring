@@ -42,12 +42,10 @@ make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2
 ```
 - `SKYLAKEX=1`: enables `USE_AVX512F`, `USE_AVX512BW`, `-march=skylake-avx512`
 - **USE_AVX512BW is critical**: Enables hand-written AVX512BW sieve and resieve kernels (`med_sieveblock_32k_avx512bw`, `resieve_medprimes_32k_avx512bw`). These give **14% improvement** over AVX2-only build across all sizes and **3-7x on small sizes** (reduced startup overhead).
-- **monty.h static inline fix**: Add `static` to `__inline` in monty.h (submod/addmod/mulredc etc.). Required for PGO builds. Performance impact: **marginal (1-2%) at best** — initial measurement of 16% was a load-noise artifact. Confirmed by concurrent A/B test: fixed and unfixed binaries produce identical times (44.4s vs 44.7s on 80d[0], 42.0s vs 42.1s on 80d[2]).
+- **monty.h static inline fix**: Add `static` to `__inline` in monty.h. Required for PGO builds. Performance impact is marginal (~1-2%).
 - `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 is NOT supported (build fails).
 - `NO_ZLIB=1`: Required if zlib not installed; avoids link errors.
-- Binary: `/tmp/agent-factoring-10/yafu_build/yafu` (monty.h fix + AVX512BW, best known build)
-- Agent-4 binary (no monty.h fix): `/tmp/agent-factoring-4/yafu/yafu`
-- **Previous build bug**: SKYLAKEX was set but `USE_AVX512BW` guards in `med_sieve_32k_avx2.c` and `tdiv_resieve_32k_avx2.c` weren't being triggered, leaving AVX512BW sieve functions undefined. Fixed by ensuring proper `#ifdef USE_AVX512BW` compilation.
+- **Previous build bug**: SKYLAKEX was set but `USE_AVX512BW` guards weren't being triggered. Fixed by ensuring proper `#ifdef USE_AVX512BW` compilation.
 
 ### Parameter Tuning Results (89d as test case)
 All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
@@ -128,7 +126,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | CADO-NFS single-thread | 90d: 245s CPU sieve for 43% of relations, ETA ~570s total. las sieve rate 1497 rels/sec (3x slower than GGNFS) but needs fewer rels (852K vs 1.46M). |
 | CADO-NFS NFS | Uses multiprocessing. Violates single-core rule. |
 | AVX512 gather-scatter sieve | **20% slower** than scalar on AMD Zen4. AMD's scatter is ~10 cycles/element vs 1 cycle/element for scalar stores. |
-| Custom SIQS | library/siqs.c exists but broken |
+| Custom SIQS | See dedicated section below. 30-50x slower than YAFU due to scalar sieve. |
 | VBITS=512 | Not supported by msieve's lanczos.h (limited to 64/128/256) |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
 | yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
@@ -137,11 +135,10 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | USE_BATCHPOLY build | 11% slower (80d: 52.9s vs 47.0s). Batch polynomial root updates hurt performance. |
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
-| PGO (profile-guided optimization) | **WORKS after fix**: Add `static` to `__inline` in `monty.h` for mulredc/sqrredc/mulredc63. PGO binary at `/tmp/agent-factoring-3/yafu/yafu.pgo`. Solo 89d[4]=294.1s (from 297s with O3, 300s with O2). ~1-2% improvement. |
-| **monty.h static inline fix (ALL functions)** | Marginal improvement (~1-2%). Add `static` to ALL `__inline` functions in monty.h. Initial "16% improvement" was **load-noise artifact** — A/B test with both binaries running concurrently shows identical times (44.4s vs 44.7s on 80d[0]). The fix is still useful for enabling PGO builds. |
-| Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when |p-q| < N^(1/3). |
-| Custom SIQS (library/cqs/siqs_gmp.c) | Working SIQS in C+GMP. 30d: 0.04s, 40d: 2.9s, 50d: 4.1s. Factors 30-50d but ~50x slower than YAFU for 50d. Missing: Gray code self-init (generates new 'a' per poly instead of 2^(s-1) B values), AVX512 sieve, optimized trial division. The gap is fundamental engineering, not algorithmic. |
-| YAFU 48KB sieve blocks | BLOCKSIZE is hardcoded to 32768 with values scattered throughout AVX512BW assembly. Changing to 48KB (AMD L1D size) would require extensive surgery. Not viable. |
+| PGO (profile-guided optimization) | ~1-2% improvement. Requires `static __inline` fix in monty.h. Not significant — hot path is hand-written AVX512 intrinsics that GCC can't improve via profiling. |
+| monty.h static inline fix | Marginal (~1-2%). Initial "16%" measurement was load-noise artifact. A/B test confirmed identical times. Still useful for enabling PGO builds. |
+| Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when \|p-q\| < N^(1/3). |
+| YAFU 48KB sieve blocks | BLOCKSIZE hardcoded to 32768 throughout AVX512BW assembly. Not viable to change. |
 
 ### Sieve Architecture (for future optimization attempts)
 - **Hot function**: `med_sieveblock_32k_avx512bw()` — 32-way SIMD, 64 scattered byte subtractions per iteration
@@ -205,17 +202,9 @@ YAFU can save/resume via siqs.dat. Key findings:
 5. **The a*g(x) factor**: For SIQS, exponent matrix must track a*g(x), not g(x).
 6. **Sieve threshold**: log2(M * sqrt(N)) minus small-prime correction. Too high = few candidates, too low = false positives.
 
-## PGO Build
-- PGO for YAFU: ~1-2% improvement at best
-- Fix needed: `__inline` → `static __inline` in monty.h
-- Not impactful enough to change best-algos.json entries
-
 ## Tools
-- `yafu/yafu`: YAFU binary (AVX512BW+VBITS=256). Use `siqs(N)` with `-threads 1 -seed 42`.
-- `library/siqs_fast.c`: Custom SIQS (DLP, working 30-50d). Compile: `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
-- `library/siqs2.c`: Custom SIQS (SLP only, working 30-60d)
+- `yafu/yafu`: YAFU baseline. Use `siqs(N)` with `-threads 1 -seed 42`.
+- `library/siqs2.c`: Custom SIQS (SLP, working 30-60d, 30-80x slower than YAFU)
+- `library/siqs_fast.c`: Custom SIQS with DLP (working 30-50d). Compile: `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
 - `library/mpqs.c`: Custom MPQS (sieve works, sqrt step buggy)
-- `library/pollard_rho.c`: Pollard rho (too slow for balanced semiprimes)
-- `library/bench_single.py`: Benchmark script (run 5 semiprimes per size in parallel)
-- `library/update_best.py`: Update best-algos.json from benchmark results
-- `library/yafu_resume.sh`: YAFU wrapper with save/resume support
+- `library/pollard_rho.c`: Pollard rho (too slow for balanced semiprimes above 30d)
