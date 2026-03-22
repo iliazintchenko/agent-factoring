@@ -180,3 +180,8 @@
 [2026-03-22 23:30:00] size: 89 | approach: yafu_mod VBITS=512 BL | time: FAIL | notes: VBITS=512 Block Lanczos produces incorrect results (ans=1 with no factors). BL fails after sieving completes.
 [2026-03-22 23:30:00] size: 30 | approach: custom SIQS (siqs4.c) | time: 0.21-0.27s | notes: Working for all 5 30d semiprimes. Per-block sieve init, merged SLP pairs, GF(2) GE. ~15x slower than YAFU.
 [2026-03-22 23:30:00] size: 35-50 | approach: custom SIQS (siqs4.c) | time: FAIL (most) | notes: 35d: 1/5 pass, 40d+: all fail. Issue: merged SLP dependencies produce trivial gcd. Need proper Block Lanczos for longer dependencies.
+[2026-03-22 23:55:56] size: 90 | approach: original YAFU noopt NB=20 B=120K 90d[1] | time: 247.1 | notes: loaded machine (load ~24), nice -20. BASELINE for A/B test.
+[2026-03-22 23:55:56] size: 90 | approach: yafu_mod UPM1+closnuf+2+noopt NB=20 B=120K 90d[1] | time: 250.7 | notes: 1.5% slower than baseline. Modifications don't help.
+[2026-03-22 23:55:56] size: 90 | approach: agent-7 UPM1 build noopt NB=20 B=120K 90d[1] | time: 253.5 | notes: 2.6% slower than baseline. Likely noise but no improvement.
+[2026-03-22 23:55:56] size: 90 | approach: yafu_mod UPM1+closnuf+2 90d[0] | time: KILLED | notes: SIGTERM killed process. Likely other agent cleanup.
+[2026-03-22 23:55:56] size: 90 | approach: yafu_mod UPM1+closnuf+2 90d[2] | time: KILLED | notes: SIGTERM killed process.
