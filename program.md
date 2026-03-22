@@ -27,13 +27,13 @@ ENVIRONMENT:
   `time` is the worst-case (maximum) wallclock time across the 5 semiprimes of a given digit count — this is the number to minimize. `run` is a self-contained shell command that compiles and runs the relevant library code on a given number, e.g. `"gcc -O2 library/pollard_rho.c -o pollard_rho -lgmp && ./pollard_rho <N>"`. Keep it up to date whenever you find a faster approach.
 - semiprimes.json: the frozen test suite. Contains balanced semiprimes from 30 to 100 digits, 5 random ones per size. Format: `{"30": ["num1", "num2", ...], "31": [...], ...}`. **Do not modify this file.**
 - yafu/: source code of YAFU (Yet Another Factoring Utility). Strong SIQS implementation. Useful reference for algorithms, data structures, and parameter tuning.
-- cado-nfs/: source code of CADO-NFS, the best-in-class NFS implementation. Useful reference for polynomial selection, sieving strategies, and linear algebra.
+- cado-nfs/: source code of CADO-NFS, the best-in-class NFS implementation. Useful reference for polynomial selection, sieving strategies, and linear algebra. This is specifically meant for parallel factoring algorithm. Not for single-threaded execution.
 
 RULES:
 
 - Max runtime for any single script/process is 300 seconds — this means the entire execution, not each step within it. Put appropriate time guards so this is never exceeded.
 - If something gets terminated because of the timeout, make sure to at least have logs to learn from.
-- **Single core only.** All factoring code must run on a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance.
+- **Single core only for factoring.** Each factoring process must use a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance. However, you should run many independent experiments in parallel to make full use of the machine — e.g. benchmark multiple sizes at once, test different approaches concurrently, etc.
 - **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs. If you discover that any existing results in `best-algos.json`, `experiments.log`, or `library/` were produced with a different seed or with parallelization, remove them and re-run with the correct settings.
 - Never stop. Only the user can stop you. Nobody else.
 - You can use the browser, read papers, or any other tool at your disposal.
@@ -45,7 +45,6 @@ TIPS:
 
 - Start by understanding the benchmark landscape — look at semiprimes.json to see the range (30–100 digits) and sample sizes.
 - Read expert.md to understand what has already been tried and what the current best times are.
-- You can use yafu/ and cado-nfs/ source code for reference on the current state of the art.
 - Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
 - If you're not making progress on a size, move on to a different one or a different approach. Revisit later with fresh knowledge.
