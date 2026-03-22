@@ -45,7 +45,6 @@ TIPS:
 
 - Read expert.md first to understand what has already been tried. Don't repeat failed experiments.
 - Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
-- The frontier is currently at 89 digits. Pushing to 90+ likely requires NFS or a fundamentally different approach — SIQS hits a wall there.
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into best-algos.json.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
 - If you're not making progress, move on to a different approach. Revisit later with fresh knowledge.
