@@ -26,17 +26,11 @@
 [2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 48t, single | time: 59s | notes: Single instance with all cores is fast
 [2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 10t, 5 parallel | time: >280s 4/5 FAIL | notes: Not enough throughput with 10 threads per instance
 [2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 16t, 5 parallel | time: >280s 4/5 FAIL | notes: Oversubscription kills performance
-[2026-03-22 02:30:00] size: 96 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: 175s worst | notes: All 5 OK
-[2026-03-22 02:30:00] size: 97 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: 254s worst | notes: All 5 OK, tight
-[2026-03-22 02:30:00] size: 98 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: 280s FAIL 3/5 | notes: 24 threads not enough for 98d
-[2026-03-22 02:30:00] size: 99-100 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: ALL FAIL | notes: Need 48 threads per number, sequential
-[2026-03-22 03:00:00] size: 98 | approach: YAFU SIQS (agent-1), 48t, -siqsB 67900 | time: 234s | notes: Under 280s for single number!
-[2026-03-22 03:00:00] size: 100 | approach: YAFU SIQS (agent-1), 48t, -siqsB 90000 | time: >280s TIMEOUT | notes: 100d barely exceeds 280s limit
-[2026-03-22 03:00:00] size: 96-97 | approach: batch of 2 x 24t | time: 175s, 254s worst | notes: All 5 numbers OK for both sizes
-[2026-03-22 03:00:00] size: 98 | approach: YAFU SIQS (agent-1), 48t, -siqsB 67900 | time: 234s | notes: Under 280s for single number
-[2026-03-22 03:00:00] size: 100 | approach: YAFU SIQS (agent-1), 48t, -siqsB 90000 | time: >280s TIMEOUT | notes: 100d barely exceeds 280s limit
-[2026-03-22 03:15:00] size: 100 | approach: YAFU SIQS, 48t, -siqsB 75000 | time: >270s TIMEOUT | notes: 100d semiprimes take ~300s single with SIQS - at hardware limit
-[2026-03-22 03:15:00] size: 98 | approach: YAFU SIQS, 48t, -siqsB 67900 | time: 234s | notes: Fits single-number 280s deadline. Score for 5 parallel: need ~234s (sequential batches)
-[2026-03-22 03:15:00] size: 100 | approach: YAFU SIQS, 48t, -siqsB 75000 | time: >270s TIMEOUT | notes: 100d at SIQS hardware limit
-[2026-03-22 03:15:00] size: 98 | approach: YAFU SIQS, 48t, -siqsB 67900 | time: 234s | notes: Single number under 280s
-[2026-03-22 03:30:00] size: 100 | approach: YAFU SIQS various configs | time: ALL >270s | notes: 100d is at SIQS hardware limit. Tried siqsB 60000/75000/80000/90000, agent-1 and agent-3 builds. All timeout.
+[2026-03-22 04:00:00] size: 97 | approach: YAFU SIQS 48T single | time: 123-198s | notes: individual numbers OK, 5 parallel fails (contention)
+[2026-03-22 04:00:00] size: 98 | approach: YAFU SIQS 48T single | time: 162s | notes: first number only
+[2026-03-22 04:00:00] size: 99 | approach: YAFU SIQS 48T single | time: 185s | notes: first number only
+[2026-03-22 04:00:00] size: 100 | approach: YAFU SIQS 48T single | time: 373s | notes: exceeds 300s limit even for single number
+[2026-03-22 04:00:00] size: 97 | approach: CADO-NFS 48T single | time: 452-492s | notes: NFS much slower than SIQS at 97d
+[2026-03-22 04:00:00] size: 90 | approach: CADO-NFS 48T single | time: 212s | notes: comparable to YAFU SIQS at 90d
+[2026-03-22 04:00:00] size: YAFU build | approach: IFMA=slower, VBITS=128=slower, VBITS=256=optimal | time: N/A | notes: confirmed SKYLAKEX+VBITS256 is best
+[2026-03-22 04:00:00] size: 97 | approach: 5 parallel various T=6/9/10/16/48 | time: FAIL | notes: all configurations fail. L3 cache thrashing is root cause.

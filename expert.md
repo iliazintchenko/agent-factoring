@@ -1,50 +1,49 @@
 # Agent Expert Knowledge
 
-## Algorithm Performance for Balanced Semiprimes
+## Key Finding: YAFU SIQS Dominates for Balanced Semiprimes
 
-### YAFU multi-threaded SIQS - Primary tool for all sizes
-- Binary: `yafu/yafu` (built with `make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1`)
-- Usage: `echo "siqs(<N>)" | LD_LIBRARY_PATH=/usr/local/lib yafu/yafu -threads 48 -seed 42 [-siqsB <fb_size>]`
+YAFU's SIQS (Self-Initializing Quadratic Sieve) is the fastest approach for balanced semiprimes at every tested size from 30-100 digits. This holds against parallel ECM, msieve SIQS (single-threaded), and Pollard's rho.
 
-**CRITICAL: YAFU has a parameter selection bug for 78-90 digit numbers.**
-- Default chooses factor base ~45000 for 80 digits (should be ~15000)
-- This causes "matrix is corrupt" error and wastes time re-sieving
-- Fix: use `-siqsB <size>` flag with these values:
-  - 70d: `-siqsB 8000`
-  - 80d: `-siqsB 15000`
-  - 85d: `-siqsB 25000`
-  - 90d: `-siqsB 40000`
-  - 95d: `-siqsB 60000`
-  - 100d: `-siqsB 90000`
+### Why SIQS beats ECM for balanced semiprimes
+- ECM's complexity depends on the **smallest factor size**, not the composite
+- For balanced semiprimes, factors are ~N/2 digits — ECM treats these as hard
+- SIQS complexity depends on the **composite size** — sub-exponential in N
+- The crossover where SIQS beats ECM for balanced semiprimes is below 30 digits
 
-**YAFU also has a block Lanczos hang bug.**
-- On some matrices, the Lanczos iteration diverges (infinite loop)
-- Fix applied in `yafu/factor/qs/msieve/lanczos.c`:
-  - Added 10-second wall-clock timeout on Lanczos iteration
-  - On timeout, bail out and retry with different random seed
-  - Seed is rotated using LCG on each retry attempt
+### YAFU Build Configuration (CRITICAL)
+The Makefile.gcc ignores config.mk — flags MUST be passed on the command line:
+```bash
+make -f Makefile.gcc yafu ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48
+```
+- `SKYLAKEX=1`: enables AVX512F, AVX512BW, march=skylake-avx512
+- `VBITS=256`: 256-bit Block Lanczos vectors (2x faster LA than VBITS=64)
+- IFMA/ICELAKE: SLOWER on this CPU — do NOT use
+- VBITS=128: also slower than VBITS=256
 
-### Performance (when running alone on 48 cores)
-- 30-50d: 0.1-1.0s (msieve faster for <50d at ~0.05-0.2s)
-- 55-65d: 1-3s
-- 70-77d: 2-7s
-- 78-85d: 4-18s (requires -siqsB tuning)
-- 90d: ~23s (requires -siqsB 40000)
-- 95d: ~100-190s (from agent-1 benchmarks with 24 threads)
+### Performance Data (YAFU SIQS, 5 parallel, 48-core AMD EPYC 9R45)
+| Digits | Worst-case time | Threads | Notes |
+|--------|----------------|---------|-------|
+| 30-57  | ~1.0-1.7s      | 9 each  | Startup-dominated |
+| 58-65  | 1.7-3.3s       | 9 each  | |
+| 66-75  | 3.4-20.2s      | 9 each  | |
+| 76-85  | 13-75.5s       | 9 each  | |
+| 86-92  | 80-226s        | 9 each  | |
+| 93-96  | 140-236s       | 48 each | 5*48=240 threads oversubscribed |
+| 97-100 | FAILS          | any     | Cannot complete 5 parallel in 300s |
 
-### msieve SIQS - Reliable single-threaded fallback
-- Usage: `./msieve -q -s /tmp/msieve_$$.dat <N>`
-- Single-threaded sieving, reliable but slow at 78+d
-- Performance: 30-60d <2s, 70d ~19s, 75d ~100s, 80d+ exceeds deadline
+### Thread Scaling
+- 9 threads: 75% CPU efficiency (sweet spot for 5 parallel instances)
+- 48 threads: only 17% efficiency (terrible, sieving doesn't scale)
+- For 93-96d: oversubscription (5*48 threads) works due to shorter total CPU time
+- For 97+: total CPU time exceeds what 48 cores can deliver in 300s
 
-### Key Insights
-1. YAFU multi-threaded SIQS is 10-50x faster than msieve at 70+d
-2. Must use `-siqsB` to override YAFU's buggy FB size selection at 78+d
-3. Block Lanczos can hang - need timeout+retry with different seed
-4. Resource contention from multiple agents severely impacts performance
-5. Use workdir approach: `WORKDIR=$(mktemp -d) && cd $WORKDIR && ... && rm -rf $WORKDIR`
+### Why 97-100 Fail
+- 97d: ~1700 CPU-sec/number. 5 * 1700 = 8500 needed vs 48*300*0.6 = 8640 budget (marginal)
+- 100d: 373s even for a single instance — impossible within 300s
+- Root cause: L3 cache thrashing (192MB / 5 instances) + poor SIQS thread scaling
 
-## Reference Implementations
-- yafu/yafu: Multi-threaded SIQS with AVX2 sieve (primary tool)
-- yafu/msieve: Single-threaded SIQS fallback (reliable)
-- cado-nfs/: GNFS for very large numbers (100+d)
+## Tools
+- `yafu/yafu`: YAFU binary (SKYLAKEX+AVX512+VBITS=256). Use `siqs(N)` command.
+- `library/factor.c`, `pfactor.c`: C-based trial div + rho + ECM
+- `library/run_yafu.sh`: YAFU wrapper (temp dir, factor extraction)
+- `yafu/msieve`: msieve binary (single-threaded SIQS)
