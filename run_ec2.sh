@@ -131,24 +131,21 @@ for i in $(seq 1 "$NUM_AGENTS"); do
   fi
 done
 
-# Launch tmux session — one window per agent
+# Launch agents in background, each writing to its own log
 for i in $(seq 1 "$NUM_AGENTS"); do
   REPO_DIR="/tmp/agent-factoring-$i"
   LOG="$REPO_DIR/agent.log"
-  if [ "$i" -eq 1 ]; then
-    tmux new-session -s factoring -n "agent-$i" -d \
-      "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json 2>&1 | tee $LOG"
-  else
-    tmux new-window -t factoring -n "agent-$i" \
-      "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json 2>&1 | tee $LOG"
-  fi
-  # Add monitoring panes: token usage bottom-left, agent steps bottom-right
-  tmux split-window -v -t "factoring:agent-$i" \
-    "tail -f $LOG | jq -r 'select(.type==\"assistant\" and .message.usage) | .message.usage | \"in: \\(.input_tokens) cache: \\(.cache_read_input_tokens) out: \\(.output_tokens)\"'"
-  tmux split-window -h -t "factoring:agent-$i.1" \
-    "tail -f $LOG | jq -r 'select(.type==\"assistant\" and .message.content) | .message.content[] | select(.type==\"text\") | .text' 2>/dev/null"
-  tmux select-pane -t "factoring:agent-$i.0"
+  (cd "$REPO_DIR" && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json > "$LOG" 2>&1) &
 done
+
+# Single tmux window showing human-readable messages from all agents
+TAIL_CMD=""
+for i in $(seq 1 "$NUM_AGENTS"); do
+  LOG="/tmp/agent-factoring-$i/agent.log"
+  TAIL_CMD="$TAIL_CMD (tail -f $LOG | jq --unbuffered -r 'select(.type==\"assistant\" and .message.content) | .message.content[] | select(.type==\"text\") | \"[agent-$i] \" + .text' 2>/dev/null) &"
+done
+TAIL_CMD="$TAIL_CMD wait"
+tmux new-session -s factoring -d "bash -c '$TAIL_CMD'"
 REMOTE
 
 ssh -t "$HOST" 'tmux attach -t factoring'
