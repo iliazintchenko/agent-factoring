@@ -24,3 +24,4 @@
 [2026-03-22 14:31:16] size: 89 | approach: YAFU SIQS 1t NB18+B100K | time: 297.7 | notes: Best combo found. Worst of 5: 297.7s. Sieve=287s, BL=9s. 4/5 under 280s.
 [2026-03-22 14:31:16] size: 89 | approach: tuning summary | time: 296 | notes: NB18+B100K best for hard number. NB16+B90K also ~299s. Default was 512s.
 [2026-03-22 14:54:31] size: 89 | approach: YAFU SIQS -siqsNB 18 -siqsB 100000 (all 5 parallel) | time: 294.4s worst | notes: ALL 5 PASS! [0]=213.3, [1]=213.3, [2]=238.1, [3]=272.7, [4]=294.4. Larger FB (100K vs default 70K) speeds sieve 9% but needs 43% more relations. NB=18 amortizes poly init. Net: 318->294s for hardest number.
+[2026-03-22 15:01:58] size: 89 | approach: NB18+B100K+M/LPB tuning | time: 296-298 | notes: LP multiplier (M=140-200) and LPB (26-32) no improvement. Sieve floor ~287s for hardest number.
