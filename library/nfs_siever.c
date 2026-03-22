@@ -672,14 +672,23 @@ static void sieve_special_q(uint32_t q, uint32_t qroot) {
     /* Subtract special-q contribution */
     uint8_t logq = (uint8_t)(log2(q) + 0.5);
     if (alg_thresh > logq) alg_thresh -= logq;
+    /* Subtract estimated small prime contribution (primes < SIEVE_SMALL_CUTOFF) */
+    /* sum of logp for p < 50: 1+1+2+2+3+3+3+4+4+5 = ~28 bits, * fraction hitting ≈ 14 */
+    uint8_t small_prime_est = 14;
+    if (alg_thresh > small_prime_est) alg_thresh -= small_prime_est;
+    if (rat_thresh > small_prime_est) rat_thresh -= small_prime_est;
 
-    /* Sieve algebraic side by factor base primes */
+    /* Sieve algebraic side by factor base primes.
+     * Skip very small primes (< SIEVE_SMALL_CUTOFF) — they hit too many
+     * positions and are cheap to trial divide later. */
+    #define SIEVE_SMALL_CUTOFF 50
     for (uint32_t fi = 0; fi < alg_fb.count; fi++) {
         uint32_t p = alg_fb.entries[fi].p;
         uint32_t r = alg_fb.entries[fi].r;
         uint8_t logp = alg_fb.entries[fi].logp;
 
         if (p == q) continue; /* Skip special-q */
+        if (p < SIEVE_SMALL_CUTOFF) continue; /* Trial divide later */
 
         /* Find sieve hits: we need (a,b) such that a ≡ r*b mod p
          * In lattice coords (i,j):
@@ -751,7 +760,7 @@ static void sieve_special_q(uint32_t q, uint32_t qroot) {
         uint32_t r = rat_fb.entries[fi].r;
         uint8_t logp = rat_fb.entries[fi].logp;
 
-        if (p == 1) continue;
+        if (p < SIEVE_SMALL_CUTOFF) continue; /* Trial divide later */
 
         /* Rational polynomial: g(a,b) = Y1*a + Y0*b = 0 mod p
          * So a ≡ -Y0/Y1 * b mod p, i.e., a ≡ r*b mod p (where r is the root)
