@@ -23,3 +23,6 @@
 [2026-03-22 01:30:00] size: 91 | approach: YAFU SIQS (agent-1 SKYLAKEX build), 16t, 5 parallel | time: 280s TIMEOUT | notes: 5 parallel with 16 threads each = oversubscribed, only 1 of 5 finishes
 [2026-03-22 01:30:00] size: 91 | approach: YAFU SIQS (agent-1), 16t, batch 3+2 | time: 188s worst | notes: Works in batches but total wallclock exceeds 300s
 [2026-03-22 01:30:00] size: 93 | approach: YAFU SIQS (agent-1), 48t, single | time: 182s | notes: Under 280s for single number with all cores
+[2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 48t, single | time: 59s | notes: Single instance with all cores is fast
+[2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 10t, 5 parallel | time: >280s 4/5 FAIL | notes: Not enough throughput with 10 threads per instance
+[2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 16t, 5 parallel | time: >280s 4/5 FAIL | notes: Oversubscription kills performance
