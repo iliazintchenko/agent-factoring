@@ -1,50 +1,82 @@
 {
-  "30": {"time": 0.047, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "31": {"time": 0.060, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "32": {"time": 0.051, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "33": {"time": 0.068, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "34": {"time": 0.081, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "35": {"time": 0.066, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "36": {"time": 0.077, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "37": {"time": 0.084, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "38": {"time": 0.089, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "39": {"time": 0.099, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "40": {"time": 0.105, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "41": {"time": 0.112, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "42": {"time": 0.141, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "43": {"time": 0.119, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "44": {"time": 0.149, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "45": {"time": 0.155, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "46": {"time": 0.183, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "47": {"time": 0.216, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "48": {"time": 0.233, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "49": {"time": 0.213, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "50": {"time": 0.156, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "51": {"time": 0.178, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "52": {"time": 0.225, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "53": {"time": 0.287, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "54": {"time": 0.327, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "55": {"time": 0.396, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "56": {"time": 0.488, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "57": {"time": 0.586, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "58": {"time": 0.773, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "59": {"time": 1.092, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "60": {"time": 1.865, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "61": {"time": 2.819, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "62": {"time": 3.921, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "63": {"time": 5.550, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "64": {"time": 6.541, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "65": {"time": 10.760, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "66": {"time": 6.939, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "67": {"time": 10.952, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "68": {"time": 10.839, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "69": {"time": 20.824, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "70": {"time": 18.683, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "71": {"time": 61.044, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "72": {"time": 60.880, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "73": {"time": 50.299, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "74": {"time": 35.239, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "75": {"time": 55.734, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "76": {"time": 101.780, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "77": {"time": 154.500, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"}
+  "30": {
+    "time": 1.08,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "32": {
+    "time": 1.02,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "34": {
+    "time": 1.2,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "36": {
+    "time": 1.27,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "38": {
+    "time": 1.102,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "40": {
+    "time": 1.314,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "42": {
+    "time": 1.178,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "45": {
+    "time": 1.276,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "48": {
+    "time": 1.213,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "50": {
+    "time": 1.307,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "52": {
+    "time": 1.29,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "54": {
+    "time": 1.384,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "55": {
+    "time": 1.541,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "60": {
+    "time": 1.235,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "65": {
+    "time": 2.501,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "70": {
+    "time": 4.527,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "75": {
+    "time": 9.292,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "80": {
+    "time": 24.853,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "85": {
+    "time": 71.93,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  },
+  "90": {
+    "time": 175.861,
+    "run": "WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX) && cd $WORKDIR && echo 'siqs(<N>)' | timeout 280 /tmp/agent-factoring-1/yafu/yafu -threads 9 && rm -rf $WORKDIR"
+  }
 }
