@@ -27,7 +27,7 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 | 85-86  | 138.8-151.6s   | With -siqsNB 16 |
 | 87     | 193.7s         | With -siqsNB 16 |
 | 88     | 228.5s         | With -siqsNB 16 |
-| 89     | 307s (worst)   | 4/5 under 300s, 89d[4] needs 301s sieving |
+| 89     | 311s (worst)   | 4/5 under 285s, 89d[4] needs 303s sieving + 8s BL |
 | 90+    | >300s          | Not achievable single-core |
 
 ### YAFU Build Configuration (CRITICAL)
@@ -61,9 +61,11 @@ Timing breakdown for 89d (system GMP build, -siqsNB 16):
 - 89d[4] needs ~70K relations at ~3200 sieve ops/sec, requiring ~300+s
 - **Branch misprediction**: perf shows 5.96% branch miss rate, ~20% cycle waste (inherent to sieve algorithm)
 - **IPC**: 2.67 instructions/cycle (good for AVX512 workload)
-- All parameters exhaustively tested: siqsB, siqsNB (8-64), siqsM, siqsMFBD, siqsSSidx, forceDLP, forceTLP, siqsLPB, -noopt, -siqsNobat, -inmem — none help
-- GNFS via YAFU refuses (gnfs_xover starts at 91d)
-- CADO-NFS single-core: ~720 CPU-sec (much slower)
+- All parameters exhaustively tested:
+  - siqsB (40K-100K), siqsNB (8-64), siqsM (80-200), forceDLP, forceTLP, forceQLP
+  - siqsLPB, siqsMFBD, combined NB+B, NB+M — none help beyond NB=16
+- GNFS via YAFU refuses (gnfs_xover starts at 91d, can override with -xover 85 but GGNFS siever has file errors)
+- CADO-NFS single-core: times out at 280s for both 85d and 89d
 - PGO/LTO/O3/march=znver4: no improvement (hand-written AVX512 intrinsics)
 - Each additional digit adds ~35-50% more sieving time
 
