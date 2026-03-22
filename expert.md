@@ -107,6 +107,16 @@ YAFU GNFS with `-xover 85` and default GGNFS sievers:
 - msieve standalone NFS: poly select alone takes 148-167s for 89-90d, not viable
 - **Key insight**: GNFS is feasible for 89-90d only on idle/low-load machine (user time ~250-260s)
 
+### GGNFS Siever Build & Permissions (CRITICAL)
+- GGNFS sievers built from lasieve5_nfsathome source at `yafu/factor/lasieve5_64/bin/`
+- **Sievers need `chmod +x`** — pre-built binaries lost execute permission. YAFU treats permission-denied (exit 126) as a siever crash, logging "ggnfs returned code 134"
+- **Working sievers**: `lasieve5_64/bin/gnfs-lasieve4I{11,12,13}e` (pre-built, non-avx512)
+- **Crashing sievers**: `lasieve5_64/bin/avx512/gnfs-lasieve4I{11,12,13}e` (built from nfsathome source, crash after chmod fix too — different bug)
+- **yafu.ini required**: NFS silently falls back to SIQS if YAFU can't find yafu.ini with `ggnfs_dir`. Create `yafu.ini` in workdir with `ggnfs_dir=/path/to/sievers/`
+- **Must use `-xover 85`**: YAFU rejects NFS for <95d numbers by default ("non-snfs input of size 90 is better done by siqs")
+- NFS pipeline: 43s ECM pretesting + 60s poly select + 487s sieve (1.46M rels at ~3000 rels/sec) = **too slow for 90d single-core** (590s total)
+- Even skipping ECM: 0 + 15s poly + 487s sieve + 30s filter/LA = 532s. NFS needs ~6600 rels/sec to finish in 300s budget
+
 ### YAFU SIQS on 90d — Closest Attempt
 NB=20 B=120K on 90d (all 5 semiprimes):
 - 90d[0]: timeout (>295s)
@@ -166,7 +176,7 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 
 ### YAFU Source Modifications (yafu_mod/)
 Modifications to YAFU source code in yafu_mod/ directory:
-1. **VBITS=512 Block Lanczos**: Extended common/lanczos/lanczos.h to support 512-bit vectors. Changed v_and/v_or/v_xor from cascading #if to loop-based. Builds successfully with `VBITS=512`. Note: the QS-specific BL in factor/qs/msieve/ still uses uint64_t (VBITS doesn't affect QS BL). Only helps NFS BL.
+1. **VBITS=512 Block Lanczos**: Extended common/lanczos/lanczos.h to support 512-bit vectors. **CRITICAL: QS BL uses msieve's code (factor/qs/msieve/lanczos.c) which is hardcoded to uint64_t (64 bits). VBITS only affects NFS BL.** To speed up QS BL, must modify the msieve BL code directly. QS BL is ~2-5% of 89-90d time.
 2. **closnuf threshold for 90d (agent-7 variant)**: More aggressive than agent-10: changed DLP closnuf from digits_n+5 to digits_n+3 for 82-87d, digits_n+3 to digits_n+1 for 88-92d, digits_n+1 to digits_n for 93-99d. Under high load (load ~23), sieve rates were ~4800-5260 rels/sec for 90d — similar to unmodified. Needs low-load testing to determine if closnuf change actually helps.
 3. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190).
 4. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
