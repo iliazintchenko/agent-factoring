@@ -205,6 +205,7 @@ Multiple modification variants tested by multiple agents:
 4. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190). Swapped conditions so larger check comes first.
 5. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
 6. **DO_UPM1** (agent-7): Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves.
+7. **Combined build A/B test** (agent-4): closnuf+2 + UPM1 + noopt vs original YAFU on 90d[1]: 250.7s vs 247.1s baseline — modifications are 1.5% **slower**. Confirms that source modifications provide no measurable improvement for SIQS.
 7. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
 
 Build yafu_mod3 (recommended): `cd yafu_mod3 && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48`
