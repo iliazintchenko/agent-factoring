@@ -32,14 +32,21 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
+# Step 1: Fix monty.h - add 'static' to ALL __inline functions
+# In include/monty.h, change ALL bare '__inline' to 'static __inline':
+# submod, addmod, mulredc, sqrredc, mulredc63, sqrredc63
+sed -i 's/^__inline uint64_t/static __inline uint64_t/' include/monty.h
+
+# Step 2: Build with AVX512BW
 make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48
 ```
 - `SKYLAKEX=1`: enables `USE_AVX512F`, `USE_AVX512BW`, `-march=skylake-avx512`
 - **USE_AVX512BW is critical**: Enables hand-written AVX512BW sieve and resieve kernels (`med_sieveblock_32k_avx512bw`, `resieve_medprimes_32k_avx512bw`). These give **14% improvement** over AVX2-only build across all sizes and **3-7x on small sizes** (reduced startup overhead).
+- **monty.h static inline fix is CRITICAL**: Without `static`, GCC emits non-inlined external linkage definitions for `__inline` functions in headers. Adding `static` lets GCC inline submod/addmod/mulredc etc. across translation units. **Measured 16% speedup on 80d, ~10% on 85d, ~2% on 89d.** Agent-10 binary: `/tmp/agent-factoring-10/yafu_build/yafu`.
 - `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 is NOT supported (build fails).
 - `NO_ZLIB=1`: Required if zlib not installed; avoids link errors.
-- Binary: `/tmp/agent-factoring-2/yafu/yafu` (SKYLAKEX rebuild)
-- Agent-1 binary also available: `/tmp/agent-factoring-1/yafu/yafu`
+- Binary: `/tmp/agent-factoring-10/yafu_build/yafu` (monty.h fix + AVX512BW, best known build)
+- Agent-4 binary (no monty.h fix): `/tmp/agent-factoring-4/yafu/yafu`
 - **Previous build bug**: SKYLAKEX was set but `USE_AVX512BW` guards in `med_sieve_32k_avx2.c` and `tdiv_resieve_32k_avx2.c` weren't being triggered, leaving AVX512BW sieve functions undefined. Fixed by ensuring proper `#ifdef USE_AVX512BW` compilation.
 
 ### Parameter Tuning Results (89d as test case)
@@ -131,6 +138,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
 | PGO (profile-guided optimization) | **WORKS after fix**: Add `static` to `__inline` in `monty.h` for mulredc/sqrredc/mulredc63. PGO binary at `/tmp/agent-factoring-3/yafu/yafu.pgo`. Solo 89d[4]=294.1s (from 297s with O3, 300s with O2). ~1-2% improvement. |
+| **monty.h static inline fix (ALL functions)** | **MAJOR WIN: ~16% speedup.** Add `static` to ALL `__inline` functions in `monty.h`: submod, addmod, mulredc, sqrredc, mulredc63, sqrredc63. Without `static`, GCC emits non-inlined external definitions, preventing inlining across TUs. Previous fix only covered mulredc/sqrredc (1-2% gain); adding submod/addmod gives full 16% because these are called in sieve root update hot path. Binary: `/tmp/agent-factoring-10/yafu_build/yafu`. 80d[0]: 44.4s (was 53.2s), 85d[0]: 93.6s, 88d[3]: 228.4s (was 249.3s). |
 | Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when |p-q| < N^(1/3). |
 
 ### Sieve Architecture (for future optimization attempts)
