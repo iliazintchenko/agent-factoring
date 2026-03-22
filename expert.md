@@ -2,7 +2,7 @@
 
 ## Key Finding: YAFU SIQS with AVX512BW is Fastest for Single-Core Balanced Semiprimes
 
-YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve kernels, is the fastest single-core approach for balanced semiprimes from 30-88 digits. For 89+ digits, single-core SIQS exceeds 300s.
+YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve kernels, is the fastest single-core approach for balanced semiprimes from 30-89 digits. For 90+ digits, neither SIQS nor NFS can complete within 300s single-core.
 
 ### Why SIQS beats ECM for balanced semiprimes
 - ECM's complexity depends on the **smallest factor size**, not the composite
@@ -27,8 +27,8 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 | 85-86  | 138.8-151.6s   | With -siqsNB 16 |
 | 87     | 193.7s         | With -siqsNB 16 |
 | 88     | 228.5s         | With -siqsNB 16 |
-| 89     | 311s (worst)   | 4/5 under 285s, 89d[4] needs 303s sieving + 8s BL |
-| 90+    | >300s          | Not achievable single-core |
+| 89     | 294.4s         | With -siqsNB 18 -siqsB 100000. All 5 pass. |
+| 90+    | >300s          | **Definitively infeasible** single-core (see NFS analysis) |
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
@@ -70,8 +70,9 @@ Timing breakdown for 89d (system GMP build, -siqsNB 18):
   - siqsB (40K-120K), siqsNB (8-64), siqsM (50-200), forceDLP, forceTLP, forceQLP
   - siqsLPB, siqsMFBD (1.7-2.0), siqsTF (89-95), combined NB+B, NB+M
   - NB=16-32 with B=80K-100K on 89d — all ~215s on 89d[0]
-- GNFS via YAFU: -xover 85 works for 90d but needs ~365s total (47s polyselect + 318s sieve + LA)
-- CADO-NFS single-core: server/client overhead prevents efficient single-core operation
+- GNFS via YAFU: works with `-xover 85` + GGNFS sievers. 90d: 404s total (55s poly + 300s sieve + 50s filter/LA).
+- CADO-NFS single-core (`-t 1 --slaves 1`): 90d: ~570s est. las siever 1500 rels/sec (3x slower than GGNFS)
+- msieve NFS: 90d: poly select 167s alone, sieve >240s additional. Total >400s.
 - PGO/LTO/O3/march=znver4: no improvement (hand-written AVX512 intrinsics)
 - Each additional digit adds ~35-50% more sieving time
 
@@ -109,8 +110,11 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 |----------|--------|
 | GMP-ECM | Much slower for balanced semiprimes |
 | msieve SIQS | 2.3x slower than YAFU single-threaded (80d: 142s vs 62s) |
-| CADO-NFS NFS | Uses multiprocessing (1561 CPU-sec for 89d via multiple worker processes). Violates single-core rule. |
-| CADO-NFS SIQS | Not a standalone SIQS; the `sieve/siqs` binary is actually lattice sieve |
+| msieve NFS (-n flag) | Poly selection alone takes 167s for 90d, then sieving times out. Total >400s. |
+| YAFU GNFS (GGNFS sievers) | 90d: 404s total. Poly select ~55s, sieve ~300s (1.46M rels at 4800/sec), filter+LA ~50s. |
+| CADO-NFS single-thread | 90d: 245s CPU sieve for 43% of relations, ETA ~570s total. las sieve rate 1497 rels/sec (3x slower than GGNFS) but needs fewer rels (852K vs 1.46M). |
+| CADO-NFS NFS | Uses multiprocessing. Violates single-core rule. |
+| AVX512 gather-scatter sieve | **20% slower** than scalar on AMD Zen4. AMD's scatter is ~10 cycles/element vs 1 cycle/element for scalar stores. |
 | Custom SIQS | library/siqs.c exists but broken |
 | VBITS=512 | Not supported by msieve's lanczos.h (limited to 64/128/256) |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
@@ -125,6 +129,22 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 - **Polynomial generation**: Gray code self-initialization, O(1) amortized per polynomial
 - **Parameter auto-tuning**: Table in `siqs_aux.c:325-376`, interpolated by bit count
 - **AMD EPYC 9R45**: L1D=48KB (sieve fits), no efficient byte scatter/gather, manual unroll is optimal
+
+### NFS vs SIQS Crossover Analysis (90d single-core)
+- **SIQS (YAFU)**: 90d easiest = 245s, hardest = >300s (timeout). Needs ~72K relations at ~200 useful/sec.
+- **GNFS (YAFU+GGNFS)**: 90d = 404s. Sieving dominates (~300s for 1.46M relations). Poly select ~55s.
+- **NFS (msieve built-in)**: 90d = >400s. Poly select ~167s + sieve >240s.
+- **NFS (CADO-NFS las)**: 90d estimated ~570s. Better filtering (852K vs 1.46M rels) but slower siever.
+- **Conclusion**: SIQS is faster than NFS for 90d. Crossover is around 100-110d for single-core. 90-100d is a dead zone where both algorithms exceed 300s.
+
+### 90d Parameter Exhaustion
+Tested on 90d[0] (hardest number): ALL combos fail under 295s:
+- NB: 10, 12, 14, 16, 18, 20, 22, 24 — all timeout
+- B: 80K, 90K, 100K, 110K, 120K, 130K, 150K — all timeout
+- MFBD: 2.0, 2.2 — no help
+- LPB: 30, 32 — no help
+- M: 150, 200 — no help
+90d confirmed infeasible with any SIQS parameter combination.
 
 ### Resume Feature
 YAFU can save/resume via siqs.dat. Key findings:

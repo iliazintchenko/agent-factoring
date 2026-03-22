@@ -50,13 +50,13 @@
 [2026-03-22 18:38:00] size: 85 | approach: MFBD=1.8 (NB=18, B=70K) | time: 137.1s worst | notes: Worse than current 136.4s.
 [2026-03-22 18:38:00] size: 86 | approach: MFBD=1.8 (NB=18, B=80K) | time: 149.5s worst | notes: Worse than current 147.1s.
 [2026-03-22 18:38:00] size: 87 | approach: MFBD=1.8 (NB=18, B=90K) | time: 190.2s worst | notes: Worse than current 188.2s.
-[2026-03-22 18:30:00] size: 90 | approach: YAFU SIQS NB=20 B=120K (all 5) | time: 248-282s for 3/5, timeout 2/5 | notes: 90d[1]=248.6, [3]=282.3, [4]=281.2 pass. [0] and [2] exceed 295s. Best params found but 90d not achievable.
-[2026-03-22 18:30:00] size: 90 | approach: CADO-NFS single-thread | time: ~580s CPU | notes: Built cado-nfs at /tmp/agent-factoring-5/cado-nfs/build/. Sieve alone takes 525s+ on 90d[0]. Total ~580s. Nearly 2x budget.
-[2026-03-22 18:30:00] size: 90 | approach: Msieve NFS standalone | time: N/A | notes: Has built-in line sieve only (no lattice sieve). 5x slower than GGNFS lattice sieve. Not viable.
-[2026-03-22 18:42:00] size: 89 | approach: YAFU SIQS NB=20 B=100K (all 5) | time: 276s for 4/5, [4] timeout | notes: [0]=214, [1]=204, [2]=241, [3]=276, [4]=timeout at 295s. NB=18 B=100K remains best (294.4s).
-[2026-03-22 18:42:00] size: 89 | approach: YAFU SIQS NB=20 B=120K on [4] | time: 294.6s | notes: 89d[4] passes with NB=20 B=120K but 0.2s worse than NB=18 B=100K (294.4s).
-[2026-03-22 18:42:00] size: 90 | approach: YAFU GNFS -xover 85 | time: >295s | notes: GGNFS lasieve4I12e runs from yafu dir. Poly select ~47s + sieve ongoing. Total estimated 365-380s.
-[2026-03-22 18:42:00] size: 90 | approach: Parameter sweep NB=18-32 B=100K-150K on hard 90d | time: all >295s | notes: Tested NB=18/B=100K, NB=22/B=130K, NB=24/B=140K, NB=32/B=150K on 90d[0] and [2]. All timeout.
-[2026-03-22 19:00:00] size: 89 | approach: NB=20 B=120K on 89d[0-1] | time: 219.2, 208.4s | notes: Slower than NB=18 B=100K. Also tested NB=18/B=110K, NB=22/B=100K, NB=20/B=100K on 89d[4] - all timed out at 295s.
-[2026-03-22 19:05:00] size: 80 | approach: BATCHPOLY (USE_BATCHPOLY build flag) | time: 52.9s | notes: 11% slower than standard build (46.9s). Batch polynomial root updates hurt performance. Reverted.
-[2026-03-22 19:10:00] size: 85 | approach: PGO build attempt | time: FAIL | notes: PGO build had inline function issues (mulredc/sqrredc). GCC's -fprofile-use changes inlining decisions for __inline functions. Would need static keyword fixes.
+[2026-03-22 18:30:00] size: 90 | approach: YAFU SIQS NB=20 B=120K (all 5) | time: 248-282s for 3/5, timeout 2/5 | notes: 90d[1]=248.6, [3]=282.3, [4]=281.2 pass. [0] and [2] exceed 295s.
+[2026-03-22 18:30:00] size: 90 | approach: CADO-NFS single-thread | time: ~580s CPU | notes: Sieve alone takes 525s+ on 90d[0]. Nearly 2x budget.
+[2026-03-22 18:42:00] size: 89 | approach: YAFU SIQS NB=20 B=100K (all 5) | time: 276s for 4/5, [4] timeout | notes: NB=18 B=100K remains best (294.4s).
+[2026-03-22 18:42:00] size: 90 | approach: Parameter sweep NB=18-32 B=100K-150K on hard 90d | time: all >295s | notes: All timeout.
+[2026-03-22 19:05:00] size: 80 | approach: BATCHPOLY (USE_BATCHPOLY build flag) | time: 52.9s | notes: 11% slower than standard build (46.9s). Reverted.
+[2026-03-22 19:10:00] size: 90 | approach: msieve NFS (-n flag) | time: >290 FAIL | notes: Poly selection 167s + sieving timeout.
+[2026-03-22 19:10:00] size: 90 | approach: YAFU GNFS (GGNFS I=12 sievers) | time: 404.4 | notes: Full run: poly ~55s, sieve ~300s (1.46M rels at 4800/sec), filter 15s, LA 25s, sqrt 3s.
+[2026-03-22 19:10:00] size: 90 | approach: CADO-NFS single-thread (-t 1) | time: >570 est | notes: 43% sieved in 246s CPU. las siever ~1500 rels/sec (3x slower than GGNFS).
+[2026-03-22 19:10:00] size: 90 | approach: YAFU SIQS all params exhaustive | time: >295 FAIL | notes: 3/5 pass (245-280s), 2/5 timeout. All NB/B/MFBD/LPB/M combos tried. Definitively infeasible.
+[2026-03-22 19:10:00] size: ALL | approach: AVX512 scatter sieve mod | time: 20% SLOWER | notes: AMD Zen4 scatter ~10 cycles/element vs 1 cycle scalar. Dead end.
