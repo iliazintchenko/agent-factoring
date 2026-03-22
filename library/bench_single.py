@@ -2,7 +2,7 @@
 """Benchmark YAFU SIQS single-threaded across all sizes."""
 import json, subprocess, time, sys, os, tempfile
 
-YAFU = "/tmp/agent-factoring-1/yafu/yafu"
+YAFU = "/tmp/agent-factoring-3/yafu/yafu"
 
 with open("semiprimes.json") as f:
     semiprimes = json.load(f)
