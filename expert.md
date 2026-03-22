@@ -185,51 +185,35 @@ YAFU can save/resume via siqs.dat. Key findings:
 - **Status**: Working, 30-50d factoring confirmed, correct results
 - **Performance**: 30d: 0.044s, 40d: 0.8s, 50d: 10s
 - **Comparison to YAFU**: 3-80x slower (YAFU: 30d=0.014s, 40d=0.017s, 50d=0.12s)
-- **Features implemented**:
-  - Knuth-Schroeppel multiplier selection
-  - Self-initializing polynomials with Gray code b-value enumeration
-  - 32KB block sieving for L1D cache efficiency
-  - Single large prime variation with hash table
-  - Dynamic a-coefficient selection (auto-determines num_a_factors)
-  - Correct a*Q(x) tracking for GF(2) matrix
-- **Key bugs fixed**:
-  - Sieve offset computation: must NOT add M to block_start (was marking wrong positions)
-  - GF(2) matrix: must include 'a' coefficient primes (store a*Q(x), not Q(x))
-  - Loop termination: was double-counting combined relations
-- **Remaining bottlenecks**:
-  - Scalar sieve kernel (no SIMD) — YAFU uses AVX512BW 32-way sieve
-  - GMP-based trial division per candidate — sieve-guided approach only provides 2x speedup
-  - Pure Gaussian elimination vs YAFU's Block Lanczos
+- **Features**: Knuth-Schroeppel multiplier, Gray code self-init, 32KB block sieve, SLP, a*Q(x) tracking
+- **Key bugs fixed**: sieve offset, GF(2) matrix a-primes, loop termination
 
-### mpqs.c — Custom MPQS (partial)
-- **Status**: Sieve + relation finding works, sqrt step has bug
-- **Issue**: val^2 mod N ≠ product(p^exp) mod N despite individual relations verifying
-- **Root cause under investigation**: May be Gaussian elimination returning wrong null vectors
+### siqs_fast.c — Working Custom SIQS (agent-1, with DLP)
+- **Status**: Working, 30-50d confirmed, DLP support
+- **Performance**: 30d: 0.6s, 40d: 0.95s, 50d: 21.7s
+- **Features**: AVX512BW sieve scanning, Gray-code poly switching, SLP+DLP, GF(2) GE
+- **Known issue**: Multiplier (k>1) causes trivial congruences in sqrt step — disabled for now
+- **Key bug**: Mirror positions Q(x)=Q(-x-2b/a) must be deduplicated (skip Y<0)
 
 ### Key Insights for Custom SIQS
-1. **Polynomial construction is critical**: a = product of s FB primes, must be ≈ sqrt(2N)/M
-   - For N=2^bits, target_a ≈ 2^(bits/2 + 0.5 - log2(M))
-   - Need s ≈ target_a_bits / avg_prime_bits FB primes
-   - Choosing wrong s (too few/many factors) makes sieve values too large/small
-2. **Sieve threshold matters enormously**: too high = very few candidates, too low = too many false positives
-   - Theoretical: log2(M * sqrt(N)) but subtract small-prime contribution estimate
-   - YAFU's adaptive threshold tuning in first few polys is very effective
-3. **The a*g(x) factor**: For SIQS, (ax+b)^2 ≡ a*g(x) (mod N). The exponent matrix must track
-   exponents of a*g(x), not just g(x), to get correct dependencies for square root step.
-4. **Deduplication essential**: Different polynomials can produce same (ax+b) value, yielding
-   trivially dependent duplicate relations that always give trivial GCD.
+1. **Multiplier handling**: With kN (k>1), sqrt step systematically produces X ≡ ±Y (mod N). May relate to LP products interacting with multiplier.
+2. **Mirror positions**: Q(x) = Q(-x-2b/a), so both sides of sieve give identical Q. Must skip negative Y to avoid trivial SLP combinations.
+3. **Scalar sieve bottleneck**: Without AVX512 scattered byte ops, custom SIQS is 40-180x slower than YAFU.
+4. **SQUFOF/Rho don't work**: O(N^{1/4}) is dramatically slower than SIQS's sub-exponential for 30+d balanced semiprimes.
+5. **The a*g(x) factor**: For SIQS, exponent matrix must track a*g(x), not g(x).
+6. **Sieve threshold**: log2(M * sqrt(N)) minus small-prime correction. Too high = few candidates, too low = false positives.
 
 ## PGO Build
-- PGO (Profile-Guided Optimization) for YAFU: ~1-2% improvement at best
-- Build: compile with -fprofile-generate, run on representative inputs, recompile with -fprofile-use
-- Fix needed: `__inline` → `static __inline` in monty.h for PGO to work
+- PGO for YAFU: ~1-2% improvement at best
+- Fix needed: `__inline` → `static __inline` in monty.h
 - Not impactful enough to change best-algos.json entries
 
 ## Tools
 - `yafu/yafu`: YAFU binary (AVX512BW+VBITS=256). Use `siqs(N)` with `-threads 1 -seed 42`.
-- `library/siqs2.c`: Custom SIQS implementation (working, 30-60d)
-- `library/mpqs.c`: Custom MPQS (sieve works, sqrt step needs fix)
-- `library/pollard_rho.c`: Pollard rho (too slow for balanced semiprimes above 30d)
+- `library/siqs_fast.c`: Custom SIQS (DLP, working 30-50d). Compile: `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
+- `library/siqs2.c`: Custom SIQS (SLP only, working 30-60d)
+- `library/mpqs.c`: Custom MPQS (sieve works, sqrt step buggy)
+- `library/pollard_rho.c`: Pollard rho (too slow for balanced semiprimes)
 - `library/bench_single.py`: Benchmark script (run 5 semiprimes per size in parallel)
 - `library/update_best.py`: Update best-algos.json from benchmark results
 - `library/yafu_resume.sh`: YAFU wrapper with save/resume support
