@@ -35,5 +35,13 @@
   "63": {"time": 5.550, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
   "64": {"time": 6.541, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
   "65": {"time": 10.760, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "70": {"time": 18.683, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"}
+  "66": {"time": 6.939, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "67": {"time": 10.952, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "68": {"time": 10.839, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "69": {"time": 20.824, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "70": {"time": 18.683, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "71": {"time": 61.044, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "72": {"time": 60.880, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "73": {"time": 50.299, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "74": {"time": 35.239, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"}
 }
