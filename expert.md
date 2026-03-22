@@ -43,7 +43,7 @@ make -f Makefile.gcc clean && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2
 - `SKYLAKEX=1`: enables `USE_AVX512F`, `USE_AVX512BW`, `-march=skylake-avx512`
 - **USE_AVX512BW is critical**: Enables hand-written AVX512BW sieve and resieve kernels (`med_sieveblock_32k_avx512bw`, `resieve_medprimes_32k_avx512bw`). These give **14% improvement** over AVX2-only build across all sizes and **3-7x on small sizes** (reduced startup overhead).
 - **monty.h static inline fix**: Add `static` to `__inline` in monty.h. Required for PGO builds. Performance impact is marginal (~1-2%).
-- `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 is NOT supported (build fails).
+- `VBITS=256`: 256-bit Block Lanczos vectors. VBITS=512 requires custom modifications to lanczos.h/lanczos.c (see YAFU Source Modifications section).
 - `NO_ZLIB=1`: Required if zlib not installed; avoids link errors.
 - **Previous build bug**: SKYLAKEX was set but `USE_AVX512BW` guards weren't being triggered. Fixed by ensuring proper `#ifdef USE_AVX512BW` compilation.
 
@@ -189,7 +189,7 @@ GGNFS lasieve4_64 sievers crash with code 134 (SIGABRT) during NFS sieving. Both
 - **USE_BATCHPOLY**: Commented out in `qs_impl.h`. Would batch bucket root updates every 4 polys. But sets `FORCE_GENERIC=1`, disabling AVX512BW sieve. Author's comment: "unable to get this to run faster."
 - **Parameter table** (`siqs_aux.c:327`): AVX512F table has NB=8 for 281-298 bits (85-90d). Our experiments show NB=14-18 + B=70-100K are optimal. But modifying the table hurts because the interpolation code averages NB from bounding rows instead of interpolating. Always use `-siqsNB` and `-siqsB` command-line overrides.
 - **Sieve kernel** (`med_sieve_32k_avx2.c:689`): Store-to-load forwarding stall in inner loop (512-bit store then 16-bit loads) is unavoidable on AMD Zen4. No vpscatterb instruction exists.
-- **Block Lanczos**: Only 2-8% of total time at 85-89d. VBITS=512 would halve BL time but isn't supported.
+- **Block Lanczos**: Only 2-8% of total time at 85-89d. VBITS=512 halves BL time but requires custom lanczos.h/lanczos.c modifications.
 - **DLP cofactoring**: Batch GCD path disabled (`&& 0`). Online microECM per candidate is faster for DLP.
 
 ### Resume Feature
