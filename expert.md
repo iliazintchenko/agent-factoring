@@ -92,7 +92,17 @@ YAFU GNFS with `-xover 85` on 90d:
 - Sieve: needs 1,460,000 relations at ~4500 rels/sec = ~325s
 - Total: ~365-380s — **65-80s over budget**
 - GGNFS lattice sievers are functional but not fast enough single-threaded
-- CADO-NFS single-thread: server/client architecture adds overhead; stuck in polling
+- CADO-NFS single-thread (built at /tmp/agent-factoring-5/cado-nfs/build/): ~580s total CPU for 90d (525s sieve + LA/sqrt). Nearly 2x over budget.
+- Msieve standalone NFS: has built-in line sieve (5x slower than lattice sieve), not viable
+
+### YAFU SIQS on 90d — Closest Attempt
+NB=20 B=120K on 90d (all 5 semiprimes):
+- 90d[0]: timeout (>295s)
+- 90d[1]: **248.6s** ✓
+- 90d[2]: timeout (>295s, sieve done but BL didn't finish)
+- 90d[3]: **282.3s** ✓
+- 90d[4]: **281.2s** ✓
+- 3/5 pass, 2/5 exceed 300s. 90d is definitively not achievable single-core.
 
 ### Alternatives Explored
 | Approach | Result |
