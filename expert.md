@@ -1,58 +1,43 @@
 # Agent Expert Knowledge
 
-## Key Finding: YAFU SIQS Dominates for Balanced Semiprimes
+## Algorithm Performance for Balanced Semiprimes
 
-For balanced semiprimes (where both factors are ~half the digits), YAFU's SIQS implementation is **faster than parallel ECM at every tested size from 30-100 digits**. This is the single most important insight so far.
+### YAFU multi-threaded SIQS - FASTEST for 60-85 digits
+- Compiled as full yafu binary in yafu/yafu
+- Usage: `echo "siqs(<N>)" | LD_LIBRARY_PATH=/usr/local/lib yafu/yafu -threads 48`
+- Uses multi-threaded sieving (all 48 cores), dramatically faster than msieve
+- Performance (worst case across 5 balanced semiprimes):
+  - 60d: 1.8s | 65d: 2.6s | 70d: 2.6s | 75d: 4.1s | 77d: 4.3s
+- **BUG WARNING**: YAFU hangs on some inputs during linear algebra phase
+  - Affected: ~20% of numbers at 67+d (67,68,69,74,78,80-86+ seen)
+  - Symptom: "rels found" message repeats infinitely
+  - Must use a timeout and fall back to msieve
 
-### Why SIQS beats ECM for balanced semiprimes
-- ECM's complexity depends on the **size of the smallest factor**, not the composite
-- For balanced semiprimes, factors are ~N/2 digits — ECM treats these as "hard" factors
-- SIQS's complexity depends on the **size of the composite** — sub-exponential in N
-- The crossover where SIQS beats ECM for balanced semiprimes is below 30 digits
-- ECM is only better when one factor is significantly smaller than the other (unbalanced)
+### msieve SIQS (compiled from yafu/) - Reliable fallback
+- Usage: `./msieve -q -s /tmp/session.dat <N>`
+- Single-threaded sieving, much slower than YAFU for 70+d
+- Performance: 30d: 0.05s | 50d: 0.23s | 60d: 1.87s | 70d: 18.7s | 75d: ~100s
+- Reliable: no hang bugs seen
 
-### Performance data (YAFU SIQS, 5 numbers parallel, 9 threads each on 48-core machine)
-| Digits | Worst-case time | Notes |
-|--------|----------------|-------|
-| 30-55  | ~1.0-1.5s      | Dominated by YAFU startup overhead |
-| 60     | 1.2s           | |
-| 65     | 2.5s           | |
-| 70     | 4.5s           | |
-| 75     | 9.3s           | |
-| 80     | 24.9s          | |
-| 85     | 71.9s          | |
-| 90     | 175.9s         | Tight — may need thread tuning |
-| 95     | ~142s single   | Too slow for 5-parallel with 9 threads; needs batching |
-| 100    | ~259s single   | Barely fits 290s limit for one number |
+### Best Strategy: YAFU first, msieve fallback
+- library/fast_factor.sh: tries YAFU with short timeout, falls back to msieve
+- YAFU timeout = digits/3 seconds (scales with problem size)
+- For 30-60d: msieve alone is fine (<2s)
+- For 65-85d: YAFU when it works (2-12s), msieve fallback (~100s) when it hangs
+- For 86-100d: Need investigation - YAFU mostly hangs, msieve very slow
 
-### Thread scaling (YAFU SIQS)
-- 1 thread: ~115s for 80d
-- 8 threads: ~22s for 80d (5.2x speedup)
-- 48 threads: ~15s for 80d (7.7x speedup from 1T — diminishing returns)
-- For 5 parallel numbers: 48/5 = ~9 threads each is the sweet spot up to ~90 digits
-- For 95-100 digits: need to serialize or batch (2-3 parallel) with more threads each
+### Parallel ECM (factor.c) - GMP-ECM
+- 48-core parallel ECM, good for unbalanced semiprimes
+- Fails for balanced semiprimes above ~60 digits
+- Not competitive vs SIQS for this benchmark
 
-### Architecture notes
-- YAFU compiled with AVX-512, GMP-ECM, OpenMP
-- Must run each YAFU instance in its own temp directory (file conflicts otherwise)
-- `siqs()` command is faster than `factor()` — skips unnecessary ECM precomputation
-- Threading segfaults only happen with `factor()` command, `siqs()` is stable
+## Key Performance Insights
+1. Multi-threaded SIQS (YAFU) is 10-50x faster than single-threaded (msieve) at 70+d
+2. YAFU's block Lanczos has a bug causing hangs on ~20% of inputs
+3. msieve is reliable but wastes 47/48 cores during sieving
+4. For 80-100d balanced semiprimes, need either fixed YAFU or a custom multi-threaded SIQS
 
-## Algorithm Reference
-- **Trial division**: useful up to ~10^6, takes <5ms
-- **Pollard's rho (Brent variant)**: good for factors up to ~25 digits. Our implementation with batch GCD finds 15-digit factors in <1s. Diminishing returns past 25 digits.
-- **ECM (GMP-ECM)**: complexity depends on smallest factor. B1 parameter determines max findable factor size. For 25-digit factors, B1=50000 with ~300 curves. Parallelizable (independent curves).
-- **SIQS (YAFU)**: the winner for balanced semiprimes 30-100 digits. Self-initializing quadratic sieve. Complexity is L(N) = exp(sqrt(ln(N)*ln(ln(N)))). Much faster than ECM when both factors are large.
-- **GNFS**: needed for numbers >~110 digits. YAFU has NFS support but we haven't needed it yet.
-
-## Tools Built
-- `library/factor.c`: Sequential combined factoring (trial div + rho + ECM). Compiled binary at `library/factor`.
-- `library/pfactor.c`: Parallel ECM factoring with fork(). Workers run independent ECM curves. Binary at `library/pfactor`.
-- `library/run_yafu.sh`: YAFU SIQS wrapper. Creates temp dir, runs SIQS, extracts smaller factor.
-- `library/benchmark.py`: Full benchmark suite. Runs one size at a time, 5 numbers in parallel.
-
-## Open problems
-- 95-100 digit numbers: need strategy for running 5 numbers within 290s total wallclock
-- Thread allocation for large sizes: serialize (1 at a time, 48 threads) vs batch (2-3 at a time)
-- For 95d: 5 * 142s sequential = 710s — way too long. Need parallel approach.
-- Possible: write own SIQS that supports thread-safe concurrent instances more efficiently
+## Reference Implementations
+- yafu/yafu: Full YAFU with multi-threaded SIQS (best when it doesn't hang)
+- yafu/msieve: msieve SIQS, reliable single-threaded fallback
+- cado-nfs/: GNFS implementation for very large numbers (100+d)
