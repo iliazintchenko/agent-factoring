@@ -45,9 +45,7 @@ TIPS:
 
 - Start by understanding the benchmark landscape — look at semiprimes.json to see the range (30–100 digits) and sample sizes.
 - Read expert.md to understand what has already been tried and what the current best times are.
-- The current baseline is YAFU SIQS with parameter tuning. To go further, you need fundamentally better algorithms, not better parameters.
 - These are **balanced** semiprimes (both factors ~N/2 digits). This is a specific structure you can exploit — most general-purpose factoring tools don't.
-- Think about the math: quadratic sieve has complexity L[1/2, 1+o(1)], NFS has L[1/3, c]. Can you implement NFS well enough for single-core to beat SIQS at 85+ digits? Can you find a better sieve polynomial? A faster linear algebra phase?
 - You can use yafu/ and cado-nfs/ source code for reference on the current state of the art.
 - Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
