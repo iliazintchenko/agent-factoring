@@ -12,3 +12,7 @@
 [2026-03-22 09:00:00] size: 75-78 | approach: YAFU -siqsNB 8/12/16 | time: NB=8 fastest | notes: NB=16 only helps for 85+ digits. For 75-84d, default NB=8 is optimal.
 [2026-03-22 09:00:00] size: 89 | approach: agent-3 YAFU + NB=16 | time: 89d[3]=288s OK, 89d[4]=300s TIMEOUT | notes: NB=16 improved [3] from 296s to 288s but [4] still exceeds 300s.
 [2026-03-22 09:00:00] size: 88 | approach: inmem/siqsNobat/siqsMFBD | time: no improvement | notes: Default settings already optimal. inmem/nobat same speed. MFB tuning worse.
+[2026-03-22 10:30:00] size: 85 | approach: perf profiling | time: 96s | notes: IPC=2.67, branch miss rate=5.96% (5.2B mispredicts in 96s). Branch misprediction causes ~20% cycle waste. Inherent to sieve threshold comparisons.
+[2026-03-22 10:30:00] size: 88 | approach: YAFU source mod (memset bucket reset) | time: no improvement | notes: Compiler already optimized scalar loop to memset with -O2
+[2026-03-22 10:30:00] size: 88 | approach: -march=znver4 build | time: no improvement | notes: Same perf as skylake-avx512 build
+[2026-03-22 10:30:00] size: 89 | approach: ICELAKE/IFMA build | time: build fails | notes: Linker error - missing AVX2 fallback functions when ICELAKE=1
