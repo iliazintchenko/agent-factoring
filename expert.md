@@ -108,15 +108,21 @@ YAFU GNFS with `-xover 85` and default GGNFS sievers:
 - **Key insight**: GNFS is feasible for 89-90d only on idle/low-load machine (user time ~250-260s)
 - **agent-4 GNFS test (load ~0.6)**: 90d[0] with `-psearch min -plan none -noecm -xover 85`: timed out at 295s still in sieve phase (q=269923, yield ~22K/batch at 0.00029 sec/rel). Poly select found score 4.512e-08. GNFS needs continuous low-load for full 280s+ run.
 
-### GGNFS Siever Build & Permissions (CRITICAL)
-- GGNFS sievers built from lasieve5_nfsathome source at `yafu/factor/lasieve5_64/bin/`
-- **Sievers need `chmod +x`** — pre-built binaries lost execute permission. YAFU treats permission-denied (exit 126) as a siever crash, logging "ggnfs returned code 134"
-- **Working sievers**: `lasieve5_64/bin/gnfs-lasieve4I{11,12,13}e` (pre-built, non-avx512)
-- **Crashing sievers**: `lasieve5_64/bin/avx512/gnfs-lasieve4I{11,12,13}e` (built from nfsathome source, crash after chmod fix too — different bug)
-- **yafu.ini required**: NFS silently falls back to SIQS if YAFU can't find yafu.ini with `ggnfs_dir`. Create `yafu.ini` in workdir with `ggnfs_dir=/path/to/sievers/`
-- **Must use `-xover 85`**: YAFU rejects NFS for <95d numbers by default ("non-snfs input of size 90 is better done by siqs")
-- NFS pipeline: 43s ECM pretesting + 60s poly select + 487s sieve (1.46M rels at ~3000 rels/sec) = **too slow for 90d single-core** (590s total)
-- Even skipping ECM: 0 + 15s poly + 487s sieve + 30s filter/LA = 532s. NFS needs ~6600 rels/sec to finish in 300s budget
+### GGNFS Siever Build & Compatibility (CRITICAL)
+- **Two builds exist**: (1) `agent-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I12e` (1.47MB, works with YAFU), (2) `/tmp/ggnfs_build/gnfs-lasieve4I12e` (778KB, crashes code 134 when YAFU invokes it but works standalone)
+- **Always use agent-1 sievers** for YAFU GNFS: `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I{11..16}e`
+- **ggnfs_build sievers work for direct invocation** (tested: 4200 rels/sec at Q=210K-340K with lpb=25)
+- **YAFU requires sievers in workdir**: Create symlinks to siever binaries in the YAFU working directory
+- **Must use `-xover 85`**: YAFU rejects NFS for <95d numbers by default
+- **Pre-computed polynomials**: Stored in `library/gnfs_polys/90d_{0-4}.job` for all 5 90d semiprimes. Saves ~50s of poly select.
+
+### GNFS Post-Processing Timing (agent-5 finding)
+- YAFU NFS post-processing (filter + Block Lanczos + sqrt): **~28s for 90d**
+- msieve NFS filtering requires ~1.875M rels (vs YAFU's 1.46M) — use YAFU for post-processing
+- YAFU post-processing with `-R -nc` flags resumes and skips sieving
+- **GNFS total budget**: 0s poly (precomputed) + sieve + 28s post = must sieve 1.46M rels in ~267s
+- **Required sieve rate**: 1.46M / 267 = **5470 rels/sec** — achieved on idle machine (6000-6500), NOT on loaded (4200-5200)
+- **CADO-NFS las siever**: 1458 rels/sec single-threaded with lpb=23. Too slow (584s for 852K rels).
 
 ### GGNFS Siever Setup (CRITICAL)
 The GGNFS sievers at `yafu/factor/lasieve5_64/bin/` work correctly but need:
