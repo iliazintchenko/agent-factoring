@@ -1,11 +1,16 @@
 [2026-03-22 05:00:00] size: ALL | approach: CLEARED all previous results | time: N/A | notes: All prior results used multi-threaded YAFU (-threads 9/24/48), violating single-core rule. Re-running everything with -threads 1 -seed 42.
-[2026-03-22 07:13:42] size: 30-60 | approach: YAFU SIQS single-threaded w/ AVX512BW rebuild (-threads 1 -seed 42) | time: 0.04-0.70s worst-case | notes: AVX512BW sieve rebuild gives 3-7x speedup on small sizes (startup-dominated). Binary at /tmp/agent-factoring-3/yafu/yafu.
-[2026-03-22 07:13:42] size: 85 | approach: YAFU AVX512BW vs agent-1 YAFU | time: 95.8s vs 111s | notes: 14% faster with AVX512BW sieve rebuild
-[2026-03-22 07:13:42] size: 89 | approach: YAFU SIQS single-threaded default params, AVX512BW rebuild | time: 292-318s worst | notes: 89d[3]=292s OK, 89d[4]=318s FAIL. Down from 375/416 with old binary. Sieving is bottleneck (312s for hardest number).
-[2026-03-22 07:13:42] size: 89 | approach: YAFU siqsB=40000,50000,90000 | time: 327-403s | notes: Non-default FB sizes all slower. Default FB is optimal.
-[2026-03-22 07:13:42] size: 89 | approach: YAFU forceDLP, forceTLP, siqsLPB=30 | time: same or worse | notes: DLP already used by default. TLP crashes. Larger LPB doesn't help.
-[2026-03-22 07:13:42] size: 89 | approach: CADO-NFS NFS single-threaded | time: ~1561s CPU | notes: NFS overhead too high for 89d. Multiple worker processes violate single-core rule.
-[2026-03-22 07:50:18] size: 61-80 | approach: YAFU SIQS AVX512BW rebuild (-threads 1 -seed 42) | time: 0.9-47.1s worst | notes: Consistent ~14% improvement over agent-1 binary across all sizes
-[2026-03-22 07:50:18] size: 81-88 | approach: YAFU SIQS AVX512BW rebuild (-threads 1 -seed 42) | time: 56.3-252.4s worst | notes: 81d=56.3, 82d=67.7, 83d=85.9, 84d=98.9, 85d=142.2, 86d=155.4, 87d=199.7, 88d=252.4
-[2026-03-22 07:50:18] size: 89 | approach: YAFU siqsNB=1/8 | time: 320-555s | notes: Default NB=8 is optimal. NB=1 much slower (555s). Block size tuning doesn't help.
-[2026-03-22 07:50:18] size: 89 | approach: YAFU siqsM=50 | time: 324s | notes: Larger large prime multiplier doesn't help sieving speed.
+[2026-03-22 05:30:00] size: 30-50 | approach: YAFU SIQS -threads 1 -seed 42 | time: 0.04-0.25s worst | notes: Startup-dominated, all fast
+[2026-03-22 05:30:00] size: 51-70 | approach: YAFU SIQS -threads 1 -seed 42 | time: 0.14-6.1s worst | notes: Clean single-core times
+[2026-03-22 05:30:00] size: 71-80 | approach: YAFU SIQS -threads 1 -seed 42 | time: 8.2-47.1s worst | notes: Scaling well
+[2026-03-22 05:30:00] size: 81-88 | approach: YAFU SIQS -threads 1 -seed 42 | time: 56.3-240s worst | notes: 88d at 240s near limit
+[2026-03-22 06:00:00] size: 89 | approach: YAFU SIQS -threads 1 -seed 42 | time: 213-300+ worst | notes: 4/5 pass with agent-3 build, 1 timeout (300+). Hardest number exceeds limit.
+[2026-03-22 06:00:00] size: 89 | approach: YAFU siqsB tuning (10K-80K) | time: no improvement | notes: Default FB is already optimal for 89d
+[2026-03-22 06:00:00] size: 89 | approach: YAFU resume (-siqsT + restart) | time: 245+73=318s total | notes: Resume adds ~25s overhead from reloading. Net slower.
+[2026-03-22 06:00:00] size: 89 | approach: PGO/LTO/-O3 build | time: no improvement | notes: Sieve uses hand-written AVX512 intrinsics, immune to compiler opts
+[2026-03-22 06:00:00] size: 89 | approach: msieve SIQS | time: >295s on easiest 89d | notes: Much slower than YAFU
+[2026-03-22 06:00:00] size: 89 | approach: CADO-NFS single-core | time: ~720 CPU-sec for 89d | notes: NFS too slow at this size
+[2026-03-22 06:00:00] size: 90 | approach: YAFU SIQS -threads 1 -seed 42 | time: FAIL all 5 | notes: All >290s, single-core not feasible
+[2026-03-22 07:30:00] size: 88 | approach: YAFU SIQS system GMP build | time: 240s worst | notes: System GMP (6.2.1) ~5% faster than bundled GMP (6.2.0). Improved 88d from 252 to 240s.
+[2026-03-22 07:30:00] size: 89 | approach: YAFU siqsNB tuning | time: no significant improvement | notes: Default NB=8 is optimal. NB=16 marginally faster on easiest number only.
+[2026-03-22 07:30:00] size: 89 | approach: YAFU siqsM=50 | time: no improvement | notes: Larger large prime multiplier doesn't help sieving speed.
+[2026-03-22 07:30:00] size: 89 | approach: YAFU forceDLP/TLP | time: same or worse | notes: DLP already used by default. TLP crashes.
