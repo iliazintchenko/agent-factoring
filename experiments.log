@@ -26,9 +26,12 @@
 [2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 48t, single | time: 59s | notes: Single instance with all cores is fast
 [2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 10t, 5 parallel | time: >280s 4/5 FAIL | notes: Not enough throughput with 10 threads per instance
 [2026-03-22 01:45:00] size: 91 | approach: YAFU SIQS (agent-1), 16t, 5 parallel | time: >280s 4/5 FAIL | notes: Oversubscription kills performance
-[2026-03-22 03:15:00] size: 78-85 | approach: YAFU SIQS with -siqsB tuning | time: 4-18s | notes: YAFU default FB size is too large for 78-90d. Using -siqsB 15000 for 80d fixes "matrix corrupt" error. 80d#0: 7.1s, 85d: 17.7s.
-[2026-03-22 03:15:01] size: 90 | approach: YAFU SIQS with -siqsB 40000 | time: 23s | notes: With Lanczos fix and siqsB tuning, 90d works in ~23s on clean system. Concurrent agent processes cause severe slowdowns.
-[2026-03-22 03:15:02] size: 78+ | approach: YAFU Lanczos fix | time: varies | notes: Added iteration time limit (10s) and seed rotation in block Lanczos. Prevents infinite loop hang. Some matrices still fail but retry with new seed succeeds.
-[2026-03-22 04:00:00] size: 86-90 | approach: YAFU SIQS with siqsB tuning, 24 threads | time: 55-80s | notes: siqsB ~37000 for 88d, ~38000 for 90d. Works well when system not overloaded.
-[2026-03-22 04:00:01] size: 97-100 | approach: YAFU SIQS | time: >270s FAIL | notes: 97+ digit semiprimes exceed deadline even with 48 threads. Need system idle or GNFS.
-[2026-03-22 04:00:00] size: 86-90 | approach: YAFU SIQS with siqsB tuning, 24 threads | time: 55-80s | notes: Works well when system not overloaded.
+[2026-03-22 02:30:00] size: 96 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: 175s worst | notes: All 5 OK
+[2026-03-22 02:30:00] size: 97 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: 254s worst | notes: All 5 OK, tight
+[2026-03-22 02:30:00] size: 98 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: 280s FAIL 3/5 | notes: 24 threads not enough for 98d
+[2026-03-22 02:30:00] size: 99-100 | approach: YAFU SIQS (agent-1), 24t, batch 2 | time: ALL FAIL | notes: Need 48 threads per number, sequential
+[2026-03-22 03:00:00] size: 98 | approach: YAFU SIQS (agent-1), 48t, -siqsB 67900 | time: 234s | notes: Under 280s for single number!
+[2026-03-22 03:00:00] size: 100 | approach: YAFU SIQS (agent-1), 48t, -siqsB 90000 | time: >280s TIMEOUT | notes: 100d barely exceeds 280s limit
+[2026-03-22 03:00:00] size: 96-97 | approach: batch of 2 x 24t | time: 175s, 254s worst | notes: All 5 numbers OK for both sizes
+[2026-03-22 03:00:00] size: 98 | approach: YAFU SIQS (agent-1), 48t, -siqsB 67900 | time: 234s | notes: Under 280s for single number
+[2026-03-22 03:00:00] size: 100 | approach: YAFU SIQS (agent-1), 48t, -siqsB 90000 | time: >280s TIMEOUT | notes: 100d barely exceeds 280s limit
