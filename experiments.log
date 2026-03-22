@@ -1,18 +1,22 @@
-[2026-03-21 23:55:00] size: 30-50 | approach: parallel ECM (48 workers, GMP-ECM) | time: 0.06-20s | notes: 30-38d: <0.15s, 39-48d: <4.2s, 49-50d: ~20s worst case. Fork-based parallelism with escalating B1.
-[2026-03-22 00:05:00] size: 30-65 | approach: msieve SIQS | time: 0.05-10.8s | notes: msieve SIQS dominates ECM for balanced semiprimes. 30d:0.05s, 50d:0.23s, 60d:1.87s, 65d:10.8s
-[2026-03-22 00:05:00] size: 70 | approach: msieve SIQS | time: 18.7s | notes: Initial measurement for 70-digit semiprimes
-[2026-03-22 00:05:00] size: 30-50 | approach: single-thread ECM (factor.c) | time: 0.5-7s | notes: Single-threaded ECM much slower than msieve or parallel ECM
-[2026-03-22 00:05:00] size: 64+ | approach: single-thread ECM | time: FAIL | notes: ECM cannot handle balanced semiprimes with factors >32 digits
-[2026-03-22 00:15:00] size: 66-78 | approach: msieve SIQS | time: 7-154s | notes: 66d:7s, 69d:21s, 70d:19s, 71d:61s, 75d:56s, 76d:102s, 77d:155s, 78d:154s
-[2026-03-22 00:15:00] size: 79 | approach: msieve SIQS | time: INCOMPLETE | notes: Some 79-digit numbers exceed 280s deadline
-[2026-03-22 00:15:00] size: 80 | approach: msieve SIQS (single) | time: 289s | notes: Single 80-digit number took 289s - exceeds 280s deadline
-[2026-03-22 00:15:00] size: 80 | approach: msieve SIQS -t 48 | time: 319s | notes: Multi-threaded SLOWER due to SIQS sieve being single-threaded. Threads only help linear algebra.
-[2026-03-22 00:25:00] size: 80 | approach: msieve GNFS (-n -t 48) | time: 382s | notes: GNFS slower than SIQS for 80-digit balanced semiprimes
-[2026-03-22 00:25:00] size: 90 | approach: msieve SIQS | time: >23min (still running) | notes: 90-digit balanced semiprimes take 20+ minutes with msieve SIQS
-[2026-03-22 00:25:00] size: 79-81 | approach: msieve SIQS benchmark | time: INCOMPLETE | notes: All 5 numbers exceed 280s deadline for sizes 79-81
-[2026-03-22 00:30:00] size: 30-60 | approach: YAFU SIQS (48 threads) | time: 0.15-1.9s | notes: YAFU multi-threaded SIQS. Slower than msieve for 30-55d due to thread overhead. Similar/faster for 55-60d.
-[2026-03-22 00:30:01] size: 65-77 | approach: YAFU SIQS (48 threads) | time: 1.7-6.8s | notes: YAFU SIQS dramatically faster than msieve (vs 7-155s). But hangs on some inputs (67#4, 68#1, 69#2, 74#3).
-[2026-03-22 00:30:02] size: 67-69 | approach: fast_factor (YAFU+msieve) | time: 78-127s | notes: YAFU hangs on 1/5 numbers, msieve fallback takes 78-127s. YAFU-only: 1.6-4.9s when working.
-[2026-03-22 00:30:03] size: 75-85 | approach: YAFU SIQS | time: 2.7-12s (when working) | notes: YAFU SIQS hangs more often at 80+d. Need msieve fallback.
-[2026-03-22 00:30:04] size: 86-100 | approach: YAFU SIQS | time: MOSTLY HANGS | notes: YAFU block Lanczos bug. Only msieve works for these sizes.
-[2026-03-22 00:45:00] size: 65-77 | approach: YAFU SIQS (multi-threaded, 48 cores) | time: 1.7-6.8s | notes: 10-50x faster than msieve for balanced semiprimes. Hangs on ~20% of inputs, needs msieve fallback.
+[2026-03-22 00:00:00] size: 30-42 | approach: YAFU SIQS, 9 threads, 5 parallel | time: ~1.0-1.3s worst | notes: YAFU SIQS dominates even at small sizes, ~1s startup overhead
+[2026-03-22 00:00:00] size: 45-55 | approach: YAFU SIQS, 9 threads, 5 parallel | time: ~1.2-1.5s worst | notes: SIQS extremely fast, far beats parallel ECM (3-8s)
+[2026-03-22 00:00:00] size: 30-55 | approach: parallel ECM (pfactor, 8 workers) | time: 3-17s worst | notes: ECM slower than SIQS for balanced semiprimes at all tested sizes
+[2026-03-22 00:00:00] size: 60-70 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 1.2-4.5s worst | notes: very fast
+[2026-03-22 00:00:00] size: 75-80 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 9.3-24.9s worst | notes: scaling well
+[2026-03-22 00:00:00] size: 85 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 71.9s worst | notes: OK
+[2026-03-22 00:00:00] size: 90 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 175.9s worst | notes: tight but works
+[2026-03-22 00:00:00] size: 95 | approach: YAFU SIQS, 48 threads, 1 at a time | time: 142.2s single | notes: need to run 5 sequentially or in batches
+[2026-03-22 00:00:00] size: 100 | approach: YAFU SIQS, 48 threads, 1 at a time | time: 259.5s single | notes: barely fits in 290s for single number
+[2026-03-22 01:00:00] size: 30-75 | approach: YAFU SIQS (SKYLAKEX+AVX512+VBITS256), 9 threads, 5 parallel | time: see best-algos.json | notes: Full benchmark all sizes, all under 20s
+[2026-03-22 01:00:00] size: 76-89 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 20-244s worst | notes: 89d at 244s is tight
+[2026-03-22 01:00:00] size: 90 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 225.8s worst | notes: fits in 280s limit
+[2026-03-22 01:00:00] size: 91 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 188.6s worst | notes: OK
+[2026-03-22 01:00:00] size: 92 | approach: YAFU SIQS, 9 threads, 5 parallel | time: 139.2s worst | notes: OK
+[2026-03-22 01:00:00] size: YAFU build | approach: SKYLAKEX=1 USE_AVX2=1 ECM=1 VBITS=256 | time: N/A | notes: CRITICAL: must use Makefile.gcc command-line flags, not config.mk. IFMA=slower, AVX512 without SKYLAKEX=slower. SKYLAKEX+VBITS256 is 2x faster than default.
+[2026-03-22 01:15:00] size: 95 | approach: YAFU SIQS, 48 threads, single | time: 137s | notes: agent-1 YAFU (SKYLAKEX build), fits in 280s for single number
+[2026-03-22 01:15:00] size: 100 | approach: YAFU SIQS, 48 threads, single | time: 302s | notes: Barely over 300s limit for single number. Tight.
+[2026-03-22 01:15:00] size: 95 | approach: YAFU SIQS, 9 threads | time: >280s (ETA 556s) | notes: Too slow with 9 threads. Need 24+ threads for 95d
+[2026-03-22 01:15:00] size: 95-100 | approach: strategy needed | time: TBD | notes: Can't run 5 parallel with 9 threads. Need batching: 2-3 parallel with 16-24 threads
+[2026-03-22 01:15:00] size: 95 | approach: YAFU SIQS (agent-1 build), 48t, single | time: 137s | notes: SKYLAKEX build. Fits in 280s for single number
+[2026-03-22 01:15:00] size: 100 | approach: YAFU SIQS (agent-1 build), 48t, single | time: 302s | notes: Barely over 300s for single number
+[2026-03-22 01:15:00] size: 95 | approach: YAFU SIQS, 9t | time: >280s (ETA 556s) | notes: Too slow with 9 threads for 95d
