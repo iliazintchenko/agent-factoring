@@ -52,23 +52,47 @@ All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
 | siqsB (FB override) | 50K-120K | **B=70K for 85d, B=80K for 86/88d, B=90K for 87d, B=100K for 89d**. Only helps 85+d. |
 | siqsM (LP multiplier) | 50 vs default | No improvement (324s vs 318s) |
 | forceDLP | Yes vs default | No effect (DLP already used by default at this size) |
-| forceTLP | Yes | Crashes (unsupported) |
+| forceTLP | Yes | Works (see TLP section below), but 44% slower due to batch overhead |
 | siqsLPB (LP bound, bits) | 30 vs default ~28 | Slightly slower (380s vs 375s) |
+| siqsMFBD (DLP cofactor bound) | 1.7, 1.8, 1.85, 1.9(default), 1.95, 2.0 | Default 1.9 is optimal. MFBD=1.8 is 1% better on individual numbers but 2% worse on worst-case across all sizes. |
+| siqsTF (closnuf override) | 89, 90, 93, 95 on 88d | All within noise of default (159-166s). No improvement. |
+| NB (wider range) | 16, 20, 22, 24 on 89d[0] | All ~215s, no difference from NB=18. |
+| NB on 71-76d | 8-12 tested | Default is already optimal for 71-76d. NB tuning only helps 73+d. |
 
 ### Why 89d+ Exceeds 300s Single-Core
-Timing breakdown for 89d (system GMP build, -siqsNB 16):
-- **With NB=16**: 89d[0-3] = 207-282s (all pass). 89d[4] = >300s (timeout).
+Timing breakdown for 89d (system GMP build, -siqsNB 18):
+- **With NB=18, B=100K**: 89d[0-3] pass (204-274s). 89d[4] = ~295s (borderline).
 - **Sieving dominates**: 222s of 228s total for 88d (98% sieve, 2% Block Lanczos)
-- 89d[4] needs ~70K relations at ~3200 sieve ops/sec, requiring ~300+s
+- 89d[4] needs ~100K relations at ~4800 rels/sec, requiring ~290+s
 - **Branch misprediction**: perf shows 5.96% branch miss rate, ~20% cycle waste (inherent to sieve algorithm)
 - **IPC**: 2.67 instructions/cycle (good for AVX512 workload)
 - All parameters exhaustively tested:
-  - siqsB (40K-100K), siqsNB (8-64), siqsM (80-200), forceDLP, forceTLP, forceQLP
-  - siqsLPB, siqsMFBD, combined NB+B, NB+M — none help beyond NB=16
-- GNFS via YAFU refuses (gnfs_xover starts at 91d, can override with -xover 85 but GGNFS siever has file errors)
-- CADO-NFS single-core: times out at 280s for both 85d and 89d
+  - siqsB (40K-120K), siqsNB (8-64), siqsM (50-200), forceDLP, forceTLP, forceQLP
+  - siqsLPB, siqsMFBD (1.7-2.0), siqsTF (89-95), combined NB+B, NB+M
+  - NB=16-32 with B=80K-100K on 89d — all ~215s on 89d[0]
+- GNFS via YAFU: -xover 85 works for 90d but needs ~365s total (47s polyselect + 318s sieve + LA)
+- CADO-NFS single-core: server/client overhead prevents efficient single-core operation
 - PGO/LTO/O3/march=znver4: no improvement (hand-written AVX512 intrinsics)
 - Each additional digit adds ~35-50% more sieving time
+
+### TLP (Triple Large Primes) Analysis
+YAFU supports TLP (use_dlp=2) with `-forceTLP`. Key findings:
+- TLP **does work** on CPU single-threaded (batch GCD + micro-ECM cofactoring)
+- The batch processing code in tdiv.c handles single-threaded mode when `sconf->rb[0].num_relations > target_relations`
+- For 85d: TLP = 134.6s vs DLP = 93.3s (**44% slower**)
+- Only 1.5% of cycles use TLP relations (689 of 46690 partial cycles)
+- TLP overhead (batch init ~4s, batch GCD processing, 3LP filtering/graph building) outweighs the benefit of extra relations
+- TLP is designed for 100+ digit numbers where sieve dominance is extreme
+- The `-siqsBT` parameter controls batch size (default 1M, but works with smaller values for testing)
+- Code location: batch processing in `tdiv.c:574-434`, TLP filtering in `SIQS.c:325` (was disabled with `if(0)` but the tdiv.c code path works)
+
+### GNFS for 90d Analysis
+YAFU GNFS with `-xover 85` on 90d:
+- Polynomial selection: ~47s (degree 4 poly)
+- Sieve: needs 1,460,000 relations at ~4500 rels/sec = ~325s
+- Total: ~365-380s — **65-80s over budget**
+- GGNFS lattice sievers are functional but not fast enough single-threaded
+- CADO-NFS single-thread: server/client architecture adds overhead; stuck in polling
 
 ### Alternatives Explored
 | Approach | Result |
@@ -79,6 +103,18 @@ Timing breakdown for 89d (system GMP build, -siqsNB 16):
 | CADO-NFS SIQS | Not a standalone SIQS; the `sieve/siqs` binary is actually lattice sieve |
 | Custom SIQS | library/siqs.c exists but broken |
 | VBITS=512 | Not supported by msieve's lanczos.h (limited to 64/128/256) |
+| C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
+| TLP (forceTLP) | 44% slower than DLP on 85d. Overhead outweighs benefit at <100d. |
+| GNFS (YAFU -xover 85) | ~365s for 90d. Too slow for 300s budget. |
+| Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when |p-q| < N^(1/3). |
+
+### Sieve Architecture (for future optimization attempts)
+- **Hot function**: `med_sieveblock_32k_avx512bw()` — 32-way SIMD, 64 scattered byte subtractions per iteration
+- **Sieve array**: 32KB (fits L1D cache). Bottleneck is read-modify-write throughput, not cache misses.
+- **Root update**: AVX512BW masked add with boundary check via `_mm512_cmplt_epu16_mask`
+- **Polynomial generation**: Gray code self-initialization, O(1) amortized per polynomial
+- **Parameter auto-tuning**: Table in `siqs_aux.c:325-376`, interpolated by bit count
+- **AMD EPYC 9R45**: L1D=48KB (sieve fits), no efficient byte scatter/gather, manual unroll is optimal
 
 ### Resume Feature
 YAFU can save/resume via siqs.dat. Key findings:

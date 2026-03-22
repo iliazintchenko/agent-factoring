@@ -32,3 +32,21 @@
 [2026-03-22 16:23:46] size: 86 | approach: NB18+B80K | time: 147.1 | notes: 1.5% improvement.
 [2026-03-22 16:23:46] size: 87 | approach: NB18+B90K | time: 188.9 | notes: 1.3% improvement.
 [2026-03-22 16:23:46] size: 88 | approach: NB18+B80K | time: 222.4 | notes: 1.4% improvement.
+[2026-03-22 18:20:00] size: 71 | approach: NB sweep (8-12) vs default | time: 8.34-8.99s | notes: Default NB is optimal for 71d (8.34s). NB tuning doesn't help below 73d.
+[2026-03-22 18:20:00] size: 72 | approach: NB sweep (8-12) vs default | time: 8.27-8.73s | notes: Default NB is optimal for 72d (8.27s).
+[2026-03-22 18:20:00] size: 74 | approach: NB sweep (8-12) vs default | time: 13.23-13.49s | notes: NB=8 marginally best at 13.23s but within noise of default 13.24s.
+[2026-03-22 18:20:00] size: 75 | approach: NB sweep (8-12) vs default | time: 18.39-18.94s | notes: NB=8 at 18.39s, default at 18.63s. Within noise.
+[2026-03-22 18:20:00] size: 76 | approach: NB sweep (8-12) vs default | time: 19.73-19.94s | notes: Default at 19.83s. No improvement.
+[2026-03-22 18:24:00] size: 85 | approach: TLP (forceTLP, siqsBT=50000, NB=18) | time: 134.6s | notes: TLP 44% slower than DLP (93.3s). Batch overhead + 3LP filtering time > sieve savings. Only 1.5% of cycles use TLP.
+[2026-03-22 18:30:00] size: 60 | approach: C-Quadratic-Sieve (Michel Leonard) | time: 6.06s | notes: 10x slower than YAFU (0.7s). Failed on 70d+. Not competitive.
+[2026-03-22 18:32:00] size: 88 | approach: MFBD sweep (1.7-2.0) on 88d[4] | time: 157.8-166.5s | notes: MFBD=1.8 best for individual number (157.8s) but default 1.9 (159.2s) better for worst-case.
+[2026-03-22 18:34:00] size: 88 | approach: siqsTF sweep (89-95) on 88d[4] | time: 159.3-165.7s | notes: TF=89-93 within noise (~159s). TF=95 slightly worse (165.7s).
+[2026-03-22 18:35:00] size: 89 | approach: NB sweep (16-24) on 89d[0] with B=100K | time: 214.6-215.7s | notes: All NB values 16-24 give ~215s. NB=18 optimal (slightly better than alternatives).
+[2026-03-22 18:37:00] size: 88 | approach: MFBD=1.8 all 5 numbers (NB=18, B=80K) | time: 226.5s worst | notes: 88d[3]=226.5s vs current 222.4s. MFBD=1.8 WORSE for worst-case despite being 1% better on some numbers.
+[2026-03-22 18:37:00] size: 89 | approach: MFBD=1.8 all 5 numbers (NB=18, B=100K) | time: 295s+ worst | notes: 89d[4] timed out at 295s. MFBD=1.8 doesn't help 89d either.
+[2026-03-22 18:38:00] size: 88 | approach: B sweep (70K-95K) on 88d[3] | time: 225.4-229.2s | notes: B=85K best at 225.4s but still worse than B=80K (222.4s). Current B=80K is optimal.
+[2026-03-22 18:38:00] size: 88 | approach: NB+B combos (NB=14-20, B=80-100K) on 88d[3] | time: 226.0-238.6s | notes: All worse than NB=18, B=80K (222.4s).
+[2026-03-22 18:25:00] size: 90 | approach: GNFS via YAFU (-xover 85) | time: ~365s (estimated) | notes: Poly selection 47s + sieve ~318s = 365s total. Over 300s budget.
+[2026-03-22 18:38:00] size: 85 | approach: MFBD=1.8 (NB=18, B=70K) | time: 137.1s worst | notes: Worse than current 136.4s.
+[2026-03-22 18:38:00] size: 86 | approach: MFBD=1.8 (NB=18, B=80K) | time: 149.5s worst | notes: Worse than current 147.1s.
+[2026-03-22 18:38:00] size: 87 | approach: MFBD=1.8 (NB=18, B=90K) | time: 190.2s worst | notes: Worse than current 188.2s.
