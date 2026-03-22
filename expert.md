@@ -1,8 +1,8 @@
 # Agent Expert Knowledge
 
-## Key Finding: YAFU SIQS with AVX512BW is Fastest for Single-Core Balanced Semiprimes
+## Current Baseline: YAFU SIQS
 
-YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve kernels, is the fastest single-core approach for balanced semiprimes from 30-89 digits. For 90+ digits, neither SIQS nor NFS can complete within 300s single-core.
+YAFU's SIQS with AVX512BW sieve kernels is the current fastest known approach for 30-89 digits. 90+ digits have not been solved within 300s single-core yet.
 
 ### Why SIQS beats ECM for balanced semiprimes
 - ECM's complexity depends on the **smallest factor size**, not the composite
@@ -28,7 +28,7 @@ YAFU's SIQS (Self-Initializing Quadratic Sieve), rebuilt with AVX512BW sieve ker
 | 87     | 193.7s         | With -siqsNB 16 |
 | 88     | 228.5s         | With -siqsNB 16 |
 | 89     | 294.4s         | With -siqsNB 18 -siqsB 100000. All 5 pass. |
-| 90+    | >300s          | **Definitively infeasible** single-core (see NFS analysis) |
+| 90+    | >300s          | Not yet solved (see NFS analysis below) |
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
@@ -114,7 +114,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 - 90d[2]: timeout (>295s, sieve done but BL didn't finish)
 - 90d[3]: **282.3s** ✓
 - 90d[4]: **281.2s** ✓
-- 3/5 pass, 2/5 exceed 300s. 90d is definitively not achievable single-core.
+- 3/5 pass, 2/5 exceed 300s with YAFU SIQS.
 
 ### Alternatives Explored
 | Approach | Result |
@@ -153,7 +153,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 - **GNFS (YAFU+GGNFS)**: 90d = 404s. Sieving dominates (~300s for 1.46M relations). Poly select ~55s.
 - **NFS (msieve built-in)**: 90d = >400s. Poly select ~167s + sieve >240s.
 - **NFS (CADO-NFS las)**: 90d estimated ~570s. Better filtering (852K vs 1.46M rels) but slower siever.
-- **Conclusion**: SIQS is faster than NFS for 90d. Crossover is around 100-110d for single-core. 90-100d is a dead zone where both algorithms exceed 300s.
+- **Observation**: With current implementations, SIQS is faster than NFS for 90d. YAFU SIQS and existing NFS tools both exceed 300s. The 90-100d range remains an open challenge.
 
 ### 90d Parameter Exhaustion
 Tested on 90d[0] (hardest number): ALL combos fail under 295s:
@@ -162,7 +162,7 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 - MFBD: 2.0, 2.2 — no help
 - LPB: 30, 32 — no help
 - M: 150, 200 — no help
-90d confirmed infeasible with any SIQS parameter combination.
+90d not achievable with YAFU SIQS parameter tuning alone.
 
 ### YAFU Source-Level Analysis (compile-time options)
 - **USE_BATCHPOLY**: Commented out in `qs_impl.h`. Would batch bucket root updates every 4 polys. But sets `FORCE_GENERIC=1`, disabling AVX512BW sieve. Author's comment: "unable to get this to run faster."
