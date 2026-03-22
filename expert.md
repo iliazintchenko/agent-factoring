@@ -1,30 +1,37 @@
 # Agent Expert Knowledge
 
-## Algorithm Selection by Size
-- **30-45 digits**: Parallel ECM (B1=500-11000) handles these in <4s with 48 cores
-- **45-60 digits**: ECM with B1=50000-250000, worst case ~20s at 50 digits
-- **60-70 digits**: ECM with B1=250000-3000000, gets slow for balanced semiprimes
-- **70-100 digits**: Need SIQS - ECM alone is too slow for balanced semiprimes
+## Algorithm Performance for Balanced Semiprimes
 
-## ECM Strategy (current implementation)
-- Use fork() to spawn NCORES (48) parallel ECM workers
-- Each worker runs GMP-ECM with different random sigma
-- Escalating B1 levels: 500 → 2000 → 11000 → 50000 → 250000 → 1000000 → 3000000 → ...
-- First worker to find a factor kills all others via pipe+SIGKILL
-- GMP-ECM B1 table for factor digit counts: 15d:2e3, 20d:11e3, 25d:5e4, 30d:25e4, 35d:1e6, 40d:3e6, 45d:11e6, 50d:43e6
+### msieve SIQS (compiled from yafu/) - FASTEST for all sizes tested
+- Compiled via: `make -f Makefile.gcc msieve NO_ZLIB=1` in yafu/
+- Usage: `./msieve -q -s /tmp/session.dat <N>`
+- Performance (worst case across 5 balanced semiprimes per size):
+  - 30 digits: 0.05s | 40 digits: 0.11s | 50 digits: 0.23s
+  - 60 digits: 1.87s | 65 digits: 10.8s | 70 digits: 18.7s
+  - 75-100 digits: benchmarking in progress
+- Dramatically faster than ECM for balanced semiprimes at ALL sizes
 
-## SIQS (in development)
-- Working implementation but needs optimization
-- Key insight from YAFU: use SIQS with self-initializing polynomials
-- Factor base sizes from YAFU: 50d:~50, 70d:~12000, 100d:~115000 (in bits not digits)
-- Need: proper large prime variation, better parameter tuning, possibly multi-threaded sieving
+### Parallel ECM (factor.c) - 48-core parallel GMP-ECM
+- Fork-based: spawns 48 workers with escalating B1 levels
+- B1 table: 15d→2K, 20d→11K, 25d→50K, 30d→250K, 35d→1M, 40d→3M, 45d→11M, 50d→43M
+- Performance: 30-38d <0.15s, 39-48d <4.2s, 49-50d ~20s
+- Fails for balanced semiprimes above ~60 digits (factors >30 digits)
+- Useful as fallback or for unbalanced semiprimes
 
-## Performance Observations
-- Trial division to 1M: negligible cost
-- Pollard's rho (hand-coded): ~1.4s for 15-digit factors - MUCH slower than ECM
-- GMP-ECM: highly optimized, dominates rho for all sizes when parallelized
-- Parallel speedup nearly linear with 48 cores for ECM
+### Key Insights
+1. msieve SIQS beats parallel ECM by 10-100x for balanced semiprimes
+2. ECM is only competitive when factors are small (<25 digits)
+3. For this benchmark (balanced semiprimes), msieve is the clear winner at all sizes
+4. Parallel ECM useful as fallback when msieve is unavailable
 
-## Reference Code
-- yafu: automated factoring tool that picks the best algorithm (trial division → ECM → SIQS → NFS) based on input size. Current SOTA SIQS implementation. Best single tool for numbers up to ~160 digits.
-- cado-nfs: NFS-only implementation with the best polynomial selection, sieving, and linear algebra. Used for all recent factoring records.
+## SIQS Algorithm Notes (from studying yafu/msieve code)
+- Polynomial selection: a = product of s factor base primes, b via CRT
+- Sieve uses 32K or 64K blocks with SIMD optimization (SSE4.1/AVX2)
+- Factor base size scales with input: ~150 primes at 30d, ~5000 at 80d
+- Large prime variation: single and double large primes supported
+- Square root extraction: works mod kN, then removes multiplier k
+- Linear algebra: Block Lanczos
+
+## Reference Implementations
+- yafu/: msieve SIQS source, compiled as ./msieve
+- cado-nfs/: GNFS implementation for very large numbers (>100 digits)

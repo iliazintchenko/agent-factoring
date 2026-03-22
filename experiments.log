@@ -1,1 +1,5 @@
 [2026-03-21 23:55:00] size: 30-50 | approach: parallel ECM (48 workers, GMP-ECM) | time: 0.06-20s | notes: 30-38d: <0.15s, 39-48d: <4.2s, 49-50d: ~20s worst case. Fork-based parallelism with escalating B1.
+[2026-03-22 00:05:00] size: 30-65 | approach: msieve SIQS | time: 0.05-10.8s | notes: msieve SIQS dominates ECM for balanced semiprimes. 30d:0.05s, 50d:0.23s, 60d:1.87s, 65d:10.8s
+[2026-03-22 00:05:00] size: 70 | approach: msieve SIQS | time: 18.7s | notes: Initial measurement for 70-digit semiprimes
+[2026-03-22 00:05:00] size: 30-50 | approach: single-thread ECM (factor.c) | time: 0.5-7s | notes: Single-threaded ECM much slower than msieve or parallel ECM
+[2026-03-22 00:05:00] size: 64+ | approach: single-thread ECM | time: FAIL | notes: ECM cannot handle balanced semiprimes with factors >32 digits
