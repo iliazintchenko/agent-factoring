@@ -102,3 +102,14 @@
 [2026-03-22 20:40:08] size: 85 | approach: YAFU SIQS NB=20 B=70000 | time: 139.1 | notes: Slightly worse than current NB=18 B=70000 (136.4s). Tested under load (load avg 10+).
 [2026-03-22 20:40:09] size: 85 | approach: YAFU SIQS NB=20 B=80000 | time: 138.5 | notes: Slightly worse than current NB=18 B=70000 (136.4s). Tested under load.
 [2026-03-22 20:40:10] size: 89 | approach: YAFU SIQS NB=18 B=100000 (under load) | time: FAIL | notes: 89d[4] timed out at 295s under high machine load (load avg 10+). Rate ~4750 rels/sec vs ~5400 on lighter load. Confirms load sensitivity.
+[2026-03-22 21:30:00] size: 30 | approach: Pollard rho (Brent improvement, batch GCD) | time: 1.4s | notes: O(p^1/2) too slow for balanced semiprimes. 15d factors need ~10^7 iterations, but YAFU does 30d in 0.014s.
+[2026-03-22 21:30:00] size: 35 | approach: Pollard rho | time: 23.6s | notes: Scales badly for balanced semiprimes. Not competitive.
+[2026-03-22 21:45:00] size: 30 | approach: siqs2.c custom SIQS | time: 0.042s | notes: Working custom implementation. 3x slower than YAFU (0.014s). Scalar sieve, no Gray code.
+[2026-03-22 21:45:00] size: 50 | approach: siqs2.c custom SIQS | time: 6.3s | notes: 53x slower than YAFU (0.12s). FB=2247, 24817 polys. No self-init = new A every poly.
+[2026-03-22 21:45:00] size: 55 | approach: siqs2.c custom SIQS | time: ~30s | notes: ~100x slower than YAFU (0.29s). Threshold and sieve parameters need tuning.
+[2026-03-22 21:50:00] size: 80 | approach: YAFU SIQS NB=12 (verification) | time: 46.4s | notes: Under moderate load (4 parallel benchmarks). Recorded best is 43.8s - within noise of load effects.
+[2026-03-22 21:50:00] size: 85 | approach: YAFU SIQS NB=18 B=70000 (verification) | time: 137.1s | notes: Under load. Recorded best is 136.4s - confirms existing results.
+[2026-03-22 21:50:00] size: 88 | approach: YAFU SIQS NB=18 B=80000 (under heavy load) | time: 249.3s | notes: Under heavy load (4 parallel benchmarks). Recorded 222.4s. Load increases sieve time 12%.
+[2026-03-22 21:50:00] size: 89 | approach: YAFU SIQS NB=18 B=100000 (under heavy load) | time: 2/5 TIMEOUT | notes: 89d[3] and [4] timed out under parallel load. Single-threaded 89d is very sensitive to cache contention.
+[2026-03-22 21:55:00] size: ALL | approach: PGO build (O3+profile-use) | time: within noise | notes: Built YAFU with PGO in yafu-build/yafu.pgo. 80d: 45.5s vs 44.1s (standard). No measurable improvement. PGO doesn't help when hot loops use hand-written intrinsics.
+[2026-03-22 21:57:00] size: ALL | approach: YAFU source analysis (SIQS internals) | time: N/A | notes: Comprehensive study of SIQS.c, siqs_aux.c, med_sieve_32k_avx2.c, tdiv, new_poly.c. Key findings: sieve kernel (30-50% time) + trial division (30-40% time) are bottleneck. AVX512BW 32-way SIMD sieve is near-optimal. Gray code O(1) poly switching is mandatory for competitive performance.

@@ -179,8 +179,52 @@ YAFU can save/resume via siqs.dat. Key findings:
 - Resume adds ~25-30s overhead — slower than continuous run for borderline numbers
 - Only useful if factoring must span multiple invocations
 
+## Custom SIQS Implementations
+
+### siqs2.c — Working Custom SIQS
+- **Status**: Working, 30-60d factoring confirmed
+- **Performance**: 30d: 0.042s, 50d: 6.3s, 55d: ~30s
+- **Comparison to YAFU**: 100-1000x slower (YAFU: 30d=0.014s, 50d=0.12s, 55d=0.29s)
+- **Key bottlenecks**:
+  - Scalar sieve kernel (no SIMD) — YAFU uses AVX512BW 32-way sieve
+  - No Gray code B-switching (new A for every polynomial) — wastes time on root computation
+  - Pure Gaussian elimination for linear algebra vs YAFU's Block Lanczos
+  - Trial division uses mpz_divexact per prime vs YAFU's mod-inverse-based SIMD tdiv
+- **Improvement opportunities**:
+  - Add Gray code self-init (2^(s-1) B-polys per A)
+  - SIMD sieve kernel (even SSE2 would help 4x)
+  - Resieve-based trial division instead of per-prime GMP calls
+  - Block Lanczos for LA (saves 2-5x on large matrices)
+
+### mpqs.c — Custom MPQS (partial)
+- **Status**: Sieve + relation finding works, sqrt step has bug
+- **Issue**: val^2 mod N ≠ product(p^exp) mod N despite individual relations verifying
+- **Root cause under investigation**: May be Gaussian elimination returning wrong null vectors
+
+### Key Insights for Custom SIQS
+1. **Polynomial construction is critical**: a = product of s FB primes, must be ≈ sqrt(2N)/M
+   - For N=2^bits, target_a ≈ 2^(bits/2 + 0.5 - log2(M))
+   - Need s ≈ target_a_bits / avg_prime_bits FB primes
+   - Choosing wrong s (too few/many factors) makes sieve values too large/small
+2. **Sieve threshold matters enormously**: too high = very few candidates, too low = too many false positives
+   - Theoretical: log2(M * sqrt(N)) but subtract small-prime contribution estimate
+   - YAFU's adaptive threshold tuning in first few polys is very effective
+3. **The a*g(x) factor**: For SIQS, (ax+b)^2 ≡ a*g(x) (mod N). The exponent matrix must track
+   exponents of a*g(x), not just g(x), to get correct dependencies for square root step.
+4. **Deduplication essential**: Different polynomials can produce same (ax+b) value, yielding
+   trivially dependent duplicate relations that always give trivial GCD.
+
+## PGO Build
+- PGO (Profile-Guided Optimization) for YAFU: ~1-2% improvement at best
+- Build: compile with -fprofile-generate, run on representative inputs, recompile with -fprofile-use
+- Fix needed: `__inline` → `static __inline` in monty.h for PGO to work
+- Not impactful enough to change best-algos.json entries
+
 ## Tools
 - `yafu/yafu`: YAFU binary (AVX512BW+VBITS=256). Use `siqs(N)` with `-threads 1 -seed 42`.
+- `library/siqs2.c`: Custom SIQS implementation (working, 30-60d)
+- `library/mpqs.c`: Custom MPQS (sieve works, sqrt step needs fix)
+- `library/pollard_rho.c`: Pollard rho (too slow for balanced semiprimes above 30d)
 - `library/bench_single.py`: Benchmark script (run 5 semiprimes per size in parallel)
 - `library/update_best.py`: Update best-algos.json from benchmark results
 - `library/yafu_resume.sh`: YAFU wrapper with save/resume support

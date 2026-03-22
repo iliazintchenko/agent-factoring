@@ -1,91 +1,68 @@
 #!/bin/bash
-# bench_all.sh - Benchmark YAFU on all semiprimes
-# Usage: ./bench_all.sh <yafu_binary> <start_digits> <end_digits> [extra_args...]
-# Output: timing results to stdout, one line per number
+# Benchmark all sizes using YAFU with best known parameters
+# Runs all 5 semiprimes per size, reports worst-case time
 
-YAFU_BIN="${1:-/tmp/agent-factoring-10/yafu_build/yafu}"
-START_D="${2:-30}"
-END_D="${3:-89}"
-shift 3 2>/dev/null
-EXTRA_ARGS="$*"
+YAFU="/tmp/agent-factoring-4/yafu/yafu"
+SEMIPRIMES="/tmp/agent-factoring-8/semiprimes.json"
 
-SEMIPRIMES="/tmp/agent-factoring-10/semiprimes.json"
+# Parse digit size from argument
+SIZE=$1
+if [ -z "$SIZE" ]; then
+    echo "Usage: $0 <digit_size> [command] [extra_args]"
+    exit 1
+fi
 
-# Extract semiprimes for a given digit count
-get_semiprimes() {
-    python3 -c "
+CMD="${2:-siqs}"
+EXTRA="${3:-}"
+
+# Extract semiprimes for this size using python
+NUMS=$(python3 -c "
 import json
 with open('$SEMIPRIMES') as f:
-    data = json.load(f)
-nums = data.get('$1', [])
+    d = json.load(f)
+nums = d.get('$SIZE', [])
 for n in nums:
     print(n)
-"
-}
+")
 
-# Get YAFU command and NB/B params for a digit count
-get_params() {
-    local d=$1
-    if [ $d -le 44 ]; then
-        echo "smallmpqs" ""
-    elif [ $d -le 72 ]; then
-        echo "siqs" ""
-    elif [ $d -le 76 ]; then
-        echo "siqs" ""
-    elif [ $d -le 79 ]; then
-        echo "siqs" "-siqsNB 11"
-    elif [ $d -le 81 ]; then
-        echo "siqs" "-siqsNB 12"
-    elif [ $d -le 84 ]; then
-        echo "siqs" "-siqsNB 14"
-    elif [ $d -eq 85 ]; then
-        echo "siqs" "-siqsNB 18 -siqsB 70000"
-    elif [ $d -eq 86 ]; then
-        echo "siqs" "-siqsNB 18 -siqsB 80000"
-    elif [ $d -eq 87 ]; then
-        echo "siqs" "-siqsNB 18 -siqsB 90000"
-    elif [ $d -eq 88 ]; then
-        echo "siqs" "-siqsNB 18 -siqsB 80000"
-    elif [ $d -eq 89 ]; then
-        echo "siqs" "-siqsNB 18 -siqsB 100000"
+if [ -z "$NUMS" ]; then
+    echo "No semiprimes for size $SIZE"
+    exit 1
+fi
+
+MAX_TIME=0
+ALL_TIMES=""
+IDX=0
+
+while IFS= read -r N; do
+    WORKDIR=$(mktemp -d /tmp/yafu_XXXXXX)
+    START=$(date +%s%N)
+    cd $WORKDIR
+    RESULT=$(echo "${CMD}(${N})" | timeout 295 $YAFU -threads 1 -seed 42 $EXTRA 2>&1)
+    EXIT_CODE=$?
+    END=$(date +%s%N)
+    ELAPSED=$(echo "scale=3; ($END - $START) / 1000000000" | bc)
+    rm -rf $WORKDIR
+
+    if [ $EXIT_CODE -eq 124 ]; then
+        echo "  [$IDX] TIMEOUT (>295s)"
+        ELAPSED="TIMEOUT"
+        MAX_TIME=999
     else
-        echo "siqs" "-siqsNB 18 -siqsB 100000"
-    fi
-}
-
-for d in $(seq $START_D $END_D); do
-    read cmd params <<< "$(get_params $d)"
-
-    max_time=0
-    all_times=""
-    idx=0
-
-    while IFS= read -r N; do
-        WORKDIR=$(mktemp -d /tmp/yafu_bench_XXXXXX)
-
-        start_t=$(date +%s%N)
-        cd "$WORKDIR"
-        echo "${cmd}(${N})" | timeout 295 "$YAFU_BIN" -threads 1 -seed 42 $params $EXTRA_ARGS > /dev/null 2>&1
-        exit_code=$?
-        end_t=$(date +%s%N)
-
-        elapsed=$(echo "scale=3; ($end_t - $start_t) / 1000000000" | bc)
-
-        if [ $exit_code -ne 0 ]; then
-            elapsed="TIMEOUT"
-            all_times="${all_times}TIMEOUT "
+        # Check if factored
+        FACTOR=$(echo "$RESULT" | grep "^P" | head -1)
+        if [ -z "$FACTOR" ]; then
+            echo "  [$IDX] FAIL: no factor found in ${ELAPSED}s"
+            MAX_TIME=999
         else
-            all_times="${all_times}${elapsed} "
-            # Track max time
-            is_greater=$(echo "$elapsed > $max_time" | bc -l 2>/dev/null)
-            if [ "$is_greater" = "1" ]; then
-                max_time=$elapsed
+            echo "  [$IDX] ${ELAPSED}s - $FACTOR"
+            if (( $(echo "$ELAPSED > $MAX_TIME" | bc -l) )); then
+                MAX_TIME=$ELAPSED
             fi
         fi
+    fi
+    ALL_TIMES="$ALL_TIMES $ELAPSED"
+    IDX=$((IDX + 1))
+done <<< "$NUMS"
 
-        rm -rf "$WORKDIR"
-        idx=$((idx + 1))
-    done < <(get_semiprimes $d)
-
-    echo "SIZE=$d | MAX=$max_time | ALL=[$all_times] | PARAMS=$cmd $params"
-done
+echo "SIZE=$SIZE WORST=$MAX_TIME TIMES=$ALL_TIMES"
