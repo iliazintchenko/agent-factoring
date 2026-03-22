@@ -75,5 +75,4 @@ All code the agent writes lives in `library/`:
 
 - **Low parallelism**: Claude Code rarely launches more than 6 parallel scripts, and often runs just 1-2 at a time, leaving most cores idle on large machines.
 - **Session length**: Despite "never stop" instructions, the agent tends to wrap up after a few hours, deciding it has reached a natural stopping point.
-
-The agent maintains `expert.md` as a living knowledge base and improves the library as it learns.
+- **Merge conflicts**: When multiple agents push concurrently, merge conflicts are common. Claude Code resolves them poorly — it tends to blindly concatenate both sides rather than producing a coherent merge, leaving duplicated entries, contradictory statements, and broken files (especially in `expert.md`). Requires periodic manual cleanup.
