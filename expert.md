@@ -166,8 +166,8 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 
 ### YAFU Source Modifications (yafu_mod/)
 Modifications to YAFU source code in yafu_mod/ directory:
-1. **VBITS=512 Block Lanczos**: Extended lanczos.h and lanczos.c to support 512-bit vectors. Adds BIT4-BIT7 macros, loop-based v_and/v_or/v_xor. Builds successfully with `VBITS=512`.
-2. **closnuf threshold for 90d**: Changed DLP closnuf from `digits_n + 3` to `digits_n + 1` for 88-92d. Lowers sieve threshold by 2, more candidates get trial divided = more DLP relations found per polynomial.
+1. **VBITS=512 Block Lanczos**: Extended common/lanczos/lanczos.h to support 512-bit vectors. Changed v_and/v_or/v_xor from cascading #if to loop-based. Builds successfully with `VBITS=512`. Note: the QS-specific BL in factor/qs/msieve/ still uses uint64_t (VBITS doesn't affect QS BL). Only helps NFS BL.
+2. **closnuf threshold for 90d (agent-7 variant)**: More aggressive than agent-10: changed DLP closnuf from digits_n+5 to digits_n+3 for 82-87d, digits_n+3 to digits_n+1 for 88-92d, digits_n+1 to digits_n for 93-99d. Under high load (load ~23), sieve rates were ~4800-5260 rels/sec for 90d — similar to unmodified. Needs low-load testing to determine if closnuf change actually helps.
 3. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190).
 4. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
 5. **DO_UPM1**: Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves. May speed up DLP cofactoring by ~5-10%.
@@ -235,6 +235,14 @@ YAFU can save/resume via siqs.dat. Key findings:
 - **Compile**: `gcc -O3 -march=native -mavx512bw -o siqs3 library/siqs3.c -lgmp -lm`
 - **Features**: Gray code self-init, Knuth-Schroeppel multiplier, 32KB block sieve, SLP+DLP, Block Lanczos (inline)
 - **Bottleneck**: Scalar sieve updates. AVX512 scanning for candidates works but sieve fill is still per-prime scalar stores.
+
+### gnfs_simple.c — Custom GNFS (agent-7, line sieving)
+- **Status**: Working, produces relations but too slow for competition
+- **Performance**: 50d: 317 rels in 0.27s (needs 6811), 60d: ~41 rels/sec
+- **Compile**: `gcc -O3 -march=native -o gnfs_simple library/gnfs_simple.c -lgmp -lm`
+- **Features**: Base-m degree-4 poly selection, fast modular poly GCD root finding, line sieving both sides, trial division smoothness
+- **Bottleneck**: Line sieve is inherently slow — each (a,b) pair requires checking two norms. Lattice sieving / special-Q needed for competitiveness.
+- **Key insight**: NFS line siever for 90d can't compete with YAFU's SIQS. Would need lattice sieve + batch smoothness to approach YAFU speeds.
 
 ### Key Insights for Custom SIQS
 1. **Multiplier handling**: With kN (k>1), sqrt step systematically produces X ≡ ±Y (mod N). May relate to LP products interacting with multiplier.
