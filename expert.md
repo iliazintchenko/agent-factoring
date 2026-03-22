@@ -127,7 +127,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | CADO-NFS NFS | Uses multiprocessing. Violates single-core rule. |
 | AVX512 gather-scatter sieve | **20% slower** than scalar on AMD Zen4. AMD's scatter is ~10 cycles/element vs 1 cycle/element for scalar stores. |
 | Custom SIQS | See dedicated section below. 30-50x slower than YAFU due to scalar sieve. |
-| VBITS=512 | Not supported by msieve's lanczos.h (limited to 64/128/256) |
+| VBITS=512 | Implemented: modified lanczos.h/lanczos.c to support 512-bit vectors. Build succeeds (yafu_mod/). Halves BL iteration count but sieve time still dominates for 90d. Testing in progress. |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
 | yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
 | TLP (forceTLP) | 44% slower than DLP on 85d. Overhead outweighs benefit at <100d. |
@@ -164,6 +164,27 @@ Tested on 90d[0] (hardest number): ALL combos fail under 295s:
 - M: 150, 200 — no help
 90d not achievable with YAFU SIQS parameter tuning alone.
 
+### YAFU Source Modifications (yafu_mod/)
+Modifications to YAFU source code in yafu_mod/ directory:
+1. **VBITS=512 Block Lanczos**: Extended lanczos.h and lanczos.c to support 512-bit vectors. Adds BIT4-BIT7 macros, loop-based v_and/v_or/v_xor. Builds successfully with `VBITS=512`.
+2. **closnuf threshold for 90d**: Changed DLP closnuf from `digits_n + 3` to `digits_n + 1` for 88-92d. Lowers sieve threshold by 2, more candidates get trial divided = more DLP relations found per polynomial.
+3. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190).
+4. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
+
+Build: `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
+
+### 90d Detailed Timing Breakdown
+For 90d[2] (NB=20 B=120K, VBITS=512):
+- Sieving: ~290s (120596 relations at 5689 rels/sec, 231500 polys, 436 A-polys)
+- Block Lanczos: needs ~5-10s (120K x ~120K matrix)
+- Total: ~295-300s — right at timeout boundary
+- **90d[2] sieve finishes but BL doesn't complete in remaining 5s**
+
+For 90d[0]: sieve doesn't finish in 295s. Needs ~315-320s with current parameters.
+
+### GGNFS Siever Issues
+GGNFS lasieve4_64 sievers crash with code 134 (SIGABRT) during NFS sieving. Both lasieve4 and lasieve5 binaries from yafu_build/ exhibit this. Possible binary compatibility issue with current system. msieve standalone NFS also times out (poly select alone >167s).
+
 ### YAFU Source-Level Analysis (compile-time options)
 - **USE_BATCHPOLY**: Commented out in `qs_impl.h`. Would batch bucket root updates every 4 polys. But sets `FORCE_GENERIC=1`, disabling AVX512BW sieve. Author's comment: "unable to get this to run faster."
 - **Parameter table** (`siqs_aux.c:327`): AVX512F table has NB=8 for 281-298 bits (85-90d). Our experiments show NB=14-18 + B=70-100K are optimal. But modifying the table hurts because the interpolation code averages NB from bounding rows instead of interpolating. Always use `-siqsNB` and `-siqsB` command-line overrides.
@@ -193,6 +214,13 @@ YAFU can save/resume via siqs.dat. Key findings:
 - **Features**: AVX512BW sieve scanning, Gray-code poly switching, SLP+DLP, GF(2) GE
 - **Known issue**: Multiplier (k>1) causes trivial congruences in sqrt step — disabled for now
 - **Key bug**: Mirror positions Q(x)=Q(-x-2b/a) must be deduplicated (skip Y<0)
+
+### siqs3.c — Working Custom SIQS (agent-10, DLP, block sieve)
+- **Status**: Working, 30-50d confirmed
+- **Performance**: 30d: 1.3s, 40d: 2.6s, 50d: 39.6s (40-350x slower than YAFU)
+- **Compile**: `gcc -O3 -march=native -mavx512bw -o siqs3 library/siqs3.c -lgmp -lm`
+- **Features**: Gray code self-init, Knuth-Schroeppel multiplier, 32KB block sieve, SLP+DLP, Block Lanczos (inline)
+- **Bottleneck**: Scalar sieve updates. AVX512 scanning for candidates works but sieve fill is still per-prime scalar stores.
 
 ### Key Insights for Custom SIQS
 1. **Multiplier handling**: With kN (k>1), sqrt step systematically produces X ≡ ±Y (mod N). May relate to LP products interacting with multiplier.

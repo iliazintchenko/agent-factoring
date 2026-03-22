@@ -119,3 +119,10 @@
 [2026-03-22 21:45:00] size: 80 | approach: YAFU SIQS NB=12 (agent-6 binary, loaded machine) | time: 50.0s | notes: Machine load 28.9. Consistent with best 43.8s + 15% load penalty.
 [2026-03-22 21:45:00] size: 80 | approach: PGO YAFU NB=12 (agent-3 binary, loaded machine) | time: 46.8s | notes: PGO ~6% faster under same load conditions. PGO binary at /tmp/agent-factoring-3/yafu/yafu.pgo.
 [2026-03-22 22:00:00] size: ALL | approach: YAFU source analysis (additional) | time: N/A | notes: Batch GCD DLP path disabled (tdiv.c:341, && 0) — confirmed intentional. DLP exponent gap at 290 bits — already tested via MFBD sweep. Parameter table gap 265-281 bits — bypassed by -siqsNB/-siqsB overrides. No new optimization avenues found.
+[2026-03-22 22:30:00] size: 90 | approach: YAFU SIQS NB=20 B=120K (re-verify) | time: 248-282s (3/5 pass), 2/5 timeout | notes: 90d[1]=248s, 90d[3]=282s, 90d[4]=281s pass. 90d[0] sieve doesn't finish. 90d[2] sieve=290s + BL timeout.
+[2026-03-22 22:45:00] size: 90 | approach: YAFU SIQS VBITS=512 NB=20 B=120K | time: 90d[2] sieve=290s BL timeout | notes: VBITS=512 BL modification builds but sieve still dominates. BL only gets 5s after sieve, not enough.
+[2026-03-22 22:45:00] size: 90 | approach: YAFU GNFS (GGNFS sievers) | time: FAIL | notes: GGNFS lasieve4/lasieve5 sievers crash with code 134 (SIGABRT). Binary compatibility issue.
+[2026-03-22 22:45:00] size: 90 | approach: msieve NFS standalone | time: >295s (timeout) | notes: Poly select alone takes >167s.
+[2026-03-22 22:45:00] size: 30 | approach: custom siqs3.c (library) | time: 1.3s | notes: Working DLP SIQS. 40-350x slower than YAFU due to scalar sieve.
+[2026-03-22 22:45:00] size: 40 | approach: custom siqs3.c (library) | time: 2.6s | notes: YAFU does 40d in 0.017s.
+[2026-03-22 22:45:00] size: 50 | approach: custom siqs3.c (library) | time: 39.6s | notes: YAFU does 50d in 0.12s. Sieve is the bottleneck.
