@@ -5,13 +5,24 @@ agent.log
 cado-nfs
 yafu
 
-siqs.dat
-factor.log
-session.log
+# Build artifacts
 *.o
+*.dat
+*.log
+*.out
 __pycache__/
+gmon.out
+
+# Compiled binaries (keep only source in git)
 factor
 msieve
 siqs
 library/analyze
 library/siqs2
+library/siqs_fast
+library/mpqs
+library/mpqs_custom
+library/pollard_rho
+library/factor_hybrid
+library/combined_factor
+library/factor_small
