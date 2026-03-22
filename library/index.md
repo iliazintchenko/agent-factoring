@@ -42,5 +42,12 @@
 ### block_lanczos.h — Block Lanczos linear algebra
 - Header-only. Used by siqs implementations for the matrix step.
 
+### gnfs_simple.c — Custom GNFS (line sieving)
+- **Compile**: `gcc -O3 -march=native -o gnfs_simple library/gnfs_simple.c -lgmp -lm`
+- **Usage**: `timeout 295 ./gnfs_simple <N>`
+- **Performance**: 50d: 1172 rels/sec (insufficient for 6811 target). Not competitive with YAFU.
+- **Features**: Base-m degree-4 poly, fast modular poly GCD root finding, dual-side line sieve, trial division smoothness
+- **Key insight**: Line sieve NFS can't compete. Needs lattice sieve or GGNFS sievers.
+
 ### cqs/ — Additional SIQS variant
 - `cqs/siqs_gmp.c`: Another SIQS implementation using GMP
