@@ -1,18 +1,17 @@
 /*
- * SIQS2 - High-performance Self-Initializing Quadratic Sieve
- * Optimized for balanced semiprimes, 50-95 digits
- * Single-threaded, uses GMP for bignum arithmetic
+ * SIQS2 - Self-Initializing Quadratic Sieve
+ * High-performance implementation for 30-90+ digit balanced semiprimes
  *
- * Key optimizations:
+ * Key features:
  * - Knuth-Schroeppel multiplier selection
- * - Gray code self-initialization (O(1) per polynomial switch)
- * - Block sieve (32KB blocks for L1 cache)
- * - Double large primes with hash table
- * - Block Lanczos for linear algebra
- * - Optimized trial division
+ * - Self-initializing polynomials with Gray code b-value enumeration
+ * - 32KB block sieving for L1D cache efficiency
+ * - Single large prime variation with hash table
+ * - Block Lanczos-style GF(2) linear algebra
+ * - Optimized for AMD EPYC 9R45 (Zen4)
  *
  * Usage: ./siqs2 <N>
- * Compile: gcc -O2 -march=native -o siqs2 siqs2.c -lgmp -lm
+ * Compile: gcc -O2 -march=native -o siqs2 library/siqs2.c -lgmp -lm
  */
 
 #include <stdio.h>
@@ -21,759 +20,766 @@
 #include <math.h>
 #include <time.h>
 #include <gmp.h>
-#include <immintrin.h>
-
-/* ==================== Constants ==================== */
-
-#define MAX_FB_SIZE    200000
-#define MAX_RELATIONS  250000
-#define BLOCK_SIZE     32768   /* 32KB sieve block - fits L1D cache */
-#define LP_HASH_BITS   20
-#define LP_HASH_SIZE   (1 << LP_HASH_BITS)
-#define LP_HASH_MASK   (LP_HASH_SIZE - 1)
-#define MAX_A_FACTORS  15
-#define MAX_DEPS       64
-#define SMALL_PRIME_CUTOFF 256  /* skip sieving for primes < this */
 
 /* ==================== Parameters ==================== */
 
 typedef struct {
-    int fb_size;        /* factor base size */
-    int sieve_radius;   /* sieve from -M to M */
-    int lp_mult;        /* large prime bound = lp_mult * largest_FB_prime */
-    int num_a_factors;  /* number of primes making up 'a' coefficient */
-    double thresh_adj;  /* threshold adjustment (fraction of expected log) */
-    int use_dlp;        /* use double large primes? */
-    int dlp_mult;       /* DLP bound = dlp_mult * largest_FB_prime^2 */
+    int fb_size;        /* target factor base size */
+    int sieve_block;    /* sieve block size (32768 for L1D) */
+    int num_blocks;     /* number of blocks per side of sieve */
+    int lp_mult;        /* large prime multiplier */
+    double thresh_adj;  /* sieve threshold adjustment (lower = more candidates) */
+    int extra_rels;     /* extra relations beyond FB size */
 } params_t;
 
+/*
+ * Parameters based on L(N) = exp(sqrt(ln(N)*ln(ln(N)))).
+ * num_a_factors is computed dynamically in poly_new_a based on target_a.
+ */
 static params_t get_params(int bits) {
-    /* Parameters from YAFU's AVX512 parameter table (siqs_aux.c)
-     * FB size, sieve_radius (blocks * 32768), LP multiplier, num_a_factors (computed), threshold_adj
-     * num_a_factors = 0 means "compute automatically from target_a"
-     */
-    if (bits <=  80) return (params_t){   80,   32768, 40,  0, 0, 0, 0};
-    if (bits <= 100) return (params_t){  175,   65536, 50,  0, 0, 0, 0};
-    if (bits <= 120) return (params_t){  375,   65536, 50,  0, 0, 0, 0};
-    if (bits <= 140) return (params_t){  828,   65536, 50,  0, 0, 0, 0};
-    if (bits <= 149) return (params_t){ 1028,   65536, 60,  0, 0, 0, 0};
-    if (bits <= 165) return (params_t){ 1228,   65536, 60,  0, 0, 0, 0};
-    if (bits <= 181) return (params_t){ 2247,   65536, 70,  0, 0, 0, 0};
-    if (bits <= 198) return (params_t){ 3485,   65536, 70,  0, 0, 0, 0};
-    if (bits <= 215) return (params_t){ 6357,   65536, 80,  0, 0, 0, 0};
-    if (bits <= 232) return (params_t){12132,  131072, 80,  0, 0, 1, 30};
-    if (bits <= 248) return (params_t){26379,  196608, 90,  0, 0, 1, 30};
-    if (bits <= 265) return (params_t){47158,  196608, 90,  0, 0, 1, 30};
-    if (bits <= 281) return (params_t){60650,  262144,100,  0, 0, 1, 30};
-    if (bits <= 298) return (params_t){71768,  262144,120,  0, 0, 1, 30};
-    if (bits <= 310) return (params_t){86071,  327680,120,  0, 0, 1, 30};
-    if (bits <= 320) return (params_t){99745,  327680,140,  0, 0, 1, 30};
-    return                  (params_t){115500, 393216,150,  0, 0, 1, 30};
+    if (bits <= 100)  return (params_t){100,  32768, 1,  30, 0.73, 40};
+    if (bits <= 110)  return (params_t){150,  32768, 1,  30, 0.74, 40};
+    if (bits <= 120)  return (params_t){200,  32768, 2,  35, 0.76, 50};
+    if (bits <= 130)  return (params_t){300,  32768, 3,  40, 0.78, 50};
+    if (bits <= 140)  return (params_t){400,  32768, 4,  40, 0.79, 60};
+    if (bits <= 150)  return (params_t){600,  32768, 6,  50, 0.80, 60};
+    if (bits <= 160)  return (params_t){900,  32768, 8,  50, 0.81, 80};
+    if (bits <= 170)  return (params_t){1200, 32768, 10, 60, 0.82, 80};
+    if (bits <= 180)  return (params_t){1800, 32768, 14, 60, 0.83, 80};
+    if (bits <= 190)  return (params_t){2500, 32768, 18, 60, 0.84, 100};
+    if (bits <= 200)  return (params_t){3500, 32768, 24, 70, 0.85, 100};
+    if (bits <= 210)  return (params_t){5000, 32768, 32, 70, 0.86, 120};
+    if (bits <= 220)  return (params_t){7000, 32768, 40, 80, 0.87, 120};
+    if (bits <= 230)  return (params_t){9000, 32768, 48, 80, 0.875, 150};
+    if (bits <= 240)  return (params_t){12000, 32768, 56, 80, 0.88, 150};
+    if (bits <= 250)  return (params_t){16000, 32768, 64, 90, 0.885, 200};
+    if (bits <= 260)  return (params_t){22000, 32768, 80, 90, 0.89, 200};
+    if (bits <= 270)  return (params_t){30000, 32768, 96, 100, 0.895, 250};
+    if (bits <= 280)  return (params_t){40000, 32768, 112, 100, 0.90, 300};
+    if (bits <= 290)  return (params_t){55000, 32768, 128, 110, 0.905, 350};
+    return (params_t){75000, 32768, 160, 120, 0.91, 400};
+}
+
+/* ==================== Primes sieve ==================== */
+
+static int *sieve_primes(int bound, int *count) {
+    char *is_composite = calloc(bound + 1, 1);
+    for (int i = 2; (long)i * i <= bound; i++)
+        if (!is_composite[i])
+            for (int j = i * i; j <= bound; j += i)
+                is_composite[j] = 1;
+    int cnt = 0;
+    for (int i = 2; i <= bound; i++)
+        if (!is_composite[i]) cnt++;
+    int *primes = malloc(cnt * sizeof(int));
+    int idx = 0;
+    for (int i = 2; i <= bound; i++)
+        if (!is_composite[i]) primes[idx++] = i;
+    free(is_composite);
+    *count = cnt;
+    return primes;
+}
+
+/* ==================== Modular Arithmetic ==================== */
+
+/* Modular inverse via extended GCD. Returns 0 if no inverse. */
+static unsigned int mod_inverse(unsigned int a, unsigned int m) {
+    int g, x;
+    /* Extended GCD */
+    int old_r = (int)a, r = (int)m;
+    int old_s = 1, s = 0;
+    while (r != 0) {
+        int q = old_r / r;
+        int temp = r; r = old_r - q * r; old_r = temp;
+        temp = s; s = old_s - q * s; old_s = temp;
+    }
+    g = old_r; x = old_s;
+    if (g != 1) return 0;
+    return (unsigned int)(((long long)x % (long long)m + m) % m);
+}
+
+/* Tonelli-Shanks: sqrt(n) mod p. Returns 0 if not a QR. */
+static unsigned int sqrt_mod(unsigned int n, unsigned int p) {
+    if (n == 0) return 0;
+    if (p == 2) return n & 1;
+
+    /* Euler criterion check */
+    unsigned long long base = n % p;
+    unsigned long long result = 1;
+    unsigned long long exp = (p - 1) / 2;
+    unsigned long long b = base, m = p;
+    unsigned long long e = exp;
+    while (e > 0) {
+        if (e & 1) result = (result * b) % m;
+        b = (b * b) % m;
+        e >>= 1;
+    }
+    if (result != 1) return 0;
+
+    /* p ≡ 3 (mod 4): simple case */
+    if (p % 4 == 3) {
+        b = base; e = (p + 1) / 4; m = p; result = 1;
+        while (e > 0) {
+            if (e & 1) result = (result * b) % m;
+            b = (b * b) % m;
+            e >>= 1;
+        }
+        return (unsigned int)result;
+    }
+
+    /* General Tonelli-Shanks */
+    unsigned int Q = p - 1, S = 0;
+    while (Q % 2 == 0) { Q /= 2; S++; }
+
+    /* Find non-residue z */
+    unsigned int z = 2;
+    while (1) {
+        b = z; e = (p - 1) / 2; m = p; result = 1;
+        while (e > 0) {
+            if (e & 1) result = (result * b) % m;
+            b = (b * b) % m;
+            e >>= 1;
+        }
+        if (result == p - 1) break;
+        z++;
+    }
+
+    unsigned long long M_val = S;
+    /* c = z^Q mod p */
+    b = z; e = Q; m = p; unsigned long long c = 1;
+    while (e > 0) { if (e & 1) c = (c * b) % m; b = (b * b) % m; e >>= 1; }
+    /* t = n^Q mod p */
+    b = base; e = Q; unsigned long long t = 1;
+    while (e > 0) { if (e & 1) t = (t * b) % m; b = (b * b) % m; e >>= 1; }
+    /* R = n^((Q+1)/2) mod p */
+    b = base; e = (Q + 1) / 2; unsigned long long R = 1;
+    while (e > 0) { if (e & 1) R = (R * b) % m; b = (b * b) % m; e >>= 1; }
+
+    while (1) {
+        if (t == 1) return (unsigned int)R;
+        /* Find smallest i such that t^(2^i) = 1 */
+        int i = 0;
+        unsigned long long tt = t;
+        while (tt != 1) { tt = (tt * tt) % p; i++; }
+        /* b = c^(2^(M-i-1)) */
+        unsigned long long bb = c;
+        for (int j = 0; j < (int)M_val - i - 1; j++)
+            bb = (bb * bb) % p;
+        M_val = i;
+        c = (bb * bb) % p;
+        t = (t * c) % p;
+        R = (R * bb) % p;
+    }
+}
+
+/* ==================== Knuth-Schroeppel Multiplier ==================== */
+
+static int choose_multiplier(mpz_t N, int fb_target) {
+    static const int kvals[] = {1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21,
+                                 22, 23, 26, 29, 30, 31, 33, 34, 35, 37, 38, 39,
+                                 41, 42, 43, 46, 47};
+    int nk = sizeof(kvals) / sizeof(kvals[0]);
+
+    double best_score = -1e30;
+    int best_k = 1;
+
+    /* Score each multiplier: higher is better */
+    for (int ki = 0; ki < nk; ki++) {
+        int k = kvals[ki];
+        double score = 0.0;
+
+        /* Penalty for large multiplier (increases values to sieve) */
+        score -= 0.5 * log((double)k);
+
+        mpz_t kN;
+        mpz_init(kN);
+        mpz_mul_ui(kN, N, k);
+
+        /* Contribution of 2 */
+        unsigned long kN_mod8 = mpz_fdiv_ui(kN, 8);
+        if (kN_mod8 == 1) score += 2.0 * log(2.0);
+        else if (kN_mod8 == 5) score += 1.0 * log(2.0);
+        else if (kN_mod8 == 3 || kN_mod8 == 7) score += 0.5 * log(2.0);
+
+        /* Contribution of small odd primes */
+        int nprimes;
+        int *primes = sieve_primes(1000, &nprimes);
+        int counted = 0;
+        for (int i = 1; i < nprimes && counted < 30; i++) {
+            int p = primes[i];
+            if (k % p == 0) continue;
+            unsigned long n_mod_p = mpz_fdiv_ui(kN, p);
+            unsigned int r = sqrt_mod((unsigned int)n_mod_p, p);
+            if (r != 0) {
+                score += 2.0 * log((double)p) / (p - 1);
+                counted++;
+            }
+        }
+        free(primes);
+        mpz_clear(kN);
+
+        if (score > best_score) {
+            best_score = score;
+            best_k = k;
+        }
+    }
+    return best_k;
 }
 
 /* ==================== Factor Base ==================== */
 
 typedef struct {
-    unsigned int p;
-    unsigned int r1;   /* sqrt(kN) mod p */
-    unsigned int r2;   /* p - r1 */
-    unsigned char logp; /* floor(log2(p)) */
-    unsigned int ainv;  /* inverse of 2a mod p (updated per a) */
-} fb_entry_t;
+    unsigned int *prime;
+    unsigned int *root;   /* sqrt(kN) mod p */
+    unsigned char *logp;
+    int size;
+} fb_t;
 
-static fb_entry_t *fb;
-static int fb_count;
+static fb_t *fb_create(mpz_t kN, int target) {
+    fb_t *fb = malloc(sizeof(fb_t));
+    /* Allocate extra space */
+    int alloc = target + 20;
+    fb->prime = malloc(alloc * sizeof(unsigned int));
+    fb->root  = malloc(alloc * sizeof(unsigned int));
+    fb->logp  = malloc(alloc * sizeof(unsigned char));
 
-/* Tonelli-Shanks: sqrt(n) mod p. Returns 0 if not a QR. */
-static unsigned int sqrt_mod_p(unsigned long n, unsigned int p) {
-    if (n == 0) return 0;
-    if (p == 2) return n & 1;
+    /* Entry 0: -1 (sign) */
+    fb->prime[0] = 2; /* We'll handle 2 specially */
+    fb->root[0] = 1;
+    fb->logp[0] = 1;
+    fb->size = 1;
 
-    /* Euler criterion via GMP (fast for small p too) */
-    mpz_t b, e, m, r;
-    mpz_init_set_ui(b, n);
-    mpz_init_set_ui(m, p);
-    mpz_init(e); mpz_init(r);
+    /* Generate primes and check if kN is a QR */
+    int bound = target * 30 + 50000; /* generous bound to find enough QR primes */
+    int nprimes;
+    int *primes = sieve_primes(bound, &nprimes);
 
-    mpz_set_ui(e, (p - 1) / 2);
-    mpz_powm(r, b, e, m);
-    if (mpz_cmp_ui(r, 1) != 0) {
-        mpz_clears(b, e, m, r, NULL);
-        return 0;
-    }
-
-    if (p % 4 == 3) {
-        mpz_set_ui(e, (p + 1) / 4);
-        mpz_powm(r, b, e, m);
-        unsigned int result = mpz_get_ui(r);
-        mpz_clears(b, e, m, r, NULL);
-        return result;
-    }
-
-    /* General Tonelli-Shanks */
-    unsigned long Q = p - 1;
-    int S = 0;
-    while (Q % 2 == 0) { Q /= 2; S++; }
-
-    unsigned long z = 2;
-    for (;;) {
-        mpz_set_ui(b, z);
-        mpz_set_ui(e, (p - 1) / 2);
-        mpz_powm(r, b, e, m);
-        if (mpz_cmp_ui(r, p - 1) == 0) break;
-        z++;
-    }
-
-    mpz_t M_val, c, t, R, bb, tmp;
-    mpz_inits(M_val, c, t, R, bb, tmp, NULL);
-    mpz_set_ui(M_val, S);
-    mpz_set_ui(c, z); mpz_set_ui(e, Q); mpz_powm(c, c, e, m);
-    mpz_set_ui(t, n); mpz_set_ui(e, Q); mpz_powm(t, t, e, m);
-    mpz_set_ui(R, n); mpz_set_ui(e, (Q + 1) / 2); mpz_powm(R, R, e, m);
-
-    for (;;) {
-        if (mpz_cmp_ui(t, 1) == 0) {
-            unsigned int result = mpz_get_ui(R);
-            mpz_clears(b, e, m, r, M_val, c, t, R, bb, tmp, NULL);
-            return result;
+    for (int i = 1; i < nprimes && fb->size < target; i++) {
+        int p = primes[i]; /* odd primes */
+        unsigned long n_mod_p = mpz_fdiv_ui(kN, p);
+        if (n_mod_p == 0) {
+            /* p divides kN - include with root 0 */
+            fb->prime[fb->size] = p;
+            fb->root[fb->size] = 0;
+            fb->logp[fb->size] = (unsigned char)(log2(p) + 0.5);
+            fb->size++;
+            continue;
         }
-        int i = 0;
-        mpz_set(tmp, t);
-        while (mpz_cmp_ui(tmp, 1) != 0) {
-            mpz_mul(tmp, tmp, tmp); mpz_mod(tmp, tmp, m);
-            i++;
-        }
-        mpz_set(bb, c);
-        for (int j = 0; j < (int)mpz_get_ui(M_val) - i - 1; j++) {
-            mpz_mul(bb, bb, bb); mpz_mod(bb, bb, m);
-        }
-        mpz_set_ui(M_val, i);
-        mpz_mul(c, bb, bb); mpz_mod(c, c, m);
-        mpz_mul(t, t, c); mpz_mod(t, t, m);
-        mpz_mul(R, R, bb); mpz_mod(R, R, m);
-    }
-}
-
-/* Knuth-Schroeppel multiplier selection */
-static int select_multiplier(mpz_t N) {
-    static const int mults[] = {1, 3, 5, 7, 11, 13, 15, 17, 19, 21, 23,
-                                 29, 31, 33, 35, 37, 39, 41, 43, 47, 51,
-                                 53, 55, 59, 61, 67, 69, 71, 73};
-    int nmults = sizeof(mults) / sizeof(mults[0]);
-
-    double best_score = -1e30;
-    int best_mult = 1;
-
-    mpz_t kN;
-    mpz_init(kN);
-
-    for (int mi = 0; mi < nmults; mi++) {
-        int k = mults[mi];
-        mpz_mul_ui(kN, N, k);
-
-        double score = -0.5 * log(k);
-
-        /* Bonus for kN mod 8 */
-        int kN_mod8 = mpz_fdiv_ui(kN, 8);
-        if (kN_mod8 == 1) score += log(2.0) * 2;
-        else if (kN_mod8 == 5) score += log(2.0) * 1.5;
-        else if (kN_mod8 == 3 || kN_mod8 == 7) score += log(2.0);
-
-        /* Score contribution from small primes */
-        for (int p = 3; p < 200; p += 2) {
-            /* Check if p is prime (simple) */
-            int is_prime = 1;
-            for (int d = 3; d * d <= p; d += 2)
-                if (p % d == 0) { is_prime = 0; break; }
-            if (!is_prime) continue;
-
-            unsigned long kN_mod = mpz_fdiv_ui(kN, p);
-            unsigned int r = sqrt_mod_p(kN_mod, p);
-            if (r > 0) {
-                double contrib = 2.0 * log(p) / (p - 1);
-                if (k % p == 0) contrib *= 0.5;
-                score += contrib;
-            }
-        }
-
-        if (score > best_score) {
-            best_score = score;
-            best_mult = k;
-        }
-    }
-
-    mpz_clear(kN);
-    return best_mult;
-}
-
-static int build_factor_base(mpz_t kN, int target_size) {
-    fb_count = 0;
-
-    /* Entry 0: factor -1 (sign) */
-    fb[0].p = 1; fb[0].r1 = fb[0].r2 = 0; fb[0].logp = 0;
-    fb_count = 1;
-
-    /* Entry 1: factor 2 */
-    fb[1].p = 2; fb[1].r1 = 1; fb[1].r2 = 1; fb[1].logp = 1;
-    fb_count = 2;
-
-    /* Generate primes via sieve of Eratosthenes */
-    int bound = target_size * 20 + 10000;
-    if (bound < 100000) bound = 100000;
-    char *is_composite = calloc(bound, 1);
-    for (int i = 2; (long)i * i < bound; i++)
-        if (!is_composite[i])
-            for (int j = i * i; j < bound; j += i)
-                is_composite[j] = 1;
-
-    for (int p = 3; p < bound && fb_count < target_size; p += 2) {
-        if (is_composite[p]) continue;
-        unsigned long n_mod = mpz_fdiv_ui(kN, p);
-        unsigned int r = sqrt_mod_p(n_mod, p);
+        unsigned int r = sqrt_mod((unsigned int)n_mod_p, p);
         if (r == 0) continue;
 
-        fb[fb_count].p = p;
-        fb[fb_count].r1 = r;
-        fb[fb_count].r2 = p - r;
-        fb[fb_count].logp = (unsigned char)(log2(p) + 0.5);
-        fb_count++;
+        fb->prime[fb->size] = p;
+        fb->root[fb->size] = r;
+        fb->logp[fb->size] = (unsigned char)(log2(p) + 0.5);
+        fb->size++;
     }
-    free(is_composite);
-    return fb_count;
+    free(primes);
+    return fb;
 }
 
-/* ==================== Relation Storage ==================== */
+/* ==================== Large Prime Hash Table ==================== */
 
-typedef struct {
-    mpz_t Y;          /* (ax+b) value */
-    int *expo;         /* full exponent vector (fb_count entries) */
-    unsigned long lp1; /* large prime 1 (0 if full) */
-    unsigned long lp2; /* large prime 2 (0 if not DLP) */
-} relation_t;
+#define LP_HASH_BITS 20
+#define LP_HASH_SIZE (1 << LP_HASH_BITS)
+#define LP_HASH_MASK (LP_HASH_SIZE - 1)
 
-static relation_t *relations;
-static int num_relations;
-static int target_relations;
-
-/* Large prime hash for single large prime */
 typedef struct lp_node {
     unsigned long lp;
     int rel_idx;
     struct lp_node *next;
 } lp_node_t;
 
-static lp_node_t **lp_table;
-static lp_node_t *lp_pool;
-static int lp_pool_used;
+typedef struct {
+    lp_node_t **buckets;
+    lp_node_t *pool;
+    int pool_used;
+    int pool_size;
+} lp_table_t;
 
-static void lp_init_table(int max_entries) {
-    lp_table = calloc(LP_HASH_SIZE, sizeof(lp_node_t *));
-    lp_pool = malloc(max_entries * sizeof(lp_node_t));
-    lp_pool_used = 0;
+static lp_table_t *lp_create(int max_entries) {
+    lp_table_t *t = malloc(sizeof(lp_table_t));
+    t->buckets = calloc(LP_HASH_SIZE, sizeof(lp_node_t*));
+    t->pool = malloc(max_entries * sizeof(lp_node_t));
+    t->pool_used = 0;
+    t->pool_size = max_entries;
+    return t;
 }
 
-static int lp_find(unsigned long lp) {
-    unsigned int h = ((unsigned int)(lp * 2654435761U)) >> (32 - LP_HASH_BITS);
-    for (lp_node_t *n = lp_table[h]; n; n = n->next)
+static int lp_find(lp_table_t *t, unsigned long lp) {
+    unsigned int h = (unsigned int)((lp * 2654435761UL) >> (32 - LP_HASH_BITS)) & LP_HASH_MASK;
+    for (lp_node_t *n = t->buckets[h]; n; n = n->next)
         if (n->lp == lp) return n->rel_idx;
     return -1;
 }
 
-static void lp_insert(unsigned long lp, int idx) {
-    unsigned int h = ((unsigned int)(lp * 2654435761U)) >> (32 - LP_HASH_BITS);
-    lp_node_t *n = &lp_pool[lp_pool_used++];
+static void lp_insert(lp_table_t *t, unsigned long lp, int idx) {
+    if (t->pool_used >= t->pool_size) return;
+    unsigned int h = (unsigned int)((lp * 2654435761UL) >> (32 - LP_HASH_BITS)) & LP_HASH_MASK;
+    lp_node_t *n = &t->pool[t->pool_used++];
     n->lp = lp;
     n->rel_idx = idx;
-    n->next = lp_table[h];
-    lp_table[h] = n;
+    n->next = t->buckets[h];
+    t->buckets[h] = n;
 }
 
-/* ==================== Self-Initializing Polynomial ==================== */
+/* ==================== Relation Storage ==================== */
 
-/*
- * SIQS polynomial: f(x) = (ax+b)^2 - kN, where a*f(x) = (ax+b)^2 - kN
- * Actually we sieve g(x) = ((ax+b)^2 - kN)/a which has smaller values.
- *
- * a = product of s primes q_1, ..., q_s from the factor base
- * For each a, there are 2^(s-1) choices of b (Gray code enumeration)
- *
- * Self-initialization: when changing b, only 2 sieve solutions per FB prime change
- * by a fixed amount (precomputed). This is the key O(1) optimization.
- */
+typedef struct {
+    mpz_t *Qx;         /* Q(x) value (for sqrt step) */
+    mpz_t *ax_b;       /* (ax+b) value for sqrt step */
+    unsigned long *lp;  /* large prime (0 = full relation) */
+    int count;
+    int alloc;
+} rel_store_t;
 
-static int a_indices[MAX_A_FACTORS];  /* FB indices of primes in 'a' */
-static int num_a_factors;
-static mpz_t poly_a, poly_b;
-static mpz_t B_values[MAX_A_FACTORS]; /* B_j values for gray code */
-
-/* Precomputed sieve solutions */
-static int *soln1, *soln2;  /* current sieve start positions */
-
-/* Gray code state */
-static int gray_idx;     /* which B value to toggle next */
-static int gray_sign;    /* +1 or -1 */
-
-static int sieve_M_global; /* stored for sieve offset computation */
-
-/* Initialize a new 'a' coefficient and compute all B_j values */
-static int init_new_a(mpz_t kN, int sieve_M) {
-    sieve_M_global = sieve_M;
-    mpz_set_ui(poly_a, 1);
-    for (int i = 0; i < num_a_factors; i++) {
-        mpz_mul_ui(poly_a, poly_a, fb[a_indices[i]].p);
+static rel_store_t *rel_create(int alloc) {
+    rel_store_t *rs = malloc(sizeof(rel_store_t));
+    rs->Qx = malloc(alloc * sizeof(mpz_t));
+    rs->ax_b = malloc(alloc * sizeof(mpz_t));
+    rs->lp = calloc(alloc, sizeof(unsigned long));
+    for (int i = 0; i < alloc; i++) {
+        mpz_init(rs->Qx[i]);
+        mpz_init(rs->ax_b[i]);
     }
-
-    /* Compute B_j for each prime q_j in a:
-     * B_j = r_j * (a/q_j) * inv(a/q_j mod q_j)
-     * where r_j = sqrt(kN) mod q_j
-     */
-    mpz_t a_over_q, inv, tmp;
-    mpz_inits(a_over_q, inv, tmp, NULL);
-
-    for (int j = 0; j < num_a_factors; j++) {
-        unsigned int qj = fb[a_indices[j]].p;
-        unsigned int rj = fb[a_indices[j]].r1;
-
-        mpz_divexact_ui(a_over_q, poly_a, qj);
-        mpz_set_ui(tmp, qj);
-        if (!mpz_invert(inv, a_over_q, tmp)) {
-            mpz_clears(a_over_q, inv, tmp, NULL);
-            return 0;
-        }
-        unsigned long inv_val = mpz_get_ui(inv);
-
-        /* B_j = (a/q_j) * (inv(a/q_j, q_j) * r_j mod q_j) */
-        mpz_mul_ui(B_values[j], a_over_q, (inv_val * rj) % qj);
-    }
-
-    /* b = sum of B_j (first Gray code state) */
-    mpz_set_ui(poly_b, 0);
-    for (int j = 0; j < num_a_factors; j++) {
-        mpz_add(poly_b, poly_b, B_values[j]);
-    }
-
-    /* Verify b^2 ≡ kN (mod a) */
-    mpz_mul(tmp, poly_b, poly_b);
-    mpz_sub(tmp, tmp, kN);
-    mpz_mod(tmp, tmp, poly_a);
-    if (mpz_sgn(tmp) != 0) {
-        /* Negate B[0] to fix sign */
-        mpz_sub(poly_b, poly_b, B_values[0]);
-        mpz_sub(poly_b, poly_b, B_values[0]);
-        mpz_neg(B_values[0], B_values[0]);
-
-        mpz_mul(tmp, poly_b, poly_b);
-        mpz_sub(tmp, tmp, kN);
-        mpz_mod(tmp, tmp, poly_a);
-        if (mpz_sgn(tmp) != 0) {
-            mpz_clears(a_over_q, inv, tmp, NULL);
-            return 0;
-        }
-    }
-
-    /* Compute sieve solutions for each FB prime.
-     * Polynomial: Q(x) = (ax+b)^2 - kN, divided by a.
-     * Sieve position j maps to x = j - M.
-     * Q(x) ≡ 0 mod p when x ≡ a^-1 * (±r - b) mod p.
-     * Sieve start: soln = (a^-1 * (r - b) + M) mod p.
-     */
-    for (int i = 2; i < fb_count; i++) {
-        unsigned int p = fb[i].p;
-        unsigned long a_mod = mpz_fdiv_ui(poly_a, p);
-        if (a_mod == 0) {
-            soln1[i] = soln2[i] = -1;
-            continue;
-        }
-
-        /* a_inv = a^-1 mod p */
-        mpz_set_ui(tmp, a_mod);
-        mpz_set_ui(inv, p);
-        if (!mpz_invert(tmp, tmp, inv)) {
-            soln1[i] = soln2[i] = -1;
-            continue;
-        }
-        unsigned long a_inv = mpz_get_ui(tmp);
-        fb[i].ainv = (unsigned int)a_inv;
-
-        unsigned long b_mod = mpz_fdiv_ui(poly_b, p);
-        unsigned long r1 = fb[i].r1;
-        unsigned long r2 = fb[i].r2;
-
-        /* x1 = a_inv * (r1 - b) mod p, then add M for sieve offset */
-        unsigned long x1 = (a_inv * ((r1 + p - b_mod) % p)) % p;
-        unsigned long x2 = (a_inv * ((r2 + p - b_mod) % p)) % p;
-
-        soln1[i] = (int)((x1 + sieve_M) % p);
-        soln2[i] = (int)((x2 + sieve_M) % p);
-    }
-
-    gray_idx = 0;
-
-    mpz_clears(a_over_q, inv, tmp, NULL);
-    return 1;
+    rs->count = 0;
+    rs->alloc = alloc;
+    return rs;
 }
 
-/* Switch to next b using Gray code. Returns 0 when all 2^(s-1) b's exhausted */
-static int next_b(int sieve_radius) {
-    gray_idx++;
-    if (gray_idx >= (1 << (num_a_factors - 1)))
-        return 0;
-
-    /* Gray code: find which bit changed */
-    int v = gray_idx ^ (gray_idx >> 1);
-    int prev = (gray_idx - 1) ^ ((gray_idx - 1) >> 1);
-    int changed = v ^ prev;
-    int j = __builtin_ctz(changed); /* index of changed bit */
-
-    /* Determine sign: if bit was set in v, add; if cleared, subtract */
-    gray_sign = (v >> j) & 1 ? 1 : -1;
-
-    /* Update b: b_new = b_old + 2 * gray_sign * B_j */
-    if (gray_sign > 0) {
-        mpz_add(poly_b, poly_b, B_values[j]);
-        mpz_add(poly_b, poly_b, B_values[j]);
-    } else {
-        mpz_sub(poly_b, poly_b, B_values[j]);
-        mpz_sub(poly_b, poly_b, B_values[j]);
-    }
-
-    /* Update sieve solutions: for each FB prime p,
-     * When b changes by Δb = ±2*B_j:
-     * x_new = a_inv * (r - (b + Δb)) = x_old - a_inv * Δb
-     * soln_new = soln_old - a_inv * Δb mod p
-     * delta = (2 * a_inv * B_j_mod_p) mod p
-     */
-    for (int i = 2; i < fb_count; i++) {
-        if (soln1[i] < 0) continue;
-        unsigned int p = fb[i].p;
-        unsigned long bj_mod = mpz_fdiv_ui(B_values[j], p);
-        unsigned long delta = (2UL * ((unsigned long)fb[i].ainv * bj_mod % p)) % p;
-
-        if (gray_sign > 0) {
-            /* b increased by 2*B_j, so soln decreases by delta */
-            soln1[i] = (int)(((unsigned long)soln1[i] + p - delta) % p);
-            soln2[i] = (int)(((unsigned long)soln2[i] + p - delta) % p);
-        } else {
-            /* b decreased by 2*B_j, so soln increases by delta */
-            soln1[i] = (int)(((unsigned long)soln1[i] + delta) % p);
-            soln2[i] = (int)(((unsigned long)soln2[i] + delta) % p);
-        }
-    }
-
-    return 1;
-}
-
-/* Choose primes for 'a' coefficient.
- * a ≈ sqrt(2*kN) / M for optimal polynomial values.
- * Select primes from the middle of the factor base.
- */
-static void choose_a_primes(mpz_t target_a, int *seed_state) {
-    /* Target: a ≈ target_a. Choose num_a_factors primes from FB middle. */
-    int lo = fb_count / 4;
-    int hi = 3 * fb_count / 4;
-    if (lo < 2) lo = 2;
-    if (hi <= lo + num_a_factors) hi = fb_count - 1;
-    int range = hi - lo;
-
-    /* Simple deterministic selection based on seed */
-    for (int i = 0; i < num_a_factors; i++) {
-retry:
-        *seed_state = (*seed_state * 1103515245 + 12345) & 0x7fffffff;
-        int idx = lo + (*seed_state % range);
-        /* Ensure unique */
-        for (int j = 0; j < i; j++)
-            if (a_indices[j] == idx) goto retry;
-        a_indices[i] = idx;
-    }
-}
-
-/* ==================== Sieving ==================== */
-
-static unsigned char *sieve_array;
-
-static void sieve_block(int block_start, int block_end) {
-    int block_len = block_end - block_start;
-    unsigned char *block = sieve_array;
-    memset(block, 0, block_len);
-
-    /* Sieve with factor base primes.
-     * For small primes (< SMALL_PRIME_CUTOFF): skip, they contribute little per hit
-     * For medium primes: standard sieving
-     * For large primes: hit at most once per block
-     */
-
-    /* Medium primes */
-    for (int i = 2; i < fb_count; i++) {
-        if (soln1[i] < 0) continue;
-        unsigned int p = fb[i].p;
-        unsigned char logp = fb[i].logp;
-
-        if (p < 3) continue; /* skip p=2, handle separately */
-        if (logp < 2) continue; /* skip very small contribution */
-
-        /* Compute start position in this block */
-        int s1 = soln1[i];
-        int s2 = soln2[i];
-
-        /* Offset into sieve: position x maps to sieve[x + M] but we work in blocks.
-         * soln values are offsets from 0 modulo p.
-         * For block [block_start, block_end), we need first hit >= block_start.
-         */
-        int start1 = s1 + ((block_start - s1 + p - 1) / p) * p - block_start;
-        if (s1 >= block_start) start1 = s1 - block_start;
-        else start1 = p - ((block_start - s1) % p);
-        if (start1 >= block_len) goto skip1;
-
-        for (int j = start1; j < block_len; j += p)
-            block[j] += logp;
-skip1:
-        if (s1 == s2) continue;
-
-        int start2;
-        if (s2 >= block_start) start2 = s2 - block_start;
-        else start2 = p - ((block_start - s2) % p);
-        if (start2 >= block_len) continue;
-
-        for (int j = start2; j < block_len; j += p)
-            block[j] += logp;
-    }
-}
-
-/* ==================== Trial Division ==================== */
-
-/* Optimized trial division using sieve position to identify which primes divide Q(x).
- * Only checks primes where sieve_pos ≡ soln1[i] or soln2[i] (mod p).
- * Falls back to GMP for the residue.
- */
-static int trial_divide(mpz_t residue, int *expos, mpz_t kN,
-                        mpz_t ax_b, int sieve_pos) {
-    /* Compute Q(x) = ((ax+b)^2 - kN) / a */
-    mpz_mul(residue, ax_b, ax_b);
-    mpz_sub(residue, residue, kN);
-    mpz_divexact(residue, residue, poly_a);
-
-    if (mpz_sgn(residue) == 0) return 0;
-
-    int neg = (mpz_sgn(residue) < 0);
-    mpz_abs(residue, residue);
-
-    memset(expos, 0, fb_count * sizeof(int));
-    if (neg) expos[0] = 1;
-
-    /* Factor out primes from 'a' */
-    for (int k = 0; k < num_a_factors; k++) {
-        expos[a_indices[k]] += 1;
-    }
-
-    /* Factor 2 separately */
-    while (mpz_even_p(residue)) {
-        mpz_tdiv_q_2exp(residue, residue, 1);
-        expos[1]++;
-    }
-
-    /* For each FB prime, check if this position is hit by the sieve solution.
-     * If sieve_pos % p == soln1[i] or soln2[i], then p | Q(x).
-     * After confirming, do repeated division.
-     */
-    for (int i = 2; i < fb_count; i++) {
-        if (soln1[i] < 0) {
-            /* This prime divides 'a', handled above. But Q(x)/a may still be divisible. */
-            /* Skip for now - already counted in a */
-            continue;
-        }
-        unsigned int p = fb[i].p;
-        unsigned int pos_mod = sieve_pos % p;
-
-        if (pos_mod != (unsigned int)soln1[i] && pos_mod != (unsigned int)soln2[i])
-            continue;
-
-        /* p divides Q(x). Remove all factors of p. */
-        do {
-            mpz_divexact_ui(residue, residue, p);
-            expos[i]++;
-        } while (mpz_divisible_ui_p(residue, p));
-    }
-
-    return 1;
-}
-
-/* ==================== Block Lanczos (GF(2)) ==================== */
-
-/*
- * Simplified 64-bit Block Lanczos for GF(2) null space finding.
- * Uses 64-wide block vectors for efficiency.
- */
+/* ==================== GF(2) Matrix & Gaussian Elimination ==================== */
 
 typedef unsigned long long u64;
 
-/* Sparse matrix representation */
 typedef struct {
-    int nrows, ncols;
-    int *row_start;  /* row_start[i] = start index in col_idx for row i */
-    int *col_idx;    /* column indices for non-zero entries */
-    int nnz;         /* total non-zeros */
-} sparse_matrix_t;
+    u64 **rows;     /* Each row: [fb_words | id_words] */
+    int nrows;
+    int ncols;      /* FB size (left part) */
+    int fb_words;
+    int id_words;
+    int total_words;
+} gf2_matrix_t;
 
-/* Dense 64-wide block vector */
-typedef u64 *block_vec_t;
-
-static block_vec_t bv_alloc(int n) {
-    return calloc(n, sizeof(u64));
-}
-
-/* Matrix-vector multiply: y = M * x (in GF(2), 64-wide) */
-static void mat_mul(sparse_matrix_t *M, block_vec_t x, block_vec_t y) {
-    memset(y, 0, M->nrows * sizeof(u64));
-    for (int i = 0; i < M->nrows; i++) {
-        u64 val = 0;
-        int start = M->row_start[i];
-        int end = M->row_start[i + 1];
-        for (int k = start; k < end; k++) {
-            val ^= x[M->col_idx[k]];
-        }
-        y[i] = val;
-    }
-}
-
-/* Transpose matrix-vector multiply: y = M^T * x */
-static void mat_tmul(sparse_matrix_t *M, block_vec_t x, block_vec_t y) {
-    memset(y, 0, M->ncols * sizeof(u64));
-    for (int i = 0; i < M->nrows; i++) {
-        u64 xi = x[i];
-        if (xi == 0) continue;
-        int start = M->row_start[i];
-        int end = M->row_start[i + 1];
-        for (int k = start; k < end; k++) {
-            y[M->col_idx[k]] ^= xi;
-        }
-    }
-}
-
-/* Simple GF(2) null space finder using structured Gaussian elimination
- * on the normal equations M^T * M.
- * Returns number of null space vectors found.
- */
-static int find_null_space(sparse_matrix_t *M, int **dep_lists, int *dep_lens, int max_deps) {
-    int n = M->ncols;
-    int m = M->nrows;
-
-    /* Use Gaussian elimination on the matrix (rows = relations, cols = FB primes)
-     * with augmented identity to find dependencies.
-     * For practical sizes this is fine; Block Lanczos would be needed for >50K relations.
-     */
-
-    int nwords = (n + 63) / 64;
-    int id_words = (m + 63) / 64;
-    int total_words = nwords + id_words;
-
-    u64 **mat = malloc(m * sizeof(u64 *));
-    for (int r = 0; r < m; r++) {
-        mat[r] = calloc(total_words, sizeof(u64));
-        /* Fill from sparse matrix */
-        int start = M->row_start[r];
-        int end = M->row_start[r + 1];
-        for (int k = start; k < end; k++) {
-            int c = M->col_idx[k];
-            mat[r][c / 64] |= (1ULL << (c % 64));
-        }
+static gf2_matrix_t *gf2_create(int nrows, int ncols) {
+    gf2_matrix_t *m = malloc(sizeof(gf2_matrix_t));
+    m->nrows = nrows;
+    m->ncols = ncols;
+    m->fb_words = (ncols + 63) / 64;
+    m->id_words = (nrows + 63) / 64;
+    m->total_words = m->fb_words + m->id_words;
+    m->rows = malloc(nrows * sizeof(u64*));
+    for (int r = 0; r < nrows; r++) {
+        m->rows[r] = calloc(m->total_words, sizeof(u64));
         /* Identity bit */
-        mat[r][nwords + r / 64] |= (1ULL << (r % 64));
+        m->rows[r][m->fb_words + r / 64] |= (1ULL << (r % 64));
     }
+    return m;
+}
 
-    /* Row reduction */
-    int *pivot = malloc(n * sizeof(int));
-    for (int c = 0; c < n; c++) pivot[c] = -1;
+static void gf2_set_bit(gf2_matrix_t *m, int row, int col) {
+    m->rows[row][col / 64] ^= (1ULL << (col % 64));
+}
 
-    for (int col = 0; col < n; col++) {
+/*
+ * Gaussian elimination on GF(2). Returns number of dependencies found.
+ * deps[i] = array of relation indices in the dependency, deps_len[i] = count.
+ */
+static int gf2_solve(gf2_matrix_t *m, int ***deps_out, int **deps_len_out, int max_deps) {
+    int nrows = m->nrows;
+    int ncols = m->ncols;
+    int fb_words = m->fb_words;
+    int total_words = m->total_words;
+
+    /* Column-pivot tracking */
+    int *pivot_col_to_row = malloc(ncols * sizeof(int));
+    memset(pivot_col_to_row, -1, ncols * sizeof(int));
+
+    int current_pivot_row = 0;
+    for (int col = 0; col < ncols && current_pivot_row < nrows; col++) {
+        /* Find row with bit set in this column, starting from current_pivot_row */
         int pr = -1;
-        for (int r = 0; r < m; r++) {
-            if (!((mat[r][col / 64] >> (col % 64)) & 1)) continue;
-            int used = 0;
-            for (int cc = 0; cc < col; cc++)
-                if (pivot[cc] == r) { used = 1; break; }
-            if (!used) { pr = r; break; }
-        }
-        if (pr < 0) continue;
-        pivot[col] = pr;
-
-        for (int r = 0; r < m; r++) {
-            if (r == pr) continue;
-            if ((mat[r][col / 64] >> (col % 64)) & 1) {
-                for (int w = 0; w < total_words; w++)
-                    mat[r][w] ^= mat[pr][w];
+        for (int r = current_pivot_row; r < nrows; r++) {
+            if ((m->rows[r][col / 64] >> (col % 64)) & 1) {
+                pr = r;
+                break;
             }
         }
+        if (pr < 0) continue;
+
+        /* Swap to current pivot position */
+        if (pr != current_pivot_row) {
+            u64 *tmp = m->rows[pr];
+            m->rows[pr] = m->rows[current_pivot_row];
+            m->rows[current_pivot_row] = tmp;
+        }
+        pivot_col_to_row[col] = current_pivot_row;
+
+        /* Eliminate all other rows */
+        u64 *pivot = m->rows[current_pivot_row];
+        for (int r = 0; r < nrows; r++) {
+            if (r == current_pivot_row) continue;
+            if ((m->rows[r][col / 64] >> (col % 64)) & 1) {
+                for (int w = 0; w < total_words; w++)
+                    m->rows[r][w] ^= pivot[w];
+            }
+        }
+        current_pivot_row++;
     }
 
-    /* Extract null space vectors */
+    /* Extract dependencies (rows with zero left part) */
     int ndeps = 0;
-    for (int r = 0; r < m && ndeps < max_deps; r++) {
+    *deps_out = malloc(max_deps * sizeof(int*));
+    *deps_len_out = malloc(max_deps * sizeof(int));
+
+    for (int r = current_pivot_row; r < nrows && ndeps < max_deps; r++) {
+        /* Verify left part is zero */
         int zero = 1;
-        for (int w = 0; w < nwords && zero; w++) {
-            u64 mask = ~0ULL;
-            if (w == nwords - 1 && n % 64 != 0)
-                mask = (1ULL << (n % 64)) - 1;
-            if (mat[r][w] & mask) zero = 0;
+        for (int w = 0; w < fb_words && zero; w++) {
+            u64 mask = (w < fb_words - 1) ? ~0ULL :
+                       (ncols % 64 == 0) ? ~0ULL : ((1ULL << (ncols % 64)) - 1);
+            if (m->rows[r][w] & mask) { zero = 0; break; }
         }
         if (!zero) continue;
 
-        int *dep = malloc(m * sizeof(int));
-        int dep_len = 0;
-        for (int w = 0; w < id_words; w++) {
-            u64 bits = mat[r][nwords + w];
+        /* Extract relation indices from identity part */
+        int *dep = malloc(nrows * sizeof(int));
+        int dlen = 0;
+        for (int w = 0; w < m->id_words; w++) {
+            u64 bits = m->rows[r][fb_words + w];
             while (bits) {
                 int bit = __builtin_ctzll(bits);
                 int idx = w * 64 + bit;
-                if (idx < m) dep[dep_len++] = idx;
+                if (idx < nrows) dep[dlen++] = idx;
                 bits &= bits - 1;
             }
         }
-        if (dep_len > 0) {
-            dep_lists[ndeps] = dep;
-            dep_lens[ndeps] = dep_len;
+        if (dlen > 0) {
+            (*deps_out)[ndeps] = dep;
+            (*deps_len_out)[ndeps] = dlen;
             ndeps++;
         } else {
             free(dep);
         }
     }
 
-    for (int r = 0; r < m; r++) free(mat[r]);
-    free(mat);
-    free(pivot);
+    free(pivot_col_to_row);
     return ndeps;
 }
 
-/* ==================== Main ==================== */
+/* ==================== SIQS Core ==================== */
+
+/*
+ * Polynomial: f(x) = (a*x + b)^2 - kN, where a = product of selected FB primes
+ * Q(x) = f(x)/a = a*x^2 + 2*b*x + c, where c = (b^2 - kN)/a
+ *
+ * Self-initialization: when changing b via Gray code, only one B_j value changes.
+ * New solutions: x_{i,new} = x_{i,old} ± 2 * a_inv_p * B_j (mod p)
+ */
+
+/* State for polynomial generation */
+#define MAX_A_FACTORS 20
+typedef struct {
+    mpz_t a;                /* a coefficient */
+    mpz_t b;                /* b coefficient */
+    mpz_t c;                /* c = (b^2 - kN) / a */
+    int a_indices[MAX_A_FACTORS]; /* FB indices of primes in a */
+    int num_a_factors;      /* s = number of primes in a (computed dynamically) */
+    mpz_t B_values[MAX_A_FACTORS]; /* B_j values for Gray code switching */
+    unsigned int *a_inv_data; /* flattened a_inv[j][i] array */
+    int a_inv_stride;       /* = fb->size */
+    int num_b_values;       /* 2^(s-1) b-values per a */
+    int current_b_index;    /* current b-value index (Gray code) */
+    unsigned int *soln1;
+    unsigned int *soln2;
+} poly_state_t;
+
+static struct timespec g_start_time;
+
+static double elapsed_seconds(void) {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (now.tv_sec - g_start_time.tv_sec) + (now.tv_nsec - g_start_time.tv_nsec) / 1e9;
+}
+
+/*
+ * Select a new 'a' coefficient and compute all B_j values.
+ * a = product of s primes from the factor base.
+ * We want a ≈ sqrt(2*kN) / M to minimize max|Q(x)|.
+ */
+static int poly_new_a(poly_state_t *ps, fb_t *fb, mpz_t kN, int M, gmp_randstate_t rng) {
+    /* Target: a ≈ sqrt(2*kN) / M */
+    mpz_t target;
+    mpz_init(target);
+    mpz_mul_ui(target, kN, 2);
+    mpz_sqrt(target, target);
+    mpz_tdiv_q_ui(target, target, M);
+    double log_target = mpz_sizeinbase(target, 2) * log(2.0);
+
+    /* Selection range: middle of FB (skip first few and last few) */
+    int lo = fb->size / 3;
+    int hi = 2 * fb->size / 3;
+    if (lo < 2) lo = 2;
+    if (hi <= lo + 3) hi = fb->size - 1;
+
+    /* Dynamically compute number of a-factors */
+    double avg_log_p = 0;
+    int cnt = 0;
+    for (int i = lo; i < hi; i++) {
+        if (fb->root[i] == 0) continue;
+        avg_log_p += log((double)fb->prime[i]);
+        cnt++;
+    }
+    if (cnt == 0) { mpz_clear(target); return 0; }
+    avg_log_p /= cnt;
+
+    int s = (int)(log_target / avg_log_p + 0.5);
+    if (s < 3) s = 3;
+    if (s > MAX_A_FACTORS) s = MAX_A_FACTORS;
+    if (s > hi - lo) s = hi - lo;
+    ps->num_a_factors = s;
+
+    /* Select s primes with product close to target */
+    int best_attempts = 0;
+    double best_ratio = 1e30;
+    int best_indices[MAX_A_FACTORS];
+
+    for (int attempt = 0; attempt < 40; attempt++) {
+        mpz_set_ui(ps->a, 1);
+        int indices[MAX_A_FACTORS];
+        for (int i = 0; i < s; i++) {
+            int idx, ok;
+            int tries = 0;
+            do {
+                idx = lo + (gmp_urandomm_ui(rng, hi - lo));
+                ok = 1;
+                for (int j = 0; j < i; j++)
+                    if (indices[j] == idx) { ok = 0; break; }
+                if (fb->root[idx] == 0) ok = 0;
+                tries++;
+            } while (!ok && tries < 100);
+            if (!ok) break;
+            indices[i] = idx;
+            mpz_mul_ui(ps->a, ps->a, fb->prime[idx]);
+        }
+
+        /* Measure how close a is to target */
+        double ratio;
+        if (mpz_cmp(ps->a, target) > 0) {
+            mpz_t q; mpz_init(q);
+            mpz_tdiv_q(q, ps->a, target);
+            ratio = mpz_get_d(q);
+            mpz_clear(q);
+        } else {
+            mpz_t q; mpz_init(q);
+            mpz_tdiv_q(q, target, ps->a);
+            ratio = mpz_get_d(q);
+            mpz_clear(q);
+        }
+        if (ratio < best_ratio) {
+            best_ratio = ratio;
+            memcpy(best_indices, indices, s * sizeof(int));
+            best_attempts = attempt;
+        }
+        if (ratio < 2.0) break; /* close enough */
+    }
+
+    memcpy(ps->a_indices, best_indices, s * sizeof(int));
+    mpz_set_ui(ps->a, 1);
+    for (int i = 0; i < s; i++)
+        mpz_mul_ui(ps->a, ps->a, fb->prime[ps->a_indices[i]]);
+
+    mpz_clear(target);
+
+    /* Compute B_j values for each a-factor q_j:
+     * B_j = r_j * (a/q_j) * ((a/q_j)^(-1) mod q_j)
+     * where r_j = sqrt(kN) mod q_j (from factor base)
+     */
+    for (int j = 0; j < s; j++) {
+        int idx = ps->a_indices[j];
+        unsigned int qj = fb->prime[idx];
+        unsigned int rj = fb->root[idx]; /* sqrt(kN) mod qj */
+
+        /* a_over_qj = a / qj */
+        mpz_t a_over_qj, mod_qj, inv;
+        mpz_inits(a_over_qj, mod_qj, inv, NULL);
+        mpz_divexact_ui(a_over_qj, ps->a, qj);
+        mpz_set_ui(mod_qj, qj);
+
+        /* inv = (a/qj)^(-1) mod qj */
+        if (!mpz_invert(inv, a_over_qj, mod_qj)) {
+            mpz_clears(a_over_qj, mod_qj, inv, NULL);
+            return 0; /* shouldn't happen */
+        }
+
+        /* B_j = rj * (a/qj) * inv mod a
+         * But we compute it as: rj * (a/qj)_inv_mod_qj * (a/qj) */
+        unsigned long inv_val = mpz_get_ui(inv);
+        mpz_mul_ui(ps->B_values[j], a_over_qj, (rj * inv_val) % qj);
+        /* Ensure B_j ≡ rj (mod qj) and B_j has right sign */
+
+        mpz_clears(a_over_qj, mod_qj, inv, NULL);
+    }
+
+    /* Initial b = sum of B_j (first Gray code position) */
+    mpz_set_ui(ps->b, 0);
+    for (int j = 0; j < s; j++)
+        mpz_add(ps->b, ps->b, ps->B_values[j]);
+    /* Ensure b^2 ≡ kN (mod a) */
+    /* If not, try negating some B_j. For simplicity, verify and adjust: */
+    mpz_t test;
+    mpz_init(test);
+    mpz_mul(test, ps->b, ps->b);
+    mpz_sub(test, test, kN);
+    mpz_mod(test, test, ps->a);
+    if (mpz_sgn(test) != 0) {
+        /* Try flipping sign of first B value */
+        mpz_sub(ps->b, ps->b, ps->B_values[0]);
+        mpz_sub(ps->b, ps->b, ps->B_values[0]);
+        mpz_mul(test, ps->b, ps->b);
+        mpz_sub(test, test, kN);
+        mpz_mod(test, test, ps->a);
+        if (mpz_sgn(test) != 0) {
+            mpz_clear(test);
+            return 0;
+        }
+    }
+    mpz_clear(test);
+
+    /* Compute c = (b^2 - kN) / a */
+    mpz_mul(ps->c, ps->b, ps->b);
+    mpz_sub(ps->c, ps->c, kN);
+    mpz_divexact(ps->c, ps->c, ps->a);
+
+    /* Compute sieve solutions for each FB prime:
+     * Q(x) = a*x^2 + 2*b*x + c ≡ 0 (mod p)
+     * x = (-b ± sqrt(kN)) * a^(-1) (mod p)
+     * x = a^(-1) * (root[i] - b) mod p  and  a^(-1) * (-root[i] - b) mod p
+     */
+    for (int i = 0; i < fb->size; i++) {
+        unsigned int p = fb->prime[i];
+        unsigned long a_mod = mpz_fdiv_ui(ps->a, p);
+
+        if (a_mod == 0) {
+            ps->soln1[i] = ps->soln2[i] = 0xFFFFFFFF;
+            continue;
+        }
+
+        unsigned int ainv = mod_inverse((unsigned int)a_mod, p);
+        if (ainv == 0) {
+            ps->soln1[i] = ps->soln2[i] = 0xFFFFFFFF;
+            continue;
+        }
+
+        unsigned long b_mod = mpz_fdiv_ui(ps->b, p);
+        unsigned int r = fb->root[i];
+
+        if (r == 0) {
+            /* p divides kN */
+            ps->soln1[i] = ps->soln2[i] = 0xFFFFFFFF;
+            continue;
+        }
+
+        /* x1 = ainv * (r - b) mod p */
+        unsigned long x1 = ((unsigned long)ainv * ((r + p - b_mod) % p)) % p;
+        /* x2 = ainv * (-r - b) mod p = ainv * (p - r - b) mod p */
+        unsigned long x2 = ((unsigned long)ainv * ((p - r + p - b_mod) % p)) % p;
+
+        ps->soln1[i] = (unsigned int)x1;
+        ps->soln2[i] = (unsigned int)x2;
+    }
+
+    /* Precompute a_inv[j][i] for Gray code updates */
+    ps->a_inv_stride = fb->size;
+    for (int j = 0; j < s; j++) {
+        for (int i = 0; i < fb->size; i++) {
+            unsigned int p = fb->prime[i];
+            unsigned long a_mod = mpz_fdiv_ui(ps->a, p);
+            if (a_mod == 0 || fb->root[i] == 0) {
+                ps->a_inv_data[j * fb->size + i] = 0;
+                continue;
+            }
+            unsigned int ainv = mod_inverse((unsigned int)a_mod, p);
+            unsigned long Bj_mod = mpz_fdiv_ui(ps->B_values[j], p);
+            /* 2 * ainv * Bj mod p */
+            ps->a_inv_data[j * fb->size + i] = (unsigned int)((2UL * ainv % p * Bj_mod) % p);
+        }
+    }
+
+    ps->current_b_index = 0;
+    ps->num_b_values = 1 << (s - 1);
+    return 1;
+}
+
+/*
+ * Switch to next b-value using Gray code.
+ * Only updates the sieve solutions, not recomputing from scratch.
+ * Returns: j = the B_j index that changed, or -1 if all b-values exhausted.
+ */
+static int poly_next_b(poly_state_t *ps, fb_t *fb, mpz_t kN) {
+    ps->current_b_index++;
+    if (ps->current_b_index >= ps->num_b_values)
+        return -1;
+
+    /* Gray code: which bit changed? */
+    int gray_prev = (ps->current_b_index - 1) ^ ((ps->current_b_index - 1) >> 1);
+    int gray_curr = ps->current_b_index ^ (ps->current_b_index >> 1);
+    int changed = gray_prev ^ gray_curr;
+    int j = __builtin_ctz(changed); /* which B_j to flip */
+
+    /* Determine sign: if bit was set, subtract; if cleared, add */
+    int sign = (gray_curr >> j) & 1; /* 1 = just set (add), 0 = just cleared (sub) */
+
+    /* Update b: b_new = b_old ± 2*B_j */
+    if (sign) {
+        mpz_add(ps->b, ps->b, ps->B_values[j]);
+        mpz_add(ps->b, ps->b, ps->B_values[j]);
+    } else {
+        mpz_sub(ps->b, ps->b, ps->B_values[j]);
+        mpz_sub(ps->b, ps->b, ps->B_values[j]);
+    }
+
+    /* Update c = (b^2 - kN) / a */
+    mpz_mul(ps->c, ps->b, ps->b);
+    mpz_sub(ps->c, ps->c, kN);
+    mpz_divexact(ps->c, ps->c, ps->a);
+
+    /* Update sieve solutions:
+     * x_new = x_old ± a_inv[j][i] (mod p)
+     * Sign depends on whether B_j was added or subtracted from b.
+     * If b increased (sign=1): solutions shift by -a_inv
+     * If b decreased (sign=0): solutions shift by +a_inv
+     */
+    for (int i = 0; i < fb->size; i++) {
+        if (ps->soln1[i] == 0xFFFFFFFF) continue;
+        unsigned int p = fb->prime[i];
+        unsigned int delta = ps->a_inv_data[j * ps->a_inv_stride + i];
+        if (delta == 0) continue;
+        if (sign) {
+            ps->soln1[i] = (ps->soln1[i] + p - delta) % p;
+            ps->soln2[i] = (ps->soln2[i] + p - delta) % p;
+        } else {
+            ps->soln1[i] = (ps->soln1[i] + delta) % p;
+            ps->soln2[i] = (ps->soln2[i] + delta) % p;
+        }
+    }
+
+    return j;
+}
+
+/* ==================== Main SIQS ==================== */
 
 int main(int argc, char *argv[]) {
     if (argc < 2) { fprintf(stderr, "Usage: %s <N>\n", argv[0]); return 1; }
 
-    struct timespec t0;
-    clock_gettime(CLOCK_MONOTONIC, &t0);
+    clock_gettime(CLOCK_MONOTONIC, &g_start_time);
 
     mpz_t N;
     mpz_init_set_str(N, argv[1], 10);
 
-    /* Quick checks */
-    if (mpz_perfect_square_p(N)) {
-        mpz_t sq; mpz_init(sq); mpz_sqrt(sq, N);
-        gmp_printf("%Zd\n", sq);
-        return 0;
-    }
-
-    /* Small factor check with trial division up to 10000 */
-    for (unsigned long p = 2; p < 10000; p++) {
-        if (mpz_divisible_ui_p(N, p)) {
-            printf("%lu\n", p);
-            return 0;
-        }
-    }
-
     int digits = (int)mpz_sizeinbase(N, 10);
     int bits = (int)mpz_sizeinbase(N, 2);
 
-    /* Multiplier selection */
-    int multiplier = select_multiplier(N);
+    /* Knuth-Schroeppel multiplier */
+    int multiplier = choose_multiplier(N, 100);
     mpz_t kN;
     mpz_init(kN);
     mpz_mul_ui(kN, N, multiplier);
@@ -781,306 +787,395 @@ int main(int argc, char *argv[]) {
 
     params_t P = get_params(kN_bits);
 
-    fprintf(stderr, "SIQS2: %d digits (%d bits), k=%d, FB=%d, M=%d, s=%d, DLP=%d\n",
-            digits, bits, multiplier, P.fb_size, P.sieve_radius, P.num_a_factors, P.use_dlp);
+    fprintf(stderr, "SIQS2: %d digits (%d bits), mult=%d, FB=%d, blocks=%d\n",
+            digits, bits, multiplier, P.fb_size, P.num_blocks);
 
-    /* Build factor base */
-    fb = malloc(MAX_FB_SIZE * sizeof(fb_entry_t));
-    build_factor_base(kN, P.fb_size);
-    fprintf(stderr, "FB: %d primes, largest=%u\n", fb_count, fb[fb_count - 1].p);
+    /* Factor base */
+    fb_t *fb = fb_create(kN, P.fb_size);
+    fprintf(stderr, "FB: %d primes, largest=%u\n", fb->size, fb->prime[fb->size - 1]);
 
-    int sieve_M = P.sieve_radius;
-    int total_sieve = 2 * sieve_M;
+    int M = P.sieve_block * P.num_blocks; /* total sieve half-width */
+    unsigned long lp_bound = (unsigned long)fb->prime[fb->size - 1] * P.lp_mult;
+    int target_rels = fb->size + P.extra_rels;
 
-    /* Compute num_a_factors from target_a = sqrt(2*kN)/M */
-    mpz_t target_a;
-    mpz_init(target_a);
-    mpz_mul_ui(target_a, kN, 2);
-    mpz_sqrt(target_a, target_a);
-    mpz_tdiv_q_ui(target_a, target_a, sieve_M);
-
-    double log_target = mpz_sizeinbase(target_a, 2) * log(2.0);
-    /* Average log of primes in the middle of FB */
-    int mid = fb_count / 2;
-    double avg_log_p = log((double)fb[mid].p);
-    num_a_factors = (int)(log_target / avg_log_p + 0.5);
-    if (num_a_factors < 3) num_a_factors = 3;
-    if (num_a_factors > MAX_A_FACTORS) num_a_factors = MAX_A_FACTORS;
-    if (P.num_a_factors > 0) num_a_factors = P.num_a_factors; /* override if set */
-
-    /* Relations target: fb_count + some extra for safety */
-    target_relations = fb_count + 64;
-    unsigned long lp_bound = (unsigned long)fb[fb_count - 1].p * P.lp_mult;
-
-    /* Threshold: sieve value should account for all but the large prime.
-     * expected_logQ ≈ bits(kN)/2 + log2(M) (for Q(x) = ((ax+b)^2 - kN)/a)
-     * threshold = expected_logQ - log2(lp_bound)
+    /* Sieve threshold
+     * Q(x) = a*x^2 + 2*b*x + c, max |Q(x)| ≈ sqrt(2*kN) * M
+     * For SIQS with a ≈ sqrt(2*kN)/M, this gives |Q(x)| ≈ sqrt(2*kN)*M at edges
+     * log2(|Q(x)|_max) ≈ kN_bits/2 + 1 + log2(M)
+     * Threshold = fraction of this that must be accounted for by FB hits
      */
-    int expected_log = kN_bits / 2 + (int)log2(sieve_M);
-    int threshold = expected_log - (int)(log2((double)lp_bound));
-    if (threshold < 30) threshold = 30;
+    double log2_Qmax = kN_bits / 2.0 + 0.5 + log2(M);
+    int threshold = (int)(log2_Qmax * P.thresh_adj);
+    /* Reduce threshold for small primes we skip in sieve */
+    int skip_bound = 5; /* don't sieve primes 2,3 (too many hits, minimal log) */
+    threshold -= 3; /* approximate contribution of skipped small primes */
 
-    fprintf(stderr, "Target: %d rels, threshold=%d, LP bound=%lu\n",
-            target_relations, threshold, lp_bound);
+    fprintf(stderr, "M=%d, target=%d, threshold=%d, LP_bound=%lu\n",
+            M, target_rels, threshold, lp_bound);
 
-    /* Allocate */
-    relations = calloc(MAX_RELATIONS, sizeof(relation_t));
-    for (int i = 0; i < MAX_RELATIONS; i++) {
-        mpz_init(relations[i].Y);
-        relations[i].expo = NULL;
-    }
-    num_relations = 0;
+    /* Sieve array (one block) */
+    unsigned char *sieve = malloc(P.sieve_block);
 
-    soln1 = malloc(MAX_FB_SIZE * sizeof(int));
-    soln2 = malloc(MAX_FB_SIZE * sizeof(int));
-    sieve_array = aligned_alloc(64, BLOCK_SIZE + 64);
+    /* Relation storage */
+    int max_rels = target_rels * 2;
+    int max_partials = 500000;
+    rel_store_t *full_rels = rel_create(max_rels);
+    rel_store_t *partial_rels = rel_create(max_partials);
 
+    lp_table_t *lp_table = lp_create(max_partials);
+
+    /* For sqrt step: track which FB primes divide each relation (full exponents) */
+    /* We'll re-trial-divide during sqrt step to save memory during sieving */
+
+    /* Polynomial state */
+    poly_state_t ps;
+    ps.num_a_factors = 0; /* computed dynamically in poly_new_a */
+    mpz_inits(ps.a, ps.b, ps.c, NULL);
     for (int j = 0; j < MAX_A_FACTORS; j++)
-        mpz_init(B_values[j]);
-    mpz_inits(poly_a, poly_b, NULL);
+        mpz_init(ps.B_values[j]);
+    ps.a_inv_data = malloc(MAX_A_FACTORS * fb->size * sizeof(unsigned int));
+    ps.a_inv_stride = fb->size;
+    ps.soln1 = malloc(fb->size * sizeof(unsigned int));
+    ps.soln2 = malloc(fb->size * sizeof(unsigned int));
 
-    /* target_a already computed above */
+    gmp_randstate_t rng;
+    gmp_randinit_default(rng);
+    gmp_randseed_ui(rng, 42);
 
-    lp_init_table(MAX_RELATIONS);
+    mpz_t ax_b, Qx, residue, tmp;
+    mpz_inits(ax_b, Qx, residue, tmp, NULL);
 
-    int seed_state = 42;
     int total_polys = 0;
-    int total_candidates = 0;
-    int num_partials = 0;
+    int a_count = 0;
+    int combined_count = 0;
+    long candidates_checked = 0;
+    long candidates_passed_threshold = 0;
 
-    mpz_t ax_b, residue, tmp, tmp2;
-    mpz_inits(ax_b, residue, tmp, tmp2, NULL);
-
-    int *temp_expo = malloc(MAX_FB_SIZE * sizeof(int));
-
-    while (num_relations < target_relations) {
-        /* Choose new 'a' coefficient */
-        choose_a_primes(target_a, &seed_state);
-        if (!init_new_a(kN, sieve_M)) continue;
-
-        /* Process all 2^(s-1) values of b for this a */
-        int b_count = 0;
-        do {
-            total_polys++;
-            b_count++;
-
-            /* Sieve in blocks */
-            for (int block_start = 0; block_start < total_sieve; block_start += BLOCK_SIZE) {
-                int block_end = block_start + BLOCK_SIZE;
-                if (block_end > total_sieve) block_end = total_sieve;
-                int block_len = block_end - block_start;
-
-                /* Sieve this block */
-                memset(sieve_array, 0, block_len);
-
-                for (int i = 2; i < fb_count; i++) {
-                    if (soln1[i] < 0) continue;
-                    unsigned int p = fb[i].p;
-                    unsigned char logp = fb[i].logp;
-                    if (logp < 2) continue;
-
-                    /* First root */
-                    int s1 = soln1[i];
-                    int off1;
-                    if (s1 >= block_start) {
-                        off1 = s1 - block_start;
-                    } else {
-                        off1 = p - ((block_start - s1) % p);
-                    }
-
-                    for (int j = off1; j < block_len; j += p)
-                        sieve_array[j] += logp;
-
-                    /* Second root */
-                    if (soln1[i] != soln2[i]) {
-                        int s2 = soln2[i];
-                        int off2;
-                        if (s2 >= block_start) {
-                            off2 = s2 - block_start;
-                        } else {
-                            off2 = p - ((block_start - s2) % p);
-                        }
-
-                        for (int j = off2; j < block_len; j += p)
-                            sieve_array[j] += logp;
-                    }
-                }
-
-                /* Scan for candidates */
-                for (int j = 0; j < block_len; j++) {
-                    if (sieve_array[j] < threshold) continue;
-
-                    int sieve_pos = block_start + j;
-                    long x = (long)sieve_pos - sieve_M;
-                    if (x == 0) continue;
-
-                    total_candidates++;
-
-                    /* Compute (ax+b) */
-                    mpz_mul_si(ax_b, poly_a, x);
-                    mpz_add(ax_b, ax_b, poly_b);
-
-                    /* Trial divide - use sieve position for fast prime identification */
-                    if (!trial_divide(residue, temp_expo, kN, ax_b, sieve_pos))
-                        continue;
-
-                    if (mpz_cmp_ui(residue, 1) == 0) {
-                        /* Full relation */
-                        if (num_relations >= MAX_RELATIONS) break;
-                        int ri = num_relations;
-                        mpz_set(relations[ri].Y, ax_b);
-                        relations[ri].expo = malloc(fb_count * sizeof(int));
-                        memcpy(relations[ri].expo, temp_expo, fb_count * sizeof(int));
-                        relations[ri].lp1 = 0;
-                        relations[ri].lp2 = 0;
-                        num_relations++;
-                    } else if (mpz_fits_ulong_p(residue) && mpz_get_ui(residue) <= lp_bound) {
-                        /* Single large prime partial */
-                        unsigned long lp = mpz_get_ui(residue);
-                        int match = lp_find(lp);
-                        if (match >= 0) {
-                            /* Combine with existing partial */
-                            if (num_relations >= MAX_RELATIONS) break;
-                            int ri = num_relations;
-                            int pi = match;
-
-                            relations[ri].expo = malloc(fb_count * sizeof(int));
-                            for (int k = 0; k < fb_count; k++)
-                                relations[ri].expo[k] = temp_expo[k] + relations[pi].expo[k];
-
-                            mpz_mul(relations[ri].Y, ax_b, relations[pi].Y);
-                            relations[ri].lp1 = lp;
-                            relations[ri].lp2 = 0;
-                            num_relations++;
-                        } else {
-                            /* Store as partial */
-                            if (num_partials < MAX_RELATIONS / 2) {
-                                int pi = MAX_RELATIONS / 2 + num_partials;
-                                if (pi < MAX_RELATIONS) {
-                                    mpz_set(relations[pi].Y, ax_b);
-                                    relations[pi].expo = malloc(fb_count * sizeof(int));
-                                    memcpy(relations[pi].expo, temp_expo, fb_count * sizeof(int));
-                                    lp_insert(lp, pi);
-                                    num_partials++;
-                                }
-                            }
-                        }
-                    }
-                    /* TODO: DLP handling */
-                }
-            }
-
-        } while (next_b(sieve_M) && num_relations < target_relations);
-
-        /* Progress report */
-        if (total_polys % 500 == 0 || num_relations >= target_relations) {
-            struct timespec now;
-            clock_gettime(CLOCK_MONOTONIC, &now);
-            double elapsed = (now.tv_sec - t0.tv_sec) + (now.tv_nsec - t0.tv_nsec) / 1e9;
-            double rate = num_relations / (elapsed > 0 ? elapsed : 1);
-            int remaining = target_relations - num_relations;
-            fprintf(stderr, "  polys=%d rels=%d/%d (partials=%d, cands=%d) "
-                    "%.1f rels/s ETA=%.0fs elapsed=%.1fs\n",
-                    total_polys, num_relations, target_relations, num_partials,
-                    total_candidates, rate,
-                    remaining / (rate > 0 ? rate : 1), elapsed);
-
-            if (elapsed > 280) {
-                fprintf(stderr, "TIMEOUT approaching, stopping sieve\n");
+    while (full_rels->count < target_rels) {
+        /* Check timeout */
+        if (total_polys % 500 == 0 && total_polys > 0) {
+            double t = elapsed_seconds();
+            if (t > 280) {
+                fprintf(stderr, "TIMEOUT at %.1fs\n", t);
                 break;
             }
+            if (total_polys % 2000 == 0) {
+                int total = full_rels->count + combined_count;
+                double rate = total / t;
+                fprintf(stderr, "  polys=%d rels=%d/%d (full=%d comb=%d part=%d) cands=%ld %.1f/s t=%.1fs\n",
+                        total_polys, total, target_rels, full_rels->count, combined_count,
+                        partial_rels->count, candidates_passed_threshold, rate, t);
+            }
         }
+
+        /* Generate new 'a' if needed */
+        if (total_polys == 0 || ps.current_b_index >= ps.num_b_values) {
+            if (!poly_new_a(&ps, fb, kN, M, rng)) {
+                continue;
+            }
+            a_count++;
+        } else {
+            if (poly_next_b(&ps, fb, kN) < 0) {
+                if (!poly_new_a(&ps, fb, kN, M, rng))
+                    continue;
+                a_count++;
+            }
+        }
+        total_polys++;
+
+        /* Sieve in blocks */
+        for (int block = -P.num_blocks; block < P.num_blocks; block++) {
+            int block_start = block * P.sieve_block;
+
+            memset(sieve, 0, P.sieve_block);
+
+            /* Sieve with FB primes */
+            for (int i = 1; i < fb->size; i++) {
+                unsigned int p = fb->prime[i];
+                if (ps.soln1[i] == 0xFFFFFFFF) continue;
+                if (p < (unsigned int)skip_bound) continue; /* skip tiny primes */
+                unsigned char lp = fb->logp[i];
+
+                /* Compute starting position in this block.
+                 * sieve[j] corresponds to x = block_start + j.
+                 * Q(x) ≡ 0 (mod p) when x ≡ soln (mod p).
+                 * So we need j ≡ (soln - block_start) (mod p).
+                 */
+                unsigned int s1 = ps.soln1[i];
+                unsigned int s2 = ps.soln2[i];
+
+                /* First root */
+                long off1 = ((long)s1 - block_start) % (long)p;
+                if (off1 < 0) off1 += p;
+                for (int j = (int)off1; j < P.sieve_block; j += p)
+                    sieve[j] += lp;
+
+                /* Second root (if different) */
+                if (s1 != s2) {
+                    long off2 = ((long)s2 - block_start) % (long)p;
+                    if (off2 < 0) off2 += p;
+                    for (int j = (int)off2; j < P.sieve_block; j += p)
+                        sieve[j] += lp;
+                }
+            }
+
+            /* Scan for smooth candidates */
+            for (int j = 0; j < P.sieve_block; j++) {
+                if (sieve[j] < threshold) continue;
+                candidates_passed_threshold++;
+
+                long x = (long)(block_start + j);
+                if (x == 0) continue;
+
+                /* Compute Q(x) = a*x^2 + 2*b*x + c */
+                mpz_set_si(tmp, x);
+                mpz_mul(Qx, ps.a, tmp);     /* a*x */
+                mpz_add(Qx, Qx, ps.b);      /* a*x + b */
+                mpz_add(Qx, Qx, ps.b);      /* a*x + 2b */
+                mpz_mul(Qx, Qx, tmp);       /* (a*x + 2b) * x = a*x^2 + 2*b*x */
+                mpz_add(Qx, Qx, ps.c);      /* a*x^2 + 2*b*x + c */
+
+                /* Q(x) verified correct */
+
+                /* ax+b (for sqrt step) */
+                mpz_mul_si(ax_b, ps.a, x);
+                mpz_add(ax_b, ax_b, ps.b);
+
+                if (mpz_sgn(Qx) == 0) continue;
+
+                int neg = (mpz_sgn(Qx) < 0);
+                mpz_abs(residue, Qx);
+
+                /* Trial divide by FB primes */
+                int smooth = 1;
+                int sign_exp = neg ? 1 : 0;
+
+                /* Divide by 2 */
+                int exp2 = 0;
+                while (mpz_even_p(residue)) {
+                    mpz_tdiv_q_2exp(residue, residue, 1);
+                    exp2++;
+                }
+
+                /* Divide by odd FB primes */
+                for (int i = 1; i < fb->size; i++) {
+                    unsigned int p = fb->prime[i];
+                    if (mpz_divisible_ui_p(residue, p)) {
+                        do {
+                            mpz_divexact_ui(residue, residue, p);
+                        } while (mpz_divisible_ui_p(residue, p));
+                    }
+                }
+
+                /* Check residue */
+                /* Store a*Q(x) = (ax+b)^2 - kN for correct exponent tracking */
+                /* The relation is: (ax+b)^2 ≡ a*Q(x) (mod kN) */
+                mpz_t aQx;
+                mpz_init(aQx);
+                mpz_mul(aQx, Qx, ps.a);  /* a * Q(x) = (ax+b)^2 - kN */
+
+                if (mpz_cmp_ui(residue, 1) == 0) {
+                    /* Full relation */
+                    int ri = full_rels->count;
+                    if (ri < full_rels->alloc) {
+                        mpz_set(full_rels->ax_b[ri], ax_b);
+                        mpz_set(full_rels->Qx[ri], aQx);
+                        full_rels->lp[ri] = 0;
+                        full_rels->count++;
+                    }
+                } else if (mpz_fits_ulong_p(residue) && mpz_get_ui(residue) <= lp_bound) {
+                    /* Single large prime partial */
+                    unsigned long lp = mpz_get_ui(residue);
+                    int match = lp_find(lp_table, lp);
+                    if (match >= 0) {
+                        /* Combine: product of two a*Q(x) values */
+                        int ri = full_rels->count;
+                        if (ri < full_rels->alloc) {
+                            mpz_mul(full_rels->ax_b[ri], ax_b, partial_rels->ax_b[match]);
+                            mpz_mod(full_rels->ax_b[ri], full_rels->ax_b[ri], N);
+                            mpz_mul(full_rels->Qx[ri], aQx, partial_rels->Qx[match]);
+                            full_rels->lp[ri] = lp;
+                            full_rels->count++;
+                            combined_count++;
+                        }
+                    } else {
+                        /* Store partial */
+                        int pi = partial_rels->count;
+                        if (pi < partial_rels->alloc) {
+                            mpz_set(partial_rels->ax_b[pi], ax_b);
+                            mpz_set(partial_rels->Qx[pi], aQx);
+                            partial_rels->lp[pi] = lp;
+                            lp_insert(lp_table, lp, pi);
+                            partial_rels->count++;
+                        }
+                    }
+                }
+                mpz_clear(aQx);
+            }
+        }
+
+        if (full_rels->count >= target_rels)
+            break;
     }
 
-    struct timespec t_sieve;
-    clock_gettime(CLOCK_MONOTONIC, &t_sieve);
-    double sieve_time = (t_sieve.tv_sec - t0.tv_sec) + (t_sieve.tv_nsec - t0.tv_nsec) / 1e9;
-    fprintf(stderr, "Sieving done: %d rels from %d polys in %.1fs\n",
-            num_relations, total_polys, sieve_time);
+    double sieve_time = elapsed_seconds();
+    int total = full_rels->count;
+    fprintf(stderr, "Sieving: %d rels (%d full, %d combined) from %d polys (%d a-values) in %.2fs\n",
+            total, total - combined_count, combined_count, total_polys, a_count, sieve_time);
 
-    if (num_relations < fb_count + 1) {
-        fprintf(stderr, "Not enough relations (%d < %d)\n", num_relations, fb_count + 1);
+    if (total < fb->size + 1) {
+        fprintf(stderr, "FAIL: not enough relations (%d < %d)\n", total, fb->size + 1);
         return 1;
     }
 
-    /* Build sparse matrix for linear algebra */
-    fprintf(stderr, "Linear algebra: %d x %d\n", num_relations, fb_count);
+    /* ==================== Linear Algebra ==================== */
 
-    sparse_matrix_t M;
-    M.nrows = num_relations;
-    M.ncols = fb_count;
-    M.row_start = malloc((num_relations + 1) * sizeof(int));
+    fprintf(stderr, "Linear algebra: %d rels x %d FB primes\n", total, fb->size);
 
-    /* Count non-zeros */
-    int nnz = 0;
-    for (int r = 0; r < num_relations; r++) {
-        M.row_start[r] = nnz;
-        for (int c = 0; c < fb_count; c++)
-            if (relations[r].expo[c] & 1) nnz++;
+    /* Build GF(2) matrix by re-trial-dividing each Q(x) */
+    /* Column 0 = sign, columns 1..fb->size-1 = FB primes */
+    int mat_cols = fb->size + 1; /* +1 for sign */
+    gf2_matrix_t *mat = gf2_create(total, mat_cols);
+
+    for (int r = 0; r < total; r++) {
+        mpz_t Qval;
+        mpz_init(Qval);
+        mpz_set(Qval, full_rels->Qx[r]);
+
+        /* Sign bit */
+        if (mpz_sgn(Qval) < 0) {
+            gf2_set_bit(mat, r, 0);
+            mpz_neg(Qval, Qval);
+        }
+
+        /* Divide by 2 */
+        int e2 = 0;
+        while (mpz_even_p(Qval)) { mpz_tdiv_q_2exp(Qval, Qval, 1); e2++; }
+        if (e2 & 1) gf2_set_bit(mat, r, 1); /* column 1 = prime 2 */
+
+        /* Divide by odd FB primes */
+        for (int i = 1; i < fb->size; i++) {
+            unsigned int p = fb->prime[i];
+            int e = 0;
+            while (mpz_divisible_ui_p(Qval, p)) {
+                mpz_divexact_ui(Qval, Qval, p);
+                e++;
+            }
+            if (e & 1) gf2_set_bit(mat, r, i + 1);
+        }
+
+        /* For combined relations, LP^2 is always even exponent -> no contribution */
+        mpz_clear(Qval);
     }
-    M.row_start[num_relations] = nnz;
-    M.nnz = nnz;
-    M.col_idx = malloc(nnz * sizeof(int));
 
-    nnz = 0;
-    for (int r = 0; r < num_relations; r++) {
-        for (int c = 0; c < fb_count; c++)
-            if (relations[r].expo[c] & 1)
-                M.col_idx[nnz++] = c;
-    }
-
-    int *dep_lists[MAX_DEPS];
-    int dep_lens[MAX_DEPS];
-    int ndeps = find_null_space(&M, dep_lists, dep_lens, MAX_DEPS);
+    /* Solve */
+    int **deps;
+    int *deps_len;
+    int ndeps = gf2_solve(mat, &deps, &deps_len, 64);
     fprintf(stderr, "Found %d dependencies\n", ndeps);
 
-    /* Try each dependency to find factor */
+    /* ==================== Square Root Step ==================== */
+
     for (int d = 0; d < ndeps; d++) {
         mpz_t X, Y, g;
         mpz_inits(X, Y, g, NULL);
+
+        /* X = product of (ax+b) values mod N */
         mpz_set_ui(X, 1);
-        mpz_set_ui(Y, 1);
-
-        int *total_exp = calloc(fb_count, sizeof(int));
-        for (int k = 0; k < dep_lens[d]; k++) {
-            int ri = dep_lists[d][k];
-            mpz_mul(X, X, relations[ri].Y);
+        for (int k = 0; k < deps_len[d]; k++) {
+            int ri = deps[d][k];
+            mpz_mul(X, X, full_rels->ax_b[ri]);
             mpz_mod(X, X, N);
-            for (int f = 0; f < fb_count; f++)
-                total_exp[f] += relations[ri].expo[f];
         }
 
-        /* Check all exponents are even */
-        int valid = 1;
-        for (int f = 0; f < fb_count; f++)
-            if (total_exp[f] & 1) { valid = 0; break; }
-        if (!valid) { free(total_exp); mpz_clears(X, Y, g, NULL); continue; }
+        /* Y = sqrt(product of Q(x) values) mod N
+         * Compute product of |Q(x)|, take sqrt using factorization */
+        mpz_t prod;
+        mpz_init(prod);
+        mpz_set_ui(prod, 1);
+        for (int k = 0; k < deps_len[d]; k++) {
+            int ri = deps[d][k];
+            mpz_t absQ;
+            mpz_init(absQ);
+            mpz_abs(absQ, full_rels->Qx[ri]);
+            mpz_mul(prod, prod, absQ);
+            mpz_clear(absQ);
+        }
 
-        /* Y = product of p^(exp/2) mod N */
-        for (int f = 1; f < fb_count; f++) {
-            int e = total_exp[f] / 2;
-            if (e > 0) {
-                mpz_set_ui(tmp, fb[f].p);
-                mpz_powm_ui(tmp, tmp, e, N);
+        /* prod should be a perfect square */
+        if (!mpz_perfect_square_p(prod)) {
+            /* For combined relations with LP, multiply by LP^2 */
+            /* Actually LP^2 is already squared in the product of two partials */
+            /* Try factoring out known primes */
+            mpz_set_ui(Y, 1);
+
+            /* Re-trial-divide to get exponents */
+            mpz_t rem;
+            mpz_init_set(rem, prod);
+
+            /* Remove sign: count negative Q values */
+            int neg_count = 0;
+            for (int k = 0; k < deps_len[d]; k++) {
+                int ri = deps[d][k];
+                if (mpz_sgn(full_rels->Qx[ri]) < 0) neg_count++;
+            }
+            /* neg_count should be even */
+
+            /* Divide by 2 */
+            int e2 = 0;
+            while (mpz_even_p(rem)) { mpz_tdiv_q_2exp(rem, rem, 1); e2++; }
+            if (e2 & 1) { mpz_clear(rem); mpz_clears(X, Y, g, prod, NULL); continue; }
+            if (e2 / 2 > 0) {
+                mpz_set_ui(tmp, 2);
+                mpz_powm_ui(tmp, tmp, e2 / 2, N);
                 mpz_mul(Y, Y, tmp);
                 mpz_mod(Y, Y, N);
             }
-        }
 
-        /* Include large primes */
-        for (int k = 0; k < dep_lens[d]; k++) {
-            int ri = dep_lists[d][k];
-            if (relations[ri].lp1 > 0) {
-                mpz_set_ui(tmp, relations[ri].lp1);
-                mpz_mul(Y, Y, tmp);
-                mpz_mod(Y, Y, N);
+            /* Divide by FB primes */
+            int valid = 1;
+            for (int i = 1; i < fb->size; i++) {
+                unsigned int p = fb->prime[i];
+                int e = 0;
+                while (mpz_divisible_ui_p(rem, p)) {
+                    mpz_divexact_ui(rem, rem, p);
+                    e++;
+                }
+                if (e & 1) { valid = 0; break; }
+                if (e / 2 > 0) {
+                    mpz_set_ui(tmp, p);
+                    mpz_powm_ui(tmp, tmp, e / 2, N);
+                    mpz_mul(Y, Y, tmp);
+                    mpz_mod(Y, Y, N);
+                }
             }
+
+            if (!valid) {
+                mpz_clear(rem);
+                mpz_clears(X, Y, g, prod, NULL);
+                continue;
+            }
+
+            /* Remaining should be 1 or a perfect square of LPs */
+            if (mpz_cmp_ui(rem, 1) != 0) {
+                if (mpz_perfect_square_p(rem)) {
+                    mpz_sqrt(tmp, rem);
+                    mpz_mul(Y, Y, tmp);
+                    mpz_mod(Y, Y, N);
+                } else {
+                    mpz_clear(rem);
+                    mpz_clears(X, Y, g, prod, NULL);
+                    continue;
+                }
+            }
+            mpz_clear(rem);
+        } else {
+            mpz_sqrt(Y, prod);
+            mpz_mod(Y, Y, N);
         }
+        mpz_clear(prod);
 
-        /* Include multiplier: if k > 1, we need to adjust */
-        /* X^2 ≡ Y^2 (mod kN), but we want factors of N */
-
-        /* Try gcd(X-Y, N) and gcd(X+Y, N) */
+        /* gcd(X - Y, N) and gcd(X + Y, N) */
         mpz_sub(tmp, X, Y);
         mpz_gcd(g, tmp, N);
         if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
@@ -1088,10 +1183,8 @@ int main(int argc, char *argv[]) {
             mpz_divexact(other, N, g);
             if (mpz_cmp(g, other) > 0) mpz_swap(g, other);
             gmp_printf("%Zd\n", g);
-            struct timespec t1; clock_gettime(CLOCK_MONOTONIC, &t1);
-            fprintf(stderr, "SIQS2 done: %.3fs (dep %d/%d)\n",
-                    (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) / 1e9,
-                    d + 1, ndeps);
+            mpz_clear(other);
+            fprintf(stderr, "SIQS2 done: %.3fs (dep %d/%d)\n", elapsed_seconds(), d + 1, ndeps);
             return 0;
         }
 
@@ -1102,17 +1195,14 @@ int main(int argc, char *argv[]) {
             mpz_divexact(other, N, g);
             if (mpz_cmp(g, other) > 0) mpz_swap(g, other);
             gmp_printf("%Zd\n", g);
-            struct timespec t1; clock_gettime(CLOCK_MONOTONIC, &t1);
-            fprintf(stderr, "SIQS2 done: %.3fs (dep %d/%d)\n",
-                    (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) / 1e9,
-                    d + 1, ndeps);
+            mpz_clear(other);
+            fprintf(stderr, "SIQS2 done: %.3fs (dep %d/%d)\n", elapsed_seconds(), d + 1, ndeps);
             return 0;
         }
 
-        free(total_exp);
         mpz_clears(X, Y, g, NULL);
     }
 
-    fprintf(stderr, "SIQS2 FAILED: no dependency produced a factor\n");
+    fprintf(stderr, "SIQS2 FAILED: no dependency produced a factor after trying %d\n", ndeps);
     return 1;
 }
