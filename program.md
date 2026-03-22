@@ -31,7 +31,7 @@ ENVIRONMENT:
 
 RULES:
 
-- Max runtime for any single script/process is 300 seconds — this means the entire execution, not each step within it. Put appropriate time guards so this is never exceeded.
+- **Always wrap factoring processes in `timeout 295`.** No exceptions. Max runtime for any single process is 300 seconds. Never run a factoring binary without a timeout guard.
 - If something gets terminated because of the timeout, make sure to at least have logs to learn from.
 - **Single core only for factoring.** Each factoring process must use a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance.
 - **Maximize parallelism.** Each factoring process uses 1 core, so you should be running many experiments concurrently to fill up the machine — different sizes, different approaches, parameter sweeps, etc. If you're only running 1-2 things at a time, you're wasting the machine. Launch experiments in bulk, not one at a time.
