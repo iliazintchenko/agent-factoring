@@ -172,3 +172,7 @@
 [2026-03-22 23:43:00] size: 90 | approach: original yafu NB=20 B=120K | time: 283.6 | notes: 90d[1]:248.7 90d[3]:283.6 90d[4]:283.4. 90d[0]:TIMEOUT 90d[2]:TIMEOUT. Consistent with previous results.
 [2026-03-22 23:43:00] size: 90 | approach: yafu_native (-march=native) NB=20 B=120K | time: 248.9 | notes: 90d[1] only. Same as -march=skylake-avx512. No improvement from native march.
 [2026-03-22 23:47:00] size: 89 | approach: yafu_native (-march=native) NB=18 B=100K | time: TIMEOUT | notes: 89d[4] timeout under load=17. Native march doesn't help.
+[2026-03-22 23:51:13] size: 60 | approach: CADO-NFS las siever (lim0=404K lim1=811K lpb=23/23 I=11) | time: 46s for 110K rels | notes: Working pipeline. Poly select 2s + FB gen + sieve 43s. Much slower than GGNFS for single-core.
+[2026-03-22 23:51:13] size: 90 | approach: CADO-NFS las siever (c90 default params) | time: FAIL | notes: Only 6603 rels in 258s = 25 rels/sec. Params too conservative for single-core.
+[2026-03-22 23:51:13] size: 90 | approach: CADO-NFS las siever (GGNFS-style params: lim0=1.2M lpb=25/26) | time: FAIL | notes: Only 29797 rels in 260s = 115 rels/sec. 42x slower than GGNFS (4800 rels/sec). Not viable.
+[2026-03-22 23:51:13] size: 80 | approach: PGO yafu_mod vs original 80d[0] | time: 44.3 vs 44.8 | notes: PGO gives ~1% improvement. Not significant for 90d.

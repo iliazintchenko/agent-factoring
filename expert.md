@@ -162,6 +162,8 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | msieve NFS (narrow poly search) | Poly select 3s with -nps "1,5000", total sieve still slow. Built-in siever is cache-hungry. |
 | CADO-NFS polyselect standalone | 6s for admin=0-20K, exp_E up to 30.07. Works as standalone binary. Could feed to GGNFS. |
 | GNFS under load (17-24) | GGNFS siever at 0.18ms/rel vs ~0.14ms at load < 10. Cache contention makes GNFS unreliable. |
+| CADO-NFS las single-core 90d | 115 rels/sec with GGNFS-style params, 25 rels/sec with default c90 params. **42x slower than GGNFS**. Not viable for 300s budget. |
+| PGO build (profile-guided opt) | 1% improvement on 80d. Hot path is hand-written AVX512 intrinsics — GCC can't improve them via profiling. |
 | USE_BATCHPOLY build | 11% slower (80d: 52.9s vs 47.0s). Batch polynomial root updates hurt performance. |
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
