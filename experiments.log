@@ -143,3 +143,11 @@
 [2026-03-22 23:12:00] size: 90 | approach: GNFS fast (no ECM, min poly) | time: FAIL | notes: Even skipping ECM pretesting (43s) and using -psearch min (15s), sieve still needs ~487s. NFS not viable for 90d single-core.
 [2026-03-22 23:17:00] size: 89 | approach: yafu_mod VBITS=512+closnuf SIQS NB=18 B=100K | time: 283.7 | notes: 89d[0-3]: 235.5, 227.1, 264.3, 283.7s. 89d[4] timed out under load=24. VBITS=512 does NOT affect QS BL (uses msieve uint64_t code). closnuf change from 92→88 for 89d.
 [2026-03-22 23:22:00] size: 50 | approach: custom siqs_optimized.c SLP+DLP | time: 5.4 | notes: Working custom SIQS, 30-45x slower than YAFU. 30d:0.33s, 50d:5.4s. Scalar sieve is the bottleneck.
+[2026-03-22 23:31:25] size: 85 | approach: yafu_mod (closnuf+proximity bonus) vs original YAFU 85d[0] | time: 118.8 vs 104.6 | notes: proximity bonus HURTS (14% slower), reverted. False positive overhead dominates.
+[2026-03-22 23:31:25] size: 85 | approach: yafu_mod (closnuf only) vs original YAFU 85d[0] | time: 99.1 vs 95.1 | notes: Within noise (4%), closnuf unchanged for 85d
+[2026-03-22 23:31:25] size: 89 | approach: yafu_mod (closnuf only) vs original YAFU 89d[0] | time: 228.9 vs 232.3 | notes: Within noise (1.5%), closnuf unchanged for 89d
+[2026-03-22 23:31:25] size: 90 | approach: YAFU GNFS 90d[1] (load 17-24) | time: FAIL | notes: Timed out at 295s. Sieve at q=304879 (of needed ~350K+). Load 17-24 causes cache contention. 0.18ms/rel.
+[2026-03-22 23:31:25] size: 90 | approach: CADO-NFS polyselect 90d[1] (admin=0 admax=20K) | time: 6s | notes: Best exp_E 30.07 in 6s. CADO polyselect works standalone.
+[2026-03-22 23:31:25] size: 90 | approach: msieve poly select 90d[0] (nps 1,5000) | time: 3s | notes: Very fast narrow poly search. Quality unknown.
+[2026-03-22 23:31:25] size: 90 | approach: Parameter sweep NB=16-24 B=100K-140K on 90d[0] | time: FAIL | notes: All 25 combos timeout on 90d[0] (hardest). Run under heavy load (44 processes), unreliable.
+[2026-03-22 23:31:25] size: 70 | approach: hybrid_factor (ECM 5s + YAFU SIQS) 70d[0] | time: 6.8 | notes: ECM finds nothing on balanced semiprime (expected), SIQS succeeds.

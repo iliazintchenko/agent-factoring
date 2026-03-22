@@ -142,6 +142,10 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
 | TLP (forceTLP) | 44% slower than DLP on 85d. Overhead outweighs benefit at <100d. |
 | GNFS (YAFU -xover 85) | ~365s for 90d. Too slow for 300s budget. |
+| Poly-proximity bonus (tdiv_small.c) | 14% SLOWER. More false positives through trial division outweigh the benefit of better DLP yield near poly roots. |
+| msieve NFS (narrow poly search) | Poly select 3s with -nps "1,5000", total sieve still slow. Built-in siever is cache-hungry. |
+| CADO-NFS polyselect standalone | 6s for admin=0-20K, exp_E up to 30.07. Works as standalone binary. Could feed to GGNFS. |
+| GNFS under load (17-24) | GGNFS siever at 0.18ms/rel vs ~0.14ms at load < 10. Cache contention makes GNFS unreliable. |
 | USE_BATCHPOLY build | 11% slower (80d: 52.9s vs 47.0s). Batch polynomial root updates hurt performance. |
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
