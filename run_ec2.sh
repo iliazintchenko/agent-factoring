@@ -131,11 +131,11 @@ for i in $(seq 1 "$NUM_AGENTS"); do
   fi
 done
 
-# Launch agents in background, each writing to its own log
+# Launch agents in background, fully detached from this SSH session
 for i in $(seq 1 "$NUM_AGENTS"); do
   REPO_DIR="/tmp/agent-factoring-$i"
   LOG="$REPO_DIR/agent.log"
-  (cd "$REPO_DIR" && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json > "$LOG" 2>&1) &
+  nohup bash -c "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json" > "$LOG" 2>&1 &
 done
 
 # Single tmux window showing human-readable messages from all agents
