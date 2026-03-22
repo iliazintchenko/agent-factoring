@@ -39,3 +39,4 @@
 [2026-03-22 03:15:00] size: 98 | approach: YAFU SIQS, 48t, -siqsB 67900 | time: 234s | notes: Fits single-number 280s deadline. Score for 5 parallel: need ~234s (sequential batches)
 [2026-03-22 03:15:00] size: 100 | approach: YAFU SIQS, 48t, -siqsB 75000 | time: >270s TIMEOUT | notes: 100d at SIQS hardware limit
 [2026-03-22 03:15:00] size: 98 | approach: YAFU SIQS, 48t, -siqsB 67900 | time: 234s | notes: Single number under 280s
+[2026-03-22 03:30:00] size: 100 | approach: YAFU SIQS various configs | time: ALL >270s | notes: 100d is at SIQS hardware limit. Tried siqsB 60000/75000/80000/90000, agent-1 and agent-3 builds. All timeout.
