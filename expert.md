@@ -106,6 +106,7 @@ YAFU GNFS with `-xover 85` and default GGNFS sievers:
 - CADO-NFS las siever crashes with C++ exception (AVX512BW not in build flags)
 - msieve standalone NFS: poly select alone takes 148-167s for 89-90d, not viable
 - **Key insight**: GNFS is feasible for 89-90d only on idle/low-load machine (user time ~250-260s)
+- **agent-4 GNFS test (load ~0.6)**: 90d[0] with `-psearch min -plan none -noecm -xover 85`: timed out at 295s still in sieve phase (q=269923, yield ~22K/batch at 0.00029 sec/rel). Poly select found score 4.512e-08. GNFS needs continuous low-load for full 280s+ run.
 
 ### GGNFS Siever Build & Permissions (CRITICAL)
 - GGNFS sievers built from lasieve5_nfsathome source at `yafu/factor/lasieve5_64/bin/`
@@ -137,7 +138,7 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 | CADO-NFS NFS | Uses multiprocessing. Violates single-core rule. |
 | AVX512 gather-scatter sieve | **20% slower** than scalar on AMD Zen4. AMD's scatter is ~10 cycles/element vs 1 cycle/element for scalar stores. |
 | Custom SIQS | See dedicated section below. 30-50x slower than YAFU due to scalar sieve. |
-| VBITS=512 | Implemented: modified lanczos.h/lanczos.c to support 512-bit vectors. Build succeeds (yafu_mod/). Halves BL iteration count but sieve time still dominates for 90d. Testing in progress. |
+| VBITS=512 | Implemented: modified lanczos.h/lanczos.c to support 512-bit vectors using loop-based v_and/v_or/v_xor. Build succeeds with VBITS=512. Halves BL iteration count. 90d[1]: 250.7s (vs 248.6s baseline on idle, this on loaded machine). Combined with closnuf +2 and -noopt, promising for 90d. |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
 | yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
 | TLP (forceTLP) | 44% slower than DLP on 85d. Overhead outweighs benefit at <100d. |
