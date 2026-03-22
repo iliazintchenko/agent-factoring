@@ -57,3 +57,6 @@
 [2026-03-22 18:42:00] size: 89 | approach: YAFU SIQS NB=20 B=120K on [4] | time: 294.6s | notes: 89d[4] passes with NB=20 B=120K but 0.2s worse than NB=18 B=100K (294.4s).
 [2026-03-22 18:42:00] size: 90 | approach: YAFU GNFS -xover 85 | time: >295s | notes: GGNFS lasieve4I12e runs from yafu dir. Poly select ~47s + sieve ongoing. Total estimated 365-380s.
 [2026-03-22 18:42:00] size: 90 | approach: Parameter sweep NB=18-32 B=100K-150K on hard 90d | time: all >295s | notes: Tested NB=18/B=100K, NB=22/B=130K, NB=24/B=140K, NB=32/B=150K on 90d[0] and [2]. All timeout.
+[2026-03-22 19:00:00] size: 89 | approach: NB=20 B=120K on 89d[0-1] | time: 219.2, 208.4s | notes: Slower than NB=18 B=100K. Also tested NB=18/B=110K, NB=22/B=100K, NB=20/B=100K on 89d[4] - all timed out at 295s.
+[2026-03-22 19:05:00] size: 80 | approach: BATCHPOLY (USE_BATCHPOLY build flag) | time: 52.9s | notes: 11% slower than standard build (46.9s). Batch polynomial root updates hurt performance. Reverted.
+[2026-03-22 19:10:00] size: 85 | approach: PGO build attempt | time: FAIL | notes: PGO build had inline function issues (mulredc/sqrredc). GCC's -fprofile-use changes inlining decisions for __inline functions. Would need static keyword fixes.
