@@ -159,3 +159,11 @@
 [2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[3] | time: FAIL | notes: sieving completed but BL did not finish.
 [2026-03-22 23:34:49] size: 90 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=20 B=120K 90d[4] | time: FAIL | notes: sieving completed but BL did not finish.
 [2026-03-22 23:34:49] size: 89 | approach: yafu_mod VBITS=512 closnuf+1 noopt NB=18 B=100K 89d[4] | time: FAIL | notes: loaded machine. closnuf+1 too aggressive for 89d; sieve rate 4572 vs 4750 baseline. Reverted to +5 for <90d.
+[2026-03-22 23:00:00] size: 89 | approach: yafu_mod closnuf(digits_n+1 for 88-94d) SIQS | time: 235.2 | notes: Too aggressive closnuf change (4 points lower for 89d). More false positives, 15% SLOWER than baseline.
+[2026-03-22 23:05:00] size: 90 | approach: yafu_mod closnuf SIQS NB=20 B=120K (5 parallel) | time: FAIL | notes: All 5 timeout at 295s. Closnuf mod ineffective under heavy load (load=60).
+[2026-03-22 23:10:00] size: 90 | approach: GNFS YAFU+GGNFS (ggnfs_build sievers) | time: FAIL | notes: GGNFS siever from /tmp/ggnfs_build crashes (code 134) when invoked by YAFU. Works fine directly.
+[2026-03-22 23:12:00] size: 90 | approach: GGNFS I=12 direct sieve rate test | time: n/a | notes: 4200 rels/sec under load=38. With lpb=26: 5800 rels/sec but needs 1.89M rels.
+[2026-03-22 23:15:00] size: 90 | approach: CADO-NFS las siever (lpb=23 I=11) | time: n/a | notes: 1458 rels/sec single-threaded. 852K target = 584s. Too slow.
+[2026-03-22 23:20:00] size: 90 | approach: GNFS msieve filtering test (877K rels) | time: n/a | notes: msieve filtering needs ~1.875M rels (877K insufficient, "wants 1M more").
+[2026-03-22 23:28:00] size: 90 | approach: GNFS YAFU post-processing (1.64M rels collected) | time: 28.5 | notes: Filter+LA+sqrt in 28.5s. Factors found: P45 * P45. YAFU filtering needs only 1.46M rels (vs msieve's 1.875M).
+[2026-03-22 23:29:00] size: 90 | approach: GNFS key finding: agent-1 sievers work, ggnfs_build crash | time: n/a | notes: Working sievers at /tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/. Different binary from /tmp/ggnfs_build/.
