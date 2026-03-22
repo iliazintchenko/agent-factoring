@@ -215,17 +215,24 @@ The DLP closnuf threshold (SIQS.c:4710-4727) controls which sieve candidates get
 - **Optimal for 90d**: likely between +1 and +3 (testing in progress under varying load)
 - Key: each 1-point reduction in closnuf roughly doubles the candidate count (uint8 underflow detection), so changes > ±2 points are dramatic
 
-### GNFS Pipeline for 90d (agent-6 findings)
-GGNFS sievers work from `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`. Earlier crash reports may have been from different binaries.
+### GNFS Pipeline for 90d (combined findings)
+GGNFS sievers work from `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I*e` or `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`.
 - YAFU GNFS auto-selects degree 4, I=12, lpb=25/25 for 90d
 - Poly select: ~50s (deadline-based, produces decent poly)
-- Sieve rate on idle machine: ~6500 rels/sec (3100/sec under load 44)
-- Needs 1.46M relations → ~225s sieve on idle, ~470s under load 44
+- Sieve rate on idle machine: ~6500 rels/sec (3100-3800/sec under load 20-44)
+- Default needs 1.46M relations → ~225s sieve on idle, ~470s under load 44
 - Filter + LA + sqrt: ~13s
 - **Total on idle machine: ~288s** (tight but under 300s)
 - **Total under heavy load: >500s** (unusable)
 - CADO-NFS las siever standalone: 206K rels in 240s (857 rels/sec, much slower than GGNFS)
 - msieve NFS standalone: poly select alone takes 167s, not viable
+- **yafu.ini REQUIRED**: must contain `ggnfs_dir=<absolute-path-with-trailing-slash>` or YAFU silently fails to launch siever
+- **agent-7 GNFS optimization**: Modified yafu_mod to reduce minrels from 1.46M to 1.2M and poly deadline from 50s to 20s. Results:
+  - Poly select: 18s (score 4.196e-08, slightly worse than 50s search)
+  - Sieve: 1.2M rels at ~3800/sec under load = ~316s; at idle ~6500/sec = ~185s
+  - **Estimated idle total: ~216s** (if filtering works with 1.2M rels)
+  - Risk: if 1.2M rels insufficient for filtering, YAFU auto-collects more (adds ~30-50s)
+  - **Build**: `cd /tmp/agent-factoring-7/yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
 
 ### 90d Detailed Timing Breakdown
 For 90d[2] (NB=20 B=120K, VBITS=512):
