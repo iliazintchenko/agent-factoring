@@ -45,5 +45,6 @@
   "73": {"time": 50.299, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
   "74": {"time": 35.239, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
   "75": {"time": 55.734, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
-  "76": {"time": 101.780, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"}
+  "76": {"time": 101.780, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"},
+  "77": {"time": 154.500, "run": "./msieve -q -s /tmp/msieve_$$.dat <N>"}
 }
