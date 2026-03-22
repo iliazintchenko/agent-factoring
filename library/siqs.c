@@ -399,8 +399,8 @@ int main(int argc, char *argv[]) {
 
     gmp_randstate_t rng;
     gmp_randinit_default(rng);
-    gmp_randseed_ui(rng, time(NULL) ^ getpid());
-    srand(time(NULL) ^ getpid());
+    gmp_randseed_ui(rng, 42);
+    srand(42);
 
     /* Precompute sieve solutions workspace */
     unsigned int *soln1 = malloc(fb->size * sizeof(unsigned int));
