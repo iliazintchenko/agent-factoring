@@ -48,7 +48,7 @@ All tested on 89d[3] (hardest number, 375s with old binary, 293s with AVX512BW):
 | Parameter | Values Tested | Result |
 |-----------|--------------|--------|
 | siqsB (FB size) | 40000, 50000, 55000, 60000, 90000 vs default 69888 | Default is optimal. Smaller FB = slower sieve, larger FB = slower LA. |
-| siqsNB (sieve blocks) | 1-64 tested | **NB=10 for 73-79d, NB=12 for 80-84d, NB=18 for 85-89d**. Default NB=4-8 optimal for <73d. |
+| siqsNB (sieve blocks) | 1-64 tested | **NB=10 for 73-79d, NB=12 for 80-81d, NB=14 for 82-84d, NB=18 for 85-89d**. Default optimal for <73d. |
 | siqsB (FB override) | 50K-120K | **B=70K for 85d, B=80K for 86/88d, B=90K for 87d, B=100K for 89d**. Only helps 85+d. |
 | siqsM (LP multiplier) | 50 vs default | No improvement (324s vs 318s) |
 | forceDLP | Yes vs default | No effect (DLP already used by default at this size) |
