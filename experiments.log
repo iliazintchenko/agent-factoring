@@ -176,3 +176,7 @@
 [2026-03-22 23:51:13] size: 90 | approach: CADO-NFS las siever (c90 default params) | time: FAIL | notes: Only 6603 rels in 258s = 25 rels/sec. Params too conservative for single-core.
 [2026-03-22 23:51:13] size: 90 | approach: CADO-NFS las siever (GGNFS-style params: lim0=1.2M lpb=25/26) | time: FAIL | notes: Only 29797 rels in 260s = 115 rels/sec. 42x slower than GGNFS (4800 rels/sec). Not viable.
 [2026-03-22 23:51:13] size: 80 | approach: PGO yafu_mod vs original 80d[0] | time: 44.3 vs 44.8 | notes: PGO gives ~1% improvement. Not significant for 90d.
+[2026-03-22 23:30:00] size: 90 | approach: yafu_mod (closnuf=digits+1 for 90d, VBITS=256) NB=20 B=120K | time: 256.7-TIMEOUT | notes: 90d[1]=256.7s, 90d[3]=291.0s, 90d[4]=285.8s pass. 90d[0], 90d[2] timeout. closnuf change didn't improve over baseline (same 3/5 pass rate).
+[2026-03-22 23:30:00] size: 89 | approach: yafu_mod VBITS=512 BL | time: FAIL | notes: VBITS=512 Block Lanczos produces incorrect results (ans=1 with no factors). BL fails after sieving completes.
+[2026-03-22 23:30:00] size: 30 | approach: custom SIQS (siqs4.c) | time: 0.21-0.27s | notes: Working for all 5 30d semiprimes. Per-block sieve init, merged SLP pairs, GF(2) GE. ~15x slower than YAFU.
+[2026-03-22 23:30:00] size: 35-50 | approach: custom SIQS (siqs4.c) | time: FAIL (most) | notes: 35d: 1/5 pass, 40d+: all fail. Issue: merged SLP dependencies produce trivial gcd. Need proper Block Lanczos for longer dependencies.

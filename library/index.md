@@ -39,6 +39,13 @@
 - **Compile**: `gcc -O3 -march=native library/pollard_rho.c -o pollard_rho -lgmp`
 - **Performance**: 30d: 1.4s, 35d: 23.6s. Not competitive for balanced semiprimes.
 
+### siqs4.c — Custom SIQS with per-block sieve init, DLP, merged SLP
+- **Compile**: `gcc -O3 -march=native -mavx512bw -o siqs4 library/siqs4.c -lgmp -lm`
+- **Usage**: `timeout 295 ./siqs4 <N>`
+- **Performance**: 30d: 0.2s (all 5 pass). 35d+: mostly fails (square root issue with merged SLP dependencies)
+- **Features**: Per-block sieve init (fixes uint8 underflow), AVX512BW sieve scanning, Knuth-Schroeppel multiplier, Gray code self-init, SLP+DLP, merged SLP pairs, GF(2) Gaussian elimination
+- **Key issue**: Merged SLP dependencies produce only trivial gcd for > 30d. Needs proper Block Lanczos to find longer dependencies.
+
 ### block_lanczos.h — Block Lanczos linear algebra
 - Header-only. Used by siqs implementations for the matrix step.
 
