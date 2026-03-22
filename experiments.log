@@ -126,3 +126,9 @@
 [2026-03-22 22:45:00] size: 30 | approach: custom siqs3.c (library) | time: 1.3s | notes: Working DLP SIQS. 40-350x slower than YAFU due to scalar sieve.
 [2026-03-22 22:45:00] size: 40 | approach: custom siqs3.c (library) | time: 2.6s | notes: YAFU does 40d in 0.017s.
 [2026-03-22 22:45:00] size: 50 | approach: custom siqs3.c (library) | time: 39.6s | notes: YAFU does 50d in 0.12s. Sieve is the bottleneck.
+[2026-03-22 23:10:00] size: 90 | approach: yafu_mod build (closnuf+VBITS512+UPM1) | time: N/A | notes: Built yafu_mod with: closnuf=digits_n+1 for 88-92d (vs +3), VBITS=512 Block Lanczos, DO_UPM1 for P-1 prefilter in DLP. At /tmp/agent-factoring-6/yafu_mod/yafu.
+[2026-03-22 23:10:00] size: 80 | approach: yafu_mod SIQS NB=12 (verification) | time: 50.8 | notes: Verified yafu_mod works. Under heavy load (44+). Stock YAFU best is 43.8s.
+[2026-03-22 23:12:00] size: 90 | approach: YAFU GNFS (GGNFS sievers, agent-6) 90d[0] | time: >295 (still running) | notes: Under load 44. Poly=50s, sieve=3100 rels/sec (needs 1.46M rels). ETA ~520s total. GGNFS sievers WORK from agent-4 path.
+[2026-03-22 23:07:00] size: 90 | approach: CADO-NFS las standalone 90d[1] | time: FAIL (partial) | notes: 206K rels in 240s (857 rels/sec). Much slower than GGNFS (3100/sec). Needs ~500K+ rels. Not viable even on idle machine.
+[2026-03-22 23:06:00] size: 90 | approach: CADO-NFS polyselect | time: 16s | notes: Degree 4, admax=100K, found poly with exp_E=25.37. Faster than YAFU/msieve poly select (50-167s).
+[2026-03-22 23:15:00] size: ALL | approach: Novel algorithm analysis | time: N/A | notes: Comprehensive research: lattice sieve QS, batch smoothness, enhanced LP, balanced semiprime exploitation, hybrid ECM+SIQS — all dead ends. Hardware bottleneck (no vpscatterb on AMD Zen4) is fundamental. Only paths forward: (1) source-level SIQS tweaks, (2) GNFS on idle machine.

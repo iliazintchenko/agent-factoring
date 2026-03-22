@@ -170,8 +170,22 @@ Modifications to YAFU source code in yafu_mod/ directory:
 2. **closnuf threshold for 90d**: Changed DLP closnuf from `digits_n + 3` to `digits_n + 1` for 88-92d. Lowers sieve threshold by 2, more candidates get trial divided = more DLP relations found per polynomial.
 3. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190).
 4. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
+5. **DO_UPM1**: Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves. May speed up DLP cofactoring by ~5-10%.
+6. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
 
 Build: `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
+
+### GNFS Pipeline for 90d (agent-6 findings)
+GGNFS sievers work from `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`. Earlier crash reports may have been from different binaries.
+- YAFU GNFS auto-selects degree 4, I=12, lpb=25/25 for 90d
+- Poly select: ~50s (deadline-based, produces decent poly)
+- Sieve rate on idle machine: ~6500 rels/sec (3100/sec under load 44)
+- Needs 1.46M relations → ~225s sieve on idle, ~470s under load 44
+- Filter + LA + sqrt: ~13s
+- **Total on idle machine: ~288s** (tight but under 300s)
+- **Total under heavy load: >500s** (unusable)
+- CADO-NFS las siever standalone: 206K rels in 240s (857 rels/sec, much slower than GGNFS)
+- msieve NFS standalone: poly select alone takes 167s, not viable
 
 ### 90d Detailed Timing Breakdown
 For 90d[2] (NB=20 B=120K, VBITS=512):
