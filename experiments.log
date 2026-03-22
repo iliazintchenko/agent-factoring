@@ -83,3 +83,7 @@
 [2026-03-22 19:30:00] size: ALL | approach: YAFU source analysis | time: N/A | notes: USE_BATCHPOLY disabled (forces FORCE_GENERIC). Param table uses NB averaging not interpolation. Store-to-load forwarding in sieve kernel unavoidable. No compile-time improvements available.
 [2026-03-22 20:10:00] size: 89 | approach: O3+inmem=92 vs O2 on 89d[4] | time: 296.1 vs 299.7 | notes: O3 saves ~1.3s (0.4%). inmem=92 saves ~2.3s more (0.8%). Total improvement ~3.6s (1.2%) over O2 default. But still ~297s solo due to sieve variance.
 [2026-03-22 20:10:00] size: ALL | approach: YAFU feature scan | time: N/A | notes: inmem=92 eliminates save/load I/O. PGO build fails (linker errors with mulredc). USE_SS_SEARCH, USE_BATCHPOLY all dead ends. -noopt -siqsTFSm 20 could save startup overhead.
+[2026-03-22 20:05:00] size: 88 | approach: O3+inmem=92 on 88d[3] | time: 228.7s | notes: WORSE than O2 default (224.6s on same loaded machine). O3 hurts icache for intrinsic-heavy code.
+[2026-03-22 20:05:00] size: 89 | approach: O3+inmem=92 on 89d[4] | time: TIMEOUT (295s) | notes: O3 build does not help. Reverted to O2.
+[2026-03-22 20:02:00] size: 87 | approach: Verification benchmark | time: 193.7s worst | notes: Consistent with recorded 188.2s (3% higher due to load avg 10). All 5 numbers: 162/193/132/173/119s.
+[2026-03-22 20:02:00] size: 88 | approach: Verification benchmark | time: 224.6s worst | notes: Consistent with recorded 222.4s (1% higher due to load). All 5: 143/188/180/225/158s.
