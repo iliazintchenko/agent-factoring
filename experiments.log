@@ -143,3 +143,15 @@
 [2026-03-22 23:12:00] size: 90 | approach: GNFS fast (no ECM, min poly) | time: FAIL | notes: Even skipping ECM pretesting (43s) and using -psearch min (15s), sieve still needs ~487s. NFS not viable for 90d single-core.
 [2026-03-22 23:17:00] size: 89 | approach: yafu_mod VBITS=512+closnuf SIQS NB=18 B=100K | time: 283.7 | notes: 89d[0-3]: 235.5, 227.1, 264.3, 283.7s. 89d[4] timed out under load=24. VBITS=512 does NOT affect QS BL (uses msieve uint64_t code). closnuf change from 92→88 for 89d.
 [2026-03-22 23:22:00] size: 50 | approach: custom siqs_optimized.c SLP+DLP | time: 5.4 | notes: Working custom SIQS, 30-45x slower than YAFU. 30d:0.33s, 50d:5.4s. Scalar sieve is the bottleneck.
+[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS (closnuf+UPM1) NB=20 B=120K 90d[1] | time: 255.4 | notes: PASS! Under load 22. closnuf=digits_n+1, DO_UPM1 enabled.
+[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[3] | time: 289.2 | notes: PASS. Under load 22.
+[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[4] | time: 284.3 | notes: PASS. Under load 22.
+[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[0] | time: FAIL | notes: Timeout at 295s under load 22. Hardest number.
+[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[2] | time: FAIL | notes: Timeout at 295s under load 22. Second hardest number.
+[2026-03-22 23:32:00] size: 90 | approach: YAFU GNFS (GGNFS sievers) 90d[0] | time: FAIL | notes: Timeout at 295s under load 22. Only reached q=277889, ~50% of relations. GNFS needs idle machine.
+[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[0] (load 15.8) | time: FAIL (295s) | notes: Sieve COMPLETED (ETA reached 0 at 5520 rels/sec) but Block Lanczos didn't finish. Total sieve ~290s, needed 5-10s more for BL. On idle machine (<5 load), sieve ~275s + BL 5s = ~280s — should pass.
+[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=24 B=160K 90d[0] (load 15.5) | time: FAIL | notes: B=160K too large, not enough time.
+[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K LPB=30 90d[0] (load 15.5) | time: FAIL | notes: LPB=30 doesn't help.
+[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=18 B=100K 90d[0] (load 19) | time: FAIL | notes: Different params don't help under load.
+[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=22 B=130K 90d[0] (load 19) | time: FAIL | notes: No improvement with NB=22.
+[2026-03-22 23:49:00] size: 90 | approach: stock YAFU SIQS NB=20 B=120K 90d[0] (load 19) | time: FAIL | notes: Stock YAFU same as yafu_mod under load — closnuf difference too small to measure.
