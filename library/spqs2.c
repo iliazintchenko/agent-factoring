@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <time.h>
+#include <immintrin.h>
 #include <gmp.h>
 
 #define SEED 42
@@ -103,7 +104,7 @@ static fb_t *fb_create(mpz_t kN, int target) {
 }
 
 /* ==================== Bucket Sieve for Large Primes ==================== */
-typedef struct { uint16_t pos; uint8_t logp; } bucket_hit_t;
+typedef struct { uint16_t pos; uint8_t logp; uint16_t fb_idx; } bucket_hit_t;
 
 static bucket_hit_t **g_buckets[BATCH_POLYS]; /* g_buckets[poly][block] */
 static int **g_bucket_cnt;                     /* g_bucket_cnt[poly][block] -- shared alloc tracking */
@@ -125,7 +126,7 @@ static void bucket_init(int nblocks_total, int fb_size) {
         g_bucket_cnt[bi] = calloc(nblocks_total, sizeof(int));
 }
 
-static inline void bucket_add_hit(int poly, int block, uint16_t pos, uint8_t logp) {
+static inline void bucket_add_hit(int poly, int block, uint16_t pos, uint8_t logp, uint16_t fb_idx) {
     int c = g_bucket_cnt[poly][block];
     if (c >= g_bucket_alloc_per_block) {
         g_bucket_alloc_per_block *= 2;
@@ -136,6 +137,7 @@ static inline void bucket_add_hit(int poly, int block, uint16_t pos, uint8_t log
     }
     g_buckets[poly][block][c].pos = pos;
     g_buckets[poly][block][c].logp = logp;
+    g_buckets[poly][block][c].fb_idx = fb_idx;
     g_bucket_cnt[poly][block]++;
 }
 
@@ -174,7 +176,20 @@ static int gf2_solve(gf2_t *m, int ***deps, int **dlen, int max) {
         int pr = -1; for (int r = piv; r < m->nr; r++) if ((m->rows[r][c/64] >> (c%64)) & 1) { pr = r; break; }
         if (pr < 0) continue;
         if (pr != piv) { u64 *t = m->rows[pr]; m->rows[pr] = m->rows[piv]; m->rows[piv] = t; }
-        for (int r = 0; r < m->nr; r++) { if (r == piv) continue; if ((m->rows[r][c/64] >> (c%64)) & 1) for (int w = 0; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w]; }
+        for (int r = 0; r < m->nr; r++) {
+            if (r == piv) continue;
+            if (!((m->rows[r][c/64] >> (c%64)) & 1)) continue;
+            /* XOR pivot row into row r */
+            int w = 0;
+#ifdef __AVX512F__
+            for (; w + 8 <= m->wprow; w += 8) {
+                __m512i a = _mm512_loadu_si512((__m512i*)(m->rows[r] + w));
+                __m512i b = _mm512_loadu_si512((__m512i*)(m->rows[piv] + w));
+                _mm512_storeu_si512((__m512i*)(m->rows[r] + w), _mm512_xor_si512(a, b));
+            }
+#endif
+            for (; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w];
+        }
         piv++;
     }
     int nd = 0; *deps = malloc(max * sizeof(int*)); *dlen = malloc(max * sizeof(int));
@@ -205,8 +220,10 @@ static params_t get_params(int bits) {
     if (bits <= 210) return (params_t){5000, 36, 70, 120, 0.86};
     if (bits <= 220) return (params_t){7000, 44, 80, 120, 0.87};
     if (bits <= 230) return (params_t){9000, 52, 80, 150, 0.875};
-    if (bits <= 240) return (params_t){12000, 60, 80, 150, 0.88};
-    if (bits <= 250) return (params_t){16000, 72, 90, 200, 0.885};
+    if (bits <= 235) return (params_t){10000, 56, 80, 150, 0.878};
+    if (bits <= 240) return (params_t){11000, 60, 80, 150, 0.88};
+    if (bits <= 245) return (params_t){12000, 66, 100, 180, 0.86};
+    if (bits <= 250) return (params_t){14000, 72, 100, 200, 0.865};
     if (bits <= 260) return (params_t){22000, 88, 90, 200, 0.89};
     if (bits <= 270) return (params_t){30000, 100, 100, 250, 0.895};
     if (bits <= 280) return (params_t){40000, 120, 100, 300, 0.90};
@@ -463,14 +480,14 @@ int main(int argc, char *argv[]) {
                         long s1 = ((long)soln1[bi][i] + P.nblocks * SIEVE_BLOCK);
                         for (long pos = s1 % (long)p; pos < total_sieve; pos += p) {
                             int blk = (int)(pos / SIEVE_BLOCK);
-                            bucket_add_hit(bi, blk, (uint16_t)(pos % SIEVE_BLOCK), lp);
+                            bucket_add_hit(bi, blk, (uint16_t)(pos % SIEVE_BLOCK), lp, (uint16_t)i);
                         }
                         /* Root 2 */
                         if (soln1[bi][i] != soln2[bi][i]) {
                             long s2 = ((long)soln2[bi][i] + P.nblocks * SIEVE_BLOCK);
                             for (long pos = s2 % (long)p; pos < total_sieve; pos += p) {
                                 int blk = (int)(pos / SIEVE_BLOCK);
-                                bucket_add_hit(bi, blk, (uint16_t)(pos % SIEVE_BLOCK), lp);
+                                bucket_add_hit(bi, blk, (uint16_t)(pos % SIEVE_BLOCK), lp, (uint16_t)i);
                             }
                         }
                     }
@@ -563,19 +580,36 @@ int main(int argc, char *argv[]) {
                         if (mpz_sgn(Qx) == 0) continue;
                         mpz_abs(residue, Qx);
 
-                        /* Trial divide */
+                        /* Trial divide with sieve-informed position check + native 64-bit fast path */
                         while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
-                        for (int i = 1; i < fb->size; i++) {
+                        for (int i = 1; i < fb->size && fb->prime[i] < 5; i++) {
                             unsigned int p = fb->prime[i];
-                            if (soln1[bi][i] == 0xFFFFFFFF) continue;
-                            long xmod = ((x % (long)p) + p) % p;
-                            if (xmod != (long)soln1[bi][i] && xmod != (long)soln2[bi][i]) continue;
-                            if (mpz_divisible_ui_p(residue, p))
-                                do { mpz_divexact_ui(residue, residue, p); } while (mpz_divisible_ui_p(residue, p));
-                        }
-                        for (int i = 0; i < fb->size && fb->prime[i] < 5; i++) {
-                            unsigned int p = fb->prime[i]; if (p <= 2) continue;
                             while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
+                        }
+                        /* Main trial division loop with xmod position check */
+                        {
+                            int switched_to_native = 0;
+                            uint64_t res64 = 0;
+                            for (int i = 1; i < fb->size; i++) {
+                                unsigned int p = fb->prime[i];
+                                if (p < 5) continue;
+                                if (soln1[bi][i] == 0xFFFFFFFF) continue;
+                                long xmod = ((x % (long)p) + p) % p;
+                                if (xmod != (long)soln1[bi][i] && xmod != (long)soln2[bi][i]) continue;
+                                /* Prime p divides Q(x) at this position */
+                                if (!switched_to_native && mpz_sizeinbase(residue, 2) <= 63) {
+                                    res64 = mpz_get_ui(residue);
+                                    switched_to_native = 1;
+                                }
+                                if (switched_to_native) {
+                                    if (res64 == 1) break;
+                                    while (res64 % p == 0) res64 /= p;
+                                } else {
+                                    mpz_divexact_ui(residue, residue, p);
+                                    while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
+                                }
+                            }
+                            if (switched_to_native) mpz_set_ui(residue, res64);
                         }
 
                         mpz_t aQx; mpz_init(aQx); mpz_mul(aQx, Qx, a);

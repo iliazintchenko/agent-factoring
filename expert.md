@@ -25,14 +25,15 @@
 - **DLP-SIQS (Double Large Prime)**: Implemented with Pollard rho cofactor splitting and union-find DLP graph. 5-100x slower than YAFU (30d: 0.07s, 50d: 12.7s, 55d: 64.5s). DLP matching produces few combined relations — the bottleneck is the scalar sieve, not the LP strategy.
 
 ### Approaches with some promise
-- **SIQS-Bucket with Gray Code + DLP→SLP Pipeline** (siqs_bucket.c): **Current best custom implementation.** Key optimizations:
+- **SIQS-Bucket with Gray Code + DLP→SLP Pipeline** (siqs_bucket.c): Key optimizations:
   1. YAFU-calibrated parameters (reduced sieve interval from 14x too large)
   2. Gray code self-initialization (O(FB) additions per poly switch instead of O(FB) mod_inverse calls)
   3. DLP→SLP pipeline matching: DLP cofactors (p1,p2) checked against SLP hash; if either matches, creates new SLP partial with remaining LP
   4. Bucket sieve for large FB primes
   Results: 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU), 65d=70.7s (best custom by 25%). At 65d, DLP pipeline contributes 24% of all relations.
-- **SPQS (Smooth Polynomial QS / Multi-Polynomial Batch Sieve)**: Sieves 4 polynomials simultaneously per block. Amortizes FB prime iteration. 1.4x-44x slower than YAFU.
-- **CADO-NFS**: Successfully built from source. NFS implementation with L[1/3] scaling. Factored 60d in ~28s wallclock (139s CPU multi-threaded). Key insight: NFS doesn't beat QS until ~100-130 digits in L-notation terms.
+- **SPQS2 (SPQS + Bucket Sieve + AVX512 LA)**: Extends SPQS with bucket sieve for large primes (p > 32768), 4x small prime loop unrolling, native 64-bit trial division fast path, and AVX512 GF(2) linear algebra. **Best custom implementation.** 1.4x faster than SPQS at 60d (19s vs 31s). Extends to 70d (139s) and 75d (~250s). See scaling data below.
+- **SPQS (Smooth Polynomial QS / Multi-Polynomial Batch Sieve)**: Sieves 4 SIQS polynomials simultaneously per sieve block. Amortizes FB prime iteration overhead. Superseded by SPQS2.
+- **CADO-NFS**: Successfully built from source. NFS implementation with L[1/3] scaling. Factored 60d in ~28s wallclock (139s CPU multi-threaded). Running benchmarks for 70-90d. The key question is whether NFS shows better scaling than QS for 80-100d numbers despite higher overhead.
 
 ## Key Algorithmic Insights
 
@@ -77,7 +78,22 @@ SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
 | 60 | 8.92s | 1.8x/5d | 12.7x |
 | 65 | 70.7s | 7.9x/5d | |
 
-SPQS Batch Sieve (previous best, worst of 5 per size):
+SPQS2 Bucket Sieve (worst of 5 per size):
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 30 | 0.022s | | 1.6x |
+| 35 | 0.041s | ~2x/5d | |
+| 40 | 0.139s | 3.4x/5d | 8.2x |
+| 45 | 0.446s | 3.2x/5d | |
+| 50 | 0.956s | 2.1x/5d | 8.0x |
+| 55 | 4.65s | 4.9x/5d | |
+| 60 | 19s | 4.1x/5d | 27x |
+| 65 | 90s | 4.7x/5d | |
+| 70 | 139s | 1.5x/5d | 24x |
+| 75 | ~250s | ~1.8x/5d | |
+
+SPQS Batch Sieve (worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
 |--------|------|--------|---------|
@@ -146,19 +162,20 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 ## Custom Implementations in library/
 
 ### Working implementations (best to worst)
+- **spqs2.c**: **Best custom.** SPQS with bucket sieve + AVX512 LA. 1.6-24x slower than YAFU. 30-75d. `gcc -O3 -march=native -mavx512f -o spqs2 library/spqs2.c -lgmp -lm`
 - **siqs_bucket.c**: **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve. 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
 - **hyper_siqs.c**: **Best at 60d** (single number). TLP SIQS with bucket sieve, Gray code, Pollard rho cofactor splitting. 9s on one 60d number. But at 70d (218s), LA dominates due to huge 22000x22000 matrix. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
 - **hybrid_siqs.c**: SPQS multi-poly batch (4 polys) combined with bucket sieve for large primes. Slower at small sizes (overhead) but competitive at 65d (86.2s). `gcc -O3 -march=native -o hybrid_siqs library/hybrid_siqs.c -lgmp -lm`
-- **spqs2.c**: **Best at 70d** (165s). SPQS with bucket sieve. `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
 - **spqs_dlp.c**: SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
 - **fast_siqs.c**: Bucket sieve SIQS with __int128 TD, sieve-informed TD, Gray code, SLP. 18s at 60d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
 - **siqs_native.c**: Batch polynomials (4) + Gray code + SLP + native 128-bit TD. 19s at 60d. `gcc -O3 -march=native -o siqs_native library/siqs_native.c -lgmp -lm`
 - **siqs_opt.c**: Bucket sieve SIQS, tracked offsets, 64-bit scanning. 2-46x slower. 30-70d. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
 - **dlp_opt.c**: DLP SIQS with LP columns in GF(2) matrix. Testing at 70d+.
-- **spqs.c**: Multi-polynomial batch sieve SIQS. 1.4-44x slower than YAFU. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
-- **dlp_siqs.c**: SIQS with DLP (Pollard rho splitting). 5-100x slower. 30-55d.
-- **siqs2.c**: Working SIQS, SLP, Gray code. 30-80x slower.
-- **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower.
+- **spqs.c**: Multi-polynomial batch sieve SIQS. 1.4-44x slower than YAFU. 30-65d. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
+- **dlp_siqs.c**: SIQS with DLP (Pollard rho splitting), union-find graph. 5-100x slower than YAFU. 30-55d. `gcc -O3 -march=native -mavx512bw -o dlp_siqs library/dlp_siqs.c -lgmp -lm`
+- **siqs2.c**: Working SIQS, SLP, Gray code. 30-80x slower than YAFU. `gcc -O2 -march=native -o siqs2 library/siqs2.c -lgmp -lm`
+- **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower. `gcc -O3 -march=native -mavx512bw -o siqs3 library/siqs3.c -lgmp -lm`
+- **lattice_siqs.c**: Clean SIQS for scaling measurement. `gcc -O3 -march=native -o lattice_siqs library/lattice_siqs.c -lgmp -lm`
 
 ### Experimental / Novel
 - **hyper_siqs.c**: SIQS with Triple Large Primes (TLP), bucket sieve, Contini Gray code with incremental root updates, 64-bit Pollard rho for DLP/TLP cofactor splitting. Novel TLP variation accepts cofactors with up to 3 large primes. Results: 5x slower than YAFU at 30d, 30x at 60d. Best at 65d among custom implementations (70.2s vs spqs2's 94.1s). TLP not yet contributing useful relations at these sizes—needs larger LP bounds.
