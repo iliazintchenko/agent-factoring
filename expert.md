@@ -150,6 +150,15 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 - 3/5 pass under 300s. 90d[0] needs ~315s on idle, 90d[2] needs ~300s. NOT achieved within 300s per-run budget.
 - **Source modifications (closnuf, UPM1, VBITS=512) provide no measurable improvement** — A/B test on 90d[1]: 250.7s (modified) vs 247.1s (baseline), i.e. 1.5% slower.
 
+### 90d GNFS Direct Sieve Pipeline (agent-5)
+Pre-computed polynomial + direct GGNFS sieve + YAFU post-processing:
+- **90d[1]**: Sieve 264s (5530 rels/sec) + BL 36s = 300s at load=22. BL reached 94-99% but timed out by 1-2s. On idle: ~253s.
+- **90d[0]**: Sieve rate 5140 rels/sec (7% slower than 90d[1] due to polynomial). Needs 284s sieve + 30s BL = 314s. **Cannot fit in 300s even on idle.**
+- **Key: start sieve at Q=250000** (not 210000) for 10% higher yield/Q
+- GNFS is load-sensitive: 5500 rels/sec at load=22, ~6500 at load<5
+- Best polynomial score for 90d[0]: E=4.512e-08 (100s search yielded worse: 4.069e-08)
+- **Conclusion**: GNFS can do 90d[1-4] on idle machine but NOT 90d[0]. 90d frontier remains unachievable.
+
 ### Alternatives Explored
 | Approach | Result |
 |----------|--------|
