@@ -76,29 +76,52 @@ static int *sg_col_weights(sg_mat_t *m) {
 static int sg_remove_singletons(sg_mat_t *m) {
     int removed = 0;
     int *active_row = malloc(m->nr * sizeof(int));
+    int *col_weight = calloc(m->nc, sizeof(int));
+    int **col_last = calloc(m->nc, sizeof(int*)); /* last active row for each col */
     for (int i = 0; i < m->nr; i++) active_row[i] = 1;
 
+    /* Precompute column weights */
+    for (int r = 0; r < m->nr; r++) {
+        for (int w = 0; w < m->fbw; w++) {
+            u64 bits = m->rows[r][w];
+            while (bits) {
+                int bit = __builtin_ctzll(bits);
+                int c = w * 64 + bit;
+                if (c < m->nc) { col_weight[c]++; }
+                bits &= bits - 1;
+            }
+        }
+    }
+
+    /* Iteratively remove singletons */
     int changed = 1;
     while (changed) {
         changed = 0;
         for (int c = 0; c < m->nc; c++) {
-            /* Count active rows with bit c set */
-            int count = 0, last_r = -1;
+            if (col_weight[c] != 1) continue;
+            /* Find the single active row */
+            int last_r = -1;
             for (int r = 0; r < m->nr; r++) {
                 if (!active_row[r]) continue;
-                if ((m->rows[r][c/64] >> (c%64)) & 1) {
-                    count++;
-                    last_r = r;
-                    if (count > 1) break;
+                if ((m->rows[r][c/64] >> (c%64)) & 1) { last_r = r; break; }
+            }
+            if (last_r < 0) { col_weight[c] = 0; continue; }
+            /* Remove this row - decrement weights for all its columns */
+            active_row[last_r] = 0;
+            for (int w = 0; w < m->fbw; w++) {
+                u64 bits = m->rows[last_r][w];
+                while (bits) {
+                    int bit = __builtin_ctzll(bits);
+                    int cc = w * 64 + bit;
+                    if (cc < m->nc) col_weight[cc]--;
+                    bits &= bits - 1;
                 }
             }
-            if (count == 1 && last_r >= 0) {
-                active_row[last_r] = 0;
-                removed++;
-                changed = 1;
-            }
+            removed++;
+            changed = 1;
         }
     }
+    free(col_weight); free(col_last);
 
     /* Compact: remove inactive rows */
     if (removed > 0) {
