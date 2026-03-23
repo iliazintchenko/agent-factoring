@@ -116,17 +116,24 @@ int main(int argc, char*argv[]) {
                 mpz_t ms; mpz_init(ms);
                 if(ji<0)mpz_set(ms,M); else mpz_divexact_ui(ms,M,fb[ch[ji]]);
 
-                std::unordered_map<long,int> kc;
+                /* Use sorted array instead of hash map for collision counting */
+                std::vector<long> kvals;
+                kvals.reserve((fbs-pls)*4);
                 for(int v=pls;v<fbs;v++){
                     long p=fb[v]; mpz_mod_ui(tmp,ms,p); long mp=mpz_get_ui(tmp);
                     if(!mp)continue; long inv=pmod(mp,p-2,p);
                     mpz_mod_ui(tmp,xv,p); long xm=mpz_get_ui(tmp);
                     long k0=(__int128)((r0[v]-xm+p)%p)*inv%p;
                     long k1=(__int128)((r1[v]-xm+p)%p)*inv%p;
-                    kc[k0]++;kc[k0-p]++;kc[k1]++;kc[k1-p]++;
+                    kvals.push_back(k0);kvals.push_back(k0-p);
+                    kvals.push_back(k1);kvals.push_back(k1-p);
                 }
+                std::sort(kvals.begin(),kvals.end());
 
-                for(auto&[k,cnt]:kc){
+                for(size_t ki=0;ki<kvals.size();){
+                    long k=kvals[ki];
+                    int cnt=0;
+                    while(ki<kvals.size()&&kvals[ki]==k){cnt++;ki++;}
                     if(cnt<=2)continue;
                     mpz_t x2,pv; mpz_init(x2);mpz_init(pv);
                     mpz_set_si(tmp,k); mpz_mul(x2,tmp,ms); mpz_add(x2,x2,xv);
