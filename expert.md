@@ -100,9 +100,22 @@ Core algorithm: sieve + trial division + single-LP merging + GF(2) elimination.
 - Full smooth relations ~10%, single-LP ~90% of useful candidates
 - LP merging works: 807 merges from 3891 1-LP relations with LP bound 474K
 
-### SRG (Smooth Residue Graph) — `library/srg.c` (other agent)
+### SRG (Smooth Residue Graph) — `library/srg.c`
 
-Multi-stage pipeline: trial division → Pollard's rho → ECM → sieve. Includes aggressive multi-LP collection (up to 3 LPs per relation) with extended GF(2) matrix including LP columns.
+Multi-stage pipeline: trial division → Pollard's rho → progressive ECM → sieve with multi-LP relations + extended GF(2) LA.
+
+**Key design**: Progressive ECM with increasing B1 bounds (2K→43M) dramatically reduces worst-case variance. Also includes a sieve stage with aggressive multi-LP collection (up to 3 LPs per relation) — all relations (full + partial) go into an extended GF(2) matrix where each unique large prime is an extra column. Null-space vectors yield congruences of squares.
+
+**Scaling data (worst-case across 5 semiprimes per size)**:
+- 30-36d: <1s (Pollard's rho or quick ECM)
+- 37-43d: 1-3s (ECM level 1-2)
+- 44-50d: 3-7s (ECM level 3)
+- 51-55d: 7-75s (ECM level 4-5, high variance)
+- 56-60d: 12-88s (ECM level 5-6)
+- 61-65d: 44-215s (ECM level 6-7, approaching limits)
+- 66d+: ECM timeout on some inputs, sieve kicks in but too slow (needs multi-polynomial)
+
+**Bottleneck at 66+ digits**: The sieve collects ~165 full relations vs ~11K needed. Partial-1 relations (12K) outnumber full relations 77:1, but each unique LP adds a column to the matrix, so rows < columns. Need either (a) much longer sieve time, (b) SIQS-style multi-polynomial to generate smaller Q(x) values, or (c) tighter LP bound to increase LP collisions.
 
 ### Hybrid (P-1/P+1/ECM engine) — `library/hybrid.c`
 
