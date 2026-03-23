@@ -104,6 +104,26 @@ Core algorithm: sieve + trial division + single-LP merging + GF(2) elimination.
 
 Multi-stage pipeline: trial division → Pollard's rho → ECM → sieve. Includes aggressive multi-LP collection (up to 3 LPs per relation) with extended GF(2) matrix including LP columns.
 
+### Hybrid (P-1/P+1/ECM engine) — `library/hybrid.c`
+
+Uses GMP-ECM library with progressive parameter scheduling. Pipeline:
+1. Trial division to 10^6
+2. Pollard's rho (500K iterations)
+3. P-1 at multiple B1 levels (2K to 110M)
+4. P+1 at same levels
+5. ECM with Suyama parameterization, progressive B1 schedule
+
+**Key observations**:
+- Surprisingly effective on balanced semiprimes: P-1/P+1 alone factor most 30-50 digit semiprimes
+- This suggests the test semiprimes have somewhat smooth p-1 or p+1 values
+- Scaling 30-55 digits: {30:1.7s, 35:2.6s, 40:3.1s, 45:3.5s, 50:30s, 55:45s}
+- The jump at 50 digits suggests P-1/P+1 reaches its limits and ECM kicks in
+- For truly hard semiprimes (both p-1 and p+1 have large prime factors), would need ECM with many more curves
+
+### IFM (Iterated Frobenius Map) — `library/ifm.c`
+
+Novel iteration function: x → x^N mod N (instead of rho's x → x^2+c). Via CRT, decomposes into independent power maps mod p and mod q with different dynamics. **Dead end**: each iteration costs O(log N) multiplications (100x more than rho per step), but cycle length is similar (O(N^{1/4})). Net result is ~100x slower than Pollard's rho for no compensating advantage.
+
 ## Open directions
 
 - **Algebraic group structure**: Z_N* ≅ Z_{p-1} × Z_{q-1} but we can't see this decomposition. Can random walks, character sums, or higher-dimensional algebraic groups reveal it without smooth numbers?
