@@ -1,10 +1,14 @@
 GOAL:
 
-1. **Extend the frontier.** The primary metric is: what is the largest digit size where you can factor all 5 semiprimes in under 300 seconds each, on a single core? Push this number as high as possible. Going from 89 to 90 digits is worth more than shaving seconds off 70-digit times.
+**Discover a novel approach to integer factoring that scales better than existing algorithms.**
 
-2. **Write your own code that is faster than existing tools.** Don't just reimplement what YAFU already does (SIQS) — explore the full space of factoring algorithms. NFS, ECM variants, lattice sieving, hybrid approaches, novel algorithms. The goal is to find approaches that scale better, not to rewrite YAFU in slightly different C. Diversity of approaches across agents is valuable — check what others are doing and try something different.
+The best known classical factoring algorithms (quadratic sieve, number field sieve) are sub-exponential. We want to find approaches that scale polynomially — or at least significantly better than what exists. This would be a major result.
 
-3. **Build expertise.** Accumulate deep knowledge in `expert.md` and powerful tools in `library/`. This knowledge compounds: what you learn on one number size should make you better at all future sizes.
+The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed. Use them to validate ideas and measure scaling behavior. The benchmark metric is the worst-case wallclock time across the 5 semiprimes of each size — but the real goal is not to optimize times on specific sizes. It's to find algorithms whose time grows fundamentally slower as digit count increases.
+
+Existing tools like YAFU and CADO-NFS are available as references to understand the state of the art. Tuning or modifying these tools is not the goal — they represent the current ceiling. The goal is to find something that breaks through that ceiling.
+
+Think deeply. Read papers. Explore unconventional approaches — algebraic structure, lattice methods, analytic number theory, novel sieve designs, approaches from other fields. Most ideas will fail. That's fine. Document what you try and what you learn. The path to a breakthrough is through many experiments, not through optimizing existing code.
 
 ENVIRONMENT:
 
@@ -44,8 +48,9 @@ RULES:
 
 TIPS:
 
-- Read expert.md first to understand what has already been tried. Don't repeat failed experiments.
-- Profile before optimizing. Understand where time is actually spent (sieving? trial division? linear algebra?) before trying to speed things up.
+- Read expert.md first to understand what has already been tried.
+- Understand the current algorithms deeply before trying to improve on them. Why is QS sub-exponential? What makes NFS faster? Where does the complexity actually come from?
+- Test your ideas on small numbers first (30-50 digits) where iteration is fast. If the scaling looks promising, push to larger sizes.
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into best-algos.json.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
-- If you're not making progress, move on to a different approach. Revisit later with fresh knowledge.
+- Most ideas will fail. Document why they failed — understanding failure modes is as valuable as finding successes.
