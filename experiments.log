@@ -314,3 +314,4 @@
 
 [2026-03-23 01:59:00] size: 90 | approach: YAFU GNFS on 90d[1] (load=13) | time: TIMEOUT (295s) | notes: Sieve reached Q=301349 at 0.18ms/rel. GNFS needs load<7 for 90d. At load 13, sieve rate ~5500 rels/sec (vs ~6500 on idle). Not enough for 1.46M rels in 295s.
 [2026-03-23 01:59:00] size: 90 | approach: YAFU SIQS on 90d[0] (load=15) | time: TIMEOUT (est 310-315s) | notes: Sieve rate 5400/sec at load 15. ETA showed 200s remaining after 95s. Consistent with expert.md: 90d[0] needs ~301-310s on idle.
+[2026-03-23 02:00:00] size: 30-45 | approach: lattice_siqs.c optimized (threshold fix, M=16384-32768) | time: 0.04/0.02/0.36/8.4s worst | notes: Threshold bug fixed (was missing 1.4x sieve scaling factor). Smaller M reduces Q values. 45d now works (was FAIL). 50d still times out.

@@ -142,16 +142,18 @@ static siqs_params_t get_params(int digits) {
      * Q(x) values (≈ M * sqrt(N/2) at center) are B-smooth with reasonable probability.
      * The key insight: Q_typical ≈ M * sqrt(2N)/A ≈ M^2 for optimal A.
      * But the constant term C = (B^2-N)/A ≈ sqrt(N/2)*M dominates, making Q larger. */
-    if (digits <= 30)      { p.fb_bound = 2000; p.num_a_factors = 3; p.sieve_radius = 32768; }
-    else if (digits <= 35) { p.fb_bound = 5000; p.num_a_factors = 4; p.sieve_radius = 32768; }
-    else if (digits <= 40) { p.fb_bound = 12000; p.num_a_factors = 5; p.sieve_radius = 65536; }
-    else if (digits <= 45) { p.fb_bound = 30000; p.num_a_factors = 6; p.sieve_radius = 65536; }
-    else if (digits <= 50) { p.fb_bound = 80000; p.num_a_factors = 7; p.sieve_radius = 65536; }
-    else if (digits <= 55) { p.fb_bound = 150000; p.num_a_factors = 7; p.sieve_radius = 65536; }
-    else if (digits <= 60) { p.fb_bound = 300000; p.num_a_factors = 8; p.sieve_radius = 65536; }
-    else if (digits <= 65) { p.fb_bound = 500000; p.num_a_factors = 8; p.sieve_radius = 65536; }
-    else if (digits <= 70) { p.fb_bound = 700000; p.num_a_factors = 9; p.sieve_radius = 65536; }
-    else                   { p.fb_bound = 1000000; p.num_a_factors = 10; p.sieve_radius = 65536; }
+    /* Tuned: smaller M reduces Q values, more polys compensate.
+     * FB must be large enough for smoothness probability. */
+    if (digits <= 30)      { p.fb_bound = 2000; p.num_a_factors = 3; p.sieve_radius = 16384; }
+    else if (digits <= 35) { p.fb_bound = 5000; p.num_a_factors = 4; p.sieve_radius = 16384; }
+    else if (digits <= 40) { p.fb_bound = 12000; p.num_a_factors = 5; p.sieve_radius = 32768; }
+    else if (digits <= 45) { p.fb_bound = 25000; p.num_a_factors = 6; p.sieve_radius = 32768; }
+    else if (digits <= 50) { p.fb_bound = 60000; p.num_a_factors = 7; p.sieve_radius = 32768; }
+    else if (digits <= 55) { p.fb_bound = 120000; p.num_a_factors = 7; p.sieve_radius = 32768; }
+    else if (digits <= 60) { p.fb_bound = 250000; p.num_a_factors = 8; p.sieve_radius = 32768; }
+    else if (digits <= 65) { p.fb_bound = 400000; p.num_a_factors = 8; p.sieve_radius = 32768; }
+    else if (digits <= 70) { p.fb_bound = 600000; p.num_a_factors = 9; p.sieve_radius = 32768; }
+    else                   { p.fb_bound = 900000; p.num_a_factors = 10; p.sieve_radius = 32768; }
 
     return p;
 }
@@ -419,7 +421,7 @@ static void factor_siqs(mpz_t N_orig) {
 
     /* Gray code counters */
     int a_poly_count = 0;
-    int max_a_polys = 500000;  /* Try many A values */
+    int max_a_polys = 500000;  /* Allow many A values for larger numbers */
 
     gmp_randstate_t rng;
     gmp_randinit_default(rng);
@@ -511,10 +513,12 @@ static void factor_siqs(mpz_t N_orig) {
 
         /* Clear sieve */
         /* Use log approximation: init to log2(Q(x_center)) and subtract log2(p) for each hit */
-        double log2_qmax = mpz_sizeinbase(A, 2) - 1 + 2 * log2((double)M);
-        /* Actually Q(x) ≈ A*x^2 near edges, ≈ C near center */
-        double log2_thresh = log2(fabs(mpz_get_d(C))) * params.thresh_adj;
-        if (log2_thresh < 10) log2_thresh = 10;
+        /* Q(x) ranges from |C| (at x=0) to ~A*M^2 (at x=±M).
+         * Sieve values are in units of log2(p) * 1.4.
+         * Threshold should match: log2(Q_typical) * 1.4 * thresh_adj */
+        double log2_C = log2(fabs(mpz_get_d(C)));
+        double log2_thresh = log2_C * 1.4 * params.thresh_adj;
+        if (log2_thresh < 15) log2_thresh = 15;
 
         /* Initialize sieve to estimated log2(|Q(x)|) */
         /* Q(x) = Ax^2 + 2Bx + C, x from -M to M-1 */
@@ -604,18 +608,11 @@ static void factor_siqs(mpz_t N_orig) {
             total_sieve_hits++;
 
             /* Compute Q(x) = Ax^2 + 2Bx + C */
-            mpz_set_si(Qval, x);
-            mpz_mul(Qval, Qval, A);
-            mpz_t Bx2; mpz_init(Bx2);
-            mpz_set_si(Bx2, x);
-            mpz_mul(Bx2, Bx2, B);
-            mpz_mul_ui(Bx2, Bx2, 2);
             mpz_mul_si(Qval, A, x);
             mpz_add(Qval, Qval, B);
             mpz_add(Qval, Qval, B);  /* Qval = Ax + 2B */
             mpz_mul_si(Qval, Qval, x);
             mpz_add(Qval, Qval, C);  /* Qval = Ax^2 + 2Bx + C */
-            mpz_clear(Bx2);
 
             int neg = (mpz_sgn(Qval) < 0);
             if (neg) mpz_neg(Qval, Qval);
