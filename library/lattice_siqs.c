@@ -21,7 +21,7 @@
 #include <gmp.h>
 
 /* ======== Primes ======== */
-static int primes[200000];
+static int primes[500000];
 static int nprimes;
 
 static void gen_primes(int lim) {
@@ -138,18 +138,20 @@ static siqs_params_t get_params(int digits) {
     p.block_size = 32768;
     p.thresh_adj = 0.80;
 
-    if (digits <= 30)      { p.fb_bound = 1500; p.num_a_factors = 3; p.sieve_radius = 32768; }
-    else if (digits <= 35) { p.fb_bound = 2500; p.num_a_factors = 4; p.sieve_radius = 32768; }
-    else if (digits <= 40) { p.fb_bound = 5000; p.num_a_factors = 5; p.sieve_radius = 65536; }
-    else if (digits <= 45) { p.fb_bound = 10000; p.num_a_factors = 6; p.sieve_radius = 65536; }
-    else if (digits <= 50) { p.fb_bound = 20000; p.num_a_factors = 6; p.sieve_radius = 65536; }
-    else if (digits <= 55) { p.fb_bound = 40000; p.num_a_factors = 7; p.sieve_radius = 65536; }
-    else if (digits <= 60) { p.fb_bound = 60000; p.num_a_factors = 7; p.sieve_radius = 65536; }
-    else if (digits <= 65) { p.fb_bound = 90000; p.num_a_factors = 8; p.sieve_radius = 65536; }
-    else if (digits <= 70) { p.fb_bound = 130000; p.num_a_factors = 8; p.sieve_radius = 65536; }
-    else if (digits <= 75) { p.fb_bound = 180000; p.num_a_factors = 9; p.sieve_radius = 65536; }
-    else if (digits <= 80) { p.fb_bound = 250000; p.num_a_factors = 9; p.sieve_radius = 65536; }
-    else                   { p.fb_bound = 350000; p.num_a_factors = 10; p.sieve_radius = 131072; }
+    /* Tuned to match YAFU-style parameters. FB must be large enough that
+     * Q(x) values (≈ M * sqrt(N/2) at center) are B-smooth with reasonable probability.
+     * The key insight: Q_typical ≈ M * sqrt(2N)/A ≈ M^2 for optimal A.
+     * But the constant term C = (B^2-N)/A ≈ sqrt(N/2)*M dominates, making Q larger. */
+    if (digits <= 30)      { p.fb_bound = 2000; p.num_a_factors = 3; p.sieve_radius = 32768; }
+    else if (digits <= 35) { p.fb_bound = 5000; p.num_a_factors = 4; p.sieve_radius = 32768; }
+    else if (digits <= 40) { p.fb_bound = 12000; p.num_a_factors = 5; p.sieve_radius = 65536; }
+    else if (digits <= 45) { p.fb_bound = 30000; p.num_a_factors = 6; p.sieve_radius = 65536; }
+    else if (digits <= 50) { p.fb_bound = 80000; p.num_a_factors = 7; p.sieve_radius = 65536; }
+    else if (digits <= 55) { p.fb_bound = 150000; p.num_a_factors = 7; p.sieve_radius = 65536; }
+    else if (digits <= 60) { p.fb_bound = 300000; p.num_a_factors = 8; p.sieve_radius = 65536; }
+    else if (digits <= 65) { p.fb_bound = 500000; p.num_a_factors = 8; p.sieve_radius = 65536; }
+    else if (digits <= 70) { p.fb_bound = 700000; p.num_a_factors = 9; p.sieve_radius = 65536; }
+    else                   { p.fb_bound = 1000000; p.num_a_factors = 10; p.sieve_radius = 65536; }
 
     return p;
 }
