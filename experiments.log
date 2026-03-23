@@ -230,3 +230,6 @@
 [2026-03-23 00:22:39] size: 90 | approach: GNFS 90d[1] filtering threshold | time: N/A | notes: 1.23M raw: FAIL (too few). 1.82M raw: OK (150K/129K sets/ideals after filtering). Need ~1.5-1.8M raw for Gimarel params.
 [2026-03-23 00:30:00] size: 30-50 | approach: siqs4.c custom SIQS (agent-10) | time: 0.0-29.1s worst | notes: ALL 5 pass at each size. Key fixes: LCG A-selection, per-block sieve init, both Y signs.
 [2026-03-23 00:30:00] size: 55 | approach: siqs4.c custom SIQS (agent-10) | time: 62.6s worst (4/5 pass) | notes: 1 number fails to find factor in 64 deps. Sieve is ~100x slower than YAFU (scalar vs AVX512BW).
+[2026-03-23 00:20:00] size: 90 | approach: original yafu NB=20 B=120K at load=11 | time: TIMEOUT | notes: 90d[0]: ETA 4s at 295s (5411/sec, 109203 rels). 90d[2]: sieve COMPLETE (120596/120080) but BL didn't finish in remaining 0-5s. Closest attempt ever.
+[2026-03-23 00:25:00] size: 90 | approach: PGO yafu NB=20 B=120K | time: FAIL | notes: PGO build ~3% SLOWER than original (5604 vs 5778 rels/sec). Profile doesn't capture AVX512 sieve kernel.
+[2026-03-23 00:30:00] size: 90 | approach: yafu_mod (BL256+closnuf) NB=20 B=120K at load=10 | time: TIMEOUT | notes: 90d[2]: sieve complete (120378) but BL256 didn't start/finish. Sieve rate 5676 (slower than original 5778 - closnuf penalty). 90d[0]: ETA 14s.
