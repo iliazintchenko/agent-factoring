@@ -479,23 +479,50 @@ int main(int argc, char *argv[]) {
             if (batch == 0) continue;
             total_polys++;
 
+            /* Precompute SIEVE_BLOCK % p for incremental offset tracking */
+            unsigned int *blksz_mod = malloc(fb->size * sizeof(unsigned int));
+            unsigned int *off1_arr[BATCH_POLYS], *off2_arr[BATCH_POLYS];
+            for (int bi = 0; bi < batch; bi++) {
+                off1_arr[bi] = malloc(fb->size * sizeof(unsigned int));
+                off2_arr[bi] = malloc(fb->size * sizeof(unsigned int));
+            }
+            {
+                long first_start = -P.nblocks * SIEVE_BLOCK;
+                for (int i = 1; i < small_fb_end; i++) {
+                    unsigned int p = fb->prime[i];
+                    if (p < 5 || soln1[0][i] == 0xFFFFFFFF) {
+                        blksz_mod[i] = 0;
+                        for (int bi = 0; bi < batch; bi++) { off1_arr[bi][i] = 0; off2_arr[bi][i] = 0; }
+                        continue;
+                    }
+                    blksz_mod[i] = (unsigned int)(SIEVE_BLOCK % (unsigned long)p);
+                    for (int bi = 0; bi < batch; bi++) {
+                        if (soln1[bi][i] == 0xFFFFFFFF) { off1_arr[bi][i] = 0; off2_arr[bi][i] = 0; continue; }
+                        long o1 = ((long)soln1[bi][i] - first_start) % (long)p;
+                        if (o1 < 0) o1 += p;
+                        off1_arr[bi][i] = (unsigned int)o1;
+                        long o2 = ((long)soln2[bi][i] - first_start) % (long)p;
+                        if (o2 < 0) o2 += p;
+                        off2_arr[bi][i] = (unsigned int)o2;
+                    }
+                }
+            }
+
             /* Sieve all BATCH polynomials over each block */
             for (int block = -P.nblocks; block < P.nblocks; block++) {
                 int block_start = block * SIEVE_BLOCK;
-                int block_idx = block + P.nblocks;  /* 0 to n_blocks-1 */
+                int block_idx = block + P.nblocks;
 
-                /* Initialize sieve arrays */
                 for (int bi = 0; bi < batch; bi++)
                     memset(sieves[bi], 0, SIEVE_BLOCK);
 
                 /* Clear buckets for this block */
                 for (int bi = 0; bi < batch; bi++) {
                     int bkt_idx = block_idx * BATCH_POLYS + bi;
-                    if (bkt_idx < n_bucket_arrays)
-                        buckets[bkt_idx].count = 0;
+                    if (bkt_idx < n_bucket_arrays) buckets[bkt_idx].count = 0;
                 }
 
-                /* Sieve small FB primes (direct sieve, cache-friendly) */
+                /* Sieve small FB primes using incremental offsets (no division per block) */
                 for (int i = 1; i < small_fb_end; i++) {
                     unsigned int p = fb->prime[i];
                     if (p < 5) continue;
@@ -503,16 +530,10 @@ int main(int argc, char *argv[]) {
 
                     for (int bi = 0; bi < batch; bi++) {
                         if (soln1[bi][i] == 0xFFFFFFFF) continue;
-
-                        long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
-                        if (off1 < 0) off1 += p;
+                        int j1 = (int)off1_arr[bi][i];
+                        unsigned char *sv = sieves[bi];
                         if (soln1[bi][i] != soln2[bi][i]) {
-                            /* Interleaved two-root sieve */
-                            long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
-                            if (off2 < 0) off2 += p;
-                            int j1 = (int)off1, j2 = (int)off2;
-                            unsigned char *sv = sieves[bi];
-                            /* Interleave both roots for better ILP */
+                            int j2 = (int)off2_arr[bi][i];
                             while (j1 < SIEVE_BLOCK && j2 < SIEVE_BLOCK) {
                                 sv[j1] += lp; sv[j2] += lp;
                                 j1 += p; j2 += p;
@@ -520,30 +541,32 @@ int main(int argc, char *argv[]) {
                             while (j1 < SIEVE_BLOCK) { sv[j1] += lp; j1 += p; }
                             while (j2 < SIEVE_BLOCK) { sv[j2] += lp; j2 += p; }
                         } else {
-                            for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
-                                sieves[bi][j] += lp;
+                            for (; j1 < SIEVE_BLOCK; j1 += p) sv[j1] += lp;
                         }
+                    }
+
+                    /* Update offsets for next block */
+                    unsigned int bmod = blksz_mod[i];
+                    for (int bi = 0; bi < batch; bi++) {
+                        unsigned int o1 = off1_arr[bi][i], o2 = off2_arr[bi][i];
+                        off1_arr[bi][i] = o1 >= bmod ? o1 - bmod : o1 + p - bmod;
+                        off2_arr[bi][i] = o2 >= bmod ? o2 - bmod : o2 + p - bmod;
                     }
                 }
 
-                /* Large FB primes: add directly to sieve (they hit at most a few positions per block) */
+                /* Large FB primes: direct sieve (few hits per block) */
                 for (int i = large_fb_start; i < fb->size; i++) {
                     unsigned int p = fb->prime[i];
                     unsigned char lp = fb->logp[i];
-
                     for (int bi = 0; bi < batch; bi++) {
                         if (soln1[bi][i] == 0xFFFFFFFF) continue;
-
                         long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
                         if (off1 < 0) off1 += p;
-                        if (off1 < SIEVE_BLOCK)
-                            sieves[bi][(int)off1] += lp;
-
+                        if (off1 < SIEVE_BLOCK) sieves[bi][(int)off1] += lp;
                         if (soln1[bi][i] != soln2[bi][i]) {
                             long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
                             if (off2 < 0) off2 += p;
-                            if (off2 < SIEVE_BLOCK)
-                                sieves[bi][(int)off2] += lp;
+                            if (off2 < SIEVE_BLOCK) sieves[bi][(int)off2] += lp;
                         }
                     }
                 }
@@ -781,6 +804,9 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
+            /* Free incremental offset arrays */
+            free(blksz_mod);
+            for (int bi = 0; bi < BATCH_POLYS; bi++) { free(off1_arr[bi]); free(off2_arr[bi]); }
         }
         mpz_clear(cur_b);
         free(cur_s1);
