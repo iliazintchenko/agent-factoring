@@ -140,7 +140,7 @@ The GGNFS sievers at `yafu/factor/lasieve5_64/bin/` work correctly but need:
 5. Previous "GGNFS crashes with SIGABRT" was actually **Permission denied** (no +x flag)
 6. Sieve rate: ~3500-3800 rels/sec on loaded machine, ~5000+ on idle
 
-### YAFU SIQS on 90d — Closest Attempt
+### YAFU SIQS on 90d — Closest Attempt (verified 2026-03-23)
 NB=20 B=120K on 90d (all 5 semiprimes):
 - 90d[0]: **319.3s** on loaded machine (load ~18). Estimated ~260-280s on idle. Still exceeds 300s single-run.
 - 90d[1]: **247.1s** ✓ (baseline on loaded machine, load ~24)
@@ -195,6 +195,9 @@ Pre-computed polynomial + direct GGNFS sieve + YAFU post-processing:
 | PGO (profile-guided optimization) | ~1-2% improvement. Requires `static __inline` fix in monty.h. Not significant — hot path is hand-written AVX512 intrinsics that GCC can't improve via profiling. |
 | monty.h static inline fix | Marginal (~1-2%). Initial "16%" measurement was load-noise artifact. A/B test confirmed identical times. Still useful for enabling PGO builds. |
 | Balanced semiprime exploitation | No known algorithm exploits balance. SIQS is factor-structure-agnostic. Fermat/Lehman only help when \|p-q\| < N^(1/3). |
+| Batch smoothness (Bernstein product/remainder trees) | Correctly detects smooth numbers but O(M * log²M * bits(primorial)) is slower than byte-level sieve O(M * B/logB). Product tree involves huge multi-precision arithmetic vs L1-cache byte ops. Dead end for QS. |
+| Lattice factoring (Schnorr-style) | LLL on log-prime lattice: short vectors don't translate to small products mod N because modular reduction destroys lattice structure. Random combinations of LLL basis find smooth numbers at ~2% rate vs SIQS ~5-10%. Not competitive. |
+| Pollard p-1 / Williams p+1 | Works only when p-1 or p+1 is B-smooth. Found factor for 30d[0] with B1=5e7. Not viable for general semiprimes but worth checking each number. |
 | YAFU 48KB sieve blocks | BLOCKSIZE hardcoded to 32768 throughout AVX512BW assembly. Not viable to change. |
 | DLP SQUFOF fallback | Measured DLP cofactoring: **0 failures in 336K attempts** on 80d. microECM is near-100% effective. SQUFOF fallback would add 0 benefit. Bottleneck is sieve speed, not cofactoring. |
 | Smaller factor base (B=90K for 90d) | Useful rate drops to ~170/sec vs ~308/sec at B=120K. The sieve is much less efficient with fewer FB primes (fewer sieve hits, more false positives). B=120K is optimal for 90d. |
