@@ -40,3 +40,5 @@
 [2026-03-23 03:30:00] size: 30-65 | approach: siqs_native (batch+Gray code) | time: 0.029-79s | notes: Profiled at 60d: sieve=73%, scan+TD=25%, other=2%. SPV tried but hurt. 30d=0.029s, 40d=0.201s, 50d=0.953s, 60d=19.3s, 65d=79s.
 [2026-03-23 03:30:00] size: 60 | approach: hyper_siqs (TLP) single number | time: 9.1s | notes: 2x faster than SPQS at 60d. But 70d=218s due to LA (164s for 22000x22000 matrix).
 [2026-03-23 03:30:00] size: 60 | approach: NFS (nfs_factor.c) | time: FAIL | notes: 0 candidates. Norms too large for smoothness. NFS only viable for 100+d.
+[2026-03-23 12:00:00] size: 70 | approach: SIQS-Bucket v5 (Gray Code + DLP→SLP) | time: 134.5s worst | notes: 70d factored all 5 semiprimes (78.9-134.5s). Best custom at 70d (was 165.5s with spqs2). 75d: 2/5 timeout at 295s. DLP pipeline contributing ~15% of relations at 70d.
+[2026-03-23 12:00:00] size: 50-60 | approach: Progressive SIQS (progressive_siqs.c) | time: 0.79-7.97s | notes: Multi-stage sieve with small-prime pre-filter. Marginal improvement (~10%) over flat sieve because stage 2/3 still iterate all positions. Progressive benefit only with survivor-based iteration (not implemented).
