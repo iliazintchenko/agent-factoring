@@ -539,9 +539,11 @@ int main(int argc, char *argv[]) {
                 }
 
                 /* Scan for smooth candidates */
+                /* Lower threshold at 65d+ to feed DLP→SLP pipeline */
+                int dlp_thresh = threshold;  /* No dual threshold - reverted */
                 for (int bi = 0; bi < batch; bi++) {
                     for (int j = 0; j < SIEVE_BLOCK; j++) {
-                        if (sieves[bi][j] < threshold) continue;
+                        if (sieves[bi][j] < dlp_thresh) continue;
                         long x = (long)(block_start + j);
                         if (x == 0) continue;
 
