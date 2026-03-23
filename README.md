@@ -63,7 +63,13 @@ git clone --depth 1 https://gitlab.inria.fr/cado-nfs/cado-nfs.git && rm -rf cado
 ./run_ec2.sh --host ec2-user@<ip> --agents <num_agents>
 ```
 
-Requires a `.env` file with `CLAUDE_CODE_API_KEY` and `GITHUB_ACCESS_TOKEN`. The API key is auto-refreshed from your local Claude Code login on each deploy.
+Requires a `.env` file with `CLAUDE_CODE_OAUTH_TOKEN` and `GITHUB_ACCESS_TOKEN`.
+
+To generate the OAuth token (uses your Claude Pro/Max subscription, not API billing):
+```bash
+claude setup-token
+```
+This creates a long-lived token (valid 1 year) that lets headless EC2 agents bill against your subscription. It does not rotate or invalidate existing tokens.
 
 Multiple agents can work on the same repo simultaneously, communicating through git — each agent pulls the latest expert knowledge, builds on what others found, and pushes its own improvements. No coordination needed beyond `git pull` and `git push`.
 
