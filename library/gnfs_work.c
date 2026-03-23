@@ -182,7 +182,35 @@ int main(int argc, char *argv[]) {
          uint64_t cm[MAX_DEG+1];for(int j=0;j<=poly.deg;j++)cm[j]=mpz_fdiv_ui(poly.c[j],p);
          for(uint32_t x=0;x<p;x++){uint64_t v=0;for(int j=poly.deg;j>=0;j--)v=(v*x+cm[j])%p;if(v==0){qcp[nqc]=p;qcr[nqc]=x;nqc++;break;}}}free(qp);}
 
-    int ncols=1+rfb->sz+1+afb->sz+nqc;
+    /* Factor the leading coefficient c_d to add its primes to the matrix */
+    #define MAX_CD_PRIMES 20
+    uint32_t cd_primes[MAX_CD_PRIMES];
+    int cd_exps[MAX_CD_PRIMES]; /* exponent of each prime in c_d */
+    int ncd = 0;
+    {
+        mpz_t cd_tmp; mpz_init(cd_tmp);
+        mpz_abs(cd_tmp, poly.c[poly.deg]);
+        for (uint32_t p = 2; p < 1000000 && mpz_cmp_ui(cd_tmp, 1) > 0 && ncd < MAX_CD_PRIMES; p++) {
+            if (!mpz_divisible_ui_p(cd_tmp, p)) continue;
+            cd_primes[ncd] = p;
+            cd_exps[ncd] = 0;
+            while (mpz_divisible_ui_p(cd_tmp, p)) {
+                cd_exps[ncd]++;
+                mpz_divexact_ui(cd_tmp, cd_tmp, p);
+            }
+            ncd++;
+        }
+        if (mpz_cmp_ui(cd_tmp, 1) > 0) {
+            /* Remaining factor > 10^6, treat as single "prime" */
+            cd_primes[ncd] = mpz_get_ui(cd_tmp); /* may overflow for very large c_d */
+            cd_exps[ncd] = 1;
+            ncd++;
+        }
+        mpz_clear(cd_tmp);
+        fprintf(stderr, "Leading coeff c_%d has %d prime factors\n", poly.deg, ncd);
+    }
+
+    int ncols=1+rfb->sz+1+afb->sz+nqc; /* +ncd removed: c_d is implicit in the ring */
     int target=ncols+30;
 
     int sw=2*P.sa+1;uint8_t *rsv=malloc(sw),*asv=malloc(sw);
@@ -227,6 +255,7 @@ int main(int argc, char *argv[]) {
             uint64_t v=(av+qcp[k]-bv2)%qcp[k];
             if(v!=0&&powmod64(v,(qcp[k]-1)/2,qcp[k])!=1)mat->rows[r][c/64]^=(1ULL<<(c%64));c++;
         }
+        /* (c_d columns removed - c_d is implicit in the number ring) */
     }
     fprintf(stderr,"Gauss elim (%dx%d)...\n",nrels,ncols);
     int **deps;int *dlen;int ndeps=gf2_solve(mat,&deps,&dlen,MAX_DEPS);
