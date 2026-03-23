@@ -246,9 +246,5 @@
 [2026-03-23 08:00:00] size: 73-74 | approach: turbo_pp_avx (AVX512 variant) | time: 150-275s | notes: Solves 73d #0 (275s) and #1 (150s) but FAILS on #2. 74d fails. Not all 73d semiprimes solvable within 295s. The frontier is firmly at 72d for all-5-pass, 73d for some.
 [2026-03-23 08:00:00] size: 72 | approach: spqs_dlp | time: 238.1s worst | notes: All 5 72d semiprimes solved. Not best (siqs_bucket_tuned: 231s).
 [2026-03-23 08:00:00] size: 74 | approach: turbo_pp | time: FAIL | notes: Cannot solve any 74d semiprime within 295s.
-[2026-03-23 08:30:00] size: 73 | approach: turbo_pp param tuning (lower thresh) | time: TIMEOUT | notes: Lowering thresh_adj from 0.85 to 0.84 and reducing FB from 11000 to 10000 made things WORSE: 65% rels vs 72% in 275s. The smaller FB reduces smooth candidates more than DLP recovers.
-[2026-03-23 08:30:00] size: 73 | approach: spqs_dlp_bucket | time: TIMEOUT | notes: Timed out on 73d[1]. spqs_dlp is slower than turbo_pp at 73d.
-[2026-03-23 08:30:00] size: 74 | approach: turbo_pp | time: TIMEOUT | notes: 68% rels in 275s. 74d confirmed infeasible with all current implementations.
-[2026-03-23 09:00:00] size: 73 | approach: turbo_pp LP_mult=250 on 73d[4] | time: TIMEOUT | notes: Higher LP_mult (250 vs 200) got 3167 SLP vs 2918 SLP but still 72% in 275s (8146/11280). Extra LP matches don't compensate for the harder number. 73d[4] confirmed to need ~380s regardless of LP tuning.
-[2026-03-23 09:00:00] size: 65 | approach: siqs_ub (batch 8 + Gray code) | time: 87.9s worst | notes: Outclassed by turbo_pp (59.7s) and siqs_bucket (70.7s). Batch=8 doesn't help vs 48KB blocks and DLP pipeline.
-[2026-03-23 09:00:00] size: 70-72 | approach: HyperSIQS tuned + structured GE | time: 70d=74.9s, 72d=164.4s | notes: BEST at 70d (was turbo_siqs 97.6s). FB=10000, LP=200-300, structured GE. 72d all 5 pass.
+[2026-03-23 17:00:00] size: 73 | approach: latest turbo_pp on 73d[4] | time: FAIL (78.3% done) | notes: 8806/11250 rels in 275s. 20% sieve speed gap remains. Cannot be closed without SIMD or fundamentally different algorithm. 73d[4] is the definitive hard limit for all custom SIQS implementations.
+[2026-03-23 17:00:00] size: 73 | approach: latest turbo_pp 73d[4] | time: FAIL (78.3%) | notes: 8806/11250 rels. 20% gap. Hard limit for all custom SIQS.
