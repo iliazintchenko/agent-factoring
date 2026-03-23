@@ -492,7 +492,7 @@ int main(int argc, char *argv[]) {
     double log2_Qmax = kN_bits / 2.0 + 0.5 + log2(2.0 * M);
     int thresh_base = (int)(log2_Qmax * P.thresh_adj);
     int dlp_bonus = (int)(log2(lp_bound) * 0.4);
-    int tlp_bonus = (int)(log2(lp_bound) * 0.2);
+    int tlp_bonus = (int)(log2(lp_bound) * 0.25);
     int threshold = thresh_base - dlp_bonus - tlp_bonus;
     if (threshold < 25) threshold = 25;
 
@@ -806,26 +806,43 @@ int main(int argc, char *argv[]) {
                         mpz_add(ax_b, ax_b, b_val);
 
                         if (mpz_sgn(Qx) == 0) goto next_candidate;
+
+                        /* Trial division - use 64-bit fast path when Q(x) fits in 1 limb */
                         mpz_abs(residue, Qx);
-
-                        /* Trial division by factor base */
-                        while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
-
-                        for (int i = 1; i < fb->size; i++) {
-                            unsigned int p = fb->p[i];
-                            if (soln1[i] == 0xFFFFFFFF) continue;
-                            /* Check if p divides Q(x) using sieve roots */
-                            long xmod = ((x % (long)p) + p) % p;
-                            if (xmod != (long)soln1[i] && xmod != (long)soln2[i]) continue;
-                            while (mpz_divisible_ui_p(residue, p))
-                                mpz_divexact_ui(residue, residue, p);
-                        }
-                        /* Also try small primes we skipped */
-                        for (int i = 0; i < fb->size && fb->p[i] < 5; i++) {
-                            unsigned int p = fb->p[i];
-                            if (p <= 2) continue;
-                            while (mpz_divisible_ui_p(residue, p))
-                                mpz_divexact_ui(residue, residue, p);
+                        if (mpz_size(residue) <= 1) {
+                            /* Fast path: 64-bit trial division */
+                            u64 res64 = mpz_get_ui(residue);
+                            while (!(res64 & 1)) res64 >>= 1;
+                            for (int i = 1; i < fb->size; i++) {
+                                unsigned int p = fb->p[i];
+                                if (soln1[i] == 0xFFFFFFFF) continue;
+                                long xmod = ((x % (long)p) + p) % p;
+                                if (xmod != (long)soln1[i] && xmod != (long)soln2[i]) continue;
+                                while (res64 % p == 0) res64 /= p;
+                            }
+                            for (int i = 0; i < fb->size && fb->p[i] < 5; i++) {
+                                unsigned int p = fb->p[i];
+                                if (p <= 2) continue;
+                                while (res64 % p == 0) res64 /= p;
+                            }
+                            mpz_set_ui(residue, res64);
+                        } else {
+                            /* Standard GMP trial division */
+                            while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
+                            for (int i = 1; i < fb->size; i++) {
+                                unsigned int p = fb->p[i];
+                                if (soln1[i] == 0xFFFFFFFF) continue;
+                                long xmod = ((x % (long)p) + p) % p;
+                                if (xmod != (long)soln1[i] && xmod != (long)soln2[i]) continue;
+                                while (mpz_divisible_ui_p(residue, p))
+                                    mpz_divexact_ui(residue, residue, p);
+                            }
+                            for (int i = 0; i < fb->size && fb->p[i] < 5; i++) {
+                                unsigned int p = fb->p[i];
+                                if (p <= 2) continue;
+                                while (mpz_divisible_ui_p(residue, p))
+                                    mpz_divexact_ui(residue, residue, p);
+                            }
                         }
 
                         /* Multiply Q by a for the congruence (ax+b)^2 ≡ a*Q(x) (mod N) */
