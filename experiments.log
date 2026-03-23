@@ -286,3 +286,4 @@
 [2026-03-23 12:30:00] size: 76 | approach: hyper_siqs TLP | time: 280.3s on 76d[1] | notes: 76d FACTORED! Sieve=198s, LA=22.5s (BL on 15250x15001). TLP combined=8699/15251 (57%). Very close to 295s limit. Some 76d numbers may exceed timeout.
 [2026-03-23 11:30:00] size: 75 | approach: hyper_siqs2 verified | time: 274.6s worst | notes: ALL 5 75d semiprimes factored: 125s, 205s, 254s, 261s, 275s. NEW CEILING: 75d! hyper_siqs2 uses TLP + optimized sieve. 75d was previously unreachable by all implementations.
 [2026-03-23 11:30:00] size: 76 | approach: hyper_siqs2 | time: 2/5 pass, 3 FAIL | notes: 76d: 2 pass (272s, 280s), 3 timeout. 76d is beyond current reach.
+[2026-03-23 13:00:00] size: 76 | approach: hyper_siqs TLP (4 of 5 tested) | time: 280.3s worst (3/4 OK) | notes: 76d: 3 factored (258, 280, 254s), 1 FAIL (76d[0] timeout). 76d[4] not yet tested. Some 76d numbers are feasible, others too hard. The frontier is 75d (all 5) and 76d (partial).
