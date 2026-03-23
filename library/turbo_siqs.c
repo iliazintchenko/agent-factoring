@@ -985,8 +985,48 @@ int main(int argc, char *argv[]) {
                             if (split64(cof, &f1, &f2)) {
                                 if (f1 > f2) { uint64_t t = f1; f1 = f2; f2 = t; }
                                 if (f1 <= lp_bound && f2 <= lp_bound) {
-                                    int pi = rels_add(part, ax_b, aQx, f1, f2);
                                     dlp_found++;
+
+                                    /* DLP→SLP pipeline: check if either LP matches an SLP partial */
+                                    int m1 = lp_find(slp, f1);
+                                    int m2 = lp_find(slp, f2);
+                                    if (m1 >= 0 && m2 >= 0 && m1 != m2) {
+                                        /* Both LPs match SLP partials! DLP+SLP+SLP → full */
+                                        mpz_mul(tmp, ax_b, part->ax_b[m1]);
+                                        mpz_mul(tmp, tmp, part->ax_b[m2]);
+                                        mpz_mod(tmp, tmp, N);
+                                        mpz_mul(tmp2, aQx, part->Qx[m1]);
+                                        mpz_mul(tmp2, tmp2, part->Qx[m2]);
+                                        rels_add(full, tmp, tmp2, 0, 0);
+                                        combined_dlp++;
+                                    } else if (m1 >= 0) {
+                                        /* f1 matched SLP: DLP+SLP → new SLP partial with LP=f2 */
+                                        mpz_mul(tmp, ax_b, part->ax_b[m1]);
+                                        mpz_mod(tmp, tmp, N);
+                                        mpz_mul(tmp2, aQx, part->Qx[m1]);
+                                        int pi2 = rels_add(part, tmp, tmp2, f2, 0);
+                                        if (pi2 >= 0) lp_insert(slp, f2, pi2);
+                                        combined_dlp++;
+                                    } else if (m2 >= 0) {
+                                        /* f2 matched SLP: DLP+SLP → new SLP partial with LP=f1 */
+                                        mpz_mul(tmp, ax_b, part->ax_b[m2]);
+                                        mpz_mod(tmp, tmp, N);
+                                        mpz_mul(tmp2, aQx, part->Qx[m2]);
+                                        int pi2 = rels_add(part, tmp, tmp2, f1, 0);
+                                        if (pi2 >= 0) lp_insert(slp, f1, pi2);
+                                        combined_dlp++;
+                                    } else {
+                                        /* No SLP match: store as SLP with f1 */
+                                        int pi = rels_add(part, ax_b, aQx, f1, f2);
+                                        if (pi >= 0) {
+                                            lp_insert(slp, f1, pi);
+                                            /* Also insert with f2 for future matches */
+                                            lp_insert(slp, f2, pi);
+                                        }
+                                    }
+
+                                    int pi = -1; /* For DLP graph compatibility */
+                                    if (m1 < 0 && m2 < 0) pi = 0; /* only do graph matching if no SLP match */
                                     if (pi >= 0) {
                                         /* Add to DLP graph */
                                         int cycle = dlp_add_edge(dlp_g, f1, f2);
@@ -1033,7 +1073,7 @@ int main(int argc, char *argv[]) {
                                             dp_e_t *e2 = &dp_pool[dp_pool_used++];
                                             e2->lp = f2; e2->rel_idx = pi; e2->next = dp_hash[h2]; dp_hash[h2] = e2;
                                         }
-                                    }
+                                    } /* end if (pi >= 0) */
                                 }
                             }
                         }
