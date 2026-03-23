@@ -366,11 +366,17 @@ int main(int argc, char *argv[]) {
 
             if (!rat_smooth) { free(rex); mpz_clears(rn, an, tmp, NULL); continue; }
 
-            /* Trial divide algebraic norm */
+            /* Trial divide algebraic norm - assign exponents to correct (p,r) ideal */
             int *aex = calloc(afb->sz, sizeof(int));
             mpz_set(tmp, an);
             for (int i = 0; i < afb->sz; i++) {
                 int p = afb->p[i];
+                int r = afb->r[i];
+                /* Check if this ideal (p, r) divides (a - b*α): a ≡ b*r (mod p) */
+                long check_a = ((a_val % p) + p) % p;
+                long check_br = ((long)b_val * r) % p;
+                if (check_a != check_br) continue; /* this ideal doesn't divide */
+                /* Divide out as many powers as possible */
                 while (mpz_divisible_ui_p(tmp, p)) { mpz_divexact_ui(tmp, tmp, p); aex[i]++; }
             }
             int alg_smooth = (mpz_cmp_ui(tmp, lp_alg) <= 0);
