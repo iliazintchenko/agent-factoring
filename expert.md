@@ -65,22 +65,34 @@ YAFU SIQS single-core times (worst of 5 semiprimes per size):
 | 89 | 294s | ~7x per 9d |
 | 90+ | >300s | |
 
+**Turbo SIQS** (worst of 5 per size) — **current best custom implementation**:
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 30 | 0.04s | | 2.9x |
+| 40 | 0.14s | | 8.2x |
+| 50 | 0.97s | ~7x/10d | 8.1x |
+| 55 | 3.79s | 3.9x/5d | |
+| 60 | 26.1s | 6.9x/5d | 37x |
+| 65 | 59.7s | 2.3x/5d | |
+| 67 | 89.0s | | |
+| 68 | 78.8s | | |
+| 70 | 97.6s | 1.6x/5d | 16.8x |
+| 71 | 172.6s | | |
+| 72 | 247.8s | ~2.5x/2d | |
+| 73 | ~276s (4/5 ok) | | |
+
+Key features: bucket sieving, Gray code self-init, SLP matching (LP_mult=200), structured Gaussian elimination (singleton removal before dense GE). 48KB L1-cache-optimized sieve blocks.
+
 SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
 |--------|------|--------|---------|
 | 30 | 0.031s | | 2.2x |
-| 35 | 0.054s | ~1.7x/5d | |
-| 40 | 0.177s | 3.3x/5d | 10x |
-| 45 | 0.323s | 1.8x/5d | |
-| 50 | 0.860s | 2.7x/5d | 7.2x |
-| 55 | 4.98s | 5.8x/5d | |
-| 60 | 8.92s | 1.8x/5d | 12.7x |
-| 65 | 70.7s | 7.9x/5d | |
-| 70 | 134.5s | 1.9x/5d | 23x |
-| 75 | ~295s | ~2.2x/5d | |
-
-**Key observation**: 65→70 growth is only 1.9x/5d (vs 7.9x/5d for 60→65). This is because the DLP→SLP pipeline becomes much more effective as the SLP hash grows. At 70d, ~45K SLP partials provide high hit rates for DLP matching. This positive feedback loop (more SLP → more DLP matches → more SLP from DLP→SLP conversion) creates a sublinear scaling region.
+| 50 | 0.860s | | 7.2x |
+| 60 | 8.92s | | 12.7x |
+| 65 | 70.7s | | |
+| 70 | 134.5s | | 23x |
 
 SPQS2 Bucket Sieve (worst of 5 per size):
 
@@ -181,8 +193,9 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 ## Custom Implementations in library/
 
 ### Working implementations (best to worst)
-- **spqs2.c**: **Best custom.** SPQS with bucket sieve + AVX512 LA. 1.6-24x slower than YAFU. 30-75d. `gcc -O3 -march=native -mavx512f -o spqs2 library/spqs2.c -lgmp -lm`
-- **siqs_bucket.c**: **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve. 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+- **turbo_siqs.c**: **Best custom. Fastest at 70d+ (97.6s). First to reliably factor 72d (247.8s).** Bucket sieve, Gray code, SLP (LP_mult=200), structured GE (singleton removal + dense GE). 48KB L1-optimized blocks. 3-17x slower than YAFU. 30-72d. `gcc -O3 -march=native -o turbo_siqs library/turbo_siqs.c -lgmp -lm`
+- **spqs2.c**: SPQS with bucket sieve + AVX512 LA. 1.6-24x slower than YAFU. 30-75d. `gcc -O3 -march=native -mavx512f -o spqs2 library/spqs2.c -lgmp -lm`
+- **siqs_bucket.c**: Gray code + DLP→SLP pipeline + bucket sieve. 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
 - **hyper_siqs.c**: **Best at 60d** (single number). TLP SIQS with bucket sieve, Gray code, Pollard rho cofactor splitting. 9s on one 60d number. But at 70d (218s), LA dominates due to huge 22000x22000 matrix. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
 - **hybrid_siqs.c**: SPQS multi-poly batch (4 polys) combined with bucket sieve for large primes. Slower at small sizes (overhead) but competitive at 65d (86.2s). `gcc -O3 -march=native -o hybrid_siqs library/hybrid_siqs.c -lgmp -lm`
 - **spqs_dlp.c**: SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
