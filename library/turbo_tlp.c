@@ -419,7 +419,7 @@ static params_t get_params(int bits) {
     /* TLP-tuned params: smaller FB + higher LP multiplier for 235-258 bits */
     if (bits <= 235) return (params_t){10000, 46, 200, 180, 0.855, 1};
     if (bits <= 245) return (params_t){10000, 56, 300, 200, 0.86,  1};
-    if (bits <= 253) return (params_t){11000, 64, 350, 230, 0.86,  1};
+    if (bits <= 253) return (params_t){14000, 60, 250, 250, 0.86,  1};
     if (bits <= 258) return (params_t){20000, 60, 150, 300, 0.855, 1};
     if (bits <= 265) return (params_t){16000, 80, 250, 300, 0.87,  1};
     if (bits <= 270) return (params_t){22000, 80, 200, 350, 0.865, 1};
