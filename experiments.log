@@ -267,3 +267,4 @@
 [2026-03-23 18:30:00] size: 74 | approach: SIQS-Bucket | time: >295s (0/3 OK) | notes: 74d not feasible with current implementation. 73d (3/5) is the practical ceiling for siqs_bucket.
 [2026-03-23 10:30:00] size: 73 | approach: hyper_siqs TLP ALL 5 | time: 169.5s worst | notes: ALL 5 73d FACTORED: 142.5, 76.3, 111.5, 127.5, 169.5s. TLP provides 56-61% of relations via combination. Block Lanczos handles 10200x10001 matrix in ~3.5s. MAJOR MILESTONE: 73d is now fully solvable.
 [2026-03-23 10:30:00] size: 74 | approach: hyper_siqs TLP | time: 108.8s on 74d[1] | notes: First 74d number factored! TLP + BL makes 74d achievable. Need to test all 5.
+[2026-03-23 08:30:00] size: 74-75 | approach: hyper_siqs (latest compiled) | time: FAIL | notes: 74d #0 times out at 163s (didn't find factor). 75d similarly fails. The frontier for all-5-pass is 73d (hyper_siqs_dlp_tlp: 168s). 74d+ requires either AVX512 sieve or fundamentally different algorithm.
