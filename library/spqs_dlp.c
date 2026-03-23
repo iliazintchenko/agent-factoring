@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 #define SEED 42
-#define SIEVE_BLOCK 32768
+#define SIEVE_BLOCK 49152  /* 48KB = L1d cache on EPYC 9R45 */
 #define MAX_FB 80000
 #define MAX_A_FACTORS 20
 #define MAX_RELS 500000
