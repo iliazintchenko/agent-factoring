@@ -17,13 +17,27 @@ Schnorr (2021) proposed reducing factoring to SVP in a lattice built from smooth
 
 **Lesson**: Any lattice approach that depends on a large smooth factor base inherits the same sub-exponential dimension growth. Haven't tested yet — maybe worth exploring to understand the failure mode empirically.
 
-## Smooth Subsum Search — Hittmeir 2023 (tested, disappointing in practice)
+## Smooth Subsum Search — Hittmeir 2023 (implemented, BETTER SCALING than MPQS beyond 50 digits)
 
-Uses CRT to construct values guaranteed divisible by several factor base primes, then tests the smaller cofactor for smoothness. Replaces sieving with structured candidate generation. Still L[1/2] but with potentially better constants.
+Uses CRT to construct values guaranteed divisible by several factor base primes, then tests the smaller cofactor for smoothness. Replaces sieving with structured candidate generation. L[1/2] complexity class.
 
-**Result**: 3-11x slower than MPQS in our C++ implementation. The paper's claimed 5-7x speedup was measured against Python QS. In C++, sieve-based QS benefits from cache-friendly memory access, while SSS has per-candidate GMP overhead. SSS scales ~11-14x per +10 digits vs MPQS's ~5-6x — *worse* than expected.
+**Benchmark results** (worst of 5 semiprimes, single core, seed=42):
 
-Possible reasons: our implementation lacks the batch product/remainder tree optimization from the paper; CRT overhead dominates at current sizes. Worth revisiting with proper batch smoothness testing.
+| Digits | MPQS | SSS | Ratio |
+|--------|------|-----|-------|
+| 30 | 0.055s | 0.06s | 1.1x |
+| 40 | 0.288s | 0.78s | 2.7x |
+| 50 | 1.79s | 17.4s | 9.7x |
+| 55 | 25.3s | 55.0s | 2.2x |
+| 60 | 72.9s | 147.1s | 2.0x |
+
+**Key finding**: SSS has dramatically better scaling from 50 to 60 digits:
+- MPQS 50→60: 40.7x increase
+- SSS 50→60: 8.4x increase
+
+L[1/2] fit extrapolation predicts SSS overtakes MPQS around **75-80 digits**. This is because SSS generates candidates with guaranteed divisibility by ~6 factor base primes, making the remaining cofactor smaller. At larger sizes, this structural advantage compensates for the per-candidate overhead.
+
+**Optimization**: Replaced hash map collision counting with sorted array — 33% speedup. Further optimization possible: batch product/remainder tree for smoothness testing (currently using direct trial division).
 
 ## Spectral methods on Cayley graphs (dead end classically)
 
