@@ -388,10 +388,42 @@ YAFU can save/resume via siqs.dat. Key findings:
 - Orchestrates msieve poly select + GGNFS sieve + msieve filter/LA/sqrt
 - Works but msieve integration needs tuning (msieve.fb format conversion)
 
+### 90d GNFS Verified Factorizations (agent-1)
+All 5 90d semiprimes factored via GNFS (pre-computed poly + GGNFS sieve + YAFU post-processing):
+- 90d[0]: 315547728763353682629201910311839572981703304736061985377687053517447821670148261179477299 = 331902388528167534291761852803279586498815391 * 950724489096510729028869813711222340321732589
+- 90d[1]: 144009255506966132983765710705715101627946917437406468019915946276667323993959592666335633 = 227731436216475209021450721150909180555746243 * 632364410902300352402659467244353314142024731
+- 90d[2]: 321739159513091262170255410982298427140058934463728910158638687584271260451816679219749747 = 335245195964718510775053835024328500135758179 * 959712960501159171406048254656254313462882993
+- 90d[3]: 149689871933523898487085003856984468870482390037601728900188208806500682729361812646669171 = 183506310264398949279296719368434548097600837 * 815720569597024957780046759609360954162468183
+- 90d[4]: 226492946512013642353358853937990356716879227059976248121251466901503301655504057622409363 = 280782675676655379846032037521504370086476931 * 806648579604103213701066786081762925875191473
+
+**Timing**: Resume mode (from partial sieve data): 96-110s. Clean run with pre-computed poly: ~255s at load<5 (estimated), ~320s at load 12 (measured timeout). **The 90d GNFS approach is viable but load-sensitive.**
+
+Key parameters for 90d GNFS:
+- Polynomial: degree 4, auto-selected by YAFU (E scores: 4.5-4.9e-08)
+- Sieve: GGNFS I=12, lpb=25/25, rlim/alim=350K/840K (YAFU defaults)
+- Target: 1.46M relations at ~5000-6500 rels/sec
+- Post-processing: ~30s (filter + BL + sqrt)
+- Pre-computed polynomials saved in `library/gnfs_polys/90d_{0-4}.poly`
+
+### Batch Smoothness Detection (product tree, Bernstein) — NEGATIVE RESULT
+- Implemented in `library/batch_smooth.c`: product tree + remainder tree for batch B-smoothness testing
+- **Throughput**: 1.7M tests/sec for 30d numbers (fast GMP product tree)
+- **Smoothness rate**: ~0/sec (zero smooth values found in 1.5M tests with B=300)
+- **Root cause**: QS polynomial values Q(x) grow linearly in x. For large x, Q(x) ≈ 2*sqrt(N)*x, making them too large for B-smoothness. The sieve's advantage is that it only processes positions where primes contribute, effectively prefiltering to the ~1% of x values most likely to yield smooth Q(x).
+- **Conclusion**: Batch smoothness (product trees) cannot replace sieving for QS/NFS. The sieve IS the efficient prefilter. Batch methods are useful for cofactor testing (where candidates are already sieve-identified) but not for finding smooth values from scratch.
+
+### AMD EPYC 9R45 Cache Observation
+- **L1D = 48KB** (not 32KB as in Intel). YAFU's sieve uses 32KB blocks (hardcoded in AVX512 assembly as powers of 2).
+- A 48KB block is NOT a power of 2, so bit-masking doesn't work. Cannot trivially increase YAFU's block size.
+- YAFU already mitigates this via the -siqsNB parameter (processes multiple 32KB blocks before re-initializing).
+- A custom sieve with non-power-of-2 blocks would need modular arithmetic instead of bit masks — likely slower.
+
 ## Tools
 - `yafu/yafu`: YAFU baseline. Use `siqs(N)` with `-threads 1 -seed 42`.
 - `library/nfs_siever.c`: Custom NFS lattice siever (working, produces valid GGNFS-format relations)
-- `library/nfs_factor.sh`: NFS orchestration (msieve poly + GGNFS sieve + msieve filter/LA/sqrt)
+- `library/gnfs_pipeline.sh`: GNFS pipeline (pre-computed poly + GGNFS sieve + YAFU post). Use for 90d.
+- `library/siqs_engine.c`: Custom SIQS with AVX512BW scanning (sieve only, no LA/sqrt yet). 180 rels/sec on 40d (340x slower than YAFU).
+- `library/batch_smooth.c`: Batch smoothness via product trees. Negative result — cannot replace sieving.
 - `library/siqs2.c`: Custom SIQS (SLP, working 30-60d, 30-80x slower than YAFU)
 - `library/siqs_fast.c`: Custom SIQS with DLP (working 30-50d). Compile: `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
 - `library/mpqs.c`: Custom MPQS (sieve works, sqrt step buggy)

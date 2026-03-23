@@ -249,3 +249,8 @@
 [2026-03-23 00:48:00] size: 90 | approach: original YAFU SIQS NB=20 B=120K on 90d[3] | time: 282.8 | notes: load ~12. PASS.
 [2026-03-23 00:53:00] size: 90 | approach: GNFS pre-computed poly (orig YAFU, 1.46M) 90d[0] | time: TIMEOUT (load=12) | notes: Collected ~1.37M of 1.46M target. Rate ~5263/sec. On idle: 225s+13s=238s. Load must be <7 for 295s budget.
 [2026-03-23 00:53:00] size: 90 | approach: GNFS pre-computed poly 90d[0] | time: TIMEOUT (load=12) | notes: Rate ~5263/sec, need 1.46M. On idle: 238s.
+[2026-03-23 01:16:00] size: 90 | approach: GNFS resume (pre-computed poly + partial rels + YAFU -R) 90d[0-4] | time: 96-110s resume | notes: ALL 5 factored via resume from ~1.1M pre-collected rels. Sieve rate ~5000/sec at load 12-23. Post-processing 15-30s.
+[2026-03-23 01:21:00] size: 90 | approach: GNFS clean (pre-computed poly, YAFU auto-sieve) 90d[1] at load=12 | time: TIMEOUT (295s) | notes: Collected ~1.3M of 1.46M target. Rate ~5400/sec. On idle (6500/sec): est 225s sieve + 30s post = 255s. Load-sensitive.
+[2026-03-23 01:22:00] size: 30 | approach: batch_smooth.c (product tree B-smoothness) | time: FAIL | notes: 0 smooth values in 1.5M tests. Product tree tests 1.7M values/sec but Q(x) values too large for B-smoothness. Sieve prefiltering is essential.
+[2026-03-23 01:22:00] size: 40 | approach: siqs_engine.c (custom SIQS with AVX512 scan) | time: 5.8s | notes: 180 rels/sec, 340x slower than YAFU. Scalar sieve fill is bottleneck. AVX512 scan of candidates works correctly.
+[2026-03-23 01:22:00] size: ALL | approach: AMD L1D cache analysis | time: N/A | notes: L1D=48KB (not 32KB). YAFU uses 32KB blocks (power-of-2 requirement for bit masking). 48KB is NOT power-of-2, so cannot use larger blocks without modular arithmetic.

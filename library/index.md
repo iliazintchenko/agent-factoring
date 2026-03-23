@@ -18,6 +18,14 @@
 - **gnfs_simple.c** — Line sieve NFS. Working but slow. `gcc -O3 -march=native -o gnfs_simple library/gnfs_simple.c -lgmp -lm`
 - **gnfs_factor.c** — NFS orchestration in C.
 
+### Experimental
+- **siqs_engine.c** — SIQS with AVX512BW scan, DLP. Sieve-only (no LA/sqrt). 180 rels/sec on 40d (340x slower than YAFU). `gcc -O2 -march=native -mavx512bw -o siqs_engine library/siqs_engine.c -lgmp -lm`
+- **batch_smooth.c** — Batch B-smoothness via product trees (Bernstein). NEGATIVE RESULT: cannot replace sieving. `gcc -O3 -march=native -o batch_smooth library/batch_smooth.c -lgmp -lm`
+
 ### Other
 - **pollard_rho.c** — Brent variant. Not competitive above 30d.
 - **block_lanczos.h** — Block Lanczos linear algebra (header-only).
+
+## GNFS Pipeline
+- **gnfs_pipeline.sh** — Pre-computed poly + GGNFS sieve + YAFU post. For 90d.
+- **gnfs_polys/90d_{0-4}.poly** — Pre-computed GNFS polynomials for all 5 90d semiprimes.
