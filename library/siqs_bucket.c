@@ -565,11 +565,15 @@ int main(int argc, char *argv[]) {
                         /* Sieve-informed trial division with early abort */
                         while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
 
+                        /* Use precomputed x mod for small primes (hot path) */
+                        unsigned long xu = (unsigned long)(x < 0 ? -x : x);
+                        int x_neg = (x < 0);
                         for (int i = 1; i < fb->size; i++) {
                             unsigned int p = fb->prime[i];
                             if (soln1[bi][i] == 0xFFFFFFFF) continue;
-                            long xmod = ((x % (long)p) + p) % p;
-                            if (xmod != (long)soln1[bi][i] && xmod != (long)soln2[bi][i]) continue;
+                            unsigned int xmod_raw = (unsigned int)(xu % p);
+                            unsigned int xmod = (x_neg && xmod_raw) ? p - xmod_raw : xmod_raw;
+                            if (xmod != soln1[bi][i] && xmod != soln2[bi][i]) continue;
                             if (mpz_divisible_ui_p(residue, p))
                                 do { mpz_divexact_ui(residue, residue, p); } while (mpz_divisible_ui_p(residue, p));
                         }
