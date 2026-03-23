@@ -956,7 +956,7 @@ int main(int argc, char *argv[]) {
     /* ==================== Main Sieving Loop ==================== */
     while (full->count < target) {
         double t = elapsed_sec();
-        if (t > 275.0) { fprintf(stderr, "TIMEOUT at %.1fs with %d/%d rels\n", t, full->count, target); break; }
+        if (t > 288.0) { fprintf(stderr, "TIMEOUT at %.1fs with %d/%d rels\n", t, full->count, target); break; }
 
         /* === Generate new 'a' === */
         {
