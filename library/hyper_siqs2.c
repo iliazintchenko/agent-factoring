@@ -868,7 +868,7 @@ int main(int argc, char *argv[]) {
                             /* Fast path: 64-bit trial division */
                             u64 res64 = mpz_get_ui(residue);
                             while (!(res64 & 1)) res64 >>= 1;
-                            for (int i = 1; i < fb->size; i++) {
+                            for (int i = 1; i < fb->size && res64 > 1; i++) {
                                 unsigned int p = fb->p[i];
                                 if (soln1[i] == 0xFFFFFFFF) continue;
                                 long xmod = ((x % (long)p) + p) % p;
