@@ -909,20 +909,32 @@ int main(int argc, char *argv[]) {
                 }
             }
 
+            /* Precompute initial root offsets for block 0 */
+            static uint32_t blk_off1[MAX_FB], blk_off2[MAX_FB];
+            {
+                int64_t bbase0 = -M;
+                for (int i = 1; i < bucket_thresh; i++) {
+                    if (soln1[i] == 0xFFFFFFFF) { blk_off1[i] = blk_off2[i] = 0; continue; }
+                    uint32_t p = fb->prime[i];
+                    int64_t o1 = ((int64_t)soln1[i] - bbase0) % (int64_t)p; if (o1 < 0) o1 += p;
+                    int64_t o2 = ((int64_t)soln2[i] - bbase0) % (int64_t)p; if (o2 < 0) o2 += p;
+                    blk_off1[i] = (uint32_t)o1;
+                    blk_off2[i] = (uint32_t)o2;
+                }
+            }
+
             /* === Sieve each block === */
             for (int blk = 0; blk < total_blocks; blk++) {
                 int64_t bbase = (int64_t)blk * BLOCK_SIZE - M;
                 memset(sieve, 0, BLOCK_SIZE);
 
-                /* Small/medium primes - optimized inner loops */
+                /* Small/medium primes - optimized inner loops with tracked offsets */
                 for (int i = 1; i < bucket_thresh; i++) {
                     if (soln1[i] == 0xFFFFFFFF) continue;
                     uint32_t p = fb->prime[i];
                     if (p < 4) continue;
                     uint8_t lp = fb->logp[i];
-                    int64_t off1_64 = ((int64_t)soln1[i] - bbase) % (int64_t)p; if (off1_64 < 0) off1_64 += p;
-                    int64_t off2_64 = ((int64_t)soln2[i] - bbase) % (int64_t)p; if (off2_64 < 0) off2_64 += p;
-                    uint32_t off1 = (uint32_t)off1_64, off2 = (uint32_t)off2_64;
+                    uint32_t off1 = blk_off1[i], off2 = blk_off2[i];
                     if (soln1[i] == soln2[i]) {
                         uint32_t j = off1;
                         for (; j + 3*p < BLOCK_SIZE; j += 4*p) {
@@ -946,6 +958,18 @@ int main(int argc, char *argv[]) {
                 /* Bucket entries */
                 for (int e = 0; e < buckets[blk].count; e++)
                     sieve[buckets[blk].entries[e].pos] += buckets[blk].entries[e].logp;
+
+                /* Update offsets for next block (avoid modular arithmetic) */
+                if (blk + 1 < total_blocks) {
+                    for (int i = 1; i < bucket_thresh; i++) {
+                        if (soln1[i] == 0xFFFFFFFF) continue;
+                        uint32_t p = fb->prime[i];
+                        if (p < 4) continue;
+                        uint32_t bs = BLOCK_SIZE % p;
+                        blk_off1[i] = (blk_off1[i] >= bs) ? blk_off1[i] - bs : blk_off1[i] + p - bs;
+                        blk_off2[i] = (blk_off2[i] >= bs) ? blk_off2[i] - bs : blk_off2[i] + p - bs;
+                    }
+                }
 
                 /* === Scan for candidates === */
                 for (int j = 0; j < BLOCK_SIZE; j++) {
