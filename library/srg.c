@@ -593,43 +593,71 @@ static int pollard_rho(mpz_t factor, mpz_t n, unsigned long max_iters) {
     return found;
 }
 
-/* ---- ECM wrapper ---- */
+/* ---- ECM wrapper with progressive bounds ---- */
 static int ecm_factor_wrapper(mpz_t factor, mpz_t n, int digits) {
-    int factor_digits = digits / 2;
-    double B1;
-    int curves;
+    /* Progressive ECM: run with increasing B1 bounds.
+     * This is more efficient than fixed B1 because:
+     * - Small B1 quickly finds easy factors
+     * - Larger B1 catches harder factors
+     * - Stage 2 (automatic) extends the effective bound to ~100*B1 */
 
-    if (factor_digits <= 15) { B1 = 2000; curves = 25; }
-    else if (factor_digits <= 20) { B1 = 11000; curves = 90; }
-    else if (factor_digits <= 25) { B1 = 50000; curves = 300; }
-    else if (factor_digits <= 30) { B1 = 250000; curves = 700; }
-    else if (factor_digits <= 35) { B1 = 1000000; curves = 1800; }
-    else if (factor_digits <= 40) { B1 = 3000000; curves = 5100; }
-    else { B1 = 11000000; curves = 10600; }
+    /* Recommended (B1, curves) from GMP-ECM documentation */
+    static const struct { double B1; int curves; } levels[] = {
+        {     2000,   25 },  /* up to 15 digits */
+        {    11000,   90 },  /* up to 20 digits */
+        {    50000,  300 },  /* up to 25 digits */
+        {   250000,  700 },  /* up to 30 digits */
+        {  1000000, 1800 },  /* up to 35 digits */
+        {  3000000, 5100 },  /* up to 40 digits */
+        { 11000000, 10600 }, /* up to 45 digits */
+        { 43000000, 19300 }, /* up to 50 digits */
+    };
+    int nlevels = sizeof(levels) / sizeof(levels[0]);
+
+    /* Start from appropriate level based on factor size estimate */
+    int factor_digits = digits / 2;
+    int start_level = 0;
+    if (factor_digits > 15) start_level = 1;
+    if (factor_digits > 20) start_level = 2;
+    if (factor_digits > 25) start_level = 3;
+    if (factor_digits > 30) start_level = 4;
 
     mpz_t f;
     mpz_init(f);
     int found = 0;
     time_t start = time(NULL);
+    int total_curves = 0;
 
-    for (int i = 0; i < curves && !found; i++) {
-        if (time(NULL) - start > 250) break;
+    for (int level = start_level; level < nlevels && !found; level++) {
+        double B1 = levels[level].B1;
+        int ncurves = levels[level].curves;
 
-        ecm_params params;
-        ecm_init(params);
-        mpz_set_ui(params->sigma, 6 + (unsigned long)(i + 42) * 1000003UL);
-        params->sigma_is_A = ECM_PARAM_SUYAMA;
-        params->B1done = 1.0;
+        for (int i = 0; i < ncurves && !found; i++) {
+            if (time(NULL) - start > 270) goto done;
 
-        int ret = ecm_factor(f, n, B1, params);
-        ecm_clear(params);
+            ecm_params params;
+            ecm_init(params);
+            mpz_set_ui(params->sigma, 6 + (unsigned long)(total_curves + 42) * 1000003UL);
+            params->sigma_is_A = ECM_PARAM_SUYAMA;
+            params->B1done = 1.0;
 
-        if (ret > 0 && mpz_cmp_ui(f, 1) > 0 && mpz_cmp(f, n) < 0) {
-            mpz_set(factor, f);
-            found = 1;
+            int ret = ecm_factor(f, n, B1, params);
+            ecm_clear(params);
+            total_curves++;
+
+            if (ret > 0 && mpz_cmp_ui(f, 1) > 0 && mpz_cmp(f, n) < 0) {
+                mpz_set(factor, f);
+                found = 1;
+            }
+        }
+
+        if (!found && level < nlevels - 1) {
+            fprintf(stderr, "ECM level %d (B1=%.0f, %d curves) done, trying next...\n",
+                    level, B1, ncurves);
         }
     }
 
+done:
     mpz_clear(f);
     return found;
 }
