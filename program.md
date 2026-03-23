@@ -12,7 +12,7 @@ Think about this deeply. Don't start by writing a sieve. Start by understanding 
 
 The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. The YAFU baseline scaling curve is in `best-algos.json`. But the benchmark is a validation tool, not the focus — the focus is ideas.
 
-**What is NOT useful:** writing another quadratic sieve variant. Previous runs produced many SIQS implementations and they all follow L[1/2] scaling. Another one will not produce a breakthrough. Similarly, tuning or running existing tools (YAFU, CADO-NFS, msieve) is not progress — their source is available to read but **do not compile or run them**. All code you run must be your own, written in library/.
+**What is NOT useful:** writing another quadratic sieve or NFS variant — these are known L[1/2] and L[1/3] algorithms. Reimplementing them will not produce a scaling breakthrough. Similarly, tuning or running existing tools (YAFU, CADO-NFS, msieve) is not progress — their source is available to read but **do not compile or run them**. All code you run must be your own, written in library/.
 
 ENVIRONMENT:
 
