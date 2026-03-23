@@ -19,6 +19,8 @@
 #include <time.h>
 #include <gmp.h>
 
+#include "lanczos.h"  /* Block Lanczos for fast LA */
+
 #define SEED 42
 #define SIEVE_BLOCK 32768
 #define MAX_FB 100000
@@ -204,7 +206,7 @@ static params_t get_params_by_digits(int digits) {
     if (digits <= 64) return (params_t){5400, 3,  80, 120, 0.84, 1, 150};
     if (digits <= 70) return (params_t){10000,3, 100, 150, 0.86, 1, 200};
     if (digits <= 75) return (params_t){18000,4, 120, 200, 0.86, 1, 250};
-    if (digits <= 75) return (params_t){12000,3, 150, 200, 0.86, 1, 350};
+    if (digits <= 75) return (params_t){18000,3, 120, 200, 0.87, 1, 300};
     if (digits <= 80) return (params_t){50000,4, 100, 250, 0.885, 1, 250};
     if (digits <= 85) return (params_t){55000,3,  80, 300, 0.89, 1, 300};
     if (digits <= 90) return (params_t){60000,9,  80, 350, 0.90, 1, 300};
@@ -725,8 +727,24 @@ int main(int argc, char *argv[]) {
     }
 
     int **deps; int *dlen;
-    int ndeps = gf2_solve(mat, &deps, &dlen, 64);
-    fprintf(stderr, "LA: %d deps from %dx%d (%.2fs)\n", ndeps, nrels, ncols, elapsed());
+    double la_start = elapsed();
+
+    /* Use Block Lanczos for large matrices (much faster for sparse QS matrices) */
+    int ndeps;
+    if (nrels > 2000) {
+        fprintf(stderr, "Using Block Lanczos for %dx%d matrix...\n", nrels, ncols);
+        sp_mat_t *sp = sp_from_dense(mat->rows, nrels, ncols);
+        ndeps = lanczos_solve(sp, &deps, &dlen, 64);
+        free(sp->row_off); free(sp->col); free(sp);
+        if (ndeps == 0) {
+            /* Fallback to Gaussian elimination if BL fails */
+            fprintf(stderr, "BL found 0 deps, falling back to Gauss...\n");
+            ndeps = gf2_solve(mat, &deps, &dlen, 64);
+        }
+    } else {
+        ndeps = gf2_solve(mat, &deps, &dlen, 64);
+    }
+    fprintf(stderr, "LA: %d deps from %dx%d (%.2fs)\n", ndeps, nrels, ncols, elapsed() - la_start);
 
     /* Square root */
     for (int d = 0; d < ndeps; d++) {
