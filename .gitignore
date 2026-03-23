@@ -23,3 +23,5 @@ library/cfrac
 library/dixon_batch
 library/sss_test*
 library/hybrid
+bsrf
+ecm_factor
