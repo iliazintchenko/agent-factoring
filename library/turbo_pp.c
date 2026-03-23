@@ -909,17 +909,18 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            /* Precompute initial root offsets for block 0 */
-            static uint32_t blk_off1[MAX_FB], blk_off2[MAX_FB];
+            /* Precompute initial root offsets for block 0 + block-size remainders */
+            static uint32_t blk_off1[MAX_FB], blk_off2[MAX_FB], blk_mod[MAX_FB];
             {
                 int64_t bbase0 = -M;
                 for (int i = 1; i < bucket_thresh; i++) {
-                    if (soln1[i] == 0xFFFFFFFF) { blk_off1[i] = blk_off2[i] = 0; continue; }
+                    if (soln1[i] == 0xFFFFFFFF) { blk_off1[i] = blk_off2[i] = 0; blk_mod[i] = 0; continue; }
                     uint32_t p = fb->prime[i];
                     int64_t o1 = ((int64_t)soln1[i] - bbase0) % (int64_t)p; if (o1 < 0) o1 += p;
                     int64_t o2 = ((int64_t)soln2[i] - bbase0) % (int64_t)p; if (o2 < 0) o2 += p;
                     blk_off1[i] = (uint32_t)o1;
                     blk_off2[i] = (uint32_t)o2;
+                    blk_mod[i] = BLOCK_SIZE % p;
                 }
             }
 
@@ -965,9 +966,9 @@ int main(int argc, char *argv[]) {
                         if (soln1[i] == 0xFFFFFFFF) continue;
                         uint32_t p = fb->prime[i];
                         if (p < 4) continue;
-                        uint32_t bs = BLOCK_SIZE % p;
-                        blk_off1[i] = (blk_off1[i] >= bs) ? blk_off1[i] - bs : blk_off1[i] + p - bs;
-                        blk_off2[i] = (blk_off2[i] >= bs) ? blk_off2[i] - bs : blk_off2[i] + p - bs;
+                        uint32_t bs = blk_mod[i];
+                        blk_off1[i] = (blk_off1[i] >= bs) ? blk_off1[i] - bs : blk_off1[i] + fb->prime[i] - bs;
+                        blk_off2[i] = (blk_off2[i] >= bs) ? blk_off2[i] - bs : blk_off2[i] + fb->prime[i] - bs;
                     }
                 }
 
