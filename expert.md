@@ -187,6 +187,8 @@ Pre-computed polynomial + direct GGNFS sieve + YAFU post-processing:
 | GNFS under load (17-24) | GGNFS siever at 0.18ms/rel vs ~0.14ms at load < 10. Cache contention makes GNFS unreliable. |
 | CADO-NFS las single-core 90d | 115 rels/sec with GGNFS-style params, 25 rels/sec with default c90 params. **42x slower than GGNFS**. Not viable for 300s budget. |
 | PGO build (profile-guided opt) | 1% improvement on 80d. Hot path is hand-written AVX512 intrinsics — GCC can't improve them via profiling. |
+| Standalone GNFS (GGNFS direct + YAFU post) | GGNFS standalone: 5000-6500 rels/sec. YAFU `-R -nc` for filter+BL+sqrt: ~28s. Total on idle: ~253s. **Most promising path for 90d.** |
+| YAFU NFS batch overhead | YAFU wraps GGNFS in 2K-Q batches with ~5s overhead each. Effective rate: ~2500 rels/sec vs 5000+ standalone. 2x slowdown from batching. |
 | USE_BATCHPOLY build | 11% slower (80d: 52.9s vs 47.0s). Batch polynomial root updates hurt performance. |
 | inmem=100 (all in-memory) | No improvement on 80d or 88d vs default inmem cutoff of 70d. |
 | CPU pinning (taskset) | No improvement. Single-threaded YAFU doesn't benefit from core affinity. |
