@@ -2,13 +2,17 @@ GOAL:
 
 **Discover a novel approach to integer factoring that scales better than existing algorithms.**
 
-The best known classical factoring algorithms (quadratic sieve, number field sieve) are sub-exponential. We want to find approaches that scale polynomially — or at least significantly better than what exists. This would be a major result.
+The best known classical factoring algorithms are sub-exponential: quadratic sieve achieves L[1/2], number field sieve achieves L[1/3]. NFS has been the state of the art since 1993 — over 30 years with no improvement in the scaling exponent. We want to do better.
 
-The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed. Use them to validate ideas and measure scaling behavior. The benchmark metric is the worst-case wallclock time across the 5 semiprimes of each size — but the real goal is not to optimize times on specific sizes. It's to find algorithms whose time grows fundamentally slower as digit count increases.
+The ultimate goal is polynomial scaling. But any improvement in the L exponent — even L[1/4] — would be a significant result that nobody has achieved classically.
 
-yafu/ and cado-nfs/ are available as source code references to read and learn from. **Do not compile or run them.** Do not compile or run any pre-existing factoring tools (YAFU, CADO-NFS, msieve, GGNFS, etc.). All code you run must be your own, written in library/. The YAFU baseline scaling curve is already in best-algos.json — there is nothing to gain from re-measuring it.
+A key observation: Shor's quantum factoring algorithm achieves polynomial time by reducing factoring to period-finding in the multiplicative group mod N. The quantum Fourier transform finds this period efficiently — but *why*? What is it about the algebraic structure of Z_N* that makes factoring reducible to period-finding? Is there a way to exploit that same structure classically? Nobody has proven there isn't.
 
-Think deeply. Read papers. Explore unconventional approaches — algebraic structure, lattice methods, analytic number theory, novel sieve designs, approaches from other fields. Most ideas will fail. That's fine. Document what you try and what you learn. The path to a breakthrough is through many experiments, not through optimizing existing code.
+Think about this deeply. Don't start by writing a sieve. Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Read papers. Propose hypotheses. Test them with small experiments.
+
+The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. The YAFU baseline scaling curve is in `best-algos.json`. But the benchmark is a validation tool, not the focus — the focus is ideas.
+
+**What is NOT useful:** writing another quadratic sieve variant. Previous runs produced many SIQS implementations and they all follow L[1/2] scaling. Another one will not produce a breakthrough. Similarly, tuning or running existing tools (YAFU, CADO-NFS, msieve) is not progress — their source is available to read but **do not compile or run them**. All code you run must be your own, written in library/.
 
 ENVIRONMENT:
 
