@@ -167,9 +167,10 @@ static int tonelli_shanks(unsigned int *result, mpz_t n, unsigned int p) {
 static int compute_factor_base(int digits) {
     double n = digits * log(10.0);
     double logn = log(n);
-    double B = exp(0.55 * sqrt(n * logn));
+    /* Use smaller FB than standard QS — rely on LP relations to compensate */
+    double B = exp(0.45 * sqrt(n * logn));
     if (B < 200) B = 200;
-    if (B > 5e6) B = 5e6;
+    if (B > 2e6) B = 2e6;
 
     unsigned int bound = (unsigned int)B;
     fprintf(stderr, "FB bound: %u\n", bound);
@@ -644,8 +645,8 @@ static int factor_srg(mpz_t result) {
     compute_factor_base(digits);
 
     unsigned int max_fb_prime = fb[fb_size - 1].p;
-    lp_bound = (unsigned long)max_fb_prime * 30UL; /* tighter LP bound = fewer unique LPs = more matches */
-    if (lp_bound > 1UL << 32) lp_bound = 1UL << 32;
+    lp_bound = (unsigned long)max_fb_prime * max_fb_prime; /* generous LP bound */
+    if (lp_bound > 1ULL << 40) lp_bound = 1ULL << 40;
 
     target_rels = fb_size + 100;
     fprintf(stderr, "Target: %d rels, LP bound: %lu\n", target_rels, lp_bound);
@@ -755,13 +756,22 @@ int main(int argc, char **argv) {
     mpz_t factor;
     mpz_init(factor);
 
+    /* Helper: print both factors */
+    #define PRINT_FACTOR(f) do { \
+        mpz_t _cofactor; mpz_init(_cofactor); \
+        mpz_divexact(_cofactor, gN, f); \
+        gmp_printf("%Zd %Zd\n", f, _cofactor); \
+        mpz_clear(_cofactor); \
+    } while(0)
+
     /* Stage 1: Trial division up to 10^6 */
     {
         unsigned int primes[80000];
         int np = gen_primes(primes, 80000, 1000000);
         for (int i = 0; i < np; i++) {
             if (mpz_divisible_ui_p(gN, primes[i])) {
-                gmp_printf("FACTOR: %u\n", primes[i]);
+                mpz_set_ui(factor, primes[i]);
+                PRINT_FACTOR(factor);
                 goto done;
             }
         }
@@ -770,21 +780,21 @@ int main(int argc, char **argv) {
     /* Stage 2: Pollard's rho */
     fprintf(stderr, "Stage 2: Pollard's rho\n");
     if (pollard_rho(factor, gN, 5000000)) {
-        gmp_printf("FACTOR: %Zd\n", factor);
+        PRINT_FACTOR(factor);
         goto done;
     }
 
     /* Stage 3: ECM */
     fprintf(stderr, "Stage 3: ECM (%d digits)\n", digits);
     if (ecm_factor_wrapper(factor, gN, digits)) {
-        gmp_printf("FACTOR: %Zd\n", factor);
+        PRINT_FACTOR(factor);
         goto done;
     }
 
     /* Stage 4: SRG sieve */
     fprintf(stderr, "Stage 4: SRG sieve\n");
     if (factor_srg(factor)) {
-        gmp_printf("FACTOR: %Zd\n", factor);
+        PRINT_FACTOR(factor);
         goto done;
     }
 
