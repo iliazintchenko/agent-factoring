@@ -420,7 +420,8 @@ static params_t get_params(int bits) {
     if (bits <= 235) return (params_t){10000, 46, 200, 180, 0.855, 1};
     if (bits <= 245) return (params_t){10000, 56, 300, 200, 0.86,  1};
     if (bits <= 253) return (params_t){14000, 60, 250, 250, 0.86,  1};
-    if (bits <= 258) return (params_t){20000, 60, 150, 300, 0.855, 1};
+    if (bits <= 256) return (params_t){16000, 64, 200, 280, 0.858, 1};
+    if (bits <= 258) return (params_t){18000, 64, 180, 300, 0.858, 1};
     if (bits <= 265) return (params_t){16000, 80, 250, 300, 0.87,  1};
     if (bits <= 270) return (params_t){22000, 80, 200, 350, 0.865, 1};
     if (bits <= 280) return (params_t){30000, 96, 200, 400, 0.87, 1};
@@ -736,11 +737,32 @@ int main(int argc, char *argv[]) {
                                 if (pi >= 0) lp_insert(slp, cof, pi);
                             }
                         } else if (P.dlp && cof <= dlp_max) {
-                            /* DLP: cofactor <= lp_bound^2, try to split into two primes */
-                            uint64_t f1, f2;
-                            if (split64(cof, &f1, &f2)) {
-                                if (f1 > f2) { uint64_t t = f1; f1 = f2; f2 = t; }
-                                if (f1 <= lp_bound && f2 <= lp_bound && is_prime64(f1) && is_prime64(f2)) {
+                            /* Extended SLP: if cofactor is prime but > lp_bound,
+                             * still store in SLP hash for matching (like YAFU) */
+                            if (is_prime64(cof)) {
+                                /* Large SLP: prime cofactor > lp_bound but < dlp_max */
+                                handled = 1;
+                                int match = lp_find(slp, cof);
+                                if (match >= 0) {
+                                    mpz_mul(tmp, ax_b, part->ax_b[match]); mpz_mod(tmp, tmp, N);
+                                    mpz_mul(tmp2, aQx, part->Qx[match]);
+                                    rels_add(full, tmp, tmp2, 0, 0);
+                                    combined_slp++;
+                                } else {
+                                    int pi = rels_add(part, ax_b, aQx, cof, 0);
+                                    if (pi >= 0) lp_insert(slp, cof, pi);
+                                }
+                            } else {
+                                /* Composite cofactor: factor completely */
+                                uint64_t primes[10]; int nprimes = factor64(cof, primes);
+                                for (int a2=0;a2<nprimes-1;a2++) for (int b2=a2+1;b2<nprimes;b2++)
+                                    if (primes[a2]>primes[b2]) {uint64_t t=primes[a2];primes[a2]=primes[b2];primes[b2]=t;}
+                                int all_ok = 1;
+                                for (int pi2=0;pi2<nprimes;pi2++) if (primes[pi2] > lp_bound) all_ok=0;
+
+                                if (nprimes == 2 && all_ok) {
+                                    uint64_t f1 = primes[0], f2 = primes[1];
+                                    if (1) {
                                     /* Valid DLP: two primes both within bound */
                                     handled = 1;
                                     dlp_found++;
@@ -811,7 +833,8 @@ int main(int argc, char *argv[]) {
                                 }
                                 /* If f1 or f2 > lp_bound, fall through to TLP handling below */
                             }
-                            /* If split64 failed (prime cofactor > lp_bound), also falls through */
+                            } /* end else (composite cofactor) */
+                            /* If factoring failed or primes out of range, falls through */
                         }
 
                         /* TLP handling: try to factor cof into 3 primes all <= lp_bound.
