@@ -25,6 +25,7 @@
 #include <gmp.h>
 #include <immintrin.h>
 #include "block_lanczos.h"
+#include "structured_gauss.h"
 
 #define SEED 42
 #define BLOCK_SZ 32768
@@ -1012,43 +1013,29 @@ int main(int argc, char *argv[]) {
     int nrels = full_rels->count;
     if (nrels > target) nrels = target;
     int ncols = fb->size + 1;  /* +1 for sign */
-    gf2_t *mat = gf2_create(nrels, ncols);
+
+    /* Use Structured Gaussian Elimination (singleton/doubleton removal) */
+    sg_mat_t *sgmat = sg_create(nrels, ncols);
 
     for (int r = 0; r < nrels; r++) {
         mpz_t Qval; mpz_init(Qval);
         mpz_set(Qval, full_rels->qval[r]);
-        if (mpz_sgn(Qval) < 0) { gf2_set(mat, r, 0); mpz_neg(Qval, Qval); }
+        if (mpz_sgn(Qval) < 0) { sg_set(sgmat, r, 0); mpz_neg(Qval, Qval); }
         int e2 = 0;
         while (mpz_even_p(Qval)) { mpz_tdiv_q_2exp(Qval, Qval, 1); e2++; }
-        if (e2 & 1) gf2_set(mat, r, 1);
+        if (e2 & 1) sg_set(sgmat, r, 1);
         for (int i = 1; i < fb->size; i++) {
             unsigned int p = fb->p[i]; int e = 0;
             while (mpz_divisible_ui_p(Qval, p)) { mpz_divexact_ui(Qval, Qval, p); e++; }
-            if (e & 1) gf2_set(mat, r, i + 1);
+            if (e & 1) sg_set(sgmat, r, i + 1);
         }
         mpz_clear(Qval);
     }
 
     int **deps; int *dlen;
-    int ndeps;
-
-    /* Try Block Lanczos first (faster for large sparse matrices) */
-    if (nrels > 500) {
-        sparse_matrix_t *sp = sparse_from_dense(mat->rows, nrels, ncols);
-        fprintf(stderr, "LA: trying Block Lanczos on %dx%d matrix (nnz=%d)...\n", nrels, ncols, sp->nnz);
-        double t_la = elapsed();
-        ndeps = block_lanczos_solve(sp, &deps, &dlen, 64);
-        fprintf(stderr, "LA: Block Lanczos found %d deps in %.2fs\n", ndeps, elapsed() - t_la);
-        free(sp->row_start); free(sp->col_idx); free(sp);
-        if (ndeps == 0) {
-            fprintf(stderr, "LA: Block Lanczos failed, falling back to Gaussian\n");
-            ndeps = gf2_solve(mat, &deps, &dlen, 64);
-            fprintf(stderr, "LA: Gaussian found %d deps (%.2fs)\n", ndeps, elapsed());
-        }
-    } else {
-        ndeps = gf2_solve(mat, &deps, &dlen, 64);
-        fprintf(stderr, "LA: %d dependencies from %dx%d matrix (%.2fs)\n", ndeps, nrels, ncols, elapsed());
-    }
+    double t_la = elapsed();
+    int ndeps = sg_solve(sgmat, &deps, &dlen, 64);
+    fprintf(stderr, "LA: %d deps from %dx%d matrix (%.2fs)\n", ndeps, nrels, ncols, elapsed() - t_la);
 
     /* ==================== Square Root ==================== */
     for (int d = 0; d < ndeps; d++) {
