@@ -395,7 +395,138 @@ int main(int argc, char *argv[]) {
             mpz_clear(N3);
         }
 
-        /* ===== CRT-based algebraic sqrt ===== */
+        /* ===== Hensel-lifting algebraic sqrt ===== */
+        if (!found) {
+            fprintf(stderr,"  Trying Hensel lifting algebraic sqrt...\n");
+
+            /* Find prime where f has d distinct roots (brute force, p < 50000) */
+            unsigned long hp = 0;
+            unsigned long hr[MAX_DEG];
+            for (unsigned long q = 10007; q < 50000 && !hp; q += 2) {
+                mpz_set_ui(tmp, q);
+                if (!mpz_probab_prime_p(tmp, 2)) continue;
+                int nr = 0;
+                for (unsigned long x = 0; x < q && nr <= d; x++) {
+                    unsigned long long val = 0;
+                    for (int j = d; j >= 0; j--) {
+                        unsigned long cj = mpz_fdiv_ui(fc[j], q);
+                        val = (val * x + cj) % q;
+                    }
+                    if (val == 0) hr[nr++] = x;
+                }
+                if (nr == d) hp = q;
+            }
+
+            if (hp > 0) {
+                fprintf(stderr,"  p=%lu, roots:", hp);
+                for (int j = 0; j < d; j++) fprintf(stderr," %lu", hr[j]);
+                fprintf(stderr,"\n");
+
+                /* Number of Hensel lifts needed */
+                int nbits = mpz_sizeinbase(N, 2) + 20;
+                int pbits = 0; { unsigned long pp = hp; while (pp) { pbits++; pp >>= 1; } }
+                int nlifts = 0, lb = pbits;
+                while (lb < nbits) { lb *= 2; nlifts++; }
+
+                /* Try all 2^d sign combos */
+                int maxsc = 1 << d;
+                for (int sc = 0; sc < maxsc && !found; sc++) {
+                    mpz_t lr2[MAX_DEG], ls2[MAX_DEG], sv2[MAX_DEG], hmod, htmp;
+                    for (int j=0;j<d;j++){mpz_init_set_ui(lr2[j],hr[j]);mpz_init(ls2[j]);mpz_init(sv2[j]);}
+                    mpz_init_set_ui(hmod, hp); mpz_init(htmp);
+
+                    /* Initial S_j and sqrt */
+                    int ok = 1;
+                    for (int j = 0; j < d && ok; j++) {
+                        unsigned long long pv = 1;
+                        for (int i = 0; i < dlen[di]; i++) {
+                            long long t2 = ((da[i] % (long long)hp) + hp) % hp;
+                            t2 = (t2 + hp - ((unsigned long long)db[i] % hp * hr[j]) % hp) % hp;
+                            pv = pv * (unsigned long long)t2 % hp;
+                        }
+                        mpz_set_ui(sv2[j], (unsigned long)pv);
+                        /* Sqrt mod hp */
+                        unsigned long sq = 0;
+                        if (pv == 0) { sq = 0; }
+                        else {
+                            unsigned long long r2=1,b2=pv,e2=(hp-1)/2; unsigned long long m2=hp;
+                            while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}
+                            if (r2 != 1) { ok = 0; break; }
+                            if (hp%4==3){r2=1;b2=pv;e2=(hp+1)/4;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}sq=(unsigned long)r2;}
+                            else{unsigned long Q3=hp-1,S3=0;while(Q3%2==0){Q3/=2;S3++;}
+                                unsigned long z2=2;for(;;){r2=1;b2=z2;e2=(hp-1)/2;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}if(r2==m2-1)break;z2++;}
+                                unsigned long long M3=S3,c3,t3,R3;
+                                r2=1;b2=z2;e2=Q3;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}c3=r2;
+                                r2=1;b2=pv;e2=Q3;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}t3=r2;
+                                r2=1;b2=pv;e2=(Q3+1)/2;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}R3=r2;
+                                for(;;){if(t3==1){sq=(unsigned long)R3;break;}int i3=0;unsigned long long tt=t3;
+                                while(tt!=1){tt=tt*tt%hp;i3++;}unsigned long long bb=c3;
+                                for(int jj=0;jj<(int)M3-i3-1;jj++)bb=bb*bb%hp;M3=i3;c3=bb*bb%hp;t3=t3*c3%hp;R3=R3*bb%hp;}}
+                        }
+                        mpz_set_ui(ls2[j], (sc & (1<<j)) ? hp - sq : sq);
+                    }
+                    if (!ok) { for(int j=0;j<d;j++){mpz_clear(lr2[j]);mpz_clear(ls2[j]);mpz_clear(sv2[j]);}mpz_clear(hmod);mpz_clear(htmp);continue; }
+
+                    /* Hensel lift nlifts times */
+                    for (int lift = 0; lift < nlifts; lift++) {
+                        mpz_t nm; mpz_init(nm);
+                        mpz_mul(nm, hmod, hmod);
+                        /* Lift roots */
+                        for (int j = 0; j < d; j++) {
+                            mpz_t fv,fpv,iv;mpz_inits(fv,fpv,iv,NULL);
+                            mpz_set_ui(fv,0);for(int k=d;k>=0;k--){mpz_mul(fv,fv,lr2[j]);mpz_add(fv,fv,fc[k]);mpz_mod(fv,fv,nm);}
+                            mpz_set_ui(fpv,0);for(int k=d;k>=1;k--){mpz_mul(fpv,fpv,lr2[j]);mpz_mul_ui(htmp,fc[k],k);mpz_add(fpv,fpv,htmp);mpz_mod(fpv,fpv,nm);}
+                            if(mpz_invert(iv,fpv,nm)){mpz_mul(htmp,fv,iv);mpz_sub(lr2[j],lr2[j],htmp);mpz_mod(lr2[j],lr2[j],nm);}
+                            mpz_clears(fv,fpv,iv,NULL);
+                        }
+                        /* Recompute S_j mod nm */
+                        for (int j = 0; j < d; j++) {
+                            mpz_set_ui(sv2[j],1);
+                            for(int i=0;i<dlen[di];i++){mpz_set_si(htmp,da[i]);mpz_submul_ui(htmp,lr2[j],db[i]);mpz_mod(htmp,htmp,nm);mpz_mul(sv2[j],sv2[j],htmp);mpz_mod(sv2[j],sv2[j],nm);}
+                        }
+                        /* Lift sqrt */
+                        for (int j = 0; j < d; j++) {
+                            mpz_t t22,df,tt,iv;mpz_inits(t22,df,tt,iv,NULL);
+                            mpz_mul(t22,ls2[j],ls2[j]);mpz_sub(df,t22,sv2[j]);mpz_mod(df,df,nm);
+                            mpz_mul_ui(tt,ls2[j],2);mpz_mod(tt,tt,nm);
+                            if(mpz_invert(iv,tt,nm)){mpz_mul(htmp,df,iv);mpz_sub(ls2[j],ls2[j],htmp);mpz_mod(ls2[j],ls2[j],nm);}
+                            mpz_clears(t22,df,tt,iv,NULL);
+                        }
+                        mpz_set(hmod, nm); mpz_clear(nm);
+                    }
+
+                    /* Lagrange: T(m) mod hmod */
+                    mpz_t mm,Y3;mpz_init(mm);mpz_init_set_ui(Y3,0);
+                    mpz_mod(mm, poly.m, hmod);
+                    for (int j = 0; j < d; j++) {
+                        mpz_t n3,d3,iv;mpz_inits(n3,d3,iv,NULL);
+                        mpz_set(n3,ls2[j]);mpz_set_ui(d3,1);
+                        for(int k=0;k<d;k++){if(k==j)continue;
+                            mpz_sub(htmp,mm,lr2[k]);mpz_mod(htmp,htmp,hmod);mpz_mul(n3,n3,htmp);mpz_mod(n3,n3,hmod);
+                            mpz_sub(htmp,lr2[j],lr2[k]);mpz_mod(htmp,htmp,hmod);mpz_mul(d3,d3,htmp);mpz_mod(d3,d3,hmod);}
+                        if(mpz_invert(iv,d3,hmod)){mpz_mul(n3,n3,iv);mpz_add(Y3,Y3,n3);mpz_mod(Y3,Y3,hmod);}
+                        mpz_clears(n3,d3,iv,NULL);
+                    }
+                    mpz_mod(Y3, Y3, N);
+
+                    /* Check */
+                    mpz_sub(g,X,Y3);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                    if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}
+                    if(!found){mpz_add(g,X,Y3);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                        if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
+
+                    mpz_clears(Y3,mm,NULL);
+                    for(int j=0;j<d;j++){mpz_clear(lr2[j]);mpz_clear(ls2[j]);mpz_clear(sv2[j]);}
+                    mpz_clear(hmod);mpz_clear(htmp);
+                }
+
+                if (!found) fprintf(stderr,"  Hensel: no factor from %d sign combos\n", maxsc);
+            } else {
+                fprintf(stderr,"  No suitable Hensel prime found\n");
+            }
+        }
+
+        /* ===== CRT-based algebraic sqrt (fallback) ===== */
         if (!found) {
             fprintf(stderr,"  Trying CRT algebraic sqrt (d=%d)...\n", d);
             /* Find primes q where f(x) mod q has exactly d distinct roots */
