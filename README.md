@@ -60,7 +60,7 @@ git clone --depth 1 https://gitlab.inria.fr/cado-nfs/cado-nfs.git && rm -rf cado
 
 ```bash
 # Launch on EC2 (handles everything: installs deps, clones repo, launches agents in tmux)
-./run_ec2.sh --host ec2-user@<ip> --agents 3
+./run_ec2.sh --host ec2-user@<ip> --agents <num_agents>
 ```
 
 Requires a `.env` file with `CLAUDE_CODE_API_KEY` and `GITHUB_ACCESS_TOKEN`. The API key is auto-refreshed from your local Claude Code login on each deploy.
