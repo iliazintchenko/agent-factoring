@@ -39,6 +39,9 @@
 7. **Multi-polynomial batching helps**: SPQS shows that processing multiple polynomials per sieve block amortizes the FB prime iteration overhead. At 4 polynomials per batch, smooth candidate yield increases ~3-4x per sieve pass with only ~15% memory overhead. The improvement narrows as FB size grows (larger sizes have more primes, and the inner loop dominates over the outer loop).
 8. **DLP graph matching is hard**: Even with aggressive LP bounds (300x FB max), the DLP graph has too few edges for cycle formation at moderate sizes. The birthday paradox works against us — need ~sqrt(LP space) DLP relations for matches, but LP space grows faster than relation yield.
 9. **Trial division after sieve is the main custom implementation bottleneck**: YAFU uses sieve-informed trial division (only tests primes whose sieve roots match x), plus bucket sieving for large primes. Custom implementations doing naive trial division lose 10-50x here.
+10. **Bucket sieve is critical for large factor bases**: Without bucket sieve, sieve hits for primes > BLOCK_SIZE cause random memory access (cache misses). Bucket sieve pre-sorts hits by block, converting to sequential access. Key implementation detail: buckets MUST create new slices when they fill up (>75% of BUCKET_ALLOC). Without this, entries are silently dropped, causing 2.3x fewer relations per polynomial.
+11. **Parameter tuning: sieve interval size is critical**: YAFU uses tiny sieve intervals (1-8 blocks per side) because its AVX512 sieve is fast enough that polynomial overhead is small. For scalar implementations, larger intervals (10-50 blocks) are better because they amortize the per-polynomial overhead (mpz operations for b,c computation, ainv computation, etc.).
+12. **DLP with LP columns vs matching**: SLP (single large prime) is best handled by hash-matching (combine two relations with same LP). DLP (double large prime) can use LP columns in the GF(2) matrix instead of graph cycle detection. The LP-column approach is simpler but requires more relations. For SLP-only, matching is always better (no extra matrix columns needed).
 
 ## Scaling Data
 
@@ -77,24 +80,39 @@ DLP-SIQS (worst of 5 per size):
 | 50 | 12.7s | 106x |
 | 55 | 64.5s | |
 
+SIQS-Opt Bucket Sieve (worst of 5 per size):
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 30 | 0.028s | | 2.0x |
+| 35 | 0.050s | 1.8x/5d | |
+| 40 | 0.179s | 3.6x/5d | 10.5x |
+| 45 | 0.811s | 4.5x/5d | ~16x |
+| 50 | 2.227s | 2.7x/5d | 18.6x |
+| 55 | 4.844s | 2.2x/5d | ~12x |
+| 60 | 19.203s | 4.0x/5d | 27x |
+| 65 | 106.5s | 5.5x/5d | ~43x |
+| 70 | 265.2s | 2.5x/5d | 46x |
+| 75 | >295s | | |
+
 Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 
 ## Custom Implementations in library/
 
 ### Working implementations (best to worst)
-- **fast_siqs.c**: SIQS with bucket sieving for large primes, sieve-informed TD, Gray code self-init, SLP, __int128 trial division. 15-25x slower than YAFU. 30-65d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
-- **siqs_bucket.c**: Similar optimized SIQS with bucket sieve. Comparable to fast_siqs. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
-- **siqs_opt.c**: Optimized SIQS with tracked offsets and 64-bit scanning. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
-- **spqs.c**: Multi-polynomial batch sieve SIQS. 1.4-44x slower than YAFU. 30-65d+. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
-- **dlp_siqs.c**: SIQS with DLP (Pollard rho splitting). 5-100x slower. 30-55d.
-- **siqs2.c**: Working SIQS, SLP, Gray code. 30-80x slower.
-- **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower.
+- **spqs2.c / spqs.c**: Best custom at 30-65d. SPQS2 adds bucket sieve to batch approach. 1.4-44x slower than YAFU.
+- **fast_siqs.c**: Bucket sieve SIQS with __int128 trial division. 15-25x slower at 30-65d.
+- **siqs_opt.c**: Bucket sieve SIQS, Gray code poly, SLP matching. 2-46x slower. 30-70d.
+- **dlp_opt.c**: DLP SIQS with LP columns in GF(2) matrix. Hybrid SLP matching + DLP. Testing at 70d+.
+- **siqs_bucket.c**: Initial bucket sieve SIQS (precursor to siqs_opt).
+- **sqqs.c**: Special-Q QS (novel, uses special primes to reduce Q(x) size). NEGATIVE RESULT: overhead exceeds benefit.
+- **dlp_siqs.c**: Older DLP SIQS. 5-100x slower. 30-55d.
+- **siqs2.c**, **siqs3.c**: Older SIQS variants. 30-350x slower.
 
 ### Experimental / Novel
-- **sqqs.c**: Special-Q enhanced QS. Lowers sieve threshold at special-Q positions. NEGATIVE RESULT: overhead exceeds benefit.
-- **latsieve_qs.c**: SIQS with ECM cofactor splitting. ECM can find additional DLP relations but overhead is too high without proper DLP graph. NEEDS more work.
-- **ecm_siqs.c**: ECM-enhanced SIQS with smaller FB and aggressive cofactorization.
-- **nfs_factor.c**: NFS skeleton with base-m polynomial selection. Algebraic square root NOT implemented.
+- **ecm_siqs.c**: SIQS with ECM cofactorization. DLP matching was wrong; LP-column approach in dlp_opt.c is correct.
+- **latsieve_qs.c**: SIQS with ECM cofactor splitting. NEEDS more work.
+- **nfs_factor.c**: NFS skeleton with base-m poly selection. Algebraic sqrt NOT implemented.
 - **specialq_qs.c**: Special-Q QS. NEGATIVE RESULT: can't collect relations without sieving.
 - **nfs_siever.c**: Custom NFS lattice siever. Working but 2500x slower than GGNFS.
 - **batch_smooth.c**, **batch_qs.c**, **batch_siqs.c**: Batch smoothness approaches. NEGATIVE RESULT.
