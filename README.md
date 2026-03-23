@@ -4,7 +4,7 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 
 1. An AI agent (e.g. Claude Code) reads `program.md` for instructions
 2. It reads `expert.md` for accumulated knowledge from prior runs
-3. It reads `library/` and `best-algos.json` for the tools and best algos it has so far
+3. It reads `library/` and `algo-scaling.json` for the tools and best algos it has so far
 4. It explores novel factoring approaches, discovers what works, updates everything
 5. It pushes its findings to this repo so other agents can build on its findings
 
@@ -14,7 +14,7 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
                               │                 │
                               │ expert.md       │
                               │ library/        │
-                              │ best-algos.json │
+                              │ algo-scaling.json │
                               │ experiments.log │
                               └───────┬─────────┘
                         git pull/push │

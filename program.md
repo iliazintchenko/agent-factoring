@@ -10,7 +10,7 @@ A key observation: Shor's quantum factoring algorithm achieves polynomial time b
 
 Think about this deeply. Don't start by writing a sieve. Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Read papers. Propose hypotheses. Test them with small experiments.
 
-The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. The YAFU baseline scaling curve is in `best-algos.json`. But the benchmark is a validation tool, not the focus — the focus is ideas.
+The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. The YAFU baseline scaling curve is in `algo-scaling.json`. But the benchmark is a validation tool, not the focus — the focus is ideas.
 
 **What is NOT useful:** writing another quadratic sieve or NFS variant — these are known L[1/2] and L[1/3] algorithms. Reimplementing them will not produce a scaling breakthrough. Similarly, tuning or running existing tools (YAFU, CADO-NFS, msieve) is not progress — their source is available to read but **do not compile or run them**. All code you run must be your own, written in library/.
 
@@ -22,7 +22,7 @@ ENVIRONMENT:
   ```
   [YYYY-MM-DD HH:MM:SS] size: <digits> | approach: <short description> | time: <seconds or FAIL> | notes: <what was learned>
   ```
-- best-algos.json: tracks the scaling behavior of each approach you develop. Format:
+- algo-scaling.json: tracks the scaling behavior of each approach you develop. Format:
   ```json
   {
     "<approach_name>": {
@@ -42,19 +42,18 @@ RULES:
 - If something gets terminated because of the timeout, make sure to at least have logs to learn from.
 - **Single core only for factoring.** Each factoring process must use a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance.
 - **Maximize parallelism.** Each factoring process uses 1 core, so you should be running many experiments concurrently to fill up the machine — different sizes, different approaches, parameter sweeps, etc. If you're only running 1-2 things at a time, you're wasting the machine. Launch experiments in bulk, not one at a time.
-- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs. If you discover that any existing results in `best-algos.json`, `experiments.log`, or `library/` were produced with a different seed or with parallelization, remove them and re-run with the correct settings.
-- Never stop. Only the user can stop you. Nobody else.
+- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs. If you discover that any existing results in `algo-scaling.json`, `experiments.log`, or `library/` were produced with a different seed or with parallelization, remove them and re-run with the correct settings.
 - You can use the browser, read papers, or any other tool at your disposal.
-- All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic and GMP-ECM (`-lecm`) for elliptic curve factoring. You may also use other C/C++ libraries if they help. Use yafu/ and cado-nfs/ as references to learn from.
+- All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic and GMP-ECM (`-lecm`) for elliptic curve factoring. You may also use other C/C++ libraries if they help.
 - Make sure any code you write is fast — use `-O2` or `-O3`, consider SIMD, avoid unnecessary allocations, profile hotspots.
-- There are multiple agents working on this repo simultaneously. Pull before starting work and commit+push frequently — every improvement to `best-algos.json`, every update to `expert.md`, every new or changed file in `library/`, every batch of `experiments.log` entries. Other agents depend on your commits to avoid duplicating work and to build on your findings. If you haven't committed in 10 minutes, you're falling behind. Check what others are working on and pick a different area — don't all pile on the same digit size or approach.
+- There are multiple agents working on this repo simultaneously. Pull before starting work and commit+push frequently — every improvement to `algo-scaling.json`, every update to `expert.md`, every new or changed file in `library/`, every batch of `experiments.log` entries. Other agents depend on your commits to avoid duplicating work and to build on your findings. If you haven't committed in 10 minutes, you're falling behind. Check what others are working on and pick a different area — don't all pile on the same digit size or approach.
 - **Merge conflicts must be resolved properly.** When `git pull` produces conflicts, read both sides carefully and produce a coherent result. Do not blindly keep both sides — that creates duplicated entries, contradictory statements, and broken files. For `expert.md`, ensure the merged result is consistent and non-redundant. For `experiments.log`, keep all entries but remove duplicates. For code files, understand the intent of both changes before merging.
+- This project deliberately **does not have an end**. Never stop working. Only the user can stop you. Nobody else.
 
 TIPS:
 
 - Read expert.md first to understand what has already been tried.
 - Understand the current algorithms deeply before trying to improve on them. Why is QS sub-exponential? What makes NFS faster? Where does the complexity actually come from?
-- Test your ideas on small numbers first (30-50 digits) where iteration is fast. If the scaling looks promising, push to larger sizes.
-- When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into best-algos.json.
+- When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into algo-scaling.json.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
 - Most ideas will fail. Document why they failed — understanding failure modes is as valuable as finding successes.
