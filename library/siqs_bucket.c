@@ -204,6 +204,7 @@ static params_t get_params_by_digits(int digits) {
     if (digits <= 64) return (params_t){5400, 3,  80, 120, 0.84, 1, 150};
     if (digits <= 70) return (params_t){10000,3, 100, 150, 0.86, 1, 200};
     if (digits <= 75) return (params_t){18000,4, 120, 200, 0.86, 1, 250};
+    if (digits <= 75) return (params_t){12000,3, 150, 200, 0.86, 1, 350};
     if (digits <= 80) return (params_t){50000,4, 100, 250, 0.885, 1, 250};
     if (digits <= 85) return (params_t){55000,3,  80, 300, 0.89, 1, 300};
     if (digits <= 90) return (params_t){60000,9,  80, 350, 0.90, 1, 300};
@@ -660,13 +661,23 @@ int main(int argc, char *argv[]) {
                                                     dlp_combined++;
                                                 }
                                             } else {
-                                                /* No SLP match: store DLP as SLP partial with LP=f1 */
+                                                /* No SLP match: store DLP as SLP partial with BOTH LPs
+                                                 * This doubles the chance of future matches */
                                                 int pi = part->count;
                                                 if (pi < part->alloc) {
                                                     mpz_set(part->ax_b[pi], ax_b);
                                                     mpz_set(part->Qx[pi], aQx);
                                                     part->lp[pi] = f1;
                                                     lp_insert(lpt, f1, pi);
+                                                    part->count++;
+                                                }
+                                                /* Also insert with LP=f2 */
+                                                pi = part->count;
+                                                if (pi < part->alloc) {
+                                                    mpz_set(part->ax_b[pi], ax_b);
+                                                    mpz_set(part->Qx[pi], aQx);
+                                                    part->lp[pi] = f2;
+                                                    lp_insert(lpt, f2, pi);
                                                     part->count++;
                                                 }
                                             }
