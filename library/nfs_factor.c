@@ -89,43 +89,15 @@ static int poly_select_base_m(nfs_poly_t *p, mpz_t N, int degree) {
     mpz_t m_base, m_try, rem, best_m;
     mpz_inits(m_base, m_try, rem, best_m, NULL);
 
-    /* Compute N^(1/(d+1)) using floating point then refine */
-    double logN = mpz_sizeinbase(N, 2) * log(2.0);
-    double log_m = logN / (degree + 1);
-    mpz_ui_pow_ui(m_base, 10, (unsigned long)(log_m / log(10.0)));
+    /* Compute m = floor(N^(1/(d+1))) using mpz_root */
+    mpz_root(m_base, N, degree + 1);
+    /* Verify: m^(d+1) <= N < (m+1)^(d+1) */
+    mpz_pow_ui(rem, m_base, degree + 1);
+    if (mpz_cmp(rem, N) > 0) mpz_sub_ui(m_base, m_base, 1);
 
-    /* Newton's method to refine: m^(d+1) ≈ N */
-    for (int iter = 0; iter < 100; iter++) {
-        mpz_pow_ui(rem, m_base, degree + 1);
-        if (mpz_cmp(rem, N) > 0) {
-            mpz_tdiv_q_ui(m_base, m_base, 2);
-            mpz_add_ui(m_base, m_base, 1);
-        } else {
-            mpz_mul_ui(m_base, m_base, 2);
-        }
-    }
-
-    /* Binary search for exact value */
+    /* Binary search not needed — mpz_root is exact */
     mpz_t lo, hi, mid;
     mpz_inits(lo, hi, mid, NULL);
-    mpz_tdiv_q_ui(lo, m_base, 2);
-    mpz_mul_ui(hi, m_base, 2);
-    mpz_add_ui(hi, hi, 100);
-
-    while (mpz_cmp(lo, hi) < 0) {
-        mpz_add(mid, lo, hi);
-        mpz_tdiv_q_2exp(mid, mid, 1);
-        mpz_pow_ui(rem, mid, degree + 1);
-        if (mpz_cmp(rem, N) <= 0)
-            mpz_set(lo, mid);
-        else
-            mpz_sub_ui(hi, mid, 1);
-        if (mpz_cmp(lo, hi) >= 0) break;
-        mpz_add(rem, lo, hi);
-        mpz_tdiv_q_2exp(rem, rem, 1);
-        if (mpz_cmp(rem, mid) == 0) break;
-    }
-    mpz_set(m_base, lo);
 
     /* Try m_base ± small offsets, pick m that minimizes sum(|c_i|) */
     double best_score = 1e300;
@@ -139,18 +111,13 @@ static int poly_select_base_m(nfs_poly_t *p, mpz_t N, int degree) {
 
         if (mpz_sgn(m_try) <= 0) continue;
 
-        /* Express N in base m_try */
+        /* Express N in base m_try: N = c_d*m^d + ... + c_1*m + c_0 */
         mpz_set(rem, N);
-        int valid = 1;
-        for (int i = 0; i <= degree; i++) {
+        for (int i = 0; i < degree; i++) {
             mpz_tdiv_qr(rem, tmp_coeffs[i], rem, m_try);
         }
-        /* rem should be 0 if leading coefficient fits; otherwise use it as c_d */
-        if (mpz_sgn(rem) != 0) {
-            /* N doesn't decompose cleanly; the leading coefficient is the remainder */
-            mpz_set(tmp_coeffs[degree], rem);
-            /* Recompute to verify */
-        }
+        /* c_d = remaining quotient (leading coefficient) */
+        mpz_set(tmp_coeffs[degree], rem);
 
         /* Recompute: verify that sum(c_i * m^i) = N */
         /* Skip for now, just evaluate the score */
