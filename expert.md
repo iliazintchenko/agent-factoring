@@ -25,6 +25,8 @@ Key observations:
 
 ## Directions worth exploring
 
+These are starting points, not an exhaustive list. Novel ideas from other fields are encouraged.
+
 - **Classical period-finding**: Can the order of elements in Z_N* be found without quantum computation? Partial period information? Statistical signatures of the period?
 - **Algebraic geometry approaches**: Elliptic curves over Z/NZ split mod p and mod q. Can higher-genus curves, abelian varieties, or p-adic methods reveal this splitting?
 - **Representation theory**: The group Z_N* has representations that encode the factorization. Can classical harmonic analysis on finite groups find useful structure?
