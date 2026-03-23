@@ -31,7 +31,7 @@ typedef struct {
 } params_t;
 
 static params_t get_params(int digits) {
-    if (digits <= 30) return (params_t){60,    2,   40, 3};
+    if (digits <= 30) return (params_t){120,   2,   40, 3};
     if (digits <= 35) return (params_t){250,   3,   40, 4};
     if (digits <= 40) return (params_t){500,   5,   50, 5};
     if (digits <= 45) return (params_t){900,   7,   60, 6};
@@ -142,7 +142,7 @@ static int select_multiplier(const mpz_t N) {
 }
 
 static void build_factor_base(const mpz_t N, int target) {
-    multiplier = 1; /* FIXME: disable multiplier for now */
+    multiplier = select_multiplier(N);
     mpz_init(kN); mpz_mul_ui(kN, N, multiplier);
 
     int prime_limit = target * 25;
@@ -198,24 +198,20 @@ static void compute_sieve_roots(poly_t *poly) {
     }
 }
 
+static int a_call_count = 0;
+
 static void poly_new_a(poly_t *poly, int num_a_hint, const mpz_t target_a) {
     /* Dynamically determine num_a: find how many primes we need from the
        middle of the FB to get A ≈ target_a */
     double target_log = mpz_sizeinbase(target_a, 2) * 0.693;
 
-    /* Find ideal prime size: target_a^(1/num_a) */
-    /* Start with the hint, adjust if needed */
-    int num_a = num_a_hint;
-
     /* Estimate: pick primes from around the middle of FB */
     int mid = fb_size / 3;
     if (mid < 2) mid = 2;
     double avg_logp = log(fb[mid].p);
-    /* num_a = target_log / avg_logp */
-    int computed_na = (int)(target_log / avg_logp + 0.5);
-    if (computed_na < 3) computed_na = 3;
-    if (computed_na > fb_size / 4) computed_na = fb_size / 4;
-    num_a = computed_na;
+    int num_a = (int)(target_log / avg_logp + 0.5);
+    if (num_a < 3) num_a = 3;
+    if (num_a > fb_size / 4) num_a = fb_size / 4;
 
     poly->num_a = num_a;
     poly->a_idx = malloc(num_a * sizeof(int));
@@ -225,32 +221,54 @@ static void poly_new_a(poly_t *poly, int num_a_hint, const mpz_t target_a) {
     if (start < 2) start = 2;
     int end = fb_size * 5 / 6;
     if (end > fb_size) end = fb_size;
+    int range = end - start;
 
     mpz_t prod, test;
     mpz_init_set_ui(prod, 1);
     mpz_init(test);
     int *used = calloc(fb_size, sizeof(int));
 
-    for (int i = 0; i < num_a; i++) {
-        double best_ratio = 1e30;
-        int best = -1;
-        for (int j = start; j < end; j++) {
-            if (used[j] || fb[j].root2 < 0) continue;
-            mpz_mul_ui(test, prod, fb[j].p);
-            double r = (mpz_cmp(test, target_a) > 0) ?
-                mpz_get_d(test) / mpz_get_d(target_a) :
-                mpz_get_d(target_a) / mpz_get_d(test);
-            if (r < best_ratio) { best_ratio = r; best = j; }
+    /* Use a_call_count to vary the first prime selection, producing
+       different A values on each call. */
+    int call = a_call_count++;
+
+    /* Build list of eligible primes in range */
+    int *eligible = malloc(range * sizeof(int));
+    int n_eligible = 0;
+    for (int j = start; j < end; j++)
+        if (fb[j].root2 >= 0) eligible[n_eligible++] = j;
+
+    if (n_eligible > 0) {
+        /* Pick first prime based on call count */
+        int first_idx = eligible[call % n_eligible];
+        used[first_idx] = 1;
+        poly->a_idx[0] = first_idx;
+        mpz_set_ui(prod, fb[first_idx].p);
+
+        /* For subsequent primes, use greedy best-ratio approach */
+        for (int i = 1; i < num_a; i++) {
+            double best_ratio = 1e30;
+            int best = -1;
+            for (int j = start; j < end; j++) {
+                if (used[j] || fb[j].root2 < 0) continue;
+                mpz_mul_ui(test, prod, fb[j].p);
+                double r = (mpz_cmp(test, target_a) > 0) ?
+                    mpz_get_d(test) / mpz_get_d(target_a) :
+                    mpz_get_d(target_a) / mpz_get_d(test);
+                if (r < best_ratio) { best_ratio = r; best = j; }
+            }
+            if (best < 0) {
+                for (int j = 2; j < fb_size; j++)
+                    if (!used[j] && fb[j].root2 >= 0) { best = j; break; }
+            }
+            if (best < 0) break;
+            used[best] = 1;
+            poly->a_idx[i] = best;
+            mpz_mul_ui(prod, prod, fb[best].p);
         }
-        if (best < 0) {
-            for (int j = 2; j < fb_size; j++)
-                if (!used[j] && fb[j].root2 >= 0) { best = j; break; }
-        }
-        if (best < 0) break;
-        used[best] = 1;
-        poly->a_idx[i] = best;
-        mpz_mul_ui(prod, prod, fb[best].p);
     }
+    free(eligible);
+
     mpz_set(poly->A, prod);
     free(used);
     mpz_clear(prod);
@@ -608,6 +626,7 @@ static int try_factor(mpz_t factor, const mpz_t N,
     mpz_init(temp);
 
     int *total_exp = calloc(fb_size, sizeof(int));
+    int sign_count = 0; /* count of negative Q(x) values */
 
     /* Also track LP exponents */
     int *lp_list = calloc(dep_size, sizeof(int));
@@ -621,8 +640,17 @@ static int try_factor(mpz_t factor, const mpz_t N,
         for (int j = 0; j < fb_size; j++)
             total_exp[j] += rels[ri].exponents[j];
 
+        if (rels[ri].neg) sign_count++;
+
         if (rels[ri].large_prime > 1)
             lp_list[n_lps++] = rels[ri].large_prime;
+    }
+
+    /* Check sign parity: if odd number of negatives, skip this dep */
+    if (sign_count % 2 != 0) {
+        free(lp_list); free(total_exp);
+        mpz_clear(X); mpz_clear(Y); mpz_clear(temp);
+        return 0;
     }
 
     /* Y = product of p^(exp/2) * product of lp^(count/2) mod N */
@@ -719,7 +747,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "FB: %d primes, bound=%d, mult=%d\n",
             fb_size, fb_bound, multiplier);
 
-    long lp_bound = (long)fb_bound * par.lp_mult;
+    long lp_bound = 0; /* full relations only - simpler LA */
 
     /* Compute primorial for smooth extraction */
     fprintf(stderr, "Computing primorial...\n");
@@ -869,23 +897,20 @@ int main(int argc, char **argv) {
         }
     }
 
-    /* Compact usable relations to front */
+    /* Compact usable relations to front (copy, don't swap) */
     int *rel_map = malloc(nrels * sizeof(int)); /* maps compact index -> original */
     int compact_n = 0;
+    relation_t *compact_rels = malloc(n_usable * sizeof(relation_t));
     for (int i = 0; i < nrels; i++) {
         if (use_rel[i]) {
-            if (compact_n != i) {
-                /* Swap */
-                relation_t tmp = rels[compact_n];
-                rels[compact_n] = rels[i];
-                rels[i] = tmp;
-                use_rel[compact_n] = 1;
-                use_rel[i] = 0;
-            }
-            rel_map[compact_n] = compact_n;
+            compact_rels[compact_n] = rels[i];
+            rel_map[compact_n] = i;
             compact_n++;
         }
     }
+    /* Copy back to rels[] array front */
+    memcpy(rels, compact_rels, compact_n * sizeof(relation_t));
+    free(compact_rels);
 
     int *dep_flat = malloc(MAX_DEPS * compact_n * sizeof(int));
     int *dep_sizes = malloc(MAX_DEPS * sizeof(int));
