@@ -2,19 +2,17 @@
 
 ## Best Implementations (ranked by 70d performance)
 
-1. **turbo_pp.c** — **Best at 70d** (90.3s worst-of-5). Based on turbo_siqs + AVX512 GF(2) LA + DLP→SLP pipeline + interleaved two-root sieve loop. `gcc -O3 -march=native -mavx512f -mavx512bw -o turbo_pp library/turbo_pp.c -lgmp -lm`
-2. **turbo_siqs.c** — 97.8s at 70d. 48KB L1-optimized blocks, BL + structured GE, DLP graph. `gcc -O3 -march=native -o turbo_siqs library/turbo_siqs.c -lgmp -lm`
-3. **siqs_bucket2.c** — **Best at 50-60d** (0.73s/9.6s). siqs_bucket + AVX512 GF(2) LA. `gcc -O3 -march=native -mavx512f -o siqs_bucket2 library/siqs_bucket2.c -lgmp -lm`
-4. **siqs_bucket.c** — **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
-5. **spqs2.c** — SPQS + bucket sieve + AVX512 LA. 139s at 70d. `gcc -O3 -march=native -mavx512f -o spqs2 library/spqs2.c -lgmp -lm`
-6. **spqs_dlp.c** — SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
-7. **meta_factor.sh** — Shell selector: picks best impl per size (siqs_bucket2 ≤55d, turbo_pp ≥56d).
+1. **hyper_siqs2.c** — **BEST OVERALL. 70d=39.6s (6.8x YAFU), 75d=256s (all 5/5).** TLP + incremental root offsets + AVX512 structured GE + optimized sqrt (exponent tracking) + interleaved sieve. `gcc -O3 -march=native -mavx512f -mavx512bw -o hyper_siqs2 library/hyper_siqs2.c -lgmp -lm`
+2. **hyper_siqs.c** — 74.9s at 70d. TLP SIQS with DLP graph, structured GE, Gray code. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+3. **turbo_pp.c** — 80s at 70d. turbo_siqs + interleaved sieve + incremental offsets. `gcc -O3 -march=native -mavx512f -mavx512bw -o turbo_pp library/turbo_pp.c -lgmp -lm`
+4. **turbo_siqs.c** — 97.8s at 70d. 48KB blocks, structured GE, DLP graph. `gcc -O3 -march=native -o turbo_siqs library/turbo_siqs.c -lgmp -lm`
+5. **siqs_bucket2.c** — Best at 50-60d (0.73s/9.6s). siqs_bucket + AVX512 LA. `gcc -O3 -march=native -mavx512f -o siqs_bucket2 library/siqs_bucket2.c -lgmp -lm`
+6. **siqs_bucket.c** — Gray code + DLP→SLP pipeline + bucket sieve. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+7. **spqs2.c** — SPQS + bucket sieve + AVX512 LA. `gcc -O3 -march=native -mavx512f -o spqs2 library/spqs2.c -lgmp -lm`
 
 ## Key LA Implementations
-- **lanczos.h** — Block Lanczos for sparse GF(2) matrices. 20x faster than Gaussian elimination for 10000x10000 matrices.
-- **block_lanczos.h** — Simplified BL (power iteration, doesn't converge properly).
-
-- **hyper_siqs.c** — **Best at 70d** (74.9s). SIQS with DLP/TLP, structured GE, Gray code, bucket sieve. Smaller FB + larger LP strategy. Reliable through 75d (262s). `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+- **structured_gauss.h** — Structured GE with singleton removal + AVX512 GF(2) XOR. Used by hyper_siqs2.
+- **block_lanczos.h** — Block Lanczos (included but falls back to structured GE).
 
 ## Novel/Experimental
 
