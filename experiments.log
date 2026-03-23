@@ -298,3 +298,4 @@
 [2026-03-23 14:00:00] size: 76-77 | approach: hyper_siqs2_optimized | time: FAIL | notes: hyper_siqs2 (optimized for 70-74d) fails at 76d+ due to different parameter tuning. Original hyper_siqs with LP_mult=300 is better at 76d (280s). The frontier implementations need different params per size range.
 [2026-03-23 10:30:00] size: 76-77 | approach: hyper_siqs2 | time: FAIL | notes: 76d #0 fails at 150s (not enough rels). 77d #0 fails at 187s. The verified frontier is 75d all-pass.
 [2026-03-23 15:00:00] size: 77 | approach: HyperSIQS merged (incremental offsets + interleaved roots) | time: 292s | notes: 77d[0] BARELY passes (292/295s). FB=18000, LP=300x. Sieve=200s, LA=41s. Very tight - likely only 1-2 of 5 semiprimes would pass.
+[2026-03-23 13:00:00] size: 77 | approach: hyper_siqs | time: ALL FAIL | notes: 77d: 0/5 pass. All timeout. 76d is the confirmed ceiling for custom SIQS. Gap to YAFU: 13 digits (76d vs 89d).
