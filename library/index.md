@@ -2,14 +2,24 @@
 
 ## Factoring Tools
 
-- **ecm_factor.c** — ECM factoring using GMP-ECM library. Suyama parametrization with deterministic sigma from seed=42 RNG. Tries increasing B1 bounds from 10K to 100B. Compile: `gcc -O3 -o ecm_factor ecm_factor.c -lgmp -lecm -L/usr/local/lib -I/usr/local/include -lm`
+- **mpqs.c** — Well-optimized MPQS. The fastest general-purpose factoring tool for 30-85 digit numbers. Compile: `gcc -O3 -o mpqs mpqs.c -lgmp -lm`
 
-- **mpqs.cpp** — Self-Initializing Quadratic Sieve (SIQS). Multi-polynomial QS using products of fb primes for 'a' values. Includes single large prime variation and GF(2) Gaussian elimination. Seed=42. Compile: `g++ -O3 -o mpqs mpqs.cpp -lgmp -lm`
+- **mpqs.cpp** — Alternative SIQS implementation. Random A-value selection, CRT b. Works up to ~50 digits. Compile: `g++ -O3 -o siqs_v2 mpqs.cpp -lgmp -lm`
 
-- **pollard_rho.c** — Pollard's rho with Brent's cycle detection and batch GCD. Good for small factors. Seed=42. Compile: `gcc -O3 -o pollard_rho pollard_rho.c -lgmp -lm`
+- **ecm_factor.c** — ECM factoring using GMP-ECM. Suyama parametrization, seed=42. Compile: `gcc -O3 -o ecm_factor ecm_factor.c -lgmp -lecm -L/usr/local/lib -I/usr/local/include -lm`
+
+- **cfrac.cpp** — CFRAC using CF expansion of sqrt(N). Single large prime variation. Compile: `g++ -O3 -o cfrac cfrac.cpp -lgmp -lm`
+
+- **sss.cpp** — Smooth Subsum Search (Hittmeir 2023). CRT-based structured candidate generation. Works 30-35 digits; needs mpz_t fix for larger sizes. Compile: `g++ -O3 -o sss sss.cpp -lgmp -lm`
+
+- **pollard_rho.c** — Pollard's rho with Brent's improvement. Compile: `gcc -O3 -o pollard_rho pollard_rho.c -lgmp -lm`
+
+- **siqs.cpp** — Earlier basic QS. Superseded by mpqs.c.
+
+- **dixon_batch.cpp** — Dixon's method with batch smoothness. Does NOT work (dead end).
 
 ## Utilities
 
-- **bench.py** — Python benchmarking script. Runs a factoring binary against semiprimes.json, records to experiments.log, prints scaling data. Usage: `python3 bench.py <binary> <approach_name> [sizes...]`
+- **bench.py** — Benchmarking script. Usage: `python3 bench.py <binary> <approach_name> [sizes...]`
 
-- **run_bench.sh** — Shell benchmarking script (deprecated, use bench.py instead).
+- **run_bench.sh** — Shell benchmarking script for single semiprimes.

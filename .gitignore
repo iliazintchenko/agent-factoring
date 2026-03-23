@@ -17,3 +17,7 @@ library/ecm_factor
 library/mpqs
 library/pollard_rho
 library/siqs
+*.o
+library/siqs_v2
+library/cfrac
+library/dixon_batch
