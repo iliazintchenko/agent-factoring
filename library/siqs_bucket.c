@@ -12,6 +12,7 @@
  * Usage: ./siqs_bucket <N>
  */
 
+#include "lanczos.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -204,7 +205,7 @@ static params_t get_params_by_digits(int digits) {
     if (digits <= 55) return (params_t){2000, 2,  50,  80, 0.82, 0, 0};
     if (digits <= 60) return (params_t){3000, 2,  50, 100, 0.83, 1, 100};
     if (digits <= 64) return (params_t){5400, 3,  80, 120, 0.84, 1, 150};
-    if (digits <= 70) return (params_t){10000,3, 100, 150, 0.86, 1, 200};
+    if (digits <= 70) return (params_t){8000, 4, 120, 150, 0.85, 1, 200};
     if (digits <= 75) return (params_t){18000,4, 120, 200, 0.86, 1, 250};
     if (digits <= 75) return (params_t){18000,3, 120, 200, 0.87, 1, 300};
     if (digits <= 80) return (params_t){50000,4, 100, 250, 0.885, 1, 250};
