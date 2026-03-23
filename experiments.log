@@ -1,301 +1,323 @@
 
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.009s | notes: found factor 955492613363501
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.009s | notes: found factor 973482052545047
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.014s | notes: found factor 742943501885287
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.044s | notes: found factor 147780977331697
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.077s | notes: found factor 237853791679697
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.023s | notes: found factor 37127311920159217
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.031s | notes: found factor 69842539155469351
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.032s | notes: found factor 705765764461554899
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.081s | notes: found factor 77098490402311201
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.230s | notes: found factor 905842719852870697
-[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.149s | notes: found factor 93638414278799019499
-[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.231s | notes: found factor 15144021729810256727
-[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.254s | notes: found factor 31096834276242774623
-[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.500s | notes: found factor 72102693587076008849
-[2026-03-23 21:34:28] size: 40 | approach: ecm | time: 0.167s | notes: found factor 92554722699095299933
-[2026-03-23 21:34:28] size: 45 | approach: ecm | time: 0.039s | notes: found factor 5657771382017363579353
-[2026-03-23 21:34:28] size: 45 | approach: ecm | time: 0.657s | notes: found factor 666364299882261015982622872417393367680304549
-[2026-03-23 21:34:30] size: 45 | approach: ecm | time: 1.210s | notes: found factor 64517937880947436101641
-[2026-03-23 21:34:32] size: 45 | approach: ecm | time: 2.184s | notes: found factor 6255792773131068668983
-[2026-03-23 21:34:33] size: 45 | approach: ecm | time: 0.921s | notes: found factor 94847479583200705450003
-[2026-03-23 21:34:36] size: 55 | approach: ecm | time: 9.392s | notes: found factor 613004874865992749646301531
-[2026-03-23 21:34:37] size: 50 | approach: ecm | time: 4.362s | notes: found factor 8120770043557672253141101
-[2026-03-23 21:34:38] size: 50 | approach: ecm | time: 0.476s | notes: found factor 3318784448526149968726087
-[2026-03-23 21:34:38] size: 50 | approach: ecm | time: 0.919s | notes: found factor 3469948797237213917621473
-[2026-03-23 21:34:40] size: 50 | approach: ecm | time: 1.718s | notes: found factor 2130491434134923133190229
-[2026-03-23 21:34:41] size: 50 | approach: ecm | time: 0.898s | notes: found factor 9919464584532754681498727
-[2026-03-23 21:34:42] size: 55 | approach: ecm | time: 6.391s | notes: found factor 9644833914128665350302021761
-[2026-03-23 21:34:45] size: 55 | approach: ecm | time: 2.323s | notes: found factor 218709495227837237296415933
-[2026-03-23 21:34:51] size: 55 | approach: ecm | time: 5.811s | notes: found factor 7004403156658693111192064179
-[2026-03-23 21:35:04] size: 55 | approach: ecm | time: 13.618s | notes: found factor 451605564466253080023546841
-[2026-03-23 21:37:41] size: 60 | approach: ecm | time: 156.618s | notes: found factor 323012268366406069604976245747
-[2026-03-23 21:37:49] size: 60 | approach: ecm | time: 8.427s | notes: found factor 669709761519831182722747407587
-[2026-03-23 21:39:33] size: 60 | approach: ecm | time: 103.937s | notes: found factor 160593629707405643958487297489
-[2026-03-23 21:39:53] size: 60 | approach: ecm | time: 19.506s | notes: found factor 127259672474532960959076409103
-[2026-03-23 21:40:51] size: 30 | approach: siqs | time: .034950263s | notes: factor=216915926307757
-[2026-03-23 21:40:51] size: 30 | approach: siqs | time: .046480778s | notes: factor=955492613363501
 [2026-03-23 21:40:51] size: 30 | approach: siqs | time: .063947615s | notes: factor=853172260176581
 [2026-03-23 21:40:51] size: 30 | approach: siqs | time: .071454710s | notes: factor=973482052545047
+[2026-03-23 21:40:51] size: 30 | approach: siqs | time: .034950263s | notes: factor=216915926307757
+[2026-03-23 21:40:51] size: 30 | approach: siqs | time: .046480778s | notes: factor=955492613363501
 [2026-03-23 21:40:51] size: 30 | approach: siqs | time: .084977570s | notes: factor=147780977331697
-[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .004498880s | notes: factor=742943501885287
-[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .005565122s | notes: factor=285490143297067
-[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .005656532s | notes: factor=853172260176581
-[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .012169256s | notes: factor=163402858332899
-[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .022581507s | notes: factor=147780977331697
-[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .019038781s | notes: factor=834077816631193
-[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .019216480s | notes: factor=4392642694838527
-[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .019861671s | notes: factor=512509817654951
-[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .028379620s | notes: factor=841510451217089
-[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .050877297s | notes: factor=9162771874407379
+[2026-03-23 21:40:52] size: 31 | approach: siqs | time: .028943351s | notes: factor=512509817654951
 [2026-03-23 21:40:52] size: 31 | approach: siqs | time: .023765850s | notes: factor=5146919240834993
 [2026-03-23 21:40:52] size: 31 | approach: siqs | time: .026191615s | notes: factor=4392642694838527
-[2026-03-23 21:40:52] size: 31 | approach: siqs | time: .026709956s | notes: factor=6339794298612721
-[2026-03-23 21:40:52] size: 31 | approach: siqs | time: .028943351s | notes: factor=512509817654951
 [2026-03-23 21:40:52] size: 31 | approach: siqs | time: .033959491s | notes: factor=9162771874407379
-[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .019948522s | notes: factor=8419580092467013
-[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .047541441s | notes: factor=2895990715237859
-[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .057918243s | notes: factor=2545748071309357
-[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .072314133s | notes: factor=1928874067663001
-[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .103804369s | notes: factor=3324830153487347
+[2026-03-23 21:40:52] size: 31 | approach: siqs | time: .026709956s | notes: factor=6339794298612721
 [2026-03-23 21:40:52] size: 32 | approach: siqs | time: .025206083s | notes: factor=2545748071309357
 [2026-03-23 21:40:52] size: 32 | approach: siqs | time: .028913771s | notes: factor=3324830153487347
+[2026-03-23 21:40:52] size: 32 | approach: siqs | time: .055732718s | notes: factor=2715902638854409
 [2026-03-23 21:40:52] size: 32 | approach: siqs | time: .037970350s | notes: factor=8092187942408081
 [2026-03-23 21:40:52] size: 32 | approach: siqs | time: .044181673s | notes: factor=9350505294133007
-[2026-03-23 21:40:52] size: 32 | approach: siqs | time: .055732718s | notes: factor=2715902638854409
 [2026-03-23 21:40:52] size: 33 | approach: siqs | time: .035219464s | notes: factor=49762701751363481
+[2026-03-23 21:40:52] size: 33 | approach: siqs | time: .148895964s | notes: factor=34726271979734171
+[2026-03-23 21:40:52] size: 33 | approach: siqs | time: .088679097s | notes: factor=8520462067475513
 [2026-03-23 21:40:52] size: 33 | approach: siqs | time: .061174689s | notes: factor=97726895700147713
 [2026-03-23 21:40:52] size: 33 | approach: siqs | time: .077642634s | notes: factor=7234779656144837
-[2026-03-23 21:40:52] size: 33 | approach: siqs | time: .088679097s | notes: factor=8520462067475513
-[2026-03-23 21:40:52] size: 33 | approach: siqs | time: .148895964s | notes: factor=34726271979734171
-[2026-03-23 21:40:52] size: 34 | approach: siqs | time: .125692745s | notes: factor=88166964892820689
-[2026-03-23 21:40:52] size: 34 | approach: siqs | time: .129479693s | notes: factor=31885749280408423
-[2026-03-23 21:40:52] size: 34 | approach: siqs | time: .152113421s | notes: factor=25815610339368071
+[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .005656532s | notes: factor=853172260176581
+[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .005565122s | notes: factor=285490143297067
+[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .004498880s | notes: factor=742943501885287
+[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .012169256s | notes: factor=163402858332899
+[2026-03-23 21:40:52] size: 30 | approach: ecm | time: .022581507s | notes: factor=147780977331697
 [2026-03-23 21:40:52] size: 34 | approach: siqs | time: .155891049s | notes: factor=82045041604477999
+[2026-03-23 21:40:52] size: 34 | approach: siqs | time: .152113421s | notes: factor=25815610339368071
+[2026-03-23 21:40:52] size: 34 | approach: siqs | time: .125692745s | notes: factor=88166964892820689
 [2026-03-23 21:40:52] size: 34 | approach: siqs | time: .158788135s | notes: factor=16584859093784497
-[2026-03-23 21:40:53] size: 33 | approach: ecm | time: .014421740s | notes: factor=8520462067475513
+[2026-03-23 21:40:52] size: 34 | approach: siqs | time: .129479693s | notes: factor=31885749280408423
+[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .019861671s | notes: factor=512509817654951
+[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .019038781s | notes: factor=834077816631193
+[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .019216480s | notes: factor=4392642694838527
+[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .050877297s | notes: factor=9162771874407379
+[2026-03-23 21:40:52] size: 31 | approach: ecm | time: .028379620s | notes: factor=841510451217089
+[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .057918243s | notes: factor=2545748071309357
+[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .103804369s | notes: factor=3324830153487347
+[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .019948522s | notes: factor=8419580092467013
+[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .047541441s | notes: factor=2895990715237859
+[2026-03-23 21:40:52] size: 32 | approach: ecm | time: .072314133s | notes: factor=1928874067663001
 [2026-03-23 21:40:53] size: 33 | approach: ecm | time: .026362585s | notes: factor=4246390191698561
+[2026-03-23 21:40:53] size: 33 | approach: ecm | time: .079487237s | notes: factor=34726271979734171
+[2026-03-23 21:40:53] size: 33 | approach: ecm | time: .014421740s | notes: factor=8520462067475513
 [2026-03-23 21:40:53] size: 33 | approach: ecm | time: .054787796s | notes: factor=4888264003620161
 [2026-03-23 21:40:53] size: 33 | approach: ecm | time: .056623359s | notes: factor=99579728537368267
-[2026-03-23 21:40:53] size: 33 | approach: ecm | time: .079487237s | notes: factor=34726271979734171
-[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .069772197s | notes: factor=88166964892820689
-[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .074827977s | notes: factor=81246557449774337
-[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .078984746s | notes: factor=92646457184500561
 [2026-03-23 21:40:53] size: 34 | approach: ecm | time: .081007360s | notes: factor=19791715649818547
-[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .097561086s | notes: factor=97615487733219949
-[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .013789059s | notes: factor=37127311920159217
-[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .066874031s | notes: factor=77098490402311201
-[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .089603429s | notes: factor=69842539155469351
-[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .095255191s | notes: factor=905842719852870697
-[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .099418470s | notes: factor=29901438125424293
-[2026-03-23 21:40:53] size: 35 | approach: siqs | time: .041533977s | notes: factor=905842719852870697
 [2026-03-23 21:40:53] size: 35 | approach: siqs | time: .195105161s | notes: factor=69842539155469351
-[2026-03-23 21:40:53] size: 35 | approach: siqs | time: .270514690s | notes: factor=37127311920159217
+[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .074827977s | notes: factor=81246557449774337
+[2026-03-23 21:40:53] size: 35 | approach: siqs | time: .041533977s | notes: factor=905842719852870697
+[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .069772197s | notes: factor=88166964892820689
 [2026-03-23 21:40:53] size: 35 | approach: siqs | time: .273305157s | notes: factor=29901438125424293
+[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .097561086s | notes: factor=97615487733219949
 [2026-03-23 21:40:53] size: 35 | approach: siqs | time: .494986215s | notes: factor=77098490402311201
-[2026-03-23 21:40:53] size: 36 | approach: ecm | time: .007239886s | notes: factor=282354060658473593
-[2026-03-23 21:40:53] size: 36 | approach: ecm | time: .014843382s | notes: factor=912293358537943607
+[2026-03-23 21:40:53] size: 34 | approach: ecm | time: .078984746s | notes: factor=92646457184500561
+[2026-03-23 21:40:53] size: 35 | approach: siqs | time: .270514690s | notes: factor=37127311920159217
+[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .050527667s | notes: factor=939120934611052619
+[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .089603429s | notes: factor=69842539155469351
+[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .076243300s | notes: factor=282354060658473593
+[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .095255191s | notes: factor=905842719852870697
+[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .091394673s | notes: factor=891760272215780251
+[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .099418470s | notes: factor=29901438125424293
+[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .029278712s | notes: factor=136048381418674093
+[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .066874031s | notes: factor=77098490402311201
+[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .049984936s | notes: factor=341557716280196699
+[2026-03-23 21:40:53] size: 35 | approach: ecm | time: .013789059s | notes: factor=37127311920159217
 [2026-03-23 21:40:53] size: 36 | approach: ecm | time: .016397205s | notes: factor=939120934611052619
+[2026-03-23 21:40:53] size: 36 | approach: ecm | time: .007239886s | notes: factor=282354060658473593
 [2026-03-23 21:40:53] size: 36 | approach: ecm | time: .043134161s | notes: factor=308335176111167687
 [2026-03-23 21:40:53] size: 36 | approach: ecm | time: .065833019s | notes: factor=136048381418674093
-[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .029278712s | notes: factor=136048381418674093
-[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .049984936s | notes: factor=341557716280196699
-[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .050527667s | notes: factor=939120934611052619
-[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .076243300s | notes: factor=282354060658473593
-[2026-03-23 21:40:53] size: 36 | approach: siqs | time: .091394673s | notes: factor=891760272215780251
-[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .006536014s | notes: factor=284946505447766681
-[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .158984095s | notes: factor=714657417109919609
-[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .166093121s | notes: factor=247512976258061539
-[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .246030249s | notes: factor=745861649733741133
-[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .272478575s | notes: factor=588689639046004393
-[2026-03-23 21:40:53] size: 37 | approach: siqs | time: .060002086s | notes: factor=714657417109919609
+[2026-03-23 21:40:53] size: 36 | approach: ecm | time: .014843382s | notes: factor=912293358537943607
+[2026-03-23 21:40:53] size: 37 | approach: siqs | time: .121208956s | notes: factor=8818611286520039933
 [2026-03-23 21:40:53] size: 37 | approach: siqs | time: .098335058s | notes: factor=9555851289521223263
 [2026-03-23 21:40:53] size: 37 | approach: siqs | time: .111183285s | notes: factor=9978420706037468441
 [2026-03-23 21:40:53] size: 37 | approach: siqs | time: .116029595s | notes: factor=745861649733741133
-[2026-03-23 21:40:53] size: 37 | approach: siqs | time: .121208956s | notes: factor=8818611286520039933
-[2026-03-23 21:40:53] size: 38 | approach: siqs | time: .084111617s | notes: factor=2857813223847491747
-[2026-03-23 21:40:53] size: 38 | approach: siqs | time: .092443675s | notes: factor=9541016958474145709
+[2026-03-23 21:40:53] size: 37 | approach: siqs | time: .060002086s | notes: factor=714657417109919609
 [2026-03-23 21:40:53] size: 38 | approach: siqs | time: .100873083s | notes: factor=9239488404697377077
-[2026-03-23 21:40:53] size: 38 | approach: siqs | time: .143130652s | notes: factor=1981968944913582883
+[2026-03-23 21:40:53] size: 38 | approach: siqs | time: .084111617s | notes: factor=2857813223847491747
 [2026-03-23 21:40:53] size: 38 | approach: siqs | time: .192555266s | notes: factor=8474925057250052257
+[2026-03-23 21:40:53] size: 38 | approach: siqs | time: .143130652s | notes: factor=1981968944913582883
+[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .166093121s | notes: factor=247512976258061539
+[2026-03-23 21:40:53] size: 38 | approach: siqs | time: .092443675s | notes: factor=9541016958474145709
+[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .272478575s | notes: factor=588689639046004393
+[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .006536014s | notes: factor=284946505447766681
+[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .246030249s | notes: factor=745861649733741133
+[2026-03-23 21:40:53] size: 37 | approach: ecm | time: .158984095s | notes: factor=714657417109919609
 [2026-03-23 21:40:54] size: 38 | approach: ecm | time: .023382727s | notes: factor=3510315453304323199
 [2026-03-23 21:40:54] size: 38 | approach: ecm | time: .071855380s | notes: factor=2857813223847491747
-[2026-03-23 21:40:54] size: 38 | approach: ecm | time: .120465602s | notes: factor=1981968944913582883
-[2026-03-23 21:40:54] size: 38 | approach: ecm | time: .138730181s | notes: factor=9541016958474145709
 [2026-03-23 21:40:54] size: 38 | approach: ecm | time: .229446013s | notes: factor=8474925057250052257
-[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .060824678s | notes: factor=35530734495872680399
-[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .074662328s | notes: factor=4334488463092636909
-[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .120625764s | notes: factor=9277092604312308143
-[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .260643990s | notes: factor=3770956117258414859
-[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .543345655s | notes: factor=92571489899583619501
+[2026-03-23 21:40:54] size: 38 | approach: ecm | time: .120465602s | notes: factor=1981968944913582883
+[2026-03-23 21:40:54] size: 39 | approach: siqs | time: .222744868s | notes: factor=92571489899583619501
+[2026-03-23 21:40:54] size: 38 | approach: ecm | time: .138730181s | notes: factor=9541016958474145709
 [2026-03-23 21:40:54] size: 39 | approach: siqs | time: .107012525s | notes: factor=3770956117258414859
 [2026-03-23 21:40:54] size: 39 | approach: siqs | time: .144471213s | notes: factor=99266987756481283073
 [2026-03-23 21:40:54] size: 39 | approach: siqs | time: .169422466s | notes: factor=35530734495872680399
-[2026-03-23 21:40:54] size: 39 | approach: siqs | time: .222744868s | notes: factor=92571489899583619501
 [2026-03-23 21:40:54] size: 39 | approach: siqs | time: .293195947s | notes: factor=4334488463092636909
-[2026-03-23 21:40:54] size: 40 | approach: siqs | time: .284096899s | notes: factor=15144021729810256727
-[2026-03-23 21:40:54] size: 40 | approach: siqs | time: .360426371s | notes: factor=31096834276242774623
+[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .543345655s | notes: factor=92571489899583619501
+[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .260643990s | notes: factor=3770956117258414859
+[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .120625764s | notes: factor=9277092604312308143
+[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .060824678s | notes: factor=35530734495872680399
+[2026-03-23 21:40:54] size: 39 | approach: ecm | time: .074662328s | notes: factor=4334488463092636909
 [2026-03-23 21:40:54] size: 40 | approach: siqs | time: .399594323s | notes: factor=72102693587076008849
+[2026-03-23 21:40:54] size: 40 | approach: siqs | time: .284096899s | notes: factor=15144021729810256727
 [2026-03-23 21:40:54] size: 40 | approach: siqs | time: .523536443s | notes: factor=26780805813699501731
+[2026-03-23 21:40:54] size: 40 | approach: siqs | time: .360426371s | notes: factor=31096834276242774623
 [2026-03-23 21:40:54] size: 40 | approach: siqs | time: .552433774s | notes: factor=20804179672520600591
-[2026-03-23 21:40:55] size: 41 | approach: siqs | time: .218463411s | notes: factor=47864119284989808803
-[2026-03-23 21:40:55] size: 41 | approach: siqs | time: .219854724s | notes: factor=49726229804069553653
 [2026-03-23 21:40:55] size: 41 | approach: siqs | time: .231307798s | notes: factor=817115310397520265487
+[2026-03-23 21:40:55] size: 41 | approach: siqs | time: .218463411s | notes: factor=47864119284989808803
 [2026-03-23 21:40:55] size: 41 | approach: siqs | time: .277331665s | notes: factor=587406044958304026083
+[2026-03-23 21:40:55] size: 41 | approach: siqs | time: .219854724s | notes: factor=49726229804069553653
 [2026-03-23 21:40:55] size: 41 | approach: siqs | time: .407721590s | notes: factor=71319641850106078133
-[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .172519292s | notes: factor=184183033605295054387
-[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .193196516s | notes: factor=558210507008341640149
-[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .236862169s | notes: factor=147654092019125183017
-[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .290228561s | notes: factor=867102878032255241681
 [2026-03-23 21:40:55] size: 42 | approach: siqs | time: .378565667s | notes: factor=993800718941516497211
+[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .290228561s | notes: factor=867102878032255241681
+[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .236862169s | notes: factor=147654092019125183017
+[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .193196516s | notes: factor=558210507008341640149
+[2026-03-23 21:40:55] size: 42 | approach: siqs | time: .172519292s | notes: factor=184183033605295054387
+[2026-03-23 21:40:56] size: 40 | approach: ecm | time: .335331138s | notes: factor=72102693587076008849
+[2026-03-23 21:40:56] size: 40 | approach: ecm | time: 1.044812783s | notes: factor=78735518311587647563
 [2026-03-23 21:40:56] size: 40 | approach: ecm | time: .078834227s | notes: factor=26780805813699501731
 [2026-03-23 21:40:56] size: 40 | approach: ecm | time: .168956087s | notes: factor=31096834276242774623
-[2026-03-23 21:40:56] size: 40 | approach: ecm | time: .335331138s | notes: factor=72102693587076008849
 [2026-03-23 21:40:56] size: 40 | approach: ecm | time: .422197541s | notes: factor=20804179672520600591
-[2026-03-23 21:40:56] size: 40 | approach: ecm | time: 1.044812783s | notes: factor=78735518311587647563
+[2026-03-23 21:40:56] size: 43 | approach: siqs | time: .995020778s | notes: factor=6793239578543101343251
+[2026-03-23 21:40:56] size: 43 | approach: siqs | time: .791564009s | notes: factor=2189767028927649841919
 [2026-03-23 21:40:56] size: 43 | approach: siqs | time: .486966326s | notes: factor=480031815015378367571
 [2026-03-23 21:40:56] size: 43 | approach: siqs | time: .633281365s | notes: factor=9356304018890286058417
-[2026-03-23 21:40:56] size: 43 | approach: siqs | time: .791564009s | notes: factor=2189767028927649841919
 [2026-03-23 21:40:56] size: 43 | approach: siqs | time: .885354397s | notes: factor=2540947736570693966473
-[2026-03-23 21:40:56] size: 43 | approach: siqs | time: .995020778s | notes: factor=6793239578543101343251
-[2026-03-23 21:40:57] size: 41 | approach: ecm | time: .128861782s | notes: factor=49726229804069553653
-[2026-03-23 21:40:57] size: 41 | approach: ecm | time: .151910940s | notes: factor=52722621216111037181
 [2026-03-23 21:40:57] size: 41 | approach: ecm | time: .534414846s | notes: factor=97281635418845629793
 [2026-03-23 21:40:57] size: 41 | approach: ecm | time: .861971648s | notes: factor=47864119284989808803
+[2026-03-23 21:40:57] size: 41 | approach: ecm | time: .151910940s | notes: factor=52722621216111037181
+[2026-03-23 21:40:57] size: 41 | approach: ecm | time: .128861782s | notes: factor=49726229804069553653
 [2026-03-23 21:40:57] size: 41 | approach: ecm | time: FAIL | notes: FAIL exit_1
+[2026-03-23 21:40:59] size: 44 | approach: siqs | time: 2.033049170s | notes: factor=9000080704803689301221
+[2026-03-23 21:40:59] size: 44 | approach: siqs | time: 2.500189892s | notes: factor=3212163167658753397391
 [2026-03-23 21:40:59] size: 44 | approach: siqs | time: .871752378s | notes: factor=2972570025159287871169
 [2026-03-23 21:40:59] size: 44 | approach: siqs | time: 1.168899563s | notes: factor=9532023585458569260631
 [2026-03-23 21:40:59] size: 44 | approach: siqs | time: 1.267214859s | notes: factor=1988562391539792713717
-[2026-03-23 21:40:59] size: 44 | approach: siqs | time: 2.033049170s | notes: factor=9000080704803689301221
-[2026-03-23 21:40:59] size: 44 | approach: siqs | time: 2.500189892s | notes: factor=3212163167658753397391
-[2026-03-23 21:41:05] size: 45 | approach: siqs | time: 2.259986221s | notes: factor=64517937880947436101641
-[2026-03-23 21:41:05] size: 45 | approach: siqs | time: 2.815797677s | notes: factor=2300399292327339124403
 [2026-03-23 21:41:05] size: 45 | approach: siqs | time: 2.936146243s | notes: factor=5657771382017363579353
 [2026-03-23 21:41:05] size: 45 | approach: siqs | time: 3.884754097s | notes: factor=79144523907419878777921
+[2026-03-23 21:41:05] size: 45 | approach: siqs | time: 2.259986221s | notes: factor=64517937880947436101641
 [2026-03-23 21:41:05] size: 45 | approach: siqs | time: 5.772529854s | notes: factor=68768629946334654445469
-[2026-03-23 21:41:06] size: 46 | approach: siqs | time: .757671273s | notes: factor=85010884086564696300199
+[2026-03-23 21:41:05] size: 45 | approach: siqs | time: 2.815797677s | notes: factor=2300399292327339124403
 [2026-03-23 21:41:06] size: 46 | approach: siqs | time: 1.061919434s | notes: factor=99758926037608506463313
+[2026-03-23 21:41:06] size: 46 | approach: siqs | time: .757671273s | notes: factor=85010884086564696300199
+[2026-03-23 21:41:06] size: 46 | approach: siqs | time: 1.483301664s | notes: factor=70666773741297185724887
 [2026-03-23 21:41:06] size: 46 | approach: siqs | time: 1.407377938s | notes: factor=86004699159995084660651
 [2026-03-23 21:41:06] size: 46 | approach: siqs | time: 1.421165098s | notes: factor=32183232455168051482133
-[2026-03-23 21:41:06] size: 46 | approach: siqs | time: 1.483301664s | notes: factor=70666773741297185724887
-[2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.171388507s | notes: factor=384017601634009475574049
-[2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.447392946s | notes: factor=75680445070468545563987
 [2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.612015179s | notes: factor=276605928639345294417163
-[2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.630510420s | notes: factor=74100767199495443878501
+[2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.447392946s | notes: factor=75680445070468545563987
+[2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.171388507s | notes: factor=384017601634009475574049
 [2026-03-23 21:41:09] size: 47 | approach: siqs | time: 2.548788088s | notes: factor=51095438111813134356253
-[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.006434782s | notes: factor=811617398279555218138087
-[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.076359696s | notes: factor=171645973353082599514967
-[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.310483684s | notes: factor=151393362073140314244911
-[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.827807116s | notes: factor=205602815378317965076943
+[2026-03-23 21:41:09] size: 47 | approach: siqs | time: 1.630510420s | notes: factor=74100767199495443878501
 [2026-03-23 21:41:11] size: 48 | approach: siqs | time: 2.124719532s | notes: factor=976676140418234156932763
-[2026-03-23 21:41:17] size: 49 | approach: siqs | time: 2.594279109s | notes: factor=553218831838439580273533
+[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.076359696s | notes: factor=171645973353082599514967
+[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.006434782s | notes: factor=811617398279555218138087
+[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.827807116s | notes: factor=205602815378317965076943
+[2026-03-23 21:41:11] size: 48 | approach: siqs | time: 1.310483684s | notes: factor=151393362073140314244911
 [2026-03-23 21:41:17] size: 49 | approach: siqs | time: 2.718922504s | notes: factor=5402790224168180935894981
-[2026-03-23 21:41:17] size: 49 | approach: siqs | time: 2.908219814s | notes: factor=8849601533321981161166287
-[2026-03-23 21:41:17] size: 49 | approach: siqs | time: 3.122486587s | notes: factor=556530801993010943126801
+[2026-03-23 21:41:17] size: 49 | approach: siqs | time: 2.594279109s | notes: factor=553218831838439580273533
 [2026-03-23 21:41:17] size: 49 | approach: siqs | time: 5.242327057s | notes: factor=6660199643412231922663289
-[2026-03-23 21:41:22] size: 50 | approach: siqs | time: 2.323405500s | notes: factor=1437953211038098705171097
-[2026-03-23 21:41:22] size: 50 | approach: siqs | time: 3.233045452s | notes: factor=9591453119320901101941821
+[2026-03-23 21:41:17] size: 49 | approach: siqs | time: 3.122486587s | notes: factor=556530801993010943126801
+[2026-03-23 21:41:17] size: 49 | approach: siqs | time: 2.908219814s | notes: factor=8849601533321981161166287
+[2026-03-23 21:41:22] size: 50 | approach: siqs | time: 5.122991694s | notes: factor=8120770043557672253141101
 [2026-03-23 21:41:22] size: 50 | approach: siqs | time: 4.026735568s | notes: factor=9444316373871639557235581
 [2026-03-23 21:41:22] size: 50 | approach: siqs | time: 4.629274992s | notes: factor=3318784448526149968726087
-[2026-03-23 21:41:22] size: 50 | approach: siqs | time: 5.122991694s | notes: factor=8120770043557672253141101
-[2026-03-23 21:41:26] size: 51 | approach: siqs | time: 1.610878563s | notes: factor=7953513319018018259471423
-[2026-03-23 21:41:26] size: 51 | approach: siqs | time: 1.862134128s | notes: factor=50464995616542045434679053
-[2026-03-23 21:41:26] size: 51 | approach: siqs | time: 2.722151262s | notes: factor=27808157206229720564665049
+[2026-03-23 21:41:22] size: 50 | approach: siqs | time: 3.233045452s | notes: factor=9591453119320901101941821
+[2026-03-23 21:41:22] size: 50 | approach: siqs | time: 2.323405500s | notes: factor=1437953211038098705171097
 [2026-03-23 21:41:26] size: 51 | approach: siqs | time: 2.808688223s | notes: factor=4127357409568767268060631
+[2026-03-23 21:41:26] size: 51 | approach: siqs | time: 1.862134128s | notes: factor=50464995616542045434679053
+[2026-03-23 21:41:26] size: 51 | approach: siqs | time: 1.610878563s | notes: factor=7953513319018018259471423
 [2026-03-23 21:41:26] size: 51 | approach: siqs | time: 3.767720654s | notes: factor=81484551371821274419677353
+[2026-03-23 21:41:26] size: 51 | approach: siqs | time: 2.722151262s | notes: factor=27808157206229720564665049
 [2026-03-23 21:41:31] size: 52 | approach: siqs | time: 2.725384329s | notes: factor=95235031220452520250871949
-[2026-03-23 21:41:31] size: 52 | approach: siqs | time: 2.931015073s | notes: factor=22318409650290877904765447
-[2026-03-23 21:41:31] size: 52 | approach: siqs | time: 3.700918627s | notes: factor=65501083572608932178914751
-[2026-03-23 21:41:31] size: 52 | approach: siqs | time: 3.861124612s | notes: factor=91541784966394509882204583
 [2026-03-23 21:41:31] size: 52 | approach: siqs | time: 5.347254064s | notes: factor=86853665865561239226011377
+[2026-03-23 21:41:31] size: 52 | approach: siqs | time: 3.861124612s | notes: factor=91541784966394509882204583
+[2026-03-23 21:41:31] size: 52 | approach: siqs | time: 3.700918627s | notes: factor=65501083572608932178914751
+[2026-03-23 21:41:31] size: 52 | approach: siqs | time: 2.931015073s | notes: factor=22318409650290877904765447
 [2026-03-23 21:41:38] size: 53 | approach: siqs | time: 4.163691567s | notes: factor=495469385702500407146772017
+[2026-03-23 21:41:38] size: 53 | approach: siqs | time: 6.754483049s | notes: factor=720823964780332827848050381
+[2026-03-23 21:41:38] size: 53 | approach: siqs | time: 5.115552328s | notes: factor=449423187747800221264931077
 [2026-03-23 21:41:38] size: 53 | approach: siqs | time: 4.398271963s | notes: factor=33785673890338315411281653
 [2026-03-23 21:41:38] size: 53 | approach: siqs | time: 4.430363203s | notes: factor=468711473151523324478725873
-[2026-03-23 21:41:38] size: 53 | approach: siqs | time: 5.115552328s | notes: factor=449423187747800221264931077
-[2026-03-23 21:41:38] size: 53 | approach: siqs | time: 6.754483049s | notes: factor=720823964780332827848050381
-[2026-03-23 21:41:58] size: 54 | approach: siqs | time: 19.624393017s | notes: factor=210660520322958242851495331
-[2026-03-23 21:41:58] size: 54 | approach: siqs | time: 7.110532711s | notes: factor=960847259364344199770539711
+[2026-03-23 21:41:58] size: 54 | approach: siqs | time: 9.680808828s | notes: factor=251931353323471365990991339
 [2026-03-23 21:41:58] size: 54 | approach: siqs | time: 8.822020007s | notes: factor=936923754496815584590109357
 [2026-03-23 21:41:58] size: 54 | approach: siqs | time: 9.383276032s | notes: factor=974145362450408019560643707
-[2026-03-23 21:41:58] size: 54 | approach: siqs | time: 9.680808828s | notes: factor=251931353323471365990991339
-[2026-03-23 21:42:44] size: 55 | approach: siqs | time: 10.464503949s | notes: factor=7581411337521648855738743573
-[2026-03-23 21:42:44] size: 55 | approach: siqs | time: 15.683174507s | notes: factor=363122801990237104785674219
-[2026-03-23 21:42:44] size: 55 | approach: siqs | time: 19.567970045s | notes: factor=451605564466253080023546841
-[2026-03-23 21:42:44] size: 55 | approach: siqs | time: 22.020160678s | notes: factor=613004874865992749646301531
-[2026-03-23 21:42:44] size: 55 | approach: siqs | time: 46.231772661s | notes: factor=9644833914128665350302021761
-[2026-03-23 21:43:24] size: 60 | approach: ecm | time: 211.271s | notes: found factor 910921035116519704149620627527
-[2026-03-23 21:43:37] size: 56 | approach: siqs | time: 21.080355027s | notes: factor=2619642279271363362833363051
-[2026-03-23 21:43:37] size: 56 | approach: siqs | time: 30.617985816s | notes: factor=3133919947636714377324251347
-[2026-03-23 21:43:37] size: 56 | approach: siqs | time: 46.603441903s | notes: factor=8210800456133253023765361107
-[2026-03-23 21:43:37] size: 56 | approach: siqs | time: 48.737618422s | notes: factor=7383042517830286268531726341
-[2026-03-23 21:43:37] size: 56 | approach: siqs | time: 52.599839370s | notes: factor=1812692971414181860801305169
-[2026-03-23 21:44:43] size: 57 | approach: siqs | time: 22.378774892s | notes: factor=5761896353180878733239029497
-[2026-03-23 21:44:43] size: 57 | approach: siqs | time: 25.806373703s | notes: factor=3488128112046766079111453917
-[2026-03-23 21:44:43] size: 57 | approach: siqs | time: 38.535906502s | notes: factor=32637541262429414996288613089
-[2026-03-23 21:44:43] size: 57 | approach: siqs | time: 51.142775042s | notes: factor=8088542170426729881777048173
-[2026-03-23 21:44:43] size: 57 | approach: siqs | time: 66.606354329s | notes: factor=99363259117281837473483083219
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.072s | notes: found factor 163402858332899
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.076s | notes: found factor 742943501885287
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.091s | notes: found factor 285490143297067
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.099s | notes: found factor 237853791679697
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.110s | notes: found factor 709910301438391
-[2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.245s | notes: found factor 905842719852870697
-[2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.272s | notes: found factor 69842539155469351
-[2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.352s | notes: found factor 29901438125424293
-[2026-03-23 21:45:31] size: 35 | approach: siqs | time: 0.304s | notes: found factor 37127311920159217
-[2026-03-23 21:45:31] size: 35 | approach: siqs | time: 0.428s | notes: found factor 280071956120256107
-[2026-03-23 21:45:32] size: 40 | approach: siqs | time: 1.285s | notes: found factor 72102693587076008849
-[2026-03-23 21:45:33] size: 40 | approach: siqs | time: 1.244s | notes: found factor 78735518311587647563
-[2026-03-23 21:45:34] size: 40 | approach: siqs | time: 1.045s | notes: found factor 26780805813699501731
-[2026-03-23 21:45:36] size: 40 | approach: siqs | time: 1.183s | notes: found factor 31096834276242774623
-[2026-03-23 21:45:37] size: 40 | approach: siqs | time: 1.503s | notes: found factor 92554722699095299933
-[2026-03-23 21:45:39] size: 45 | approach: siqs | time: 1.653s | notes: found factor 5657771382017363579353
-[2026-03-23 21:45:41] size: 45 | approach: siqs | time: 1.729s | notes: found factor 79144523907419878777921
-[2026-03-23 21:45:41] size: 55 | approach: ecm | time: 10.110s | notes: found factor 613004874865992749646301531
-[2026-03-23 21:45:42] size: 45 | approach: siqs | time: 1.868s | notes: found factor 3527812285283428572707
-[2026-03-23 21:45:45] size: 45 | approach: siqs | time: 2.314s | notes: found factor 6255792773131068668983
-[2026-03-23 21:45:46] size: 45 | approach: siqs | time: 1.605s | notes: found factor 94847479583200705450003
-[2026-03-23 21:45:48] size: 55 | approach: ecm | time: 6.812s | notes: found factor 9644833914128665350302021761
-[2026-03-23 21:45:50] size: 55 | approach: ecm | time: 2.490s | notes: found factor 218709495227837237296415933
-[2026-03-23 21:45:53] size: 50 | approach: siqs | time: 6.480s | notes: found factor 8120770043557672253141101
-[2026-03-23 21:45:56] size: 55 | approach: ecm | time: 6.204s | notes: found factor 7004403156658693111192064179
-[2026-03-23 21:46:00] size: 50 | approach: siqs | time: 7.025s | notes: found factor 3469948797237213917621473
-[2026-03-23 21:46:07] size: 50 | approach: siqs | time: 7.638s | notes: found factor 3318784448526149968726087
-[2026-03-23 21:46:11] size: 55 | approach: ecm | time: 14.553s | notes: found factor 451605564466253080023546841
-[2026-03-23 21:46:12] size: 50 | approach: siqs | time: 4.695s | notes: found factor 9591453119320901101941821
-[2026-03-23 21:46:17] size: 50 | approach: siqs | time: 5.176s | notes: found factor 9919464584532754681498727
-[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 44.617466557s | notes: factor=99120337580715523453789130329
-[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 49.376124020s | notes: factor=89751595122523791156893059429
-[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 57.597856291s | notes: factor=92109139809267151159177297811
-[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 88.513624436s | notes: factor=17126378949394488899993742571
-[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 94.440349228s | notes: factor=92603323431341555808646960469
-[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 27.760592342s | notes: factor=606955932467073740617044093847
-[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 31.758412314s | notes: factor=48651413660930190627280465967
-[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 54.081447211s | notes: factor=272969733351344406449575166309
-[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 66.027754313s | notes: factor=877707626344573692830834139331
-[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 99.159488227s | notes: factor=908950661703940505579875926287
-[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 120.878552283s | notes: factor=160593629707405643958487297489
-[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 60.716475148s | notes: factor=887814811639065808131138077543
-[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 63.698024730s | notes: factor=914330678589129528640370829611
-[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 64.597998030s | notes: factor=233727393239440919182445071663
-[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 79.360203359s | notes: factor=910921035116519704149620627527
-[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 105.398257238s | notes: factor=755690653702078362063393888071
-[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 106.353295044s | notes: factor=535690706361980841500632680397
-[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 129.512717084s | notes: factor=5010677374193137000624241480693
-[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 60.205647730s | notes: factor=5307517619194052011227801015079
-[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 74.083610982s | notes: factor=5002501016451585602436632793127
-[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 103.672290100s | notes: factor=9135405927976685192456442959287
-[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 69.498401734s | notes: factor=8710261781514903350498287202657
-[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 73.946389244s | notes: factor=9431214334580625146789563751717
-[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 77.884790366s | notes: factor=7463009256578807282887282575487
-[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 99.307662270s | notes: factor=1697197652288598174769165251137
-[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 100.607428397s | notes: factor=7260919637965039885738437972131
-[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 111.618868218s | notes: factor=66597860456099474600441836998629
-[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 130.323916732s | notes: factor=8546881023841366050029628289477
-[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 189.639040610s | notes: factor=5919401604084975603551252896417
-[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 65.270518762s | notes: factor=59670596733612213052471486376989
-[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 109.748540665s | notes: factor=81431071304514002581096604687599
-[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 115.582221276s | notes: factor=77139634158739047262994116776877
-[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 121.955469752s | notes: factor=73586903179221471484270676125813
-[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 149.804909065s | notes: factor=84114142109053389083561778055237
-[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 92.489740454s | notes: factor=95374566566521794976740296046643
+[2026-03-23 21:41:58] size: 54 | approach: siqs | time: 7.110532711s | notes: factor=960847259364344199770539711
+[2026-03-23 21:41:58] size: 54 | approach: siqs | time: 19.624393017s | notes: factor=210660520322958242851495331
+[2026-03-23 21:45:54] size: 64 | approach: mpqs | time: 71.133s | notes: factored
+[2026-03-23 21:45:55] size: 57 | approach: mpqs | time: 47.755s | notes: factored
+[2026-03-23 21:45:58] size: 57 | approach: mpqs | time: 3.189s | notes: factored
+[2026-03-23 21:46:00] size: 56 | approach: ecm | time: s | notes: factored 22423813349599506982745394677482610331721288417603775339 -> 
+[2026-03-23 21:46:01] size: 59 | approach: mpqs | time: 40.073s | notes: factored
+[2026-03-23 21:46:04] size: 55 | approach: mpqs | time: 19.873s | notes: factored
+[2026-03-23 21:46:05] size: 55 | approach: ecm | time: s | notes: factored 2543458500515166346136808356170778359091602798833701201 -> 
+[2026-03-23 21:46:07] size: 58 | approach: mpqs | time: 59.313s | notes: factored
+[2026-03-23 21:46:11] size: 45 | approach: ecm | time: FAIL | notes: failed on 218187074912226648829683780908091892113723209
+[2026-03-23 21:46:14] size: 44 | approach: ecm | time: FAIL | notes: failed on 19308452690769413938464952958419189160708789
+[2026-03-23 21:46:15] size: 47 | approach: ecm | time: FAIL | notes: failed on 18653807346238413047074754523406207815360227167
+[2026-03-23 21:46:16] size: 59 | approach: mpqs | time: 14.502s | notes: factored
+[2026-03-23 21:46:16] size: 47 | approach: ecm | time: 1.572s | notes: factored 58356631835448609235603411853748379832130324859 -> 74100767199495443878501 787530737412472602443359
+[2026-03-23 21:46:16] size: 50 | approach: ecm | time: FAIL | notes: failed on 20434508711619868601554181751353752568766483667009
+[2026-03-23 21:46:17] size: 57 | approach: mpqs | time: 18.712s | notes: factored
+[2026-03-23 21:46:22] size: 62 | approach: mpqs | time: 66.102s | notes: factored
+[2026-03-23 21:46:25] size: 51 | approach: ecm | time: FAIL | notes: failed on 147986027525987434189390102451670433818922580897983
+[2026-03-23 21:46:27] size: 49 | approach: ecm | time: FAIL | notes: failed on 5059727365364080139045434459598642243596039711543
+[2026-03-23 21:46:29] size: 61 | approach: mpqs | time: 66.036s | notes: factored
+[2026-03-23 21:46:30] size: 57 | approach: ecm | time: s | notes: factored 522242712379562808416045090391110365674008091637937627813 -> 
+[2026-03-23 21:46:34] size: 58 | approach: mpqs | time: 26.784s | notes: factored
+[2026-03-23 21:46:36] size: 57 | approach: ecm | time: 5.778s | notes: factored 146488812771444780104350575625177865013026860893397190161 -> 25423715352077623649200881113 5761896353180878733239029497
+[2026-03-23 21:46:37] size: 58 | approach: ecm | time: s | notes: factored 2992945279297619567738295126419319660549301895555476647649 -> 
+[2026-03-23 21:46:43] size: 58 | approach: ecm | time: 5.911s | notes: factored 1695027216922792223578282868188999276352690984685204641399 -> 17126378949394488899993742571 98971722039510325085965724069
+[2026-03-23 21:46:49] size: 59 | approach: ecm | time: s | notes: factored 26893320926133974754375883785980228957959893129709155774937 -> 
+[2026-03-23 21:46:49] size: 58 | approach: ecm | time: 5.888s | notes: factored 1129647003750892423466575712460641982608981307628771746583 -> 12586372445066434246481998027 89751595122523791156893059429
+[2026-03-23 21:46:51] size: 60 | approach: mpqs | time: 71.414s | notes: factored
+[2026-03-23 21:46:52] size: 63 | approach: ecm | time: s | notes: factored 177768190955423783522423345343370846264734679187557531141960991 -> 
+[2026-03-23 21:46:57] size: 66 | approach: mpqs | time: 53.052s | notes: factored
+[2026-03-23 21:46:58] size: 63 | approach: mpqs | time: 78.480s | notes: factored
+[2026-03-23 21:47:01] size: 64 | approach: mpqs | time: 67.243s | notes: factored
+[2026-03-23 21:47:04] size: 65 | approach: mpqs | time: 92.038s | notes: factored
+[2026-03-23 21:47:06] size: 64 | approach: ecm | time: s | notes: factored 1709434724180408394013549367731297707136172312010943971954167243 -> 
+[2026-03-23 21:47:12] size: 62 | approach: mpqs | time: 50.441s | notes: factored
+[2026-03-23 21:47:17] size: 59 | approach: mpqs | time: 61.470s | notes: factored
+[2026-03-23 21:47:25] size: 60 | approach: mpqs | time: 33.675s | notes: factored
+[2026-03-23 21:47:28] size: 60 | approach: ecm | time: s | notes: factored 109846424280741103777555980225954240380304197055980817623567 -> 
+[2026-03-23 21:47:30] size: 63 | approach: mpqs | time: 31.516s | notes: factored
+[2026-03-23 21:47:34] size: 58 | approach: mpqs | time: 60.059s | notes: factored
+[2026-03-23 21:47:39] size: 61 | approach: ecm | time: s | notes: factored 2261003215930189851827600395337022742573567217494374607675889 -> 
+[2026-03-23 21:47:52] size: 61 | approach: mpqs | time: 82.703s | notes: factored
+[2026-03-23 21:48:00] size: 62 | approach: mpqs | time: 47.943s | notes: factored
+[2026-03-23 21:48:05] size: 67 | approach: mpqs | time: 108.307s | notes: factored
+[2026-03-23 21:48:07] size: 58 | approach: mpqs | time: 33.397s | notes: factored
+[2026-03-23 21:48:09] size: 65 | approach: mpqs | time: 65.087s | notes: factored
+[2026-03-23 21:48:11] size: 60 | approach: mpqs | time: 46.296s | notes: factored
+[2026-03-23 21:48:20] size: 64 | approach: mpqs | time: 78.901s | notes: factored
+[2026-03-23 21:48:24] size: 63 | approach: mpqs | time: 53.729s | notes: factored
+[2026-03-23 21:49:05] size: 62 | approach: mpqs | time: 64.510s | notes: factored
+[2026-03-23 21:49:07] size: 61 | approach: mpqs | time: 75.470s | notes: factored
+[2026-03-23 21:49:10] size: 65 | approach: mpqs | time: 61.139s | notes: factored
+[2026-03-23 21:49:21] size: 64 | approach: mpqs | time: 60.430s | notes: factored
+[2026-03-23 21:49:30] size: 52 | approach: ecm | time: s | notes: factored 1019543632258690753271287514893530572155397399037607 -> 
+[2026-03-23 21:49:45] size: 66 | approach: mpqs | time: 168.467s | notes: factored
+[2026-03-23 21:49:47] size: 61 | approach: mpqs | time: 39.515s | notes: factored
+[2026-03-23 21:49:51] size: 68 | approach: mpqs | time: 153.422s | notes: factored
+[2026-03-23 21:50:01] size: 43 | approach: ecm | time: FAIL | notes: failed on 1877681873054687290981695307169639486601203
+[2026-03-23 21:50:01] size: 69 | approach: mpqs | time: 114.087s | notes: factored
+[2026-03-23 21:50:09] size: 63 | approach: mpqs | time: 105.679s | notes: factored
+[2026-03-23 21:50:12] size: 64 | approach: mpqs | time: 51.418s | notes: factored
+[2026-03-23 21:50:24] size: 53 | approach: ecm | time: s | notes: factored 38960998364909786449393687572094010710219913992376473 -> 
+[2026-03-23 21:50:28] size: 65 | approach: mpqs | time: 77.754s | notes: factored
+[2026-03-23 21:50:33] size: 65 | approach: ecm | time: s | notes: factored 12240309739634277554714502315531372815308431921284958873525046223 -> 
+[2026-03-23 21:50:33] size: 62 | approach: ecm | time: s | notes: factored 13466664873324827837047572081275630720265521231536815020277221 -> 
+[2026-03-23 21:50:45] size: 50 | approach: ecm | time: FAIL | notes: failed on 14263725951107574285597628397529986685588922693519
+[2026-03-23 21:50:53] size: 51 | approach: ecm | time: FAIL | notes: failed on 161460791673026212690935899093655625066448183159131
+[2026-03-23 21:50:55] size: 49 | approach: ecm | time: FAIL | notes: failed on 4651265206769974025441956252301231895594591719393
+[2026-03-23 21:50:55] size: 56 | approach: ecm | time: s | notes: factored 25890038406674045757464792578951888329596674492869273577 -> 
+[2026-03-23 21:51:00] size: 55 | approach: ecm | time: s | notes: factored 3462083606540400217535263981737722893594655519690029003 -> 
+[2026-03-23 21:51:04] size: 67 | approach: mpqs | time: 179.068s | notes: factored
+[2026-03-23 21:51:05] size: 68 | approach: mpqs | time: 74.442s | notes: factored
+[2026-03-23 21:51:06] size: 66 | approach: ecm | time: s | notes: factored 103526467577008264016356935919544475313768105470187952767723439119 -> 
+[2026-03-23 21:51:09] size: 67 | approach: ecm | time: s | notes: factored 3310972261627446912075450238610934430156612061730457404693014025077 -> 
+[2026-03-23 21:51:11] size: 68 | approach: ecm | time: s | notes: factored 11556592434883850099083734521667394666443136440926735990297674743011 -> 
+[2026-03-23 21:51:31] size: 57 | approach: ecm | time: s | notes: factored 298178703025095599802558691913519117402659532511048829399 -> 
+[2026-03-23 21:51:42] size: 66 | approach: mpqs | time: 116.806s | notes: factored
+[2026-03-23 21:51:43] size: 65 | approach: mpqs | time: 74.679s | notes: factored
+[2026-03-23 21:51:44] size: 59 | approach: ecm | time: s | notes: factored 48066858703765039376751350836764194241077622137988515737787 -> 
+[2026-03-23 21:51:44] size: 69 | approach: ecm | time: s | notes: factored 343197721422883832840004468087754270151204177855117937339764416129817 -> 
+[2026-03-23 21:51:47] size: 63 | approach: ecm | time: s | notes: factored 806644045004365881824088707480917506795732697457155564396365083 -> 
+[2026-03-23 21:52:01] size: 64 | approach: ecm | time: s | notes: factored 2046530083476876564159006503474821311334301708243029046498853251 -> 
+[2026-03-23 21:52:03] size: 69 | approach: mpqs | time: 121.776s | notes: factored
+[2026-03-23 21:52:23] size: 67 | approach: mpqs | time: 78.157s | notes: factored
+[2026-03-23 21:52:23] size: 60 | approach: ecm | time: s | notes: factored 116357422690670090786909440737755287523913327701626942348933 -> 
+[2026-03-23 21:52:34] size: 61 | approach: ecm | time: s | notes: factored 2140555604524238630404065744870149989779933285807698859916037 -> 
+[2026-03-23 21:53:06] size: 70 | approach: mpqs | time: s | notes: factored
+[2026-03-23 21:53:10] size: 68 | approach: mpqs | time: 124.787s | notes: factored
+[2026-03-23 21:53:41] size: 67 | approach: mpqs | time: 78.594s | notes: factored
+[2026-03-23 21:53:43] size: 66 | approach: mpqs | time: 120.512s | notes: factored
+[2026-03-23 21:54:25] size: 52 | approach: ecm | time: s | notes: factored 1518284835524580469718223851400933811867632026081797 -> 
+[2026-03-23 21:54:41] size: 69 | approach: mpqs | time: 158.227s | notes: factored
+[2026-03-23 21:54:56] size: 70 | approach: ecm | time: s | notes: factored 1038590778602968959987732102013611315806964636995964936644561189711801 -> 
+[2026-03-23 21:55:09] size: 68 | approach: mpqs | time: 118.709s | notes: factored
+[2026-03-23 21:55:19] size: 71 | approach: ecm | time: s | notes: factored 26722913681590502420200165381207410754166174287936681381117934868221183 -> 
+[2026-03-23 21:55:27] size: 66 | approach: mpqs | time: 104.305s | notes: factored
+[2026-03-23 21:55:28] size: 65 | approach: ecm | time: s | notes: factored 28066383476021291882680251972044110544452303593938730344455525853 -> 
+[2026-03-23 21:55:28] size: 62 | approach: ecm | time: s | notes: factored 16441428550911474864954507191795102759256972987514379287895711 -> 
+[2026-03-23 21:55:40] size: 72 | approach: ecm | time: s | notes: factored 125753955665678536957787192437501324019287814998630877150183962207379989 -> 
+[2026-03-23 21:55:48] size: 73 | approach: ecm | time: s | notes: factored 3631577095970322674028397047613233660318240811526899541908766297136002381 -> 
+[2026-03-23 21:55:50] size: 74 | approach: ecm | time: s | notes: factored 14330507628171363139824507318153789574682341488502188931261666736577770639 -> 
+[2026-03-23 21:55:50] size: 56 | approach: ecm | time: s | notes: factored 13765267062270843778825514839063616526722228101670737433 -> 
+[2026-03-23 21:55:52] size: 67 | approach: mpqs | time: 130.663s | notes: factored
+[2026-03-23 21:55:55] size: 75 | approach: ecm | time: s | notes: factored 314983491900376409649046737266520158206339769211381438674868507178987014499 -> 
+[2026-03-23 21:56:01] size: 66 | approach: ecm | time: s | notes: factored 181871802489399391455845012963569099880902038447245118440822229661 -> 
+[2026-03-23 21:56:04] size: 67 | approach: ecm | time: s | notes: factored 1020566467530011555132129822416128675519378430619245734911228900723 -> 
+[2026-03-23 21:56:06] size: 68 | approach: ecm | time: s | notes: factored 25344463406054668080432950421875709577295004959733198872731480956667 -> 
+[2026-03-23 21:56:26] size: 76 | approach: ecm | time: s | notes: factored 1735538136944411578519897871611912446352435931539564948667706999958708532557 -> 
+[2026-03-23 21:56:31] size: 70 | approach: mpqs | time: 205.039s | notes: factored
+[2026-03-23 21:56:39] size: 77 | approach: ecm | time: s | notes: factored 58224272904794011612672407193754352814134377598819231101781338654573048158607 -> 
+[2026-03-23 21:56:39] size: 69 | approach: ecm | time: s | notes: factored 304626104408459455759750100190428989047257461352601069057308925521527 -> 
+[2026-03-23 21:56:42] size: 63 | approach: ecm | time: s | notes: factored 246291902485452705121558300311117396557110009548882182656352161 -> 
+[2026-03-23 21:56:53] size: 69 | approach: mpqs | time: 131.774s | notes: factored
+[2026-03-23 21:56:56] size: 64 | approach: ecm | time: s | notes: factored 2699923828564256159309277141749385427813310342376632122886603527 -> 
+[2026-03-23 21:57:18] size: 60 | approach: ecm | time: s | notes: factored 169304878436000706032347151949842679166152605261297695045963 -> 
+[2026-03-23 21:57:22] size: 68 | approach: mpqs | time: 133.071s | notes: factored
+[2026-03-23 21:57:29] size: 61 | approach: ecm | time: s | notes: factored 1737167744850898418628062146500634751957906247567774194683861 -> 
+[2026-03-23 21:59:20] size: 78 | approach: ecm | time: s | notes: factored 102347519637246052541161721023312592637984886747573420385773200646157458740961 -> 
+[2026-03-23 21:59:49] size: 69 | approach: mpqs | time: 175.922s | notes: factored
+[2026-03-23 21:59:51] size: 70 | approach: ecm | time: s | notes: factored 1083554498146618731320786742177331234452909256287460140786039694184071 -> 
+[2026-03-23 22:00:14] size: 71 | approach: ecm | time: s | notes: factored 42950890888599741151058987895365755454493162588416534541585388971042709 -> 
+[2026-03-23 22:00:23] size: 65 | approach: ecm | time: s | notes: factored 57825378354580030944336999194285654414983751967467848402203006089 -> 
+[2026-03-23 22:00:23] size: 62 | approach: ecm | time: s | notes: factored 25539552153392812983141342078081699123108843260939190693496807 -> 
+[2026-03-23 22:00:35] size: 72 | approach: ecm | time: s | notes: factored 100483101567918609054515476559533421760372651353447221394448191223915151 -> 
+[2026-03-23 22:00:43] size: 73 | approach: ecm | time: s | notes: factored 1379132817012279503760353228216473011218491163048049907099156258447144489 -> 
+[2026-03-23 22:00:45] size: 74 | approach: ecm | time: s | notes: factored 23203119498613495535820697265640706473888328943404801405341740170765339283 -> 
+[2026-03-23 22:00:45] size: 79 | approach: ecm | time: s | notes: factored 1007171061449492994852748941330563682872665659535185948779918858362666827146357 -> 
+[2026-03-23 22:00:50] size: 75 | approach: ecm | time: s | notes: factored 529136173682144399935415315624073439905086605233227098553201089287831546817 -> 
+[2026-03-23 22:00:56] size: 66 | approach: ecm | time: s | notes: factored 166711378774168997353190079222778769756632735335830941068244886501 -> 
+[2026-03-23 22:00:59] size: 67 | approach: ecm | time: s | notes: factored 1364740066889691306618649802500498343414912290293008831994616421431 -> 
+[2026-03-23 22:01:01] size: 68 | approach: ecm | time: s | notes: factored 16933770230559817594392535022172098228010060649985596354396180964999 -> 
+[2026-03-23 22:01:21] size: 66 | approach: ecm | time: 24.467s | notes: factored 217006478101452436666769010603003118467370286277595408007469950269 -> 222475989626643950965776012479443 975415272747542910439151686545583
+[2026-03-23 22:01:21] size: 76 | approach: ecm | time: s | notes: factored 2606580887382881984121142976272510654209008647391073593615142252370263002129 -> 
+[2026-03-23 22:01:26] size: 70 | approach: mpqs | time: s | notes: factored
+[2026-03-23 22:01:34] size: 77 | approach: ecm | time: s | notes: factored 51050911104184332138948001383691332977816494610747758681728612727729165467347 -> 
+[2026-03-23 22:01:34] size: 69 | approach: ecm | time: s | notes: factored 430409719991798665987612123303069795275619685644752140122456043215831 -> 
+[2026-03-23 22:01:37] size: 63 | approach: ecm | time: s | notes: factored 665110480080753054668117991538652681594098399719680860227127633 -> 
+[2026-03-23 22:01:51] size: 64 | approach: ecm | time: s | notes: factored 1225665634715439179494499502723491757754400374724460998399037269 -> 
