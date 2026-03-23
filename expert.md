@@ -77,6 +77,10 @@ SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
 | 55 | 4.98s | 5.8x/5d | |
 | 60 | 8.92s | 1.8x/5d | 12.7x |
 | 65 | 70.7s | 7.9x/5d | |
+| 70 | 134.5s | 1.9x/5d | 23x |
+| 75 | ~295s | ~2.2x/5d | |
+
+**Key observation**: 65→70 growth is only 1.9x/5d (vs 7.9x/5d for 60→65). This is because the DLP→SLP pipeline becomes much more effective as the SLP hash grows. At 70d, ~45K SLP partials provide high hit rates for DLP matching. This positive feedback loop (more SLP → more DLP matches → more SLP from DLP→SLP conversion) creates a sublinear scaling region.
 
 SPQS2 Bucket Sieve (worst of 5 per size):
 
