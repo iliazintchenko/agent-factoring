@@ -2,13 +2,12 @@
 
 ## Why factoring is hard
 
-The fundamental bottleneck in all known classical factoring algorithms is **smoothness detection**: finding integers whose prime factorization consists entirely of small primes. The probability that a random number near N is B-smooth is roughly u^(-u) where u = log(N)/log(B). This probability is what makes all sieve-based approaches (QS, NFS) sub-exponential rather than polynomial.
+The fundamental bottleneck in all known classical factoring algorithms is **smoothness detection**: finding integers whose prime factorization consists entirely of small primes. The probability that a random number near N is B-smooth is roughly u^(-u) where u = log(N)/log(B). This is what makes the best known algorithms sub-exponential rather than polynomial.
 
-- **Quadratic Sieve**: L[1/2] — sieve polynomials Q(x) = (x + floor(sqrt(N)))^2 - N for B-smooth values.
-- **Number Field Sieve**: L[1/3] — uses an algebraic number field to produce smaller values to check for smoothness, lowering u.
-- No classical improvement to the L exponent has been made since NFS in 1993.
+- The best known algorithm (NFS, 1993) achieves L[1/3]. No improvement in the L exponent in 30+ years.
+- Any approach that still relies on finding smooth numbers will hit the same sub-exponential wall.
 
-Both QS and NFS are fundamentally limited by smoothness probability. Any approach that still relies on finding smooth numbers will hit the same sub-exponential wall. A genuine improvement must either:
+A genuine improvement must either:
 1. Find a way to avoid smoothness detection entirely, or
 2. Exploit algebraic structure that makes certain numbers smooth with much higher probability, or
 3. Reduce factoring to a different problem that doesn't depend on smoothness.
@@ -24,27 +23,18 @@ Key observations:
 - Period-finding is equivalent to the hidden subgroup problem on Z.
 - The Chinese Remainder Theorem means arithmetic mod N splits into independent arithmetic mod p and mod q — but we can't observe this split directly.
 
-## Directions NOT worth pursuing (known dead ends)
-
-- Reimplementing QS/SIQS/NFS — these are known L[1/2] and L[1/3] algorithms. Optimizing them is not progress on scaling.
-- ECM for balanced semiprimes — complexity depends on smallest factor size, ~200x slower than SIQS.
-- Pollard's rho / SQUFOF — O(N^(1/4)), too slow above 35 digits.
-- Fermat/Lehman — only helps when |p-q| < N^(1/3).
-- Schnorr lattice factoring — requires infeasibly large lattice dimensions.
-- Batch smoothness via Bernstein product trees — multi-precision GCD overhead exceeds sieve operations.
-
-## Open directions worth exploring
+## Directions worth exploring
 
 - **Classical period-finding**: Can the order of elements in Z_N* be found without quantum computation? Partial period information? Statistical signatures of the period?
 - **Algebraic geometry approaches**: Elliptic curves over Z/NZ split mod p and mod q. Can higher-genus curves, abelian varieties, or p-adic methods reveal this splitting?
 - **Representation theory**: The group Z_N* has representations that encode the factorization. Can classical harmonic analysis on finite groups find useful structure?
-- **Lattice-based approaches** (not Schnorr): Reformulating factoring as a lattice problem in a way that avoids the dimension blowup.
+- **Lattice-based approaches**: Reformulating factoring as a lattice problem in a way that avoids dimension blowup.
 - **Exploiting balanced structure**: N = p*q where p ≈ q ≈ sqrt(N). No known algorithm uses this. Does it help?
 - **Information-theoretic approaches**: Factoring leaks information through many channels (Jacobi symbols, quadratic residues, discrete logs of small primes). Can these be combined?
 
 ## Scaling Data
 
-YAFU SIQS baseline (worst of 5 semiprimes per size):
+Best known baseline (YAFU SIQS, worst of 5 semiprimes per size):
 
 | Digits | Time |
 |--------|------|
