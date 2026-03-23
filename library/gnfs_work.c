@@ -547,6 +547,32 @@ int main(int argc, char *argv[]) {
                         }
                     }
 
+                    /* Verify Lagrange at r_0: should give ls2[0] */
+                    if (sc == 0) {
+                        mpz_t vl; mpz_init_set_ui(vl, 0);
+                        mpz_t vr0; mpz_init(vr0); mpz_mod(vr0, lr2[0], hmod);
+                        for (int j = 0; j < d; j++) {
+                            mpz_t vn, vd, vi; mpz_inits(vn, vd, vi, NULL);
+                            mpz_set(vn, ls2[j]); mpz_set_ui(vd, 1);
+                            for (int k = 0; k < d; k++) {
+                                if (k == j) continue;
+                                mpz_sub(htmp, vr0, lr2[k]); mpz_mod(htmp, htmp, hmod);
+                                mpz_mul(vn, vn, htmp); mpz_mod(vn, vn, hmod);
+                                mpz_sub(htmp, lr2[j], lr2[k]); mpz_mod(htmp, htmp, hmod);
+                                mpz_mul(vd, vd, htmp); mpz_mod(vd, vd, hmod);
+                            }
+                            if (mpz_invert(vi, vd, hmod)) {
+                                mpz_mul(vn, vn, vi); mpz_add(vl, vl, vn); mpz_mod(vl, vl, hmod);
+                            } else {
+                                fprintf(stderr,"  LAGRANGE: denominator not invertible!\n");
+                            }
+                            mpz_clears(vn, vd, vi, NULL);
+                        }
+                        int vmatch = (mpz_cmp(vl, ls2[0]) == 0);
+                        fprintf(stderr,"  Lagrange(r_0) = T_0? %d\n", vmatch);
+                        mpz_clears(vl, vr0, NULL);
+                    }
+
                     /* Lagrange: T(m) mod hmod */
                     mpz_t mm,Y3;mpz_init(mm);mpz_init_set_ui(Y3,0);
                     mpz_mod(mm, poly.m, hmod);
@@ -561,17 +587,86 @@ int main(int argc, char *argv[]) {
                     }
                     mpz_mod(Y3, Y3, N);
 
-                    /* Verify Y3^2 = X^2 mod N */
+                    /* Verify T(m)^2 = S(m) mod hmod where S(m) = prod(a-b*m) mod hmod */
                     if (sc == 0) {
-                        mpz_t vy2, vx2;
-                        mpz_inits(vy2, vx2, NULL);
+                        mpz_t sm, tm2;
+                        mpz_inits(sm, tm2, NULL);
+                        /* S(m) mod hmod */
+                        mpz_set_ui(sm, 1);
+                        mpz_t mm2; mpz_init(mm2); mpz_mod(mm2, poly.m, hmod);
+                        for (int i = 0; i < dlen[di]; i++) {
+                            mpz_t t2; mpz_init(t2);
+                            mpz_set_si(t2, da[i]);
+                            mpz_submul_ui(t2, mm2, db[i]);
+                            mpz_mod(t2, t2, hmod);
+                            mpz_mul(sm, sm, t2);
+                            mpz_mod(sm, sm, hmod);
+                            mpz_clear(t2);
+                        }
+                        mpz_clear(mm2);
+                        /* T(m)^2 mod hmod */
+                        mpz_mul(tm2, Y3, Y3); /* Y3 = T(m) mod hmod before reducing to mod N */
+                        /* Wait, Y3 was already reduced mod N. Need pre-reduction value. */
+                        /* Actually Y3 was computed as mod hmod then reduced mod N later. Let me recompute. */
+                        /* The Lagrange step computes Y3 mod hmod, then we reduce mod N. */
+                        /* At this point Y3 is mod hmod, not yet reduced. */
+                        mpz_mod(tm2, tm2, hmod);
+                        /* Also check: does Y3 equal one of the T_j values at the corresponding root? */
+                        /* Check T(r_0) = T_0 */
+                        mpz_t tr0; mpz_init_set_ui(tr0, 0);
+                        mpz_t mm3; mpz_init(mm3); mpz_mod(mm3, lr2[0], hmod);
+                        for (int j = d-1; j >= 0; j--) {
+                            /* Lagrange at lr2[0] should give ls2[0] */
+                        }
+                        /* Actually just check Y3 size */
+                        fprintf(stderr,"  Y3=%zu bits, hmod=%zu bits, sm=%zu bits\n",
+                                mpz_sizeinbase(Y3, 2), mpz_sizeinbase(hmod, 2), mpz_sizeinbase(sm, 2));
+                        int match = (mpz_cmp(tm2, sm) == 0);
+                        fprintf(stderr,"  T(m)^2 = S(m) mod p^e? %d\n", match);
+                        mpz_clears(tr0, mm3, NULL);
+                        mpz_clears(sm, tm2, NULL);
+                    }
+
+                    /* Verify lifted roots are still roots of f mod hmod */
+                    if (sc == 0) {
+                        for (int j = 0; j < d; j++) {
+                            mpz_t fv2; mpz_init(fv2); mpz_set_ui(fv2, 0);
+                            for (int k = d; k >= 0; k--) {
+                                mpz_mul(fv2, fv2, lr2[j]);
+                                mpz_add(fv2, fv2, fc[k]);
+                                mpz_mod(fv2, fv2, hmod);
+                            }
+                            if (mpz_sgn(fv2) != 0)
+                                fprintf(stderr,"  ROOT LIFT FAIL: f(r_%d) != 0 mod p^e!\n", j);
+                            mpz_clear(fv2);
+                        }
+                    }
+
+                    /* Verify: compute prod(a-b*m) mod N and compare with X^2 and Y3^2 */
+                    if (sc == 0) {
+                        mpz_t vy2, vx2, vprod;
+                        mpz_inits(vy2, vx2, vprod, NULL);
                         mpz_mul(vy2, Y3, Y3); mpz_mod(vy2, vy2, N);
                         mpz_mul(vx2, X, X); mpz_mod(vx2, vx2, N);
-                        if (mpz_cmp(vy2, vx2) == 0)
-                            fprintf(stderr,"  Y^2 = X^2 mod N! (should find factor)\n");
-                        else
-                            fprintf(stderr,"  Y^2 != X^2 mod N (dep %d, sc %d)\n", di, sc);
-                        mpz_clears(vy2, vx2, NULL);
+
+                        /* Compute prod(a-b*m) mod N directly */
+                        mpz_set_ui(vprod, 1);
+                        for (int i = 0; i < dlen[di]; i++) {
+                            mpz_t term; mpz_init(term);
+                            mpz_set_si(term, da[i]);
+                            mpz_submul_ui(term, poly.m, db[i]);
+                            mpz_mod(term, term, N);
+                            mpz_mul(vprod, vprod, term);
+                            mpz_mod(vprod, vprod, N);
+                            mpz_clear(term);
+                        }
+
+                        int y2_eq_prod = (mpz_cmp(vy2, vprod) == 0);
+                        int x2_eq_prod = (mpz_cmp(vx2, vprod) == 0);
+                        fprintf(stderr,"  dep %d sc %d: Y^2=prod? %d, X^2=prod? %d, Y^2=X^2? %d\n",
+                                di, sc, y2_eq_prod, x2_eq_prod, mpz_cmp(vy2,vx2)==0);
+
+                        mpz_clears(vy2, vx2, vprod, NULL);
                     }
 
                     /* Check */
