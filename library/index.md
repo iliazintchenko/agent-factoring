@@ -14,6 +14,8 @@
 - **lanczos.h** — Block Lanczos for sparse GF(2) matrices. 20x faster than Gaussian elimination for 10000x10000 matrices.
 - **block_lanczos.h** — Simplified BL (power iteration, doesn't converge properly).
 
+- **hyper_siqs.c** — **Best at 70d** (74.9s). SIQS with DLP/TLP, structured GE, Gray code, bucket sieve. Smaller FB + larger LP strategy. Reliable through 75d (262s). `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+
 ## Novel/Experimental
 
 - **gnfs_work.c** — Complete GNFS with base-m poly selection, line sieve, dual-side smoothness, GF(2) LA, quadratic characters, Hensel lifting algebraic sqrt. Sieve+LA works; algebraic sqrt produces T_j^2=S_j but Y^2≠X^2 mod N (QC/norm tracking issue). `gcc -O3 -march=native -o gnfs_work library/gnfs_work.c -lgmp -lm`
