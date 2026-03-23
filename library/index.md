@@ -2,12 +2,13 @@
 
 ## Best Implementations (ranked by 70d performance)
 
-1. **turbo_siqs.c** — **Best at 70d** (97.8s worst-of-5). 48KB L1-optimized blocks, BL + structured GE, DLP graph. `gcc -O3 -march=native -o turbo_siqs library/turbo_siqs.c -lgmp -lm`
-2. **siqs_bucket.c** — **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve + Block Lanczos. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
-3. **spqs2.c** — SPQS + bucket sieve. 139s at 70d. `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
-4. **spqs_dlp.c** — SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
-5. **hyper_siqs.c** — TLP SIQS. Fast at 60d (15s) but LA bottleneck at 70d. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
-6. **siqs_native.c** — Batch polys (4) + Gray code + SLP. 256s at 70d. `gcc -O3 -march=native -o siqs_native library/siqs_native.c -lgmp -lm`
+1. **turbo_pp.c** — **Best at 70d** (90.3s worst-of-5). Based on turbo_siqs + AVX512 GF(2) LA + DLP→SLP pipeline + interleaved two-root sieve loop. `gcc -O3 -march=native -mavx512f -mavx512bw -o turbo_pp library/turbo_pp.c -lgmp -lm`
+2. **turbo_siqs.c** — 97.8s at 70d. 48KB L1-optimized blocks, BL + structured GE, DLP graph. `gcc -O3 -march=native -o turbo_siqs library/turbo_siqs.c -lgmp -lm`
+3. **siqs_bucket2.c** — **Best at 50-60d** (0.73s/9.6s). siqs_bucket + AVX512 GF(2) LA. `gcc -O3 -march=native -mavx512f -o siqs_bucket2 library/siqs_bucket2.c -lgmp -lm`
+4. **siqs_bucket.c** — **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+5. **spqs2.c** — SPQS + bucket sieve + AVX512 LA. 139s at 70d. `gcc -O3 -march=native -mavx512f -o spqs2 library/spqs2.c -lgmp -lm`
+6. **spqs_dlp.c** — SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
+7. **meta_factor.sh** — Shell selector: picks best impl per size (siqs_bucket2 ≤55d, turbo_pp ≥56d).
 
 ## Key LA Implementations
 - **lanczos.h** — Block Lanczos for sparse GF(2) matrices. 20x faster than Gaussian elimination for 10000x10000 matrices.
