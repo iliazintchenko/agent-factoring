@@ -253,6 +253,22 @@ The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (
 - The reduced sieve sensitivity from fewer sieve primes loses more smooth candidates than extended TD recovers
 - This is fundamentally because the sieve is an ADDITIVE accumulator - every omitted prime reduces the score, and lowering the threshold only partially compensates
 
+### Block Lanczos vs Gaussian Elimination
+- At 70d with FB=10000: Gaussian elimination takes ~74s on 10150x10001 matrix (88% of total time!)
+- Block Lanczos on same matrix: 2-4s (20x improvement)
+- Key: QS matrices are SPARSE (~20-30 non-zeros per row). BL exploits this; Gauss doesn't.
+- BL implemented in lanczos.h: proper Montgomery-style block iteration with 64-wide block vectors
+- At 75d: BL eliminates LA as bottleneck entirely. The sieve is the ONLY bottleneck.
+- turbo_siqs already uses BL + "Structured GE" for optimal LA performance
+
+### 75d Feasibility Analysis
+- At 75d, ALL implementations time out (need ~390s for sieve, limit is 295s)
+- turbo_siqs (best): 8605/12250 rels in 275s (31.3 rels/s), needs ~392s for sieve alone
+- siqs_bucket (FB=18000): 3796/18200 rels in 85s, needs ~400s+ for sieve
+- Block Lanczos eliminates LA bottleneck but sieve is ~400s regardless
+- 75d requires either AVX512 sieve (~20x speedup) or fundamentally different algorithm (NFS)
+- YAFU can do 75d in ~16-20s, so the gap is ~20x (consistent with scalar vs AVX512)
+
 ### Key Constant Factor Analysis
 - Custom SIQS implementations are 13-46x slower than YAFU across 30-70d
 - ~60% of the gap is from the scalar sieve inner loop (vs YAFU's AVX512BW)
