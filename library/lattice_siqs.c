@@ -419,7 +419,7 @@ static void factor_siqs(mpz_t N_orig) {
 
     /* Gray code counters */
     int a_poly_count = 0;
-    int max_a_polys = 10000;  /* Try many A values */
+    int max_a_polys = 500000;  /* Try many A values */
 
     gmp_randstate_t rng;
     gmp_randinit_default(rng);
