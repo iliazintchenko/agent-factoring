@@ -206,7 +206,6 @@
 [2026-03-23 00:05:00] size: 50 | approach: siqs4.c custom SIQS | time: TIMEOUT (>60s) | notes: YAFU: 0.12s. Custom SIQS cannot compete without AVX512BW sieve kernel.
 [2026-03-23 00:05:00] size: 89 | approach: 89d[4] nice -20 + taskset -c 0 | time: TIMEOUT | notes: L3 cache contention, not core scheduling. Needs load <10.
 [2026-03-23 00:05:00] size: 30-50 | approach: siqs4.c custom SIQS | time: 0.27s/6.7s/>60s | notes: 19-394x slower than YAFU. Scalar sieve bottleneck.
-<<<<<<< Updated upstream
 [2026-03-23 00:17:36] size: 90 | approach: original YAFU NB=20 B=120K 90d[0] | time: 319.3 | notes: loaded machine (load ~18). Exceeds 300s. On idle machine estimated ~260-280s based on load scaling.
 [2026-03-23 00:17:36] size: 90 | approach: original YAFU NB=20 B=120K 90d[2] | time: 12.5 | notes: RESUMED from partial siqs.dat (accumulated from previous killed runs). Not a valid single-run timing.
 [2026-03-23 00:17:36] size: 90 | approach: 90d summary (original YAFU NB=20 B=120K) | time: 319.3 | notes: All 5 factored. Worst-case 319.3s (90d[0]) on loaded machine. On idle machine, expert.md says 3/5 pass. 90d[0] and 90d[2] need ~315s each on idle = just over 300s limit.
@@ -246,8 +245,5 @@
 [2026-03-23 00:35:00] size: 90 | approach: GNFS 90d[0] at load=8 (precomputed poly, Q=250K) | time: FAIL | notes: 1.358M/1.46M rels in 264s (5140/sec). Filtering failed. 90d[0] polynomial yields 7% fewer rels/sec than 90d[1]. Projected: 284s sieve + 30s BL = 314s. 90d[0] GNFS also >300s.
 [2026-03-23 00:40:00] size: 90 | approach: CONCLUSION | time: n/a | notes: 90d NOT achievable. 90d[0] needs >300s with both SIQS (310s) and GNFS (314s) even at load=8. 3/5 90d numbers pass SIQS (249-283s), but 90d[0] is ~15% too slow.
 [2026-03-23 00:40:00] size: 89 | approach: SIQS 89d[4] at load=10 | time: TIMEOUT | notes: Even 89d[4] times out at load=10. 89d frontier validated at 294.4s only on idle machine.
-=======
-[2026-03-23 00:30:00] size: 85 | approach: YAFU SIQS timing breakdown (verbose) | time: 92.97 total | notes: Sieve:89.2s, Cycle build:0.1s, BL:3.6s, Sqrt:0.1s. BL = 3.9% of total for 59K matrix.
-[2026-03-23 00:30:00] size: 89 | approach: 89d[4] verbose analysis | time: TIMEOUT | notes: Sieve completes in ~290s (load 12). "attempting to build 100130 cycles" reached. BL doesn't finish in remaining ~5s. Sieve rate 4800 rels/s.
-[2026-03-23 00:30:00] size: 89 | approach: 89d[4] with B=80K/90K (smaller FB) | time: both TIMEOUT | notes: B=80K: 3800 rels/s (21% slower), ETA 300-313s. B=90K: also timeout. Smaller FB hurts more than it helps.
->>>>>>> Stashed changes
+[2026-03-23 00:48:00] size: 90 | approach: original YAFU SIQS NB=20 B=120K on 90d[3] | time: 282.8 | notes: load ~12. PASS. Confirmed 90d[3] factors with SIQS.
+[2026-03-23 00:48:00] size: 90 | approach: original YAFU SIQS NB=20 B=120K on 90d[3] | time: 282.8 | notes: load ~12. PASS.
