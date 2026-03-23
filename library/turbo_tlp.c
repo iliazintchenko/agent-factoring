@@ -24,6 +24,9 @@
 #include <time.h>
 #include <stdint.h>
 #include <gmp.h>
+#ifdef __AVX512BW__
+#include <immintrin.h>
+#endif
 
 /* ==================== Constants ==================== */
 #define SEED 42
@@ -675,9 +678,21 @@ int main(int argc, char *argv[]) {
                 for (int e = 0; e < buckets[blk].count; e++)
                     sieve[buckets[blk].entries[e].pos] += buckets[blk].entries[e].logp;
 
-                /* === Scan for candidates === */
+                /* === Scan for candidates (AVX512BW accelerated) === */
+#ifdef __AVX512BW__
+                __m512i thresh_vec = _mm512_set1_epi8((char)threshold);
+                for (int j512 = 0; j512 < BLOCK_SIZE; j512 += 64) {
+                    __m512i sv = _mm512_loadu_si512((__m512i*)(sieve + j512));
+                    uint64_t mask = _mm512_cmpge_epu8_mask(sv, thresh_vec);
+                    while (mask) {
+                        int bit = __builtin_ctzll(mask);
+                        mask &= mask - 1;
+                        int j = j512 + bit;
+#else
                 for (int j = 0; j < BLOCK_SIZE; j++) {
                     if (sieve[j] < threshold) continue;
+                    {
+#endif
                     int64_t x = bbase + j;
                     if (x == 0) continue;
 
@@ -986,10 +1001,15 @@ int main(int argc, char *argv[]) {
                             }
                         }
                     } else if (P.dlp) {
-                        /* Residue > 64 bits. Check if it has small factors we missed */
-                        /* Skip - too expensive */
+                        /* Residue > 64 bits. Skip */
                     }
-                }
+#ifdef __AVX512BW__
+                    }  /* end while(mask) */
+                }  /* end j512 loop */
+#else
+                }  /* end if threshold check */
+                }  /* end j loop */
+#endif
             }
 
             /* Progress */
