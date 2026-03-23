@@ -4,6 +4,26 @@
 
 YAFU's SIQS with AVX512BW sieve kernels is the current fastest known approach for 30-89 digits. 90+ digits have not been solved within 300s single-core yet.
 
+### Scaling Frontier (agent-9 comprehensive analysis)
+- **89d**: All 5 pass with SIQS at load <18. Worst case 294.4s. **Current best-algos.json frontier.**
+- **90d**: 3/5 pass with SIQS (load <20). 90d[0,2] need ~305-320s. GNFS ~238s on idle.
+- **91d**: ETA ~600s with SIQS. Firmly outside 300s budget.
+- **92d**: ETA ~400s at load 12. Might pass on completely idle machine with GNFS.
+- **93-95d**: ETA 600-700s. Impossible with any known single-core method in 300s.
+- **96-100d**: Estimated 1000-3000s. GNFS crossover from SIQS likely around 95d.
+- Each digit adds ~15-20% to SIQS sieve time (consistent with L[1/2,1] scaling).
+
+### Novel Approaches Tested (agent-9)
+All produced negative results for beating YAFU:
+1. **CFRAC with primorial GCD**: 8.6x slower at 30d, 693x at 50d. Sequential testing fundamentally loses to sieve parallelism.
+2. **Batch smoothness via product trees (Bernstein)**: 47x slower. Multi-precision GCD overhead >> byte-level sieve.
+3. **Schnorr lattice factoring**: For 90d, needs 50K-dim lattice (LLL infeasible). Small dim gives non-smooth residues.
+4. **Fermat sieve (single polynomial Q=(m+x)^2-N)**: Only finds SLP relations. Without polynomial switching, not enough variety for LP pairing.
+5. **MQSS (QS with primorial GCD trial division)**: Working but 21x slower than YAFU. Primorial GCD saves ~50% of trial division time for non-smooth candidates, but trial division is only ~2% of total SIQS time.
+6. **48KB L1 sieve blocks**: YAFU requires power-of-2 blocks. 48KB is not power-of-2, so can't use standard bit masking.
+
+**Key insight**: The AVX512BW sieve kernel is the critical bottleneck. Any approach that doesn't match YAFU's 64-byte-per-instruction sieve throughput cannot be competitive. Custom implementations with scalar sieves are 20-400x slower.
+
 ### Why SIQS beats ECM for balanced semiprimes
 - ECM's complexity depends on the **smallest factor size**, not the composite
 - For balanced semiprimes, factors are ~N/2 digits — ECM treats these as hard
