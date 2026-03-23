@@ -184,18 +184,20 @@ SPQS-DLP Adaptive Threshold (worst of 5 per size):
 Key finding: adaptive threshold gives best improvement at 55d (33% faster than SPQS).
 At 60d, still competitive. DLP itself contributes zero relations below 65d.
 
-HyperSIQS with DLP+TLP (worst of 5 per size):
+HyperSIQS with DLP+TLP + Structured GE (worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
 |--------|------|--------|---------|
-| 30 | 0.071s | | 5x |
-| 35 | 0.066s | ~1x/5d | |
-| 40 | 0.166s | 2.5x/5d | 10x |
-| 45 | 0.772s | 4.6x/5d | |
-| 50 | 1.578s | 2.0x/5d | 13x |
-| 55 | 5.688s | 3.6x/5d | |
-| 60 | 20.72s | 3.6x/5d | 30x |
-| 65 | 70.23s | 3.4x/5d | |
+| 30 | 0.074s | | 5x |
+| 50 | 1.57s | | 13x |
+| 60 | 18.6s | ~12x/10d | 27x |
+| 65 | 64.3s | 3.5x/5d | |
+| 70 | **74.9s** | **1.2x/5d** | **13x** |
+| 72 | 164s | | |
+| 73 | 168s | | |
+| 75 | 262s | 3.5x/5d | |
+
+**Best custom at 70d** (beats turbo_siqs 97.6s). Key insight: smaller FB (10-15K) with much larger LP multiplier (200-500x) and structured GE for fast LA. The growth rate drops dramatically at 65-70d due to aggressive SLP matching with larger LP bounds.
 
 Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 
