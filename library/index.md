@@ -1,52 +1,43 @@
 # Library Index
 
-## Custom Implementations
+## Best Implementations (ranked by 60d performance)
 
-### SIQS (Best to Worst)
-- **spqs.c** — **Best custom.** Multi-polynomial batch sieve SIQS. Sieves 4 polynomials simultaneously per block. 1.4-44x slower than YAFU. 30-65d+. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
-- **dlp_siqs.c** — SIQS with DLP (Pollard rho splitting), union-find DLP graph. 5-100x slower than YAFU. 30-55d. `gcc -O3 -march=native -mavx512bw -o dlp_siqs library/dlp_siqs.c -lgmp -lm`
-- **siqs2.c** — Working. Gray code, SLP, 32KB block sieve. 30-60d. `gcc -O2 -march=native -o siqs2 library/siqs2.c -lgmp -lm`
-- **siqs3.c** — Working. DLP, inline Block Lanczos. 30-55d. `gcc -O3 -march=native -mavx512bw -o siqs3 library/siqs3.c -lgmp -lm`
-- **siqs4.c** — Working 30-50d, sqrt fails 35d+. Per-block sieve init, DLP. `gcc -O3 -march=native -mavx512bw -o siqs4 library/siqs4.c -lgmp -lm`
-- **siqs_fast.c** — Working 30-50d. DLP, AVX512BW scanning. `gcc -O3 -march=native -mavx512bw -o siqs_fast library/siqs_fast.c -lgmp -lm`
-- **siqs.c**, **siqs_avx.c**, **siqs_optimized.c**, **cqs/siqs_gmp.c** — Other variants.
+1. **siqs_bucket.c** — Gray code + DLP→SLP pipeline + bucket sieve. **Best at 65d** (70.7s). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+2. **spqs_dlp.c** — SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s), 70d (~96s single). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
+3. **spqs2.c** — SPQS + bucket sieve. **Best at 70d** (165s worst-of-5). `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
+4. **fast_siqs.c** — Bucket sieve + __int128 TD + Gray code. 18s at 60d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
+5. **siqs_opt.c** — Bucket sieve + SLP matching. 19s at 60d, 265s at 70d. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
+6. **spqs.c** — Multi-polynomial batch sieve (original). 31s at 60d. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
+7. **hyper_siqs.c** — TLP SIQS. Fast at 60d but LA blows up at 70d. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
 
-### MPQS
-- **mpqs.c** — Sieve works, sqrt step buggy. `gcc -O3 -march=native library/mpqs.c -o mpqs -lgmp -lm`
-- **mpqs_custom.c** — Variant.
+## Novel/Experimental
 
-### NFS
-- **nfs_siever.c** — Custom lattice siever, GGNFS-compatible output. ~8-9 rels/sec. `gcc -O3 -march=native -mavx512bw -o nfs_siever library/nfs_siever.c -lgmp -lm`
-- **gnfs_simple.c** — Line sieve NFS. Working but slow. `gcc -O3 -march=native -o gnfs_simple library/gnfs_simple.c -lgmp -lm`
-- **gnfs_factor.c** — NFS orchestration in C.
+- **dlp_opt.c** — DLP with LP columns in GF(2) matrix + Pollard rho cofactor splitting. NEGATIVE RESULT at 65-70d (LP space too large). `gcc -O3 -march=native -o dlp_opt library/dlp_opt.c -lgmp -lm`
+- **mfbs_siqs.c** — Multi-Factor-Base Sieve. NEGATIVE RESULT (sieve reduction hurts more than extended TD helps). `gcc -O3 -march=native -o mfbs_siqs library/mfbs_siqs.c -lgmp -lm`
+- **ecm_siqs.c** — SIQS with ECM cofactorization. DLP matching was wrong.
+- **sqqs.c** — Special-Q QS. NEGATIVE RESULT: overhead exceeds benefit.
+- **nfs_factor.c** — NFS skeleton (algebraic sqrt NOT implemented).
+- **turbo_siqs.c** — SIQS variant.
 
-### Experimental / Novel Approaches
-- **siqs_engine.c** — SIQS with AVX512BW scan, DLP. Sieve-only (no LA/sqrt). 180 rels/sec on 40d (340x slower than YAFU). `gcc -O2 -march=native -mavx512bw -o siqs_engine library/siqs_engine.c -lgmp -lm`
-- **batch_smooth.c** — Batch B-smoothness via product trees (Bernstein). NEGATIVE RESULT: cannot replace sieving. `gcc -O3 -march=native -o batch_smooth library/batch_smooth.c -lgmp -lm`
-- **batch_qs.c** — Vanilla QS with Bernstein batch smooth detection. Correctly finds smooth numbers but multi-precision overhead makes it 47x slower than YAFU sieve. NEGATIVE RESULT. `gcc -O3 -march=native -o batch_qs library/batch_qs.c -lgmp -lm`
-- **batch_siqs.c** — SIQS with batch smooth detection (product/remainder trees). Working but slower than sieve. `gcc -O3 -march=native -o batch_siqs library/batch_siqs.c -lgmp -lm`
-- **batch_debug.c** — Debug tool: compares batch smooth detection vs trial division. Confirms correctness. `gcc -O3 -march=native -o batch_debug library/batch_debug.c -lgmp -lm`
-- **lattice_factor.c** — Enhanced Fermat + Lehman + lattice smooth congruence search (agent-7). `gcc -O3 -march=native -o lattice_factor library/lattice_factor.c -lgmp -lm`
-- **lattice_factor_v2.c** — Lattice-based factoring combining LLL with QS. `gcc -O3 -march=native -o lattice_factor_v2 library/lattice_factor_v2.c -lgmp -lm`
-- **lattice_factor_batch.c** — Schnorr-style LLL on log-prime lattice. NEGATIVE RESULT: 2% smooth rate from random combinations, not better than random search. `gcc -O3 -march=native -o lattice_factor_batch library/lattice_factor_batch.c -lgmp -lm`
-- **lattice_siqs.c** — Clean SIQS for scaling measurement. `gcc -O3 -march=native -o lattice_siqs library/lattice_siqs.c -lgmp -lm`
-- **siqs_hybrid.c** — Novel SIQS with 48KB L1-optimized sieve (AMD EPYC 9R45 L1D=48KB). Working 30-55d+. Features: AVX512BW candidate scanning, SLP matching, Pollard rho DLP splitting. ~10-100x slower than YAFU (scalar sieve bottleneck). `gcc -O3 -march=native -mavx512bw -o siqs_hybrid library/siqs_hybrid.c -lgmp -lm`
-- **special_factor.c** — Pollard p-1, Williams p+1, ECM via GMP-ECM library. Works for numbers with smooth p-1/p+1. No hits above 56d with B1=1e6. `gcc -O3 -march=native -o special_factor library/special_factor.c -lgmp -lecm -lm`
-- **factor_oracle.c** — Multi-strategy oracle: trial div → Fermat → rho → p-1 → p+1 → ECM → fail. `gcc -O3 -march=native -o factor_oracle library/factor_oracle.c -lgmp -lecm -lm`
+## Older SIQS Variants
+- **dlp_siqs.c**, **siqs2.c**, **siqs3.c**, **siqs4.c** — Older, slower implementations.
+- **siqs_bucket.c (agent-4)** — Initial bucket sieve (precursor to siqs_opt.c).
+- **siqs_fast.c**, **siqs_hybrid.c**, **siqs_engine.c** — Various optimizations.
 
-### Batch Smoothness
-- **batch_qs.c** — SIQS with batch GCD pre-filter. Working 30-40d. `gcc -O3 -march=native -mavx512bw -o batch_qs library/batch_qs.c -lgmp -lm`
-
-### GNFS Pipeline
-- **gnfs_factor.sh** — End-to-end GNFS pipeline (YAFU poly select + GGNFS sieve + YAFU post-processing)
-- **gnfs_pipeline.sh** — Direct GGNFS sieve + YAFU post-processing with monitoring
-- **gnfs_polys/** — Pre-computed GNFS polynomials for 90d semiprimes (90d_{0-4}.job)
-
-### Other
+## Other Algorithms
 - **pollard_rho.c** — Brent variant. Not competitive above 30d.
-- **lattice_factor.c** — Fermat/Lehman/lattice. Not competitive for random balanced semiprimes.
-- **block_lanczos.h** — Block Lanczos linear algebra (header-only).
+- **factor_oracle.c** — Multi-strategy oracle.
+- **special_factor.c** — Pollard p-1, Williams p+1, ECM.
+- **batch_smooth.c**, **batch_qs.c**, **batch_siqs.c** — Batch smoothness. NEGATIVE RESULT.
+- **lattice_factor*.c** — Lattice-based. NEGATIVE RESULT.
+- **nfs_siever.c**, **gnfs_simple.c** — NFS implementations (slow).
 
-## GNFS Pipeline
-- **gnfs_pipeline.sh** — Pre-computed poly + GGNFS sieve + YAFU post. For 90d.
-- **gnfs_polys/90d_{0-4}.poly** — Pre-computed GNFS polynomials for all 5 90d semiprimes.
+## Negative Results Summary
+1. **DLP LP-column approach** (dlp_opt.c): LP space too large at 65-70d for birthday collisions
+2. **MFBS** (mfbs_siqs.c): Reducing sieve FB and adding extended TD hurts more than helps
+3. **Batch smoothness** (batch_*.c): Product tree GCD overhead exceeds sieve
+4. **Lattice factoring** (lattice_*.c): LLL infeasible for needed dimensions
+5. **Special-Q QS** (sqqs.c, specialq_qs.c): Can't collect relations without full sieve
+6. **MCFRAC** (mcfrac.c): Sequential CF expansion can't compete with parallel sieve
+7. **PairQS** (pairqs.c): Product of two Q(x) is LESS smooth than individual
+8. **Batch poly >4** (spqs batch=8,16): No improvement, inner loop dominates
