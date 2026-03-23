@@ -555,12 +555,12 @@ int main(int argc, char *argv[]) {
                         if (mpz_sgn(Qx) == 0) continue;
                         mpz_abs(residue, Qx);
 
-                        /* Sieve-informed trial division: only check primes whose roots match */
+                        /* Sieve-informed trial division with early abort */
                         while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
+
                         for (int i = 1; i < fb->size; i++) {
                             unsigned int p = fb->prime[i];
                             if (soln1[bi][i] == 0xFFFFFFFF) continue;
-                            /* Check if this prime divides Q(x) by checking root match */
                             long xmod = ((x % (long)p) + p) % p;
                             if (xmod != (long)soln1[bi][i] && xmod != (long)soln2[bi][i]) continue;
                             if (mpz_divisible_ui_p(residue, p))
