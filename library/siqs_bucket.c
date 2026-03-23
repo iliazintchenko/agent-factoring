@@ -1,4 +1,5 @@
 /*
+<<<<<<< HEAD
  * SIQS with Bucket Sieve - Optimized Implementation
  *
  * Key optimizations over spqs.c:
@@ -8,6 +9,16 @@
  * 3. Root-aware trial division (only test primes whose roots match x)
  * 4. SLP (Single Large Prime) with hash table matching
  * 5. Cache-optimized 32KB block sieve
+=======
+ * siqs_bucket.c - Optimized SIQS with bucket sieve + DLP
+ *
+ * Based on the proven SPQS code with:
+ * 1. Bucket sieve for large FB primes (p > SIEVE_BLOCK)
+ * 2. DLP (Double Large Prime) with Pollard rho cofactorization
+ * 3. Sieve-informed trial division (only check primes whose roots match)
+ * 4. Improved parameter tuning
+ * 5. Multi-polynomial batch sieving (from SPQS)
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
  *
  * Compile: gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm
  * Usage: ./siqs_bucket <N>
@@ -18,6 +29,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+<<<<<<< HEAD
 #include <stdint.h>
 #include <gmp.h>
 
@@ -30,6 +42,17 @@
 #define MAX_PARTIALS 1500000
 #define BUCKET_ALLOC 2048      /* max entries per bucket per slice */
 #define SMALL_PRIME_CUTOFF 256 /* primes below this: skip sieve (small logp) */
+=======
+#include <gmp.h>
+
+#define SEED 42
+#define SIEVE_BLOCK 32768
+#define MAX_FB 100000
+#define MAX_A_FACTORS 25
+#define MAX_RELS 500000
+#define MAX_PARTIALS 2000000
+#define BATCH_POLYS 4
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
 
 static struct timespec g_start;
 static double elapsed(void) {
@@ -41,7 +64,11 @@ static double elapsed(void) {
 /* ==================== Modular Arithmetic ==================== */
 static unsigned int mod_inverse(unsigned int a, unsigned int m) {
     int old_r = (int)a, r = (int)m, old_s = 1, s = 0;
+<<<<<<< HEAD
     while (r) { int q = old_r / r, t = r; r = old_r - q * r; old_r = t; t = s; s = old_s - q * s; old_s = t; }
+=======
+    while (r) { int q = old_r / r, t; t = r; r = old_r - q * r; old_r = t; t = s; s = old_s - q * s; old_s = t; }
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
     if (old_r != 1) return 0;
     return (unsigned int)(((long long)old_s % m + m) % m);
 }
@@ -62,10 +89,17 @@ static unsigned int sqrt_mod(unsigned int n, unsigned int p) {
     b = z; e = Q; unsigned long long c = 1; while (e) { if (e & 1) c = (c * b) % m; b = (b * b) % m; e >>= 1; }
     b = n % p; e = Q; unsigned long long t = 1; while (e) { if (e & 1) t = (t * b) % m; b = (b * b) % m; e >>= 1; }
     b = n % p; e = (Q + 1) / 2; unsigned long long R = 1; while (e) { if (e & 1) R = (R * b) % m; b = (b * b) % m; e >>= 1; }
+<<<<<<< HEAD
     while (1) { if (t == 1) return (unsigned int)R; int i = 0; unsigned long long tt = t; while (tt != 1) { tt = (tt * tt) % p; i++; } unsigned long long bb2 = c; for (int j = 0; j < (int)M_val - i - 1; j++) bb2 = (bb2 * bb2) % p; M_val = i; c = (bb2 * bb2) % p; t = (t * c) % p; R = (R * bb2) % p; }
 }
 
 /* ==================== Multiplier (Knuth-Schroeppel) ==================== */
+=======
+    while (1) { if (t == 1) return (unsigned int)R; int i = 0; unsigned long long tt = t; while (tt != 1) { tt = (tt * tt) % p; i++; } unsigned long long bb = c; for (int j = 0; j < (int)M_val - i - 1; j++) bb = (bb * bb) % p; M_val = i; c = (bb * bb) % p; t = (t * c) % p; R = (R * bb) % p; }
+}
+
+/* ==================== Multiplier ==================== */
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
 static int choose_multiplier(mpz_t N) {
     static const int ks[] = {1,2,3,5,6,7,10,11,13,14,15,17,19,21,23,29,31,37,41,43,0};
     double best = -1e30; int best_k = 1;
@@ -73,6 +107,7 @@ static int choose_multiplier(mpz_t N) {
         int k = ks[ki]; mpz_t kN; mpz_init(kN); mpz_mul_ui(kN, N, k);
         double s = -0.5 * log((double)k);
         unsigned long m8 = mpz_fdiv_ui(kN, 8);
+<<<<<<< HEAD
         if (m8 == 1) s += 2*log(2.0); else if (m8 == 5) s += log(2.0);
         else if (m8 == 3 || m8 == 7) s += 0.5*log(2.0);
         int ps[] = {3,5,7,11,13,17,19,23,29,31,37,41,43,47};
@@ -80,6 +115,11 @@ static int choose_multiplier(mpz_t N) {
             if (k % ps[i] == 0) { s += log(ps[i]); continue; }
             if (sqrt_mod(mpz_fdiv_ui(kN, ps[i]), ps[i])) s += 2.0*log(ps[i])/(ps[i]-1);
         }
+=======
+        if (m8 == 1) s += 2*log(2.0); else if (m8 == 5) s += log(2.0); else if (m8 == 3 || m8 == 7) s += 0.5*log(2.0);
+        int ps[] = {3,5,7,11,13,17,19,23,29,31,37,41,43,47};
+        for (int i = 0; i < 14; i++) { if (k % ps[i] == 0) continue; if (sqrt_mod(mpz_fdiv_ui(kN, ps[i]), ps[i])) s += 2.0*log(ps[i])/(ps[i]-1); }
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         if (s > best) { best = s; best_k = k; }
         mpz_clear(kN);
     }
@@ -87,6 +127,7 @@ static int choose_multiplier(mpz_t N) {
 }
 
 /* ==================== Factor Base ==================== */
+<<<<<<< HEAD
 typedef struct {
     unsigned int *prime;
     unsigned int *root1;     /* Tonelli-Shanks sqrt of kN mod p */
@@ -105,11 +146,24 @@ static fb_t *fb_create(mpz_t kN, int target) {
 
     fb->prime[0] = 2; fb->root1[0] = 1; fb->logp[0] = 1; fb->size = 1;
     int bound = target * 30 + 50000;
+=======
+typedef struct { unsigned int *prime; unsigned int *root; unsigned char *logp; int size; } fb_t;
+
+static fb_t *fb_create(mpz_t kN, int target) {
+    fb_t *fb = malloc(sizeof(fb_t));
+    int alloc = target + 20;
+    fb->prime = malloc(alloc * sizeof(unsigned int));
+    fb->root = malloc(alloc * sizeof(unsigned int));
+    fb->logp = malloc(alloc * sizeof(unsigned char));
+    fb->prime[0] = 2; fb->root[0] = 1; fb->logp[0] = 1; fb->size = 1;
+    int bound = target * 30 + 100000;
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
     char *sv = calloc(bound + 1, 1);
     for (int i = 2; (long)i*i <= bound; i++) if (!sv[i]) for (int j = i*i; j <= bound; j += i) sv[j] = 1;
     for (int i = 3; i <= bound && fb->size < target; i += 2) {
         if (sv[i]) continue;
         unsigned long nm = mpz_fdiv_ui(kN, i);
+<<<<<<< HEAD
         if (nm == 0) {
             fb->prime[fb->size] = i; fb->root1[fb->size] = 0;
             fb->logp[fb->size] = (unsigned char)(log2(i)+0.5); fb->size++; continue;
@@ -264,6 +318,19 @@ static void bucket_sieve_block(unsigned char *sieve, bucket_t *bkt, int bnum) {
 
 /* ==================== Large Prime Hash ==================== */
 #define LP_HASH_BITS 21
+=======
+        if (nm == 0) { fb->prime[fb->size] = i; fb->root[fb->size] = 0; fb->logp[fb->size] = (unsigned char)(log2(i)+0.5); fb->size++; continue; }
+        unsigned int r = sqrt_mod((unsigned int)nm, i);
+        if (!r) continue;
+        fb->prime[fb->size] = i; fb->root[fb->size] = r; fb->logp[fb->size] = (unsigned char)(log2(i)+0.5); fb->size++;
+    }
+    free(sv);
+    return fb;
+}
+
+/* ==================== Large Prime Hash ==================== */
+#define LP_HASH_BITS 20
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
 #define LP_HASH_SIZE (1 << LP_HASH_BITS)
 typedef struct lp_e { unsigned long lp; int idx; struct lp_e *next; } lp_e_t;
 typedef struct { lp_e_t **b; lp_e_t *pool; int used, max; } lp_t;
@@ -272,6 +339,7 @@ static int lp_find(lp_t *t, unsigned long lp) { unsigned int h = (unsigned int)(
 static void lp_insert(lp_t *t, unsigned long lp, int idx) { if (t->used >= t->max) return; unsigned int h = (unsigned int)((lp * 0x9E3779B97F4A7C15ULL) >> (64-LP_HASH_BITS)); lp_e_t *e = &t->pool[t->used++]; e->lp = lp; e->idx = idx; e->next = t->b[h]; t->b[h] = e; }
 
 /* ==================== Relation Storage ==================== */
+<<<<<<< HEAD
 typedef struct {
     mpz_t *ax_b, *Qx;
     unsigned long *lp;
@@ -288,6 +356,12 @@ static rels_t *rels_create(int n) {
 }
 
 /* ==================== GF(2) Matrix / Gauss ==================== */
+=======
+typedef struct { mpz_t *ax_b, *Qx; unsigned long *lp; int count, alloc; } rels_t;
+static rels_t *rels_create(int n) { rels_t *r = malloc(sizeof(rels_t)); r->ax_b = malloc(n*sizeof(mpz_t)); r->Qx = malloc(n*sizeof(mpz_t)); r->lp = calloc(n, sizeof(unsigned long)); for (int i = 0; i < n; i++) { mpz_init(r->ax_b[i]); mpz_init(r->Qx[i]); } r->count = 0; r->alloc = n; return r; }
+
+/* ==================== GF(2) Matrix ==================== */
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
 typedef unsigned long long u64;
 typedef struct { u64 **rows; int nr, nc, fbw, idw, wprow; } gf2_t;
 static gf2_t *gf2_create(int nr, int nc) {
@@ -301,6 +375,7 @@ static void gf2_set(gf2_t *m, int r, int c) { m->rows[r][c/64] |= (1ULL << (c%64
 static int gf2_solve(gf2_t *m, int ***deps, int **dlen, int max) {
     int piv = 0;
     for (int c = 0; c < m->nc && piv < m->nr; c++) {
+<<<<<<< HEAD
         int pr = -1;
         for (int r = piv; r < m->nr; r++) if ((m->rows[r][c/64] >> (c%64)) & 1) { pr = r; break; }
         if (pr < 0) continue;
@@ -310,10 +385,17 @@ static int gf2_solve(gf2_t *m, int ***deps, int **dlen, int max) {
             if ((m->rows[r][c/64] >> (c%64)) & 1)
                 for (int w = 0; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w];
         }
+=======
+        int pr = -1; for (int r = piv; r < m->nr; r++) if ((m->rows[r][c/64] >> (c%64)) & 1) { pr = r; break; }
+        if (pr < 0) continue;
+        if (pr != piv) { u64 *t = m->rows[pr]; m->rows[pr] = m->rows[piv]; m->rows[piv] = t; }
+        for (int r = 0; r < m->nr; r++) { if (r == piv) continue; if ((m->rows[r][c/64] >> (c%64)) & 1) for (int w = 0; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w]; }
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         piv++;
     }
     int nd = 0; *deps = malloc(max * sizeof(int*)); *dlen = malloc(max * sizeof(int));
     for (int r = piv; r < m->nr && nd < max; r++) {
+<<<<<<< HEAD
         int z = 1;
         for (int w = 0; w < m->fbw && z; w++) {
             u64 mask = (w < m->fbw-1) ? ~0ULL : (m->nc%64==0 ? ~0ULL : (1ULL << (m->nc%64))-1);
@@ -326,11 +408,18 @@ static int gf2_solve(gf2_t *m, int ***deps, int **dlen, int max) {
             while (bits) { int bit = __builtin_ctzll(bits); int idx2 = w*64+bit;
                 if (idx2 < m->nr) d[dl++] = idx2; bits &= bits-1; }
         }
+=======
+        int z = 1; for (int w = 0; w < m->fbw && z; w++) { u64 mask = (w < m->fbw-1) ? ~0ULL : (m->nc%64==0 ? ~0ULL : (1ULL << (m->nc%64))-1); if (m->rows[r][w] & mask) z = 0; }
+        if (!z) continue;
+        int *d = malloc(m->nr * sizeof(int)); int dl = 0;
+        for (int w = 0; w < m->idw; w++) { u64 bits = m->rows[r][m->fbw+w]; while (bits) { int bit = __builtin_ctzll(bits); int idx = w*64+bit; if (idx < m->nr) d[dl++] = idx; bits &= bits-1; } }
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         if (dl > 0) { (*deps)[nd] = d; (*dlen)[nd] = dl; nd++; } else free(d);
     }
     return nd;
 }
 
+<<<<<<< HEAD
 /* ==================== Parameters ==================== */
 typedef struct { int fb_size, nblocks, lp_mult, extra; double thresh; } params_t;
 static params_t get_params(int bits) {
@@ -359,6 +448,72 @@ static params_t get_params(int bits) {
 }
 
 /* ==================== Main SIQS ==================== */
+=======
+/* ==================== Bucket Sieve Structures ==================== */
+typedef struct {
+    unsigned short offset;
+    unsigned char logp;
+    unsigned char pad;
+} bucket_hit_t;
+
+typedef struct {
+    bucket_hit_t *entries;
+    int count, alloc;
+} bucket_t;
+
+/* ==================== DLP: Pollard Rho for cofactor splitting ==================== */
+static unsigned long pollard_rho_64(unsigned long n) {
+    if (n % 2 == 0) return 2;
+    if (n < 4) return n;
+    mpz_t N, x, y, d, c, tmp;
+    mpz_init_set_ui(N, n); mpz_init(x); mpz_init(y); mpz_init(d); mpz_init(c); mpz_init(tmp);
+    unsigned long result = n;
+    for (int att = 0; att < 30 && result == n; att++) {
+        mpz_set_ui(c, att + 1);
+        mpz_set_ui(x, 2 + att);
+        mpz_set(y, x);
+        for (int iter = 0; iter < 100000; iter++) {
+            mpz_mul(x, x, x); mpz_add(x, x, c); mpz_mod(x, x, N);
+            mpz_mul(y, y, y); mpz_add(y, y, c); mpz_mod(y, y, N);
+            mpz_mul(y, y, y); mpz_add(y, y, c); mpz_mod(y, y, N);
+            mpz_sub(tmp, x, y); mpz_abs(tmp, tmp);
+            mpz_gcd(d, tmp, N);
+            if (mpz_cmp_ui(d, 1) > 0) {
+                if (mpz_cmp(d, N) < 0) { result = mpz_get_ui(d); break; }
+                else break;  /* d == N, try different c */
+            }
+        }
+    }
+    mpz_clear(N); mpz_clear(x); mpz_clear(y); mpz_clear(d); mpz_clear(c); mpz_clear(tmp);
+    return result;
+}
+
+/* ==================== Parameters ==================== */
+/* Calibrated against YAFU's proven parameter table - digit based */
+typedef struct { int fb_size, nblocks, lp_mult, extra; double thresh; int use_dlp; int dlp_mult; } params_t;
+static params_t get_params_by_digits(int digits) {
+    /*                     FB    nblk LP   extra thresh DLP  DLP_m */
+    if (digits <= 30) return (params_t){100,  1,  30,  40, 0.73, 0, 0};
+    if (digits <= 33) return (params_t){150,  1,  30,  40, 0.74, 0, 0};
+    if (digits <= 36) return (params_t){250,  1,  35,  50, 0.76, 0, 0};
+    if (digits <= 39) return (params_t){450,  1,  40,  50, 0.78, 0, 0};
+    if (digits <= 42) return (params_t){550,  1,  40,  60, 0.79, 0, 0};
+    if (digits <= 45) return (params_t){700,  2,  40,  60, 0.80, 0, 0};
+    if (digits <= 48) return (params_t){1000, 2,  40,  60, 0.80, 1, 80};
+    if (digits <= 51) return (params_t){1400, 2,  40,  80, 0.81, 1, 80};
+    if (digits <= 55) return (params_t){2000, 2,  50,  80, 0.82, 1, 100};
+    if (digits <= 60) return (params_t){3000, 2,  50, 100, 0.83, 1, 100};
+    if (digits <= 64) return (params_t){5400, 3,  80, 120, 0.84, 1, 150};
+    if (digits <= 70) return (params_t){10000,3, 100, 150, 0.86, 1, 200};
+    if (digits <= 75) return (params_t){27000,4, 100, 200, 0.875, 1, 250};
+    if (digits <= 80) return (params_t){50000,4, 100, 250, 0.885, 1, 250};
+    if (digits <= 85) return (params_t){55000,3,  80, 300, 0.89, 1, 300};
+    if (digits <= 90) return (params_t){60000,9,  80, 350, 0.90, 1, 300};
+    return (params_t){70000, 12, 80, 400, 0.91, 1, 300};
+}
+
+/* ==================== Main ==================== */
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
 int main(int argc, char *argv[]) {
     if (argc < 2) { fprintf(stderr, "Usage: %s <N>\n", argv[0]); return 1; }
     clock_gettime(CLOCK_MONOTONIC, &g_start);
@@ -374,25 +529,39 @@ int main(int argc, char *argv[]) {
     for (int p = 2; p < 10000; p++) {
         if (mpz_divisible_ui_p(N, p)) {
             mpz_t c; mpz_init(c); mpz_divexact_ui(c, N, p);
+<<<<<<< HEAD
             gmp_printf("%Zd\n", c);
             fprintf(stderr, "trivial factor %d in %.3fs\n", p, elapsed());
             return 0;
+=======
+            gmp_printf("%d\n", p); return 0;
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         }
     }
 
     int mult = choose_multiplier(N);
     mpz_mul_ui(kN, N, mult);
     int kN_bits = (int)mpz_sizeinbase(kN, 2);
+<<<<<<< HEAD
     params_t P = get_params(kN_bits);
 
     fb_t *fb = fb_create(kN, P.fb_size);
     int M = BLOCK_SIZE * P.nblocks;      /* half sieve interval */
     int total_blocks = 2 * P.nblocks;     /* blocks on both sides */
     unsigned long lp_bound = (unsigned long)fb->prime[fb->size-1] * P.lp_mult;
+=======
+    params_t P = get_params_by_digits(digits);
+
+    fb_t *fb = fb_create(kN, P.fb_size);
+    int M = SIEVE_BLOCK * P.nblocks;
+    unsigned long lp_bound = (unsigned long)fb->prime[fb->size-1] * P.lp_mult;
+    unsigned long dlp_bound = P.use_dlp ? (unsigned long)fb->prime[fb->size-1] * P.dlp_mult : 0;
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
     int target = fb->size + P.extra;
 
     double log2_Qmax = kN_bits / 2.0 + 0.5 + log2(M);
     int threshold = (int)(log2_Qmax * P.thresh);
+<<<<<<< HEAD
     threshold -= 2;  /* slightly more aggressive to catch more candidates */
 
     fprintf(stderr, "SIQS-Bucket: %dd (%db), k=%d, FB=%d (med=%d,large=%d), M=%d, blocks=%d, thresh=%d, LP=%lu, target=%d\n",
@@ -411,10 +580,43 @@ int main(int argc, char *argv[]) {
     unsigned int *soln2 = malloc(fb->size * sizeof(unsigned int));
 
     /* Relations */
+=======
+    threshold -= 3;
+    if (P.use_dlp) threshold -= 6;  /* Lower threshold to catch more DLP candidates */
+
+    fprintf(stderr, "SIQS-Bucket: %dd (%db), k=%d, FB=%d, M=%d, thresh=%d, LP=%lu",
+            digits, bits, mult, fb->size, M, threshold, lp_bound);
+    if (P.use_dlp) fprintf(stderr, ", DLP=%lu", dlp_bound);
+    fprintf(stderr, ", target=%d\n", target);
+
+    /* Determine bucket sieve threshold */
+    int small_fb_end = fb->size;
+    for (int i = 0; i < fb->size; i++) {
+        if (fb->prime[i] > (unsigned int)SIEVE_BLOCK) { small_fb_end = i; break; }
+    }
+    int large_fb_start = small_fb_end;
+    fprintf(stderr, "FB split: small=%d (primes<%d), large=%d (primes>%d)\n",
+            small_fb_end, SIEVE_BLOCK, fb->size - large_fb_start, SIEVE_BLOCK);
+
+    /* Allocate sieve arrays */
+    unsigned char *sieves[BATCH_POLYS];
+    for (int b = 0; b < BATCH_POLYS; b++) sieves[b] = malloc(SIEVE_BLOCK);
+
+    /* Allocate bucket arrays: per-block, per-polynomial */
+    int n_blocks = 2 * P.nblocks;  /* -nblocks to +nblocks */
+    int n_bucket_arrays = n_blocks * BATCH_POLYS;
+    bucket_t *buckets = calloc(n_bucket_arrays, sizeof(bucket_t));
+    for (int i = 0; i < n_bucket_arrays; i++) {
+        buckets[i].alloc = 256;
+        buckets[i].entries = malloc(256 * sizeof(bucket_hit_t));
+    }
+
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
     rels_t *full = rels_create(MAX_RELS);
     rels_t *part = rels_create(MAX_PARTIALS);
     lp_t *lpt = lp_create(MAX_PARTIALS);
 
+<<<<<<< HEAD
     /* Polynomial state */
     mpz_t a, b_val, c_val, B_vals[MAX_A_FACTORS];
     mpz_inits(a, b_val, c_val, NULL);
@@ -424,6 +626,22 @@ int main(int argc, char *argv[]) {
     unsigned int **ainv = malloc(MAX_A_FACTORS * sizeof(unsigned int *));
     for (int j = 0; j < MAX_A_FACTORS; j++)
         ainv[j] = malloc(fb->size * sizeof(unsigned int));
+=======
+    /* DLP storage */
+    rels_t *dlp_part = P.use_dlp ? rels_create(MAX_PARTIALS) : NULL;
+    lp_t *dlp_lpt = P.use_dlp ? lp_create(MAX_PARTIALS) : NULL;
+
+    mpz_t a, bs[BATCH_POLYS], cs[BATCH_POLYS], B_vals[MAX_A_FACTORS];
+    mpz_init(a);
+    for (int b = 0; b < BATCH_POLYS; b++) { mpz_init(bs[b]); mpz_init(cs[b]); }
+    for (int j = 0; j < MAX_A_FACTORS; j++) mpz_init(B_vals[j]);
+
+    unsigned int *soln1[BATCH_POLYS], *soln2[BATCH_POLYS];
+    for (int b = 0; b < BATCH_POLYS; b++) {
+        soln1[b] = malloc(fb->size * sizeof(unsigned int));
+        soln2[b] = malloc(fb->size * sizeof(unsigned int));
+    }
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
 
     gmp_randstate_t rng;
     gmp_randinit_default(rng);
@@ -432,6 +650,7 @@ int main(int argc, char *argv[]) {
     mpz_t ax_b, Qx, residue, tmp;
     mpz_inits(ax_b, Qx, residue, tmp, NULL);
 
+<<<<<<< HEAD
     int total_polys = 0, a_count = 0, combined = 0;
     int a_idx[MAX_A_FACTORS];
     int num_a_factors = 0;
@@ -444,6 +663,25 @@ int main(int argc, char *argv[]) {
         }
 
         /* ===== Generate new 'a' value ===== */
+=======
+    int total_polys = 0, a_count = 0, combined = 0, dlp_combined = 0;
+    int a_idx[MAX_A_FACTORS];
+    int num_a_factors = 0;
+    unsigned int *ainv_data = malloc(MAX_A_FACTORS * fb->size * sizeof(unsigned int));
+
+    while (full->count < target) {
+        if (total_polys > 0 && total_polys % (2000/BATCH_POLYS) == 0) {
+            double t = elapsed();
+            if (t > 280) { fprintf(stderr, "TIMEOUT at %.1fs\n", t); break; }
+            if (total_polys % (4000/BATCH_POLYS) == 0)
+                fprintf(stderr, "  p=%d r=%d/%d (f=%d+slp=%d+dlp=%d) part=%d dlp_part=%d t=%.1fs\n",
+                        total_polys * BATCH_POLYS, full->count, target,
+                        full->count - combined - dlp_combined, combined, dlp_combined,
+                        part->count, dlp_part ? dlp_part->count : 0, t);
+        }
+
+        /* Generate new 'a' */
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         {
             mpz_t tgt; mpz_init(tgt);
             mpz_mul_ui(tgt, kN, 2); mpz_sqrt(tgt, tgt); mpz_tdiv_q_ui(tgt, tgt, M);
@@ -453,7 +691,11 @@ int main(int argc, char *argv[]) {
             if (lo < 2) lo = 2; if (hi <= lo + 3) hi = fb->size - 1;
 
             double avg = 0; int cnt = 0;
+<<<<<<< HEAD
             for (int i = lo; i < hi; i++) { if (fb->root1[i] == 0) continue; avg += log(fb->prime[i]); cnt++; }
+=======
+            for (int i = lo; i < hi; i++) { if (fb->root[i] == 0) continue; avg += log(fb->prime[i]); cnt++; }
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
             if (cnt == 0) { mpz_clear(tgt); break; }
             avg /= cnt;
 
@@ -464,6 +706,7 @@ int main(int argc, char *argv[]) {
             double best_ratio = 1e30;
             int best[MAX_A_FACTORS];
 
+<<<<<<< HEAD
             for (int att = 0; att < 50; att++) {
                 mpz_set_ui(a, 1);
                 int idx[MAX_A_FACTORS]; int ok = 1;
@@ -482,10 +725,31 @@ int main(int argc, char *argv[]) {
                 else { mpz_t q2; mpz_init(q2); mpz_tdiv_q(q2, tgt, a); ratio = mpz_get_d(q2); mpz_clear(q2); }
                 if (ratio < best_ratio) { best_ratio = ratio; memcpy(best, idx, s*sizeof(int)); }
                 if (ratio < 1.5) break;
+=======
+            for (int att = 0; att < 40; att++) {
+                mpz_set_ui(a, 1);
+                int idx[MAX_A_FACTORS]; int ok = 1;
+                for (int i = 0; i < s && ok; i++) {
+                    int tries = 0, good;
+                    do { idx[i] = lo + gmp_urandomm_ui(rng, hi-lo); good = 1;
+                         for (int j = 0; j < i; j++) if (idx[j]==idx[i]) {good=0; break;}
+                         if (fb->root[idx[i]]==0) good=0; tries++;
+                    } while (!good && tries < 100);
+                    if (!good) { ok=0; break; }
+                    mpz_mul_ui(a, a, fb->prime[idx[i]]);
+                }
+                if (!ok) continue;
+                double ratio;
+                if (mpz_cmp(a, tgt) > 0) { mpz_t q; mpz_init(q); mpz_tdiv_q(q, a, tgt); ratio = mpz_get_d(q); mpz_clear(q); }
+                else { mpz_t q; mpz_init(q); mpz_tdiv_q(q, tgt, a); ratio = mpz_get_d(q); mpz_clear(q); }
+                if (ratio < best_ratio) { best_ratio = ratio; memcpy(best, idx, s*sizeof(int)); }
+                if (ratio < 2.0) break;
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
             }
 
             memcpy(a_idx, best, s * sizeof(int));
             mpz_set_ui(a, 1);
+<<<<<<< HEAD
             for (int i2 = 0; i2 < s; i2++) mpz_mul_ui(a, a, fb->prime[a_idx[i2]]);
             mpz_clear(tgt);
             a_count++;
@@ -512,10 +776,38 @@ int main(int argc, char *argv[]) {
                     unsigned int ai = mod_inverse((unsigned int)am, p);
                     unsigned long Bm = mpz_fdiv_ui(B_vals[j], p);
                     ainv[j][i2] = (unsigned int)((2ULL * ai % p * Bm) % p);
+=======
+            for (int i = 0; i < s; i++) mpz_mul_ui(a, a, fb->prime[a_idx[i]]);
+            mpz_clear(tgt);
+            a_count++;
+
+            /* Compute B values */
+            for (int j = 0; j < s; j++) {
+                int idx = a_idx[j];
+                unsigned int qj = fb->prime[idx], rj = fb->root[idx];
+                mpz_t a_q, mod_q, inv; mpz_inits(a_q, mod_q, inv, NULL);
+                mpz_divexact_ui(a_q, a, qj); mpz_set_ui(mod_q, qj);
+                mpz_invert(inv, a_q, mod_q);
+                unsigned long iv = mpz_get_ui(inv);
+                mpz_mul_ui(B_vals[j], a_q, (rj * iv) % qj);
+                mpz_clears(a_q, mod_q, inv, NULL);
+            }
+
+            /* Precompute ainv for Gray code */
+            for (int j = 0; j < s; j++) {
+                for (int i = 0; i < fb->size; i++) {
+                    unsigned int p = fb->prime[i];
+                    unsigned long am = mpz_fdiv_ui(a, p);
+                    if (am == 0 || fb->root[i] == 0) { ainv_data[j*fb->size+i] = 0; continue; }
+                    unsigned int ai = mod_inverse((unsigned int)am, p);
+                    unsigned long Bm = mpz_fdiv_ui(B_vals[j], p);
+                    ainv_data[j*fb->size+i] = (unsigned int)((2UL * ai % p * Bm) % p);
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
                 }
             }
         }
 
+<<<<<<< HEAD
         /* ===== Iterate through b-values using Gray code ===== */
         int num_b = 1 << (num_a_factors - 1);
 
@@ -716,6 +1008,286 @@ int main(int argc, char *argv[]) {
     }
 
     /* ===== Linear Algebra (Gaussian Elimination over GF(2)) ===== */
+=======
+        int num_b = 1 << (num_a_factors - 1);
+
+        /* Persistent state for Gray code self-initialization */
+        mpz_t cur_b; mpz_init(cur_b);
+        unsigned int *cur_s1 = malloc(fb->size * sizeof(unsigned int));
+        unsigned int *cur_s2 = malloc(fb->size * sizeof(unsigned int));
+
+        /* Compute base solutions for b_idx=0: Gray(0)=0, all Bj negative */
+        {
+            mpz_set_ui(cur_b, 0);
+            for (int j = 0; j < num_a_factors; j++)
+                mpz_sub(cur_b, cur_b, B_vals[j]);
+            mpz_mul(tmp, cur_b, cur_b); mpz_sub(tmp, tmp, kN); mpz_mod(tmp, tmp, a);
+            if (mpz_sgn(tmp) != 0) mpz_neg(cur_b, cur_b);
+
+            /* Compute base solutions from scratch */
+            for (int i = 0; i < fb->size; i++) {
+                unsigned int p = fb->prime[i];
+                unsigned long am = mpz_fdiv_ui(a, p);
+                if (am == 0 || fb->root[i] == 0) { cur_s1[i] = cur_s2[i] = 0xFFFFFFFF; continue; }
+                unsigned int ai = mod_inverse((unsigned int)am, p);
+                if (ai == 0) { cur_s1[i] = cur_s2[i] = 0xFFFFFFFF; continue; }
+                unsigned long bm = mpz_fdiv_ui(cur_b, p);
+                unsigned int r = fb->root[i];
+                cur_s1[i] = (unsigned int)((unsigned long)ai * ((r + p - bm) % p) % p);
+                cur_s2[i] = (unsigned int)((unsigned long)ai * ((p - r + p - bm) % p) % p);
+            }
+        }
+
+        for (int b_start = 0; b_start < num_b && full->count < target; b_start += BATCH_POLYS) {
+            int batch = BATCH_POLYS;
+            if (b_start + batch > num_b) batch = num_b - b_start;
+
+            /* Compute b-values and solutions for this batch using Gray code */
+            for (int bi = 0; bi < batch; bi++) {
+                int b_idx = b_start + bi;
+
+                if (b_idx == 0) {
+                    /* Copy base solutions */
+                    mpz_set(bs[0], cur_b);
+                    mpz_mul(cs[0], cur_b, cur_b); mpz_sub(cs[0], cs[0], kN);
+                    mpz_divexact(cs[0], cs[0], a);
+                    memcpy(soln1[0], cur_s1, fb->size * sizeof(unsigned int));
+                    memcpy(soln2[0], cur_s2, fb->size * sizeof(unsigned int));
+                } else {
+                    /* Gray code update: find which bit changed */
+                    int changed_bit = __builtin_ctz(b_idx);
+                    int gray = b_idx ^ (b_idx >> 1);
+                    int bit_is_set = (gray >> changed_bit) & 1;
+
+                    /* Update b value */
+                    if (bit_is_set)
+                        mpz_addmul_ui(cur_b, B_vals[changed_bit], 2);
+                    else
+                        mpz_submul_ui(cur_b, B_vals[changed_bit], 2);
+
+                    mpz_set(bs[bi], cur_b);
+                    mpz_mul(cs[bi], cur_b, cur_b); mpz_sub(cs[bi], cs[bi], kN);
+                    mpz_divexact(cs[bi], cs[bi], a);
+
+                    /* Update sieve solutions using precomputed ainv_data */
+                    unsigned int *delta = &ainv_data[changed_bit * fb->size];
+                    for (int i = 0; i < fb->size; i++) {
+                        if (cur_s1[i] == 0xFFFFFFFF) {
+                            soln1[bi][i] = soln2[bi][i] = 0xFFFFFFFF;
+                            continue;
+                        }
+                        unsigned int p = fb->prime[i];
+                        unsigned int d = delta[i];
+                        if (bit_is_set) {
+                            cur_s1[i] = cur_s1[i] >= d ? cur_s1[i] - d : cur_s1[i] + p - d;
+                            cur_s2[i] = cur_s2[i] >= d ? cur_s2[i] - d : cur_s2[i] + p - d;
+                        } else {
+                            cur_s1[i] = cur_s1[i] + d;
+                            if (cur_s1[i] >= p) cur_s1[i] -= p;
+                            cur_s2[i] = cur_s2[i] + d;
+                            if (cur_s2[i] >= p) cur_s2[i] -= p;
+                        }
+                        soln1[bi][i] = cur_s1[i];
+                        soln2[bi][i] = cur_s2[i];
+                    }
+                }
+            }
+
+            if (batch == 0) continue;
+            total_polys++;
+
+            /* Sieve all BATCH polynomials over each block */
+            for (int block = -P.nblocks; block < P.nblocks; block++) {
+                int block_start = block * SIEVE_BLOCK;
+                int block_idx = block + P.nblocks;  /* 0 to n_blocks-1 */
+
+                /* Initialize sieve arrays */
+                for (int bi = 0; bi < batch; bi++)
+                    memset(sieves[bi], 0, SIEVE_BLOCK);
+
+                /* Clear buckets for this block */
+                for (int bi = 0; bi < batch; bi++) {
+                    int bkt_idx = block_idx * BATCH_POLYS + bi;
+                    if (bkt_idx < n_bucket_arrays)
+                        buckets[bkt_idx].count = 0;
+                }
+
+                /* Sieve small FB primes (direct sieve, cache-friendly) */
+                for (int i = 1; i < small_fb_end; i++) {
+                    unsigned int p = fb->prime[i];
+                    if (p < 5) continue;
+                    unsigned char lp = fb->logp[i];
+
+                    for (int bi = 0; bi < batch; bi++) {
+                        if (soln1[bi][i] == 0xFFFFFFFF) continue;
+
+                        long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
+                        if (off1 < 0) off1 += p;
+                        for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
+                            sieves[bi][j] += lp;
+
+                        if (soln1[bi][i] != soln2[bi][i]) {
+                            long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
+                            if (off2 < 0) off2 += p;
+                            for (int j = (int)off2; j < SIEVE_BLOCK; j += p)
+                                sieves[bi][j] += lp;
+                        }
+                    }
+                }
+
+                /* Large FB primes: add directly to sieve (they hit at most a few positions per block) */
+                for (int i = large_fb_start; i < fb->size; i++) {
+                    unsigned int p = fb->prime[i];
+                    unsigned char lp = fb->logp[i];
+
+                    for (int bi = 0; bi < batch; bi++) {
+                        if (soln1[bi][i] == 0xFFFFFFFF) continue;
+
+                        long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
+                        if (off1 < 0) off1 += p;
+                        if (off1 < SIEVE_BLOCK)
+                            sieves[bi][(int)off1] += lp;
+
+                        if (soln1[bi][i] != soln2[bi][i]) {
+                            long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
+                            if (off2 < 0) off2 += p;
+                            if (off2 < SIEVE_BLOCK)
+                                sieves[bi][(int)off2] += lp;
+                        }
+                    }
+                }
+
+                /* Scan for smooth candidates */
+                for (int bi = 0; bi < batch; bi++) {
+                    for (int j = 0; j < SIEVE_BLOCK; j++) {
+                        if (sieves[bi][j] < threshold) continue;
+                        long x = (long)(block_start + j);
+                        if (x == 0) continue;
+
+                        /* Compute Q(x) and ax+b */
+                        mpz_set_si(tmp, x);
+                        mpz_mul(Qx, a, tmp);
+                        mpz_add(Qx, Qx, bs[bi]); mpz_add(Qx, Qx, bs[bi]);
+                        mpz_mul(Qx, Qx, tmp);
+                        mpz_add(Qx, Qx, cs[bi]);
+
+                        mpz_mul_si(ax_b, a, x);
+                        mpz_add(ax_b, ax_b, bs[bi]);
+
+                        if (mpz_sgn(Qx) == 0) continue;
+                        mpz_abs(residue, Qx);
+
+                        /* Sieve-informed trial division: only check primes whose roots match */
+                        while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
+                        for (int i = 1; i < fb->size; i++) {
+                            unsigned int p = fb->prime[i];
+                            if (soln1[bi][i] == 0xFFFFFFFF) continue;
+                            /* Check if this prime divides Q(x) by checking root match */
+                            long xmod = ((x % (long)p) + p) % p;
+                            if (xmod != (long)soln1[bi][i] && xmod != (long)soln2[bi][i]) continue;
+                            if (mpz_divisible_ui_p(residue, p))
+                                do { mpz_divexact_ui(residue, residue, p); } while (mpz_divisible_ui_p(residue, p));
+                        }
+                        /* Handle small primes that might have been skipped */
+                        for (int i = 0; i < fb->size && fb->prime[i] < 5; i++) {
+                            unsigned int p = fb->prime[i]; if (p <= 2) continue;
+                            while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
+                        }
+
+                        /* Store a*Q(x) for proper congruence: (ax+b)^2 = a*Q(x) + kN */
+                        mpz_t aQx; mpz_init(aQx); mpz_mul(aQx, Qx, a);
+
+                        if (mpz_cmp_ui(residue, 1) == 0) {
+                            /* Fully smooth */
+                            int ri = full->count;
+                            if (ri < full->alloc) {
+                                mpz_set(full->ax_b[ri], ax_b);
+                                mpz_set(full->Qx[ri], aQx);
+                                full->lp[ri] = 0;
+                                full->count++;
+                            }
+                        } else if (mpz_fits_ulong_p(residue)) {
+                            unsigned long cof = mpz_get_ui(residue);
+                            if (cof <= lp_bound) {
+                                /* Single large prime partial */
+                                int match = lp_find(lpt, cof);
+                                if (match >= 0) {
+                                    int ri = full->count;
+                                    if (ri < full->alloc) {
+                                        mpz_mul(full->ax_b[ri], ax_b, part->ax_b[match]);
+                                        mpz_mod(full->ax_b[ri], full->ax_b[ri], N);
+                                        mpz_mul(full->Qx[ri], aQx, part->Qx[match]);
+                                        full->lp[ri] = cof;
+                                        full->count++;
+                                        combined++;
+                                    }
+                                } else {
+                                    int pi = part->count;
+                                    if (pi < part->alloc) {
+                                        mpz_set(part->ax_b[pi], ax_b);
+                                        mpz_set(part->Qx[pi], aQx);
+                                        part->lp[pi] = cof;
+                                        lp_insert(lpt, cof, pi);
+                                        part->count++;
+                                    }
+                                }
+                            } else if (P.use_dlp && cof <= dlp_bound * (unsigned long)fb->prime[fb->size-1]) {
+                                /* Try DLP: split cofactor */
+                                if (!mpz_probab_prime_p(residue, 1)) {
+                                    unsigned long f1 = pollard_rho_64(cof);
+                                    if (f1 > 1 && f1 < cof) {
+                                        unsigned long f2 = cof / f1;
+                                        if (f1 > f2) { unsigned long t = f1; f1 = f2; f2 = t; }
+                                        if (f1 <= lp_bound && f2 <= lp_bound) {
+                                            /* Valid DLP relation */
+                                            unsigned long key = f1 ^ (f2 * 0x9E3779B9UL);
+                                            int match = lp_find(dlp_lpt, key);
+                                            if (match >= 0) {
+                                                int ri = full->count;
+                                                if (ri < full->alloc) {
+                                                    mpz_mul(full->ax_b[ri], ax_b, dlp_part->ax_b[match]);
+                                                    mpz_mod(full->ax_b[ri], full->ax_b[ri], N);
+                                                    mpz_mul(full->Qx[ri], aQx, dlp_part->Qx[match]);
+                                                    full->lp[ri] = cof;
+                                                    full->count++;
+                                                    dlp_combined++;
+                                                }
+                                            } else {
+                                                int pi = dlp_part->count;
+                                                if (pi < dlp_part->alloc) {
+                                                    mpz_set(dlp_part->ax_b[pi], ax_b);
+                                                    mpz_set(dlp_part->Qx[pi], aQx);
+                                                    dlp_part->lp[pi] = cof;
+                                                    lp_insert(dlp_lpt, key, pi);
+                                                    dlp_part->count++;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        mpz_clear(aQx);
+                    }
+                }
+            }
+        }
+        mpz_clear(cur_b);
+        free(cur_s1);
+        free(cur_s2);
+    }
+
+    double sieve_time = elapsed();
+    fprintf(stderr, "Sieving: %d rels (%d full + %d SLP + %d DLP) in %.2fs, %d polys\n",
+            full->count, full->count - combined - dlp_combined, combined, dlp_combined,
+            sieve_time, total_polys * BATCH_POLYS);
+
+    if (full->count < fb->size + 1) {
+        fprintf(stderr, "FAIL: not enough relations\n"); printf("FAIL\n"); return 1;
+    }
+
+    /* Linear algebra */
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
     int nrels = full->count;
     if (nrels > target) nrels = target;
     int ncols = fb->size + 1;
@@ -736,6 +1308,7 @@ int main(int argc, char *argv[]) {
 
     int **deps; int *dlen;
     int ndeps = gf2_solve(mat, &deps, &dlen, 64);
+<<<<<<< HEAD
     fprintf(stderr, "LA: %d deps from %dx%d matrix in %.2fs\n", ndeps, nrels, ncols, elapsed());
 
     /* ===== Square Root ===== */
@@ -749,12 +1322,34 @@ int main(int argc, char *argv[]) {
         for (int k = 0; k < dlen[d]; k++) {
             mpz_t aq2; mpz_init(aq2); mpz_abs(aq2, full->Qx[deps[d][k]]);
             mpz_mul(prod, prod, aq2); mpz_clear(aq2);
+=======
+    fprintf(stderr, "LA: %d deps from %dx%d (%.2fs)\n", ndeps, nrels, ncols, elapsed());
+
+    /* Square root */
+    for (int d = 0; d < ndeps; d++) {
+        mpz_t X, Y, g, prod, rem; mpz_inits(X, Y, g, prod, rem, NULL);
+        mpz_set_ui(X, 1);
+        for (int k = 0; k < dlen[d]; k++) {
+            mpz_mul(X, X, full->ax_b[deps[d][k]]);
+            mpz_mod(X, X, N);
+        }
+
+        mpz_set_ui(Y, 1); mpz_set_ui(prod, 1);
+        for (int k = 0; k < dlen[d]; k++) {
+            mpz_t aq; mpz_init(aq);
+            mpz_abs(aq, full->Qx[deps[d][k]]);
+            mpz_mul(prod, prod, aq);
+            mpz_clear(aq);
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         }
 
         mpz_set(rem, prod);
         int e2 = 0; while (mpz_even_p(rem)) { mpz_tdiv_q_2exp(rem, rem, 1); e2++; }
         if (e2 & 1) goto next;
+<<<<<<< HEAD
         mpz_set_ui(Y, 1);
+=======
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
         if (e2/2 > 0) { mpz_set_ui(tmp, 2); mpz_powm_ui(tmp, tmp, e2/2, N); mpz_mul(Y, Y, tmp); mpz_mod(Y, Y, N); }
 
         { int valid = 1;
@@ -778,7 +1373,11 @@ int main(int argc, char *argv[]) {
             mpz_t o; mpz_init(o); mpz_divexact(o, N, g);
             if (mpz_cmp(g, o) > 0) mpz_swap(g, o);
             gmp_printf("%Zd\n", g);
+<<<<<<< HEAD
             fprintf(stderr, "SIQS-Bucket: factored %dd in %.3fs\n", digits, elapsed());
+=======
+            fprintf(stderr, "SIQS-Bucket: factored in %.3fs\n", elapsed());
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
             mpz_clear(o); return 0;
         }
         mpz_add(tmp, X, Y); mpz_gcd(g, tmp, N);
@@ -786,13 +1385,21 @@ int main(int argc, char *argv[]) {
             mpz_t o; mpz_init(o); mpz_divexact(o, N, g);
             if (mpz_cmp(g, o) > 0) mpz_swap(g, o);
             gmp_printf("%Zd\n", g);
+<<<<<<< HEAD
             fprintf(stderr, "SIQS-Bucket: factored %dd in %.3fs\n", digits, elapsed());
+=======
+            fprintf(stderr, "SIQS-Bucket: factored in %.3fs\n", elapsed());
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
             mpz_clear(o); return 0;
         }
         next: mpz_clears(X, Y, g, prod, rem, NULL);
     }
 
+<<<<<<< HEAD
     fprintf(stderr, "FAIL: no factor found from %d dependencies\n", ndeps);
+=======
+    fprintf(stderr, "SIQS-Bucket: FAILED after %.3fs\n", elapsed());
+>>>>>>> c671567 (Add SIQS-Bucket with Gray code self-init and YAFU-calibrated params)
     printf("FAIL\n");
     return 1;
 }
