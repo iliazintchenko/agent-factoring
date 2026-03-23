@@ -26,9 +26,9 @@ YAFU's SIQS with AVX512BW sieve kernels is the current fastest known approach fo
 | 81-84  | 54.8-95.7s     | With -siqsNB 16 |
 | 85-86  | 138.8-151.6s   | With -siqsNB 16 |
 | 87     | 193.7s         | With -siqsNB 16 |
-| 88     | 228.5s         | With -siqsNB 16 |
-| 89     | 294.4s         | With -siqsNB 18 -siqsB 100000. All 5 pass. |
-| 90+    | >300s          | Not yet solved (see NFS analysis below) |
+| 88     | 228.5s         | With -siqsNB 18 -siqsB 80000. Verified: 228.8s worst case under load 21. |
+| 89     | 294.4s         | With -siqsNB 18 -siqsB 100000. All 5 pass under low load (<10). Under load >15, 89d[4] exceeds 295s. |
+| 90     | 282.6s (3/5 pass) | With -siqsNB 20 -siqsB 120000. [0],[2] timeout. Not yet all-5 solved. |
 
 ### YAFU Build Configuration (CRITICAL)
 ```bash
