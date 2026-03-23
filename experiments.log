@@ -247,8 +247,5 @@
 [2026-03-23 00:40:00] size: 89 | approach: SIQS 89d[4] at load=10 | time: TIMEOUT | notes: Even 89d[4] times out at load=10. 89d frontier validated at 294.4s only on idle machine.
 [2026-03-23 00:48:00] size: 90 | approach: original YAFU SIQS NB=20 B=120K on 90d[3] | time: 282.8 | notes: load ~12. PASS. Confirmed 90d[3] factors with SIQS.
 [2026-03-23 00:48:00] size: 90 | approach: original YAFU SIQS NB=20 B=120K on 90d[3] | time: 282.8 | notes: load ~12. PASS.
-[2026-03-23 00:30:00] size: 85 | approach: YAFU SIQS timing breakdown (verbose) | time: 92.97 total | notes: Sieve:89.2s, Cycle build:0.1s, BL:3.6s, Sqrt:0.1s. BL = 3.9% of total for 59K matrix.
-[2026-03-23 00:30:00] size: 89 | approach: 89d[4] verbose analysis | time: TIMEOUT | notes: Sieve completes in ~290s (load 12). "attempting to build 100130 cycles" reached. BL doesn't finish in remaining ~5s. Sieve rate 4800 rels/s.
-[2026-03-23 00:30:00] size: 89 | approach: 89d[4] with B=80K/90K (smaller FB) | time: both TIMEOUT | notes: B=80K: 3800 rels/s (21% slower), ETA 300-313s. B=90K: also timeout. Smaller FB hurts more than it helps.
-[2026-03-23 00:48:00] size: 90 | approach: yafu_mod SIQS NB=18 B=100K (300s timeout, load 13) | time: FAIL | notes: 90d[2] sieve completes (100251 rels at 4789/sec) at ~290s. BL starts but needs 15-20s. Total ~305-310s. 300s timeout kills during BL. Need load <8 for BL to have enough time.
-[2026-03-23 00:48:00] size: 90 | approach: QS BL analysis | time: N/A | notes: QS BL uses msieve code hardcoded to 64-bit vectors. Cannot use VBITS=512 (that only affects NFS BL). Widening to 256/512 bits would cause 4MB intermediate matrices = L1/L2 cache thrashing. Sparse matrix multiply is the bottleneck, not vector width. No easy fix.
+[2026-03-23 00:53:00] size: 90 | approach: GNFS pre-computed poly (orig YAFU, 1.46M) 90d[0] | time: TIMEOUT (load=12) | notes: Collected ~1.37M of 1.46M target. Rate ~5263/sec. On idle: 225s+13s=238s. Load must be <7 for 295s budget.
+[2026-03-23 00:53:00] size: 90 | approach: GNFS pre-computed poly 90d[0] | time: TIMEOUT (load=12) | notes: Rate ~5263/sec, need 1.46M. On idle: 238s.
