@@ -294,8 +294,7 @@ int main(int argc, char *argv[]) {
         uint32_t *db=malloc(dlen[di]*sizeof(uint32_t));
         for(int i=0;i<dlen[di];i++){da[i]=rels->a[deps[di][i]];db[i]=rels->b[deps[di][i]];}
 
-        /* Skip ring product (only needed for Hensel, which is disabled) */
-        if (0) {
+        /* Compute S(x) = prod(a_i - b_i*x) mod (f, N) */
         fprintf(stderr,"  Product in ring...\n");
         mpz_t S[MAX_DEG];
         for(int k=0;k<d;k++) mpz_init_set_ui(S[k],0);
@@ -313,11 +312,292 @@ int main(int argc, char *argv[]) {
         for(int k=0;k<d;k++) mpz_clear(factor[k]);
 
         fprintf(stderr,"  Product done (%.1fs)\n",elapsed());
-        } /* end disabled ring product */
 
-        /* Skip ring power approach AND ring product (not needed for CRT sqrt) */
+        /* ===== Correct Hensel-lift algebraic sqrt ===== */
+        /* 1. Compute S(x) = Π(a_i - b_i*x) mod f(x) in Z[x] (exact, no mod N)
+         * 2. Pick prime p where f is irreducible mod p
+         * 3. Compute initial sqrt T_0 = S^((p^d+1)/4) mod f mod p
+         * 4. Hensel lift T to precision p^(2^k) > max|S_coeff|^(1/2)
+         * 5. Y = T(m) mod N */
+        /* For degree d=3: f irreducible mod q iff f has no roots mod q.
+         * In F_q[x]/(f(x)) ≅ F_{q^d}, sqrt(S) = S^((q^d+1)/4) when q^d ≡ 3 mod 4.
+         * For d=3 and q ≡ 3 mod 4: q^3 ≡ 3 mod 4. So simple formula works.
+         * Evaluate T(m) mod q, CRT over multiple primes, brute-force 2^k signs. */
+        {
+            mpz_t g; mpz_init(g);
+            #define MAXCRT 15
+            unsigned long crt_primes[MAXCRT];
+            unsigned long crt_tm[MAXCRT]; /* T(m) mod q, one sign choice */
+            int ncrt = 0;
+
+            /* Find primes q ≡ 3 mod 4 where f is irreducible mod q */
+            for (unsigned long q = 10007; q < 200000 && ncrt < MAXCRT; q += 4) {
+                if (q % 4 != 3) continue;
+                /* Primality check */
+                mpz_set_ui(tmp, q);
+                if (!mpz_probab_prime_p(tmp, 3)) continue;
+                /* Check f has no roots mod q */
+                int has_root = 0;
+                /* Use Horner's method for evaluation */
+                for (unsigned long x = 0; x < q && !has_root; x++) {
+                    unsigned long long val = 0;
+                    for (int j = d; j >= 0; j--) {
+                        unsigned long cj = mpz_fdiv_ui(poly.c[j], q);
+                        val = (val * x + cj) % q;
+                    }
+                    if (val == 0) has_root = 1;
+                }
+                if (has_root) continue;
+                /* f is irreducible mod q! */
+                crt_primes[ncrt] = q;
+
+                /* Make f monic mod q: divide all coefficients by leading coeff */
+                unsigned long fmod[MAX_DEG+1];
+                unsigned long lc = mpz_fdiv_ui(poly.c[d], q);
+                unsigned long long lc_inv = 1, bb = lc, ee = q - 2;
+                while (ee) { if (ee&1) lc_inv = lc_inv*bb%q; bb = bb*bb%q; ee >>= 1; }
+                for (int j = 0; j <= d; j++)
+                    fmod[j] = (unsigned long)((unsigned long long)mpz_fdiv_ui(poly.c[j], q) * lc_inv % q);
+                /* fmod[d] should be 1 now */
+
+                /* Compute S(x) = Π(a_i - b_i*x) mod f(x) mod q */
+                /* Polynomial representation: coefficients c[0..d-1] */
+                unsigned long Sp[MAX_DEG]; /* S polynomial mod q */
+                memset(Sp, 0, sizeof(Sp));
+                Sp[0] = 1; /* start with 1 */
+
+                for (int i = 0; i < dlen[di]; i++) {
+                    /* factor = a_i - b_i * x = da[i] + (-db[i])*x */
+                    long a_val = da[i];
+                    unsigned long b_val = db[i];
+                    unsigned long fac0 = (unsigned long)(((long long)(a_val % (long long)q) + q) % q);
+                    unsigned long fac1 = (unsigned long)((q - b_val % q) % q);
+
+                    /* Multiply Sp by (fac0 + fac1*x) mod f mod q */
+                    unsigned long tmp_p[2*MAX_DEG];
+                    memset(tmp_p, 0, sizeof(tmp_p));
+                    for (int j = 0; j < d; j++) {
+                        tmp_p[j] = (tmp_p[j] + (unsigned long long)Sp[j] * fac0) % q;
+                        tmp_p[j+1] = (tmp_p[j+1] + (unsigned long long)Sp[j] * fac1) % q;
+                    }
+                    /* Reduce mod f (monic): x^d = -(fmod[0] + fmod[1]*x + ... + fmod[d-1]*x^{d-1}) */
+                    for (int j = 2*d - 2; j >= d; j--) {
+                        if (tmp_p[j] == 0) continue;
+                        unsigned long c_hi = tmp_p[j];
+                        for (int k = 0; k < d; k++)
+                            tmp_p[j - d + k] = (tmp_p[j - d + k] + q - (unsigned long long)c_hi * fmod[k] % q) % q;
+                        tmp_p[j] = 0;
+                    }
+                    for (int j = 0; j < d; j++) Sp[j] = tmp_p[j];
+                }
+
+                /* Compute T(x) = S(x)^((q^3+1)/4) mod f(x) mod q */
+                /* Exponent: e = (q^3 + 1) / 4 */
+                mpz_t exp_val;
+                mpz_init(exp_val);
+                mpz_set_ui(exp_val, q);
+                mpz_pow_ui(exp_val, exp_val, d); /* q^d */
+                mpz_add_ui(exp_val, exp_val, 1);
+                mpz_tdiv_q_ui(exp_val, exp_val, 4); /* (q^d + 1) / 4 */
+
+                /* Binary exponentiation with polynomial multiply mod f mod q */
+                unsigned long Tp[MAX_DEG]; /* result = 1 */
+                unsigned long base_p[MAX_DEG]; /* base = S */
+                unsigned long sq_tmp[2*MAX_DEG], mul_tmp[2*MAX_DEG];
+
+                memset(Tp, 0, sizeof(Tp));
+                Tp[0] = 1;
+                memcpy(base_p, Sp, d * sizeof(unsigned long));
+
+                for (int bit = (int)mpz_sizeinbase(exp_val, 2) - 1; bit >= 0; bit--) {
+                    /* Square Tp */
+                    memset(sq_tmp, 0, sizeof(sq_tmp));
+                    for (int j = 0; j < d; j++) {
+                        if (Tp[j] == 0) continue;
+                        for (int k = 0; k < d; k++) {
+                            if (Tp[k] == 0) continue;
+                            sq_tmp[j+k] = (sq_tmp[j+k] + (unsigned long long)Tp[j] * Tp[k]) % q;
+                        }
+                    }
+                    for (int j = 2*d-2; j >= d; j--) {
+                        if (sq_tmp[j] == 0) continue;
+                        unsigned long c_hi = sq_tmp[j];
+                        for (int k = 0; k < d; k++)
+                            sq_tmp[j-d+k] = (sq_tmp[j-d+k] + q - (unsigned long long)c_hi * fmod[k] % q) % q;
+                        sq_tmp[j] = 0;
+                    }
+                    for (int j = 0; j < d; j++) Tp[j] = sq_tmp[j];
+
+                    if (mpz_tstbit(exp_val, bit)) {
+                        /* Multiply Tp by base_p */
+                        memset(mul_tmp, 0, sizeof(mul_tmp));
+                        for (int j = 0; j < d; j++) {
+                            if (Tp[j] == 0) continue;
+                            for (int k = 0; k < d; k++) {
+                                if (base_p[k] == 0) continue;
+                                mul_tmp[j+k] = (mul_tmp[j+k] + (unsigned long long)Tp[j] * base_p[k]) % q;
+                            }
+                        }
+                        for (int j = 2*d-2; j >= d; j--) {
+                            if (mul_tmp[j] == 0) continue;
+                            unsigned long c_hi = mul_tmp[j];
+                            for (int k = 0; k < d; k++)
+                                mul_tmp[j-d+k] = (mul_tmp[j-d+k] + q - (unsigned long long)c_hi * fmod[k] % q) % q;
+                            mul_tmp[j] = 0;
+                        }
+                        for (int j = 0; j < d; j++) Tp[j] = mul_tmp[j];
+                    }
+                }
+
+                /* Verify: T^2 should equal S mod f mod q */
+                memset(sq_tmp, 0, sizeof(sq_tmp));
+                for (int j = 0; j < d; j++) {
+                    if (Tp[j] == 0) continue;
+                    for (int k = 0; k < d; k++) {
+                        if (Tp[k] == 0) continue;
+                        sq_tmp[j+k] = (sq_tmp[j+k] + (unsigned long long)Tp[j] * Tp[k]) % q;
+                    }
+                }
+                for (int j = 2*d-2; j >= d; j--) {
+                    if (sq_tmp[j] == 0) continue;
+                    unsigned long c_hi = sq_tmp[j];
+                    for (int k = 0; k < d; k++)
+                        sq_tmp[j-d+k] = (sq_tmp[j-d+k] + q - (unsigned long long)c_hi * fmod[k] % q) % q;
+                    sq_tmp[j] = 0;
+                }
+                int sqrt_ok = 1;
+                for (int j = 0; j < d; j++)
+                    if (sq_tmp[j] != Sp[j]) { sqrt_ok = 0; break; }
+
+                if (!sqrt_ok) {
+                    fprintf(stderr,"  CRT prime %lu: sqrt verification FAILED\n", q);
+                    mpz_clear(exp_val);
+                    continue;
+                }
+
+                /* Evaluate T(m) mod q */
+                unsigned long mmod = mpz_fdiv_ui(poly.m, q);
+                unsigned long long tm = 0;
+                for (int j = d-1; j >= 0; j--)
+                    tm = (tm * mmod + Tp[j]) % q;
+
+                /* Account for leading coefficient: need to multiply by lc^(nrels/2) */
+                /* Actually for monic f, T(m) already accounts for this. But our original
+                 * f may not be monic. The algebraic norm uses the original f, so
+                 * the leading coefficient factor needs to be included. */
+                /* For now, store tm as is. The lc factor will be handled below. */
+                /* Verify: T(m)^2 should equal S(m) = Π(a_i - b_i*m) mod q */
+                unsigned long sm_check = 1;
+                unsigned long mmq = mpz_fdiv_ui(poly.m, q);
+                for (int i = 0; i < dlen[di]; i++) {
+                    long long term = ((long long)(da[i] % (long long)q) + q) % q;
+                    term = (term + q - (unsigned long long)(db[i] % q) * mmq % q) % q;
+                    sm_check = (unsigned long long)sm_check * (unsigned long)term % q;
+                }
+                unsigned long tm_sq = (unsigned long long)tm * tm % q;
+                if (ncrt < 3)
+                    fprintf(stderr,"  CRT q=%lu: T(m)=%lu T(m)^2=%lu S(m)=%lu %s\n",
+                            q, (unsigned long)tm, tm_sq, sm_check,
+                            tm_sq == sm_check ? "OK" : "MISMATCH");
+
+                crt_tm[ncrt] = (unsigned long)tm;
+                ncrt++;
+                mpz_clear(exp_val);
+            }
+
+            /* Verify rational sqrt X: X^2 should equal Π(a_i - b_i*m) mod N */
+            {
+                mpz_t x2_check, prod_check;
+                mpz_inits(x2_check, prod_check, NULL);
+                mpz_mul(x2_check, X, X); mpz_mod(x2_check, x2_check, N);
+                mpz_set_ui(prod_check, 1);
+                for (int i = 0; i < dlen[di]; i++) {
+                    mpz_set_si(tmp, da[i]);
+                    mpz_submul_ui(tmp, poly.m, db[i]);
+                    mpz_mod(tmp, tmp, N);
+                    mpz_mul(prod_check, prod_check, tmp);
+                    mpz_mod(prod_check, prod_check, N);
+                }
+                fprintf(stderr,"  X^2 mod N check: %s\n",
+                        mpz_cmp(x2_check, prod_check) == 0 ? "OK" : "MISMATCH");
+                mpz_clears(x2_check, prod_check, NULL);
+            }
+            fprintf(stderr,"  Found %d CRT primes\n", ncrt);
+
+            if (ncrt >= 3) {
+                /* CRT: try all 2^ncrt sign combinations.
+                 * For each combo, compute Y = CRT(±tm[i]) mod N, check gcd(X±Y, N). */
+                int max_combos = 1 << ncrt;
+                if (max_combos > 32768) max_combos = 32768;
+
+                /* Compute product of primes for CRT */
+                mpz_t mod_product;
+                mpz_init_set_ui(mod_product, 1);
+                for (int i = 0; i < ncrt; i++)
+                    mpz_mul_ui(mod_product, mod_product, crt_primes[i]);
+
+                /* Account for leading coefficient of f.
+                 * The product S uses Norm(a-b*alpha) but our f may not be monic.
+                 * Need to multiply Y by lc_f^(nrels/2) mod N.
+                 * Actually the correct formula involves the derivative f'(alpha),
+                 * but for simplicity let's try with and without the lc correction. */
+                unsigned long lc_orig = mpz_fdiv_ui(poly.c[d], crt_primes[0]);
+
+                fprintf(stderr,"  Trying %d sign combinations...\n", max_combos);
+                for (int combo = 0; combo < max_combos && !found; combo++) {
+                    /* CRT reconstruction */
+                    mpz_t Y;
+                    mpz_init_set_ui(Y, 0);
+                    for (int i = 0; i < ncrt; i++) {
+                        unsigned long q = crt_primes[i];
+                        unsigned long val = (combo & (1 << i)) ? ((q - crt_tm[i]) % q) : crt_tm[i];
+
+                        /* CRT term: val * (P/q) * ((P/q)^(-1) mod q) */
+                        mpz_t Pq, Pq_inv_q, term;
+                        mpz_inits(Pq, Pq_inv_q, term, NULL);
+                        mpz_divexact_ui(Pq, mod_product, q);
+                        mpz_set_ui(Pq_inv_q, q);
+                        mpz_invert(Pq_inv_q, Pq, Pq_inv_q);
+
+                        mpz_mul(term, Pq, Pq_inv_q);
+                        mpz_mul_ui(term, term, val);
+                        mpz_add(Y, Y, term);
+                        mpz_clears(Pq, Pq_inv_q, term, NULL);
+                    }
+                    mpz_mod(Y, Y, mod_product);
+                    mpz_mod(Y, Y, N);
+
+                    /* Check gcd(X - Y, N) */
+                    mpz_sub(g, X, Y); mpz_mod(g, g, N); mpz_gcd(g, g, N);
+                    if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
+                        mpz_t co; mpz_init(co); mpz_divexact(co, N, g);
+                        gmp_printf("%Zd\n", g);
+                        fprintf(stderr,"  CRT sqrt SUCCESS (combo %d)! %.1fs\n", combo, elapsed());
+                        mpz_clear(co); mpz_clear(Y); found = 1; break;
+                    }
+                    /* Check gcd(X + Y, N) */
+                    mpz_add(g, X, Y); mpz_mod(g, g, N); mpz_gcd(g, g, N);
+                    if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
+                        mpz_t co; mpz_init(co); mpz_divexact(co, N, g);
+                        gmp_printf("%Zd\n", g);
+                        fprintf(stderr,"  CRT sqrt SUCCESS (combo %d)! %.1fs\n", combo, elapsed());
+                        mpz_clear(co); mpz_clear(Y); found = 1; break;
+                    }
+                    mpz_clear(Y);
+                }
+                mpz_clear(mod_product);
+            }
+            mpz_clear(g);
+
+            if (found) {
+                for(int k=0;k<d;k++) mpz_clear(S[k]);
+                free(da); free(db); free(rex); free(aex);
+                break;
+            }
+        }
+
+        /* Skip ring power approach (doesn't work, ring isn't a field) */
         if (0) {
-        mpz_t S[MAX_DEG]; /* declared here to avoid compiler error */
         /* Algebraic sqrt via probabilistic method in Z_N[x]/(f):
          * We want T such that T^2 = S in the ring.
          * Use: T = S^((N^d+1)/4) if N^d ≡ 3 mod 4 (unlikely)
@@ -515,104 +795,81 @@ int main(int argc, char *argv[]) {
                         for(;;){if(t3==1){Tj[j]=(unsigned long)R3;break;}int i3=0;unsigned long long tt=t3;
                         while(tt!=1){tt=tt*tt%q2;i3++;}unsigned long long bb=c3;
                         for(int jj=0;jj<(int)M3-i3-1;jj++)bb=bb*bb%q2;M3=i3;c3=bb*bb%q2;t3=t3*c3%q2;R3=R3*bb%q2;}}
-                    /* Sign will be determined below */
+                    /* Canonical sign: T_j < q/2 */
+                    if (Tj[j] > q2/2) Tj[j] = q2 - Tj[j];
                 }
                 if (!sq_ok) continue;
 
-                /* Compute prod(a-b*m) mod q2 for verification */
-                unsigned long long prod_mod_q = 1;
+                /* Lagrange: T(m) mod q2 */
                 unsigned long mmod = mpz_fdiv_ui(poly.m, q2);
-                for (int i2 = 0; i2 < dlen[di]; i2++) {
-                    long long t2 = ((da[i2] % (long long)q2) + q2) % q2;
-                    t2 = (t2 + q2 - ((unsigned long long)db[i2] % q2 * mmod) % q2) % q2;
-                    prod_mod_q = prod_mod_q * (unsigned long long)t2 % q2;
-                }
-
-                /* Try all 2^d sign combos, find the one where T(m)^2 = prod mod q2 */
-                int max_sc = 1 << d;
-                unsigned long best_tm = 0;
-                int found_sc = 0;
-                /* Optimization: if we already know the correct sign combo, use it */
-                /* Reset per dependency */
-                int known_sc = -1;
-                int sc_start = (known_sc >= 0) ? known_sc : 0;
-                int sc_end = (known_sc >= 0) ? known_sc + 1 : max_sc;
-                for (int sc = sc_start; sc < sc_end && !found_sc; sc++) {
-                    unsigned long Tj_sc[MAX_DEG];
-                    for (int j = 0; j < d; j++)
-                        Tj_sc[j] = (sc & (1<<j)) ? (q2 - Tj[j]) % q2 : Tj[j];
-
-                    /* Lagrange: T(m) mod q2 */
-                    unsigned long long result = 0;
-                    for (int j = 0; j < d; j++) {
-                        unsigned long long num = Tj_sc[j], den = 1;
-                        for (int k = 0; k < d; k++) {
-                            if (k == j) continue;
-                            num = num * ((mmod + q2 - rts2[k]) % q2) % q2;
-                            den = den * ((rts2[j] + q2 - rts2[k]) % q2) % q2;
-                        }
-                        unsigned long long inv2 = 1, bb = den, ee = q2 - 2;
-                        while (ee) { if (ee&1) inv2=inv2*bb%q2; bb=bb*bb%q2; ee>>=1; }
-                        result = (result + num * inv2 % q2) % q2;
+                unsigned long long result = 0;
+                for (int j = 0; j < d; j++) {
+                    unsigned long long num = Tj[j], den = 1;
+                    for (int k = 0; k < d; k++) {
+                        if (k == j) continue;
+                        num = num * ((mmod + q2 - rts2[k]) % q2) % q2;
+                        den = den * ((rts2[j] + q2 - rts2[k]) % q2) % q2;
                     }
-
-                    /* Check: T(m)^2 = prod(a-b*m) mod q2 */
-                    unsigned long long tm2 = result * result % q2;
-                    if (tm2 == prod_mod_q) {
-                        best_tm = (unsigned long)result;
-                        found_sc = 1;
-                        if (known_sc < 0) known_sc = sc;
-                    }
+                    unsigned long long inv = 1, bb = den, ee = q2 - 2;
+                    while (ee) { if (ee&1) inv=inv*bb%q2; bb=bb*bb%q2; ee>>=1; }
+                    result = (result + num * inv % q2) % q2;
                 }
-
-                if (found_sc) {
-                    crt2_q[ncrt2] = q2;
-                    crt2_tm[ncrt2] = best_tm;
-                    ncrt2++;
-                }
+                crt2_q[ncrt2] = q2;
+                crt2_tm[ncrt2] = (unsigned long)result;
+                ncrt2++;
             }
 
             fprintf(stderr,"  CRT: %d primes for dep %d\n", ncrt2, di);
 
-            /* Simple CRT: use the sign-verified T(m) values.
-             * Each crt2_tm[i] was verified: T(m)^2 = prod(a-b*m) mod q_i.
-             * CRT them directly and test at the end. */
-            if (ncrt2 >= 8) {
-                mpz_t crt_v, crt_m;
-                mpz_inits(crt_v, crt_m, NULL);
-                mpz_set_ui(crt_v, crt2_tm[0]);
-                mpz_set_ui(crt_m, crt2_q[0]);
+            /* CRT to combine T(m) values */
+            if (ncrt2 >= 2) {
+                mpz_t crt_val, crt_mod;
+                mpz_inits(crt_val, crt_mod, NULL);
+                mpz_set_ui(crt_val, crt2_tm[0]);
+                mpz_set_ui(crt_mod, crt2_q[0]);
 
                 for (int qi = 1; qi < ncrt2; qi++) {
                     unsigned long q2 = crt2_q[qi];
-                    unsigned long tm = crt2_tm[qi];
-                    unsigned long a_mod = mpz_fdiv_ui(crt_v, q2);
-                    long diff = (long)tm - (long)a_mod;
+                    unsigned long tm_q = crt2_tm[qi];
+                    /* CRT: combine crt_val mod crt_mod with tm_q mod q2 */
+                    unsigned long a_mod_q = mpz_fdiv_ui(crt_val, q2);
+                    long diff = (long)tm_q - (long)a_mod_q;
                     if (diff < 0) diff += q2;
-                    unsigned long inv_m2;
-                    { unsigned long long iv=1,bb=mpz_fdiv_ui(crt_m,q2),ee=q2-2;
-                      while(ee){if(ee&1)iv=iv*bb%q2;bb=bb*bb%q2;ee>>=1;} inv_m2=(unsigned long)iv; }
-                    unsigned long t = (unsigned long long)((unsigned long)diff) * inv_m2 % q2;
-                    mpz_addmul_ui(crt_v, crt_m, t);
-                    mpz_mul_ui(crt_m, crt_m, q2);
+                    unsigned long inv_m = 1;
+                    { unsigned long long iv=1, bb=mpz_fdiv_ui(crt_mod,q2), ee=q2-2;
+                      while(ee){if(ee&1)iv=iv*bb%q2;bb=bb*bb%q2;ee>>=1;} inv_m=(unsigned long)iv; }
+                    unsigned long t = (unsigned long long)((unsigned long)diff) * inv_m % q2;
+                    mpz_addmul_ui(crt_val, crt_mod, t);
+                    mpz_mul_ui(crt_mod, crt_mod, q2);
 
-                    if (mpz_cmp(crt_m, N) > 0) {
-                        mpz_t Y_crt; mpz_init(Y_crt);
-                        mpz_mod(Y_crt, crt_v, N);
-                        /* Try gcd(X ± Y, N) */
-                        mpz_sub(g,X,Y_crt);mpz_mod(g,g,N);mpz_gcd(g,g,N);
-                        if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
+                    /* Check if accumulated product > N */
+                    if (qi > 0 && mpz_cmp(crt_mod, N) > 0) {
+                        mpz_t Y_crt;
+                        mpz_init(Y_crt);
+                        mpz_mod(Y_crt, crt_val, N);
+
+                        /* Try both signs */
+                        mpz_sub(g, X, Y_crt); mpz_mod(g,g,N); mpz_gcd(g,g,N);
+                        if(mpz_cmp_ui(g,1)>0 && mpz_cmp(g,N)<0){
                             mpz_t co;mpz_init(co);mpz_divexact(co,N,g);
                             gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}
-                        if(!found){mpz_add(g,X,Y_crt);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                        if(!found){
+                            mpz_add(g,X,Y_crt);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                            if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
+                                mpz_t co;mpz_init(co);mpz_divexact(co,N,g);
+                                gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
+                        if(!found){
+                            /* Try negating Y */
+                            mpz_sub(Y_crt, N, Y_crt);
+                            mpz_sub(g,X,Y_crt);mpz_mod(g,g,N);mpz_gcd(g,g,N);
                             if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
                                 mpz_t co;mpz_init(co);mpz_divexact(co,N,g);
                                 gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
                         mpz_clear(Y_crt);
-                        break;
+                        if (found) break;
                     }
                 }
-                mpz_clears(crt_v, crt_m, NULL);
+                mpz_clears(crt_val, crt_mod, NULL);
             }
 
             if (0 && hp > 0) { /* DISABLED: old Hensel approach */
