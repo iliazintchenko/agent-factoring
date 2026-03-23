@@ -111,6 +111,19 @@ SPQS-DLP Adaptive Threshold (worst of 5 per size):
 Key finding: adaptive threshold gives best improvement at 55d (33% faster than SPQS).
 At 60d, still competitive. DLP itself contributes zero relations below 65d.
 
+HyperSIQS with DLP+TLP (worst of 5 per size):
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 30 | 0.071s | | 5x |
+| 35 | 0.066s | ~1x/5d | |
+| 40 | 0.166s | 2.5x/5d | 10x |
+| 45 | 0.772s | 4.6x/5d | |
+| 50 | 1.578s | 2.0x/5d | 13x |
+| 55 | 5.688s | 3.6x/5d | |
+| 60 | 20.72s | 3.6x/5d | 30x |
+| 65 | 70.23s | 3.4x/5d | |
+
 Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 
 ## Custom Implementations in library/
@@ -128,6 +141,7 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 - **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower.
 
 ### Experimental / Novel
+- **hyper_siqs.c**: SIQS with Triple Large Primes (TLP), bucket sieve, Contini Gray code with incremental root updates, 64-bit Pollard rho for DLP/TLP cofactor splitting. Novel TLP variation accepts cofactors with up to 3 large primes. Results: 5x slower than YAFU at 30d, 30x at 60d. Best at 65d among custom implementations (70.2s vs spqs2's 94.1s). TLP not yet contributing useful relations at these sizes—needs larger LP bounds.
 - **ecm_siqs.c**: SIQS with ECM cofactorization. DLP matching was wrong; LP-column approach in dlp_opt.c is correct.
 - **latsieve_qs.c**: SIQS with ECM cofactor splitting. NEEDS more work.
 - **nfs_factor.c**: NFS skeleton with base-m poly selection. Algebraic sqrt NOT implemented.

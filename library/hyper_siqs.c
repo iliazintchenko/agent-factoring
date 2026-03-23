@@ -488,13 +488,13 @@ int main(int argc, char *argv[]) {
     u64 lp_bound3 = lp_bound2 * lp_bound;
     int target = fb->size + P.extra;
 
-    /* Threshold: adjust for DLP/TLP - lower threshold finds more partials */
+    /* Threshold: adjusted for DLP+TLP partial relation finding */
     double log2_Qmax = kN_bits / 2.0 + 0.5 + log2(2.0 * M);
     int thresh_base = (int)(log2_Qmax * P.thresh_adj);
-    int dlp_bonus = (int)(log2(lp_bound) * 0.4);  /* Extra reduction for DLP */
-    int tlp_bonus = (int)(log2(lp_bound) * 0.25);  /* Extra reduction for TLP */
+    int dlp_bonus = (int)(log2(lp_bound) * 0.4);
+    int tlp_bonus = (int)(log2(lp_bound) * 0.2);
     int threshold = thresh_base - dlp_bonus - tlp_bonus;
-    if (threshold < 20) threshold = 20;
+    if (threshold < 25) threshold = 25;
 
     fprintf(stderr, "HyperSIQS: %dd (%db), k=%d, FB=%d, M=%d, thresh=%d, LP=%lu, target=%d\n",
             digits, bits, mult, fb->size, M, threshold, lp_bound, target);
