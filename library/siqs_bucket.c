@@ -737,7 +737,7 @@ int main(int argc, char *argv[]) {
     int **deps; int *dlen;
     double la_start = elapsed();
 
-    /* Use Block Lanczos for large matrices (much faster for sparse QS matrices) */
+    /* Try Block Lanczos first, fall back to Gauss if it fails */
     int ndeps;
     if (nrels > 2000) {
         fprintf(stderr, "Using Block Lanczos for %dx%d matrix...\n", nrels, ncols);
@@ -745,7 +745,6 @@ int main(int argc, char *argv[]) {
         ndeps = lanczos_solve(sp, &deps, &dlen, 64);
         free(sp->row_off); free(sp->col); free(sp);
         if (ndeps == 0) {
-            /* Fallback to Gaussian elimination if BL fails */
             fprintf(stderr, "BL found 0 deps, falling back to Gauss...\n");
             ndeps = gf2_solve(mat, &deps, &dlen, 64);
         }
