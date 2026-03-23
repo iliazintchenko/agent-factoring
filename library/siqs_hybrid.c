@@ -47,7 +47,7 @@ static param_t get_params(int d) {
     if (d <= 35) return (param_t){400,  1, 40, 3, 80};
     if (d <= 40) return (param_t){800,  2, 50, 4, 100};
     if (d <= 45) return (param_t){1500, 2, 70, 5, 100};
-    if (d <= 50) return (param_t){2800, 3, 90, 6, 120};
+    if (d <= 50) return (param_t){2500, 4, 120, 6, 120};
     if (d <= 55) return (param_t){5000, 5, 110, 7, 130};
     if (d <= 60) return (param_t){8000, 7, 140, 7, 150};
     if (d <= 65) return (param_t){15000, 10, 180, 8, 160};
@@ -354,18 +354,16 @@ static int scan_avx512(int *cands, uint8_t thresh) {
     return nc;
 }
 
-/* Trial divide and produce relation */
+/* Fast trial division using sieve root information.
+ * Instead of testing mpz_divisible_ui_p for every prime (slow GMP call),
+ * check if the position matches the known roots (fast integer comparison). */
 static int trial_div(int x, int *ev, int *sign_out, mpz_t axb, mpz_t Af, uint64_t *cofactor) {
     /* Compute ax+b */
     mpz_mul_si(axb, pa, x);
     mpz_add(axb, axb, pb);
 
-    /* Q(x)/A = Ax^2 + 2Bx + C = f(x) */
+    /* f(x) = ((ax+b)^2 - N) / A */
     mpz_t fx; mpz_init(fx);
-    mpz_mul_si(fx, pa, x); mpz_add(fx, fx, pb); mpz_add(fx, fx, pb);
-    mpz_mul_si(fx, fx, x); mpz_add(fx, fx, pc);
-    /* f(x) = A*x^2 + 2*B*x + C ... let me compute differently */
-    /* Actually f(x) = ((ax+b)^2 - N) / A */
     mpz_mul(fx, axb, axb);
     mpz_sub(fx, fx, g_N);
     mpz_divexact(fx, fx, pa);
@@ -376,24 +374,39 @@ static int trial_div(int x, int *ev, int *sign_out, mpz_t axb, mpz_t Af, uint64_
 
     memset(ev, 0, (fb_n+1) * sizeof(int));
 
-    /* Trial divide by factor base */
-    for(int i=0;i<fb_n;i++){
-        uint32_t p=fb_p[i];
-        while(mpz_divisible_ui_p(fx,p)){
-            ev[i]++;
-            mpz_divexact_ui(fx,fx,p);
+    /* Divide by prime 2 (special handling) */
+    while(mpz_divisible_ui_p(fx, 2)) { ev[0]++; mpz_divexact_ui(fx, fx, 2); }
+
+    /* For primes with known roots: check if position matches */
+    /* x_pos mod p should equal root1[i] or root2[i] */
+    for(int i=1; i<fb_n; i++) {
+        uint32_t p = fb_p[i];
+
+        /* Check if this prime divides Q(x) using root information */
+        int divides = 0;
+        if(rt1[i] == UINT32_MAX) {
+            /* A-factor prime — always divides f(x) at the A-contribution level
+             * but may also divide f(x) itself. Check directly. */
+            divides = mpz_divisible_ui_p(fx, p);
+        } else {
+            /* Use root matching: x mod p should equal rt1 or rt2 */
+            int xm = ((x % (int)p) + (int)p) % (int)p;
+            divides = (xm == (int)rt1[i] || xm == (int)rt2[i]);
+        }
+
+        if(divides) {
+            /* Known to divide at least once; extract full power */
+            while(mpz_divisible_ui_p(fx, p)) {
+                ev[i]++;
+                mpz_divexact_ui(fx, fx, p);
+            }
         }
     }
 
-    /* Include A-factor contribution: (ax+b)^2 - N = A*f(x), so A*f(x) has
-     * exponent of each a-prime = ev[a_idx] + 1 */
+    /* Include A-factor contribution */
     for(int j=0;j<na;j++) ev[a_idx[j]]++;
 
-    /* Sign bit: treat as extra "prime" -1 with index fb_n
-     * We'll handle it separately in the sqrt step */
-
-    /* Compute A*f(x) for the relation */
-    /* A*f(x) = (ax+b)^2 - N */
+    /* Compute Af = |A*f(x)| = |(ax+b)^2 - N| */
     mpz_mul(Af, axb, axb);
     mpz_sub(Af, Af, g_N);
     if(mpz_sgn(Af)<0) mpz_neg(Af, Af);
@@ -542,27 +555,51 @@ int main(int argc, char **argv) {
     init_hash();
     init_poly(&P);
 
-    /* Compute sieve threshold */
+    /* Compute sieve threshold: we want sum of log2(p) for primes dividing Q(x)
+     * to be close to log2(Q(x)). Candidates where sieve accumulation ≥ threshold
+     * are likely smooth. The threshold should be slightly below log2(Q_typical)
+     * to allow for:
+     * 1. Missing small prime contributions (skipped in sieve)
+     * 2. LP/DLP cofactors up to lp_bound
+     * 3. Approximation errors from using ceil(log2(p)) instead of exact log2(p) */
     double log2N = mpz_sizeinbase(N,2);
-    /* Q(x)/A ≈ sqrt(N/A) * M for x near 0 */
-    /* Approximate: threshold = log2(sqrt(2N/A)) - log2(smallest primes correction) */
+    /* Estimate actual A size from parameter table */
     double log2A_est = 0;
-    for(int i=0;i<na;i++) log2A_est += log2(fb_p[fb_n/2]); /* rough estimate */
-    double log2_Qmax = (log2N - log2A_est)/2.0 + log2(P.num_blocks * SIEVE_SIZE);
-    /* Small prime correction: sum of logs of primes we skip */
+    if(nacands > 0) {
+        /* Use middle of a_candidates range */
+        int mid = acands[nacands/2];
+        for(int i=0;i<na;i++) log2A_est += log2(fb_p[mid]);
+    } else {
+        for(int i=0;i<na;i++) log2A_est += log2(fb_p[fb_n/2]);
+    }
+    /* Q(x)/A at sieve boundary: roughly sqrt(2N)/A * M where M = sieve_radius
+     * But more precisely: Q(x) = A*x^2 + 2Bx + C, |Q| ≈ A*(M/2)^2 near boundary
+     * and |Q| ≈ |C| = (B^2-N)/A ≈ N/A near center.
+     * Average: roughly sqrt(N/A) * sqrt(M) but let's use the YAFU-style formula:
+     * threshold ≈ log2(M * sqrt(kN)) - log2(A) - correction */
+    int M = P.num_blocks * SIEVE_SIZE;
+    double log2_Q_typical = (log2N - log2A_est) / 2.0 + log2(M) / 2.0;
+    /* Correction for small primes not in sieve */
     double sp_corr = 0;
-    for(int i=0;i<sieve_start;i++) sp_corr += fb_lg[i] * 2.5;
-    int thresh = (int)(log2_Qmax - sp_corr);
-    if(thresh<30) thresh=30;
-    if(thresh>230) thresh=230;
-    fprintf(stderr,"[SIQS] Sieve threshold: %d\n", thresh);
+    for(int i=0;i<sieve_start;i++) sp_corr += fb_lg[i] * 1.5;
+    /* Threshold: candidates whose sieve accumulation is close to log2(Q(x)).
+     * The "closnuf" adjustment allows for:
+     * - Rounding in byte-valued log approximations (~3 bits)
+     * - Small primes not sieved (~sp_corr bits)
+     * - LP/DLP tolerance is NOT included here — handled in trial division
+     * Use a moderate closnuf to balance false positives vs missed smooths */
+    int closnuf = 3 + (digits > 50 ? 2 : 0) + (digits > 70 ? 2 : 0);
+    int thresh = (int)(log2_Q_typical - sp_corr - closnuf);
+    if(thresh < 25) thresh = 25;
+    if(thresh > 200) thresh = 200;
+    fprintf(stderr,"[SIQS] Sieve threshold: %d (Q_typ=%.0f, sp=%.0f, closnuf=%d)\n",
+            thresh, log2_Q_typical, sp_corr, closnuf);
 
     int *cands = malloc(SIEVE_SIZE * sizeof(int));
     int *ev = calloc(fb_n, sizeof(int));
     mpz_t axb, Af;
     mpz_inits(axb, Af, NULL);
 
-    int M = P.num_blocks * SIEVE_SIZE;
     int npoly=0, napoly=0, ncands_total=0;
     double last_rep=t0;
 

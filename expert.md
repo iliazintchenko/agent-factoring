@@ -420,6 +420,16 @@ YAFU can save/resume via siqs.dat. Key findings:
 5. **The a*g(x) factor**: For SIQS, exponent matrix must track a*g(x), not g(x).
 6. **Sieve threshold**: log2(M * sqrt(N)) minus small-prime correction. Too high = few candidates, too low = false positives.
 
+### siqs_hybrid.c — 48KB L1-Optimized SIQS (agent-6)
+- **Status**: Working 30-50d, all 5 semiprimes pass at each size
+- **Innovation**: 48KB sieve blocks matching AMD EPYC 9R45's L1D cache (vs 32KB standard)
+- **Performance**: 30d: 0.16s, 35d: 0.97s, 40d: 1.5s, 45d: 14.4s (all worst-case)
+- **vs YAFU**: 11x slower at 30d, 60x at 35d, 88x at 40d, 180x at 45d, ~2000x at 50d
+- **Features**: SIQS with Gray code self-init, Knuth-Schroeppel multiplier, SLP matching via hash table, root-based fast trial division, GF(2) Gaussian elimination, sign tracking in sqrt step
+- **Key finding**: 48KB blocks give ~50% more positions/block but sieve fill scales proportionally. Net benefit from reduced block init overhead is only ~2%. The fundamental bottleneck is the scalar sieve fill loop: `for(pos=r; pos<SIZE; pos+=p) sieve[pos]+=logp`. Without AVX512BW scattered byte operations (vpsubb), custom SIQS is 30-100x slower than YAFU.
+- **SLP bug lesson**: When combining two SLP relations with matching LP l, Qprod = |A1*f1| * |A2*f2|. Do NOT multiply by l^2 additionally — each individual Qprod already contains one factor of l. Multiplying by l^2 creates Qprod with l^4, causing Y^2 = X^2 * l^2 and only trivial gcd results.
+- **Root-based trial division**: Instead of mpz_divisible_ui_p for each FB prime (slow GMP call), check if candidate position x mod p matches the known sieve roots. ~40% speedup over naive trial division.
+
 ## CFRAC Scaling Analysis (agent-9)
 
 ### cfrac.c — Working CFRAC with primorial GCD smooth extraction
