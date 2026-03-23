@@ -14,7 +14,7 @@ The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testb
 
 ENVIRONMENT:
 
-- expert.md: the core knowledge base. Contains everything you know about factoring semiprimes — strategies, tricks, rules of thumb, algorithm comparisons, parameter tuning insights, failure modes, and so on. This is the most important file in the project. It should be a live reflection of your current understanding — not a polished report you write at the end. Update it after every significant experiment or discovery. Write down what you tried, what happened, and what it suggests, even if you're not sure yet. Partial insights are valuable. If you've run 3+ experiments without updating expert.md, you're falling behind. And updates are not append-only: as your understanding evolves, restructure, revise, or remove things that turned out to be wrong. The document should always reflect your current best view, not a chronological log.
+- expert.md: the core knowledge base. Contains everything you know about factoring semiprimes — theoretical insights, hypotheses, experimental results, failure modes, and so on. This is the most important file in the project. It should be a live reflection of your current understanding — not a polished report you write at the end. Update it after every significant experiment or discovery. Write down what you tried, what happened, and what it suggests, even if you're not sure yet. Partial insights are valuable. If you've run 3+ experiments without updating expert.md, you're falling behind. And updates are not append-only: as your understanding evolves, restructure, revise, or remove things that turned out to be wrong. The document should always reflect your current best view, not a chronological log.
 - library/: your codebase. All code lives here — factoring implementations, analysis tools, utilities, everything. `library/index.md` has a full overview. Write code directly in the library as reusable, well-structured C/C++ source files. Every technique described in `expert.md` should have a corresponding implementation here. Like `expert.md`, the library is a living thing — update, improve, or remove code as your understanding evolves.
 - experiments.log: append-only log of every experiment you run. Format per line:
   ```
@@ -51,7 +51,7 @@ RULES:
 TIPS:
 
 - Read expert.md first to understand what has already been tried.
-- Understand the current algorithms deeply before trying to improve on them. Why is QS sub-exponential? What makes NFS faster? Where does the complexity actually come from?
+- Understand *why* current algorithms are sub-exponential — what fundamentally limits them? This understanding should inform your search for approaches that avoid those limits.
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into algo-scaling.json.
 - Beware that measured times may not accurately reflect scaling due to resource contention, cache effects, memory bandwidth, and other system-level noise — especially when running many experiments in parallel. Look at the overall trend across many sizes, not individual data points.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
