@@ -88,11 +88,16 @@ SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
 |--------|------|--------|---------|
-| 30 | 0.031s | | 2.2x |
-| 50 | 0.860s | | 7.2x |
-| 60 | 8.92s | | 12.7x |
-| 65 | 70.7s | | |
-| 70 | 134.5s | | 23x |
+| 30 | 0.033s | | 2.4x |
+| 40 | 0.174s | 5.3x/10d | 10.2x |
+| 50 | 0.849s | 4.9x/10d | 7.1x |
+| 55 | 4.97s | 5.9x/5d | |
+| 60 | 9.86s | 2.0x/5d | 14.1x |
+| 65 | 72.5s | 7.4x/5d | |
+| 70 | 111.6s | 1.5x/5d | 19.2x |
+| 72 | 230.4s | ~2.1x/2d | |
+
+**Key innovation**: DLP→SLP pipeline creates positive feedback at 65-72d. Growth drops from 7.4x/5d to 1.5x/5d.
 
 SPQS2 Bucket Sieve (worst of 5 per size):
 
