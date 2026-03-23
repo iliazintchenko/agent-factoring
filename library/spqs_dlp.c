@@ -21,6 +21,9 @@
 #include <time.h>
 #include <gmp.h>
 #include <stdint.h>
+#ifdef __AVX512F__
+#include <immintrin.h>
+#endif
 
 #define SEED 42
 #define SIEVE_BLOCK 49152  /* 48KB = L1d cache on EPYC 9R45 */
@@ -618,17 +621,67 @@ int main(int argc, char *argv[]) {
 
                 /* Sieve with small/medium FB primes only (p <= SIEVE_BLOCK) */
                 int fb_end = (g_fb_bucket_start < fb->size) ? g_fb_bucket_start : fb->size;
+
+#ifdef __AVX512F__
+                /* AVX512 pattern sieve for very small primes (p < 64) */
+                /* Build a 64-byte repeating pattern per poly, apply with vector adds */
                 for (int i = 1; i < fb_end; i++) {
                     unsigned int p = fb->prime[i];
-                    if (p < 5) continue;
+                    if (p < 4) continue;
+                    if (p >= 64) break;
                     unsigned char lp = fb->logp[i];
 
                     for (int bi = 0; bi < batch; bi++) {
                         if (soln1[bi][i] == 0xFFFFFFFF) continue;
-
                         long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
                         if (off1 < 0) off1 += p;
-                        /* Unrolled inner loop for small primes */
+                        long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
+                        if (off2 < 0) off2 += p;
+                        /* Build 64-byte pattern */
+                        uint8_t pat[64] __attribute__((aligned(64)));
+                        memset(pat, 0, 64);
+                        for (unsigned int k = (unsigned int)off1; k < 64; k += p) pat[k] += lp;
+                        if (soln1[bi][i] != soln2[bi][i])
+                            for (unsigned int k = (unsigned int)off2; k < 64; k += p) pat[k] += lp;
+                        __m512i vpat = _mm512_load_si512((__m512i*)pat);
+                        /* Apply pattern across entire sieve block */
+                        for (int j = 0; j + 64 <= SIEVE_BLOCK; j += 64) {
+                            __m512i v = _mm512_loadu_si512((__m512i*)(sieves[bi] + j));
+                            v = _mm512_add_epi8(v, vpat);
+                            _mm512_storeu_si512((__m512i*)(sieves[bi] + j), v);
+                        }
+                    }
+                }
+
+                /* Medium primes (64 <= p < SIEVE_BLOCK): scalar with unrolling */
+                for (int i = 1; i < fb_end; i++) {
+                    unsigned int p = fb->prime[i];
+                    if (p < 64) continue;
+                    unsigned char lp = fb->logp[i];
+                    for (int bi = 0; bi < batch; bi++) {
+                        if (soln1[bi][i] == 0xFFFFFFFF) continue;
+                        long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
+                        if (off1 < 0) off1 += p;
+                        for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
+                            sieves[bi][j] += lp;
+                        if (soln1[bi][i] != soln2[bi][i]) {
+                            long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
+                            if (off2 < 0) off2 += p;
+                            for (int j = (int)off2; j < SIEVE_BLOCK; j += p)
+                                sieves[bi][j] += lp;
+                        }
+                    }
+                }
+#else
+                /* Scalar fallback */
+                for (int i = 1; i < fb_end; i++) {
+                    unsigned int p = fb->prime[i];
+                    if (p < 5) continue;
+                    unsigned char lp = fb->logp[i];
+                    for (int bi = 0; bi < batch; bi++) {
+                        if (soln1[bi][i] == 0xFFFFFFFF) continue;
+                        long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
+                        if (off1 < 0) off1 += p;
                         if (p < 64) {
                             int j = (int)off1;
                             for (; j + 3*(int)p < SIEVE_BLOCK; j += 4*(int)p) {
@@ -639,10 +692,8 @@ int main(int argc, char *argv[]) {
                             }
                             for (; j < SIEVE_BLOCK; j += p) sieves[bi][j] += lp;
                         } else {
-                            for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
-                                sieves[bi][j] += lp;
+                            for (int j = (int)off1; j < SIEVE_BLOCK; j += p) sieves[bi][j] += lp;
                         }
-
                         if (soln1[bi][i] != soln2[bi][i]) {
                             long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
                             if (off2 < 0) off2 += p;
@@ -656,12 +707,12 @@ int main(int argc, char *argv[]) {
                                 }
                                 for (; j < SIEVE_BLOCK; j += p) sieves[bi][j] += lp;
                             } else {
-                                for (int j = (int)off2; j < SIEVE_BLOCK; j += p)
-                                    sieves[bi][j] += lp;
+                                for (int j = (int)off2; j < SIEVE_BLOCK; j += p) sieves[bi][j] += lp;
                             }
                         }
                     }
                 }
+#endif
 
                 /* Apply bucket sieve hits for large primes */
                 if (g_fb_bucket_start < fb->size) {
