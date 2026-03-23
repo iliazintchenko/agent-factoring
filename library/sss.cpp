@@ -44,6 +44,7 @@ int main(int argc, char*argv[]) {
     struct timespec ts0; clock_gettime(CLOCK_MONOTONIC,&ts0);
     size_t dig=mpz_sizeinbase(N,10);
     int m=400; if(dig>34)m=600; if(dig>38)m=1000; if(dig>42)m=1400; if(dig>48)m=2400;
+    if(dig>52)m=4000; if(dig>56)m=8000; if(dig>62)m=12000; if(dig>70)m=20000;
 
     mpz_sqrt(bv,N); mpz_mul(tmp,bv,bv); if(mpz_cmp(tmp,N)<0)mpz_add_ui(bv,bv,1);
 
@@ -56,7 +57,7 @@ int main(int argc, char*argv[]) {
     }}
     int fbs=fb.size();
     int pls=fbs/5; if(pls<10)pls=10;
-    int target=fbs+1+20; /* +1 for sign column */
+    int target=fbs+1+60; /* +1 for sign column, +60 extra for more dependencies */
 
     std::vector<long> r0(fbs),r1(fbs);
     for(int i=0;i<fbs;i++){

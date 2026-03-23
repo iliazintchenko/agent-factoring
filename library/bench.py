@@ -29,6 +29,17 @@ def run_one(binary, n, timeout=295):
             if line.startswith("FACTOR:"):
                 factor = line.split(":")[1].strip()
                 return factor, elapsed, stderr
+        # Also try: last line has two space-separated numbers (factor cofactor)
+        last_line = stdout.strip().split('\n')[-1] if stdout.strip() else ""
+        parts = last_line.strip().split()
+        if len(parts) == 2:
+            try:
+                f1, f2 = int(parts[0]), int(parts[1])
+                n_val = int(n)
+                if f1 > 1 and f2 > 1 and f1 * f2 == n_val:
+                    return str(f1), elapsed, stderr
+            except ValueError:
+                pass
         return None, elapsed, stderr
     except subprocess.TimeoutExpired:
         elapsed = time.monotonic() - start
