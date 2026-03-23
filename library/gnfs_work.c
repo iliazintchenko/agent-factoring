@@ -284,6 +284,8 @@ int main(int argc, char *argv[]) {
 
         fprintf(stderr,"  Product done (%.1fs)\n",elapsed());
 
+        /* Skip ring power approach (doesn't work, ring isn't a field) */
+        if (0) {
         /* Algebraic sqrt via probabilistic method in Z_N[x]/(f):
          * We want T such that T^2 = S in the ring.
          * Use: T = S^((N^d+1)/4) if N^d ≡ 3 mod 4 (unlikely)
@@ -395,6 +397,11 @@ int main(int argc, char *argv[]) {
             mpz_clear(N3);
         }
 
+        } /* end of disabled ring power block */
+
+        /* Declare variables needed by Hensel sqrt */
+        mpz_t g; mpz_init(g);
+
         /* ===== Hensel-lifting algebraic sqrt ===== */
         if (!found) {
             fprintf(stderr,"  Trying Hensel lifting algebraic sqrt...\n");
@@ -495,6 +502,22 @@ int main(int argc, char *argv[]) {
                         mpz_set(hmod, nm); mpz_clear(nm);
                     }
 
+                    /* Verify: T_j^2 = S_j mod hmod for each j */
+                    if (sc == 0) {
+                        for (int j = 0; j < d; j++) {
+                            mpz_t vt2; mpz_init(vt2);
+                            mpz_mul(vt2, ls2[j], ls2[j]);
+                            mpz_mod(vt2, vt2, hmod);
+                            mpz_t vs; mpz_init(vs);
+                            mpz_mod(vs, sv2[j], hmod);
+                            int match = (mpz_cmp(vt2, vs) == 0);
+                            if (!match && j == 0)
+                                fprintf(stderr,"  VERIFY: T_%d^2 != S_%d mod hmod (%zu bits)!\n",
+                                        j, j, mpz_sizeinbase(hmod, 2));
+                            mpz_clears(vt2, vs, NULL);
+                        }
+                    }
+
                     /* Lagrange: T(m) mod hmod */
                     mpz_t mm,Y3;mpz_init(mm);mpz_init_set_ui(Y3,0);
                     mpz_mod(mm, poly.m, hmod);
@@ -508,6 +531,19 @@ int main(int argc, char *argv[]) {
                         mpz_clears(n3,d3,iv,NULL);
                     }
                     mpz_mod(Y3, Y3, N);
+
+                    /* Verify Y3^2 = X^2 mod N */
+                    if (sc == 0) {
+                        mpz_t vy2, vx2;
+                        mpz_inits(vy2, vx2, NULL);
+                        mpz_mul(vy2, Y3, Y3); mpz_mod(vy2, vy2, N);
+                        mpz_mul(vx2, X, X); mpz_mod(vx2, vx2, N);
+                        if (mpz_cmp(vy2, vx2) == 0)
+                            fprintf(stderr,"  Y^2 = X^2 mod N! (should find factor)\n");
+                        else
+                            fprintf(stderr,"  Y^2 != X^2 mod N (dep %d, sc %d)\n", di, sc);
+                        mpz_clears(vy2, vx2, NULL);
+                    }
 
                     /* Check */
                     mpz_sub(g,X,Y3);mpz_mod(g,g,N);mpz_gcd(g,g,N);
@@ -526,8 +562,8 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        /* ===== CRT-based algebraic sqrt (fallback) ===== */
-        if (!found) {
+        /* Skip CRT approach (too slow, exponential blowup) */
+        if (0 && !found) {
             fprintf(stderr,"  Trying CRT algebraic sqrt (d=%d)...\n", d);
             /* Find primes q where f(x) mod q has exactly d distinct roots */
             /* Use small primes for brute-force root finding */
@@ -737,8 +773,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        mpz_clears(g,y2,x2,Y,exp2,NULL);
-        for(int k=0;k<d;k++){mpz_clear(S[k]);mpz_clear(T[k]);}
+        mpz_clear(g);
         free(da);free(db);free(rex);free(aex);
     }
 
