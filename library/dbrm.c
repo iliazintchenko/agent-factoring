@@ -143,18 +143,18 @@ static int gf2_is_zero(GF2Matrix *m, int row) {
 /* ========== Parameters ========== */
 
 static void choose_params(int digits, int *B, long *M, unsigned long *lp_bound) {
-    /* Large B for aggressive smoothness; moderate M since single-poly QS
-     * only produces small values near x=0. lp_bound = B*50 for 1LP matching */
-    if      (digits <= 20) { *B = 500;     *M = 10000L;         *lp_bound = 25000UL; }
-    else if (digits <= 25) { *B = 5000;    *M = 50000L;         *lp_bound = 100000UL; }
-    else if (digits <= 30) { *B = 50000;   *M = 2000000L;       *lp_bound = 500000UL; }
-    else if (digits <= 35) { *B = 100000;  *M = 5000000L;       *lp_bound = 2000000UL; }
-    else if (digits <= 40) { *B = 300000;  *M = 20000000L;      *lp_bound = 10000000UL; }
-    else if (digits <= 45) { *B = 800000;  *M = 80000000L;      *lp_bound = 50000000UL; }
-    else if (digits <= 50) { *B = 2000000; *M = 300000000L;     *lp_bound = 200000000UL; }
-    else if (digits <= 55) { *B = 5000000; *M = 1000000000L;    *lp_bound = 1000000000UL; }
-    else if (digits <= 60) { *B = 10000000;*M = 5000000000L;    *lp_bound = 5000000000UL; }
-    else { *B = 30000000; *M = 20000000000L; *lp_bound = 20000000000UL; }
+    /* Balanced parameters: moderate B (fast trial div), large M (many smooth near x=0),
+     * lp_bound = B*100 for good LP collision rate */
+    if      (digits <= 20) { *B = 200;     *M = 5000L;          *lp_bound = 10000UL; }
+    else if (digits <= 25) { *B = 1000;    *M = 50000L;         *lp_bound = 50000UL; }
+    else if (digits <= 30) { *B = 5000;    *M = 2000000L;       *lp_bound = 300000UL; }
+    else if (digits <= 35) { *B = 15000;   *M = 10000000L;      *lp_bound = 1000000UL; }
+    else if (digits <= 40) { *B = 50000;   *M = 50000000L;      *lp_bound = 5000000UL; }
+    else if (digits <= 45) { *B = 150000;  *M = 200000000L;     *lp_bound = 20000000UL; }
+    else if (digits <= 50) { *B = 500000;  *M = 1000000000L;    *lp_bound = 100000000UL; }
+    else if (digits <= 55) { *B = 1500000; *M = 5000000000L;    *lp_bound = 500000000UL; }
+    else if (digits <= 60) { *B = 4000000; *M = 20000000000L;   *lp_bound = 3000000000UL; }
+    else { *B = 10000000; *M = 100000000000L; *lp_bound = 10000000000UL; }
 }
 
 /* ========== Main ========== */
@@ -188,19 +188,29 @@ int main(int argc, char *argv[]) {
     mpz_mul(tmp, sqrtN, sqrtN);
     if (mpz_cmp(tmp, N) < 0) mpz_add_ui(sqrtN, sqrtN, 1);
 
-    /* Build factor base */
+    /* Build factor base with precomputed x-roots for Q(x) ≡ 0 (mod p) */
     int np;
     int *all_p = sieve_primes(B, &np);
     int *fb = malloc(sizeof(int) * (np + 1));
     unsigned long *fb_root = malloc(sizeof(unsigned long) * (np + 1));
+    long *fb_xr1 = malloc(sizeof(long) * (np + 1)); /* x ≡ r - m (mod p) */
+    long *fb_xr2 = malloc(sizeof(long) * (np + 1)); /* x ≡ -r - m (mod p) */
     int fb_size = 0;
 
     for (int i = 0; i < np; i++) {
         int p = all_p[i];
         unsigned long nmod = mpz_fdiv_ui(N, p);
-        if (p == 2) { fb[fb_size] = 2; fb_root[fb_size] = nmod; fb_size++; continue; }
-        unsigned long r = tonelli_shanks(nmod, p);
-        if (r != 0 || nmod == 0) { fb[fb_size] = p; fb_root[fb_size] = r; fb_size++; }
+        unsigned long r;
+        if (p == 2) { r = nmod; fb[fb_size] = 2; fb_root[fb_size] = r; fb_xr1[fb_size] = 0; fb_xr2[fb_size] = 0; fb_size++; continue; }
+        r = tonelli_shanks(nmod, p);
+        if (r != 0 || nmod == 0) {
+            fb[fb_size] = p;
+            fb_root[fb_size] = r;
+            unsigned long sqmod = mpz_fdiv_ui(sqrtN, p);
+            fb_xr1[fb_size] = ((long)r - (long)sqmod + 2L*(long)p) % p;
+            fb_xr2[fb_size] = ((long)(p - r) - (long)sqmod + 2L*(long)p) % p;
+            fb_size++;
+        }
     }
     free(all_p);
 
@@ -279,14 +289,33 @@ int main(int argc, char *argv[]) {
         int nfb = 0;
         if (is_neg) fb_buf[nfb++] = 0;
 
-        for (int i = 0; i < fb_size; i++) {
-            unsigned long p = fb[i];
-            int exp = 0;
-            while (mpz_divisible_ui_p(cofactor, p)) {
-                mpz_divexact_ui(cofactor, cofactor, p);
-                exp++;
+        /* FAST trial division: use precomputed roots to skip non-dividing primes.
+         * Q(x) ≡ 0 (mod p) iff x ≡ xr1[i] or xr2[i] (mod p). Only check those. */
+        {
+            /* Handle p=2 specially */
+            if (fb[0] == 2) {
+                int exp = 0;
+                while (mpz_divisible_ui_p(cofactor, 2)) {
+                    mpz_divexact_ui(cofactor, cofactor, 2);
+                    exp++;
+                }
+                if (exp & 1) fb_buf[nfb++] = 1;
             }
-            if (exp & 1) fb_buf[nfb++] = i + 1;
+            /* Handle odd primes using root pre-screening */
+            int start_i = (fb[0] == 2) ? 1 : 0;
+            for (int i = start_i; i < fb_size; i++) {
+                unsigned long p = fb[i];
+                long xmod = x % (long)p;
+                if (xmod < 0) xmod += p;
+                if (xmod != fb_xr1[i] && xmod != fb_xr2[i]) continue;
+                /* p divides Q(x). Trial divide to get full exponent. */
+                int exp = 0;
+                while (mpz_divisible_ui_p(cofactor, p)) {
+                    mpz_divexact_ui(cofactor, cofactor, p);
+                    exp++;
+                }
+                if (exp & 1) fb_buf[nfb++] = i + 1;
+            }
         }
 
         unsigned long cof = 0;
@@ -295,9 +324,10 @@ int main(int argc, char *argv[]) {
         } else if (mpz_fits_ulong_p(cofactor)) {
             cof = mpz_get_ui(cofactor);
             if (cof > lp_bound) continue; /* too large */
-            /* Verify it's prime (or accept as-is) */
+            /* Quick primality check: skip if obviously composite */
+            if (cof > 3 && (cof % 2 == 0 || cof % 3 == 0)) continue;
             mpz_set_ui(tmp, cof);
-            if (!mpz_probab_prime_p(tmp, 3)) continue; /* composite cofactor, skip for 1LP */
+            if (!mpz_probab_prime_p(tmp, 2)) continue;
         } else {
             continue;
         }
