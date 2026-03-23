@@ -299,3 +299,5 @@
 [2026-03-23 01:50:00] size: 91 | approach: YAFU SIQS NB=20 B=120K 91d[2] (load 13-15) | time: TIMEOUT | notes: Started sieve, timed out at 295s. At load 15, useful rate ~369 rels/sec. On idle (~554/sec): est 271s + 25s BL = 296s. BORDERLINE.
 [2026-03-23 01:49:00] size: 90 | approach: GNFS pre-computed poly 90d[1] (load 13-17) | time: TIMEOUT (295s) | notes: Sieve rate ~4700/sec at load 15. On idle (6500/sec): est 225s + 30s = 255s. Validated all 5 factored via resume.
 [2026-03-23 01:53:00] size: 90 | approach: nfs_siever_fast.c (improved) | time: 25 rels from 2 special-Qs | notes: Agent-1 improvements: max_sieve_prime=200K, flat-stride bucket fill. Still ~13 rels/sec, 400-500x slower than GGNFS.
+[2026-03-23 01:47:00] size: 90 | approach: GNFS pipeline (gnfs_90d.sh) 90d[1] at load=16 | time: TIMEOUT | notes: Collected 1.1M/1.46M rels in 245s at 4491/sec. Needs 325s total sieve. Budget 260s (295-35 post). GNFS requires load < 10 for 90d.
+[2026-03-23 01:46:00] size: 65 | approach: NB sweep (8/10/12) on hardest 65d | time: 2.17/2.28/2.35 | notes: Default NB=8 is optimal for 65d. Confirms NB tuning only helps 73+d.
