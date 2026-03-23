@@ -1,558 +1,999 @@
 /*
- * lattice_factor.c - Lattice-based factoring for balanced semiprimes
- *
- * For N = p*q where p ≈ q ≈ √N, we know that:
- *   p = floor(√N) + a,  q = floor(√N) + b  (approximately)
- * where a + b ≈ 0 and a*b ≈ N - floor(√N)²
- *
- * Strategy 1: Enhanced Fermat with lattice search
- *   N = ((p+q)/2)² - ((p-q)/2)²
- *   Search for s = (p+q)/2 near √N using multiple modular constraints
- *
- * Strategy 2: Coppersmith-inspired small root finding
- *   f(x) = (√N + x)² - N has a root at x = (p - √N) which is "small"
- *   relative to N. Use LLL to find this root.
- *
- * Strategy 3: Multivariate Coppersmith
- *   f(x,y) = (√N + x)(√N + y) - N = 0
- *   Has small roots (x,y) = (p-√N, q-√N)
- *
- * Strategy 4: Chinese Remainder + lattice
- *   For many small primes r, compute p mod r candidates
- *   Use CRT + lattice reduction to reconstruct p
+ * lattice_factor.c - Lattice-based integer factoring (Schnorr-Seysen style)
  *
  * Compile: gcc -O3 -march=native -o lattice_factor library/lattice_factor.c -lgmp -lm
- * Usage: ./lattice_factor <N>
+ *
+ * Algorithm:
+ *   1. Select factor base of small primes where N is a QR mod p
+ *   2. Compute sqrt(N) mod p for each factor base prime (Tonelli-Shanks)
+ *   3. Sieve for x values near sqrt(N) where x^2-N is smooth (basic QS-like)
+ *   4. Use lattice (LLL) to find additional x values via CRT where
+ *      x^2-N is divisible by many factor base primes
+ *   5. Gaussian elimination mod 2 on the exponent matrix
+ *   6. Combine relations: x^2 = y^2 (mod N), gcd(x-y, N)
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <gmp.h>
 #include <math.h>
 #include <time.h>
-#include <gmp.h>
 
-/* ==================== Strategy 1: Enhanced Fermat ==================== */
-/*
- * Standard Fermat: try s = ceil(√N), ceil(√N)+1, ... until s²-N is a perfect square
- * Enhancement: use modular constraints to skip non-candidates
- * For each small prime p, s² ≡ N (mod p), so s must be in specific residue classes
- * Use sieve of these constraints to skip most candidates
- */
+/* ================================================================== */
+/* Tonelli-Shanks: compute r such that r^2 = n (mod p), p odd prime   */
+/* Returns 1 on success, 0 if n is not a QR mod p                     */
+/* ================================================================== */
+static int tonelli_shanks(mpz_t r, const mpz_t n, const mpz_t p) {
+    if (mpz_cmp_ui(p, 2) == 0) {
+        mpz_set(r, n);
+        mpz_mod(r, r, p);
+        return 1;
+    }
 
-// Check if n is a perfect square, if so set root
-static int is_perfect_square(mpz_t n, mpz_t root) {
-    if (mpz_sgn(n) < 0) return 0;
-    mpz_sqrt(root, n);
+    int leg = mpz_legendre(n, p);
+    if (leg == -1) return 0;
+    if (leg == 0) { mpz_set_ui(r, 0); return 1; }
+
+    mpz_t Q, pm1, z, c, t, R_val, tmp, b;
+    mpz_inits(Q, pm1, z, c, t, R_val, tmp, b, NULL);
+
+    mpz_sub_ui(pm1, p, 1);
+    mpz_set(Q, pm1);
+    unsigned long S = 0;
+    while (mpz_even_p(Q)) { mpz_fdiv_q_2exp(Q, Q, 1); S++; }
+
+    if (S == 1) {
+        mpz_add_ui(tmp, p, 1);
+        mpz_fdiv_q_2exp(tmp, tmp, 2);
+        mpz_powm(r, n, tmp, p);
+        mpz_clears(Q, pm1, z, c, t, R_val, tmp, b, NULL);
+        return 1;
+    }
+
+    mpz_set_ui(z, 2);
+    while (mpz_legendre(z, p) != -1) mpz_add_ui(z, z, 1);
+
+    unsigned long M = S;
+    mpz_powm(c, z, Q, p);
+    mpz_add_ui(tmp, Q, 1);
+    mpz_fdiv_q_2exp(tmp, tmp, 1);
+    mpz_powm(R_val, n, tmp, p);
+    mpz_powm(t, n, Q, p);
+
+    while (1) {
+        if (mpz_cmp_ui(t, 1) == 0) { mpz_set(r, R_val); break; }
+        if (mpz_cmp_ui(t, 0) == 0) { mpz_set_ui(r, 0); break; }
+
+        unsigned long i = 0;
+        mpz_set(tmp, t);
+        while (mpz_cmp_ui(tmp, 1) != 0) { mpz_powm_ui(tmp, tmp, 2, p); i++; }
+
+        mpz_set(b, c);
+        for (unsigned long j = 0; j < M - i - 1; j++) mpz_powm_ui(b, b, 2, p);
+
+        M = i;
+        mpz_powm_ui(c, b, 2, p);
+        mpz_mul(R_val, R_val, b); mpz_mod(R_val, R_val, p);
+        mpz_mul(t, t, c); mpz_mod(t, t, p);
+    }
+
+    mpz_clears(Q, pm1, z, c, t, R_val, tmp, b, NULL);
+    return 1;
+}
+
+/* ================================================================== */
+/* Small primes sieve                                                  */
+/* ================================================================== */
+static int *sieve_primes(int limit, int *count) {
+    char *is_comp = calloc(limit + 1, 1);
+    int *primes = malloc(sizeof(int) * (limit / 2 + 10));
+    int cnt = 0;
+    for (int i = 2; i <= limit; i++) {
+        if (!is_comp[i]) {
+            primes[cnt++] = i;
+            if ((long long)i * i <= limit)
+                for (int j = i * i; j <= limit; j += i) is_comp[j] = 1;
+        }
+    }
+    free(is_comp);
+    *count = cnt;
+    return primes;
+}
+
+/* ================================================================== */
+/* LLL lattice reduction - GMP rationals for exact Gram-Schmidt       */
+/* basis: n x m matrix stored row-major as mpz_t[n*m]                 */
+/* Uses delta = 3/4                                                    */
+/* ================================================================== */
+#define MAT(B, i, j, m) ((B)[(i)*(m) + (j)])
+
+static void lll_reduce(mpz_t *basis, int n, int m) {
+    mpq_t *mu = malloc(sizeof(mpq_t) * n * n);
+    mpq_t *Bsq = malloc(sizeof(mpq_t) * n);
+    mpq_t delta_q, tmp_q, tmp_q2, half_q, neg_half_q;
+    mpz_t tmp_z, rmu;
+
+    for (int i = 0; i < n * n; i++) mpq_init(mu[i]);
+    for (int i = 0; i < n; i++) mpq_init(Bsq[i]);
+    mpq_init(delta_q); mpq_init(tmp_q); mpq_init(tmp_q2);
+    mpq_init(half_q); mpq_init(neg_half_q);
+    mpz_init(tmp_z); mpz_init(rmu);
+
+    mpq_set_ui(delta_q, 3, 4);
+    mpq_set_ui(half_q, 1, 2);
+    mpq_set_si(neg_half_q, -1, 2);
+
+    /* Dot product of basis rows ri and rj -> result as mpq (integer-valued) */
+    #define DOT(res, ri, rj) do { \
+        mpz_set_ui(mpq_numref(res), 0); \
+        for (int _d = 0; _d < m; _d++) \
+            mpz_addmul(mpq_numref(res), MAT(basis,ri,_d,m), MAT(basis,rj,_d,m)); \
+        mpz_set_ui(mpq_denref(res), 1); \
+    } while(0)
+
+    /* Compute full Gram-Schmidt data from scratch starting at `from` */
+    auto void compute_gs(int from);
+    void compute_gs(int from) {
+        for (int i = from; i < n; i++) {
+            DOT(Bsq[i], i, i);
+            for (int j = 0; j < i; j++) {
+                DOT(mu[i*n+j], i, j);
+                for (int l = 0; l < j; l++) {
+                    mpq_mul(tmp_q, mu[j*n+l], mu[i*n+l]);
+                    mpq_mul(tmp_q, tmp_q, Bsq[l]);
+                    mpq_sub(mu[i*n+j], mu[i*n+j], tmp_q);
+                }
+                if (mpq_sgn(Bsq[j]) != 0)
+                    mpq_div(mu[i*n+j], mu[i*n+j], Bsq[j]);
+            }
+            for (int j = 0; j < i; j++) {
+                mpq_mul(tmp_q, mu[i*n+j], mu[i*n+j]);
+                mpq_mul(tmp_q, tmp_q, Bsq[j]);
+                mpq_sub(Bsq[i], Bsq[i], tmp_q);
+            }
+        }
+    }
+
+    compute_gs(0);
+
+    int k = 1;
+    while (k < n) {
+        /* Size-reduce b_k */
+        for (int j = k - 1; j >= 0; j--) {
+            if (mpq_cmp(mu[k*n+j], half_q) > 0 || mpq_cmp(mu[k*n+j], neg_half_q) < 0) {
+                /* round(mu) */
+                mpz_mul_2exp(tmp_z, mpq_numref(mu[k*n+j]), 1);
+                mpz_add(tmp_z, tmp_z, mpq_denref(mu[k*n+j]));
+                mpz_mul_2exp(rmu, mpq_denref(mu[k*n+j]), 1);
+                mpz_fdiv_q(rmu, tmp_z, rmu);
+                if (mpz_sgn(rmu) == 0) continue;
+
+                for (int d = 0; d < m; d++)
+                    mpz_submul(MAT(basis,k,d,m), rmu, MAT(basis,j,d,m));
+
+                mpq_set_z(tmp_q, rmu);
+                mpq_sub(mu[k*n+j], mu[k*n+j], tmp_q);
+                for (int l = 0; l < j; l++) {
+                    mpq_mul(tmp_q2, tmp_q, mu[j*n+l]);
+                    mpq_sub(mu[k*n+l], mu[k*n+l], tmp_q2);
+                }
+            }
+        }
+
+        /* Lovász condition */
+        mpq_mul(tmp_q, mu[k*n+(k-1)], mu[k*n+(k-1)]);
+        mpq_sub(tmp_q, delta_q, tmp_q);
+        mpq_mul(tmp_q, tmp_q, Bsq[k-1]);
+
+        if (mpq_cmp(Bsq[k], tmp_q) >= 0) {
+            k++;
+        } else {
+            /* Swap rows k and k-1 */
+            for (int d = 0; d < m; d++)
+                mpz_swap(MAT(basis,k,d,m), MAT(basis,k-1,d,m));
+
+            /* Update Gram-Schmidt data using swap formulas */
+            mpq_set(tmp_q, mu[k*n+(k-1)]);
+
+            mpq_t Bnew_km1, mu_new, Bnew_k;
+            mpq_init(Bnew_km1); mpq_init(mu_new); mpq_init(Bnew_k);
+
+            /* Bnew[k-1] = B[k] + mu^2*B[k-1] */
+            mpq_mul(tmp_q2, tmp_q, tmp_q);
+            mpq_mul(tmp_q2, tmp_q2, Bsq[k-1]);
+            mpq_add(Bnew_km1, Bsq[k], tmp_q2);
+
+            if (mpq_sgn(Bnew_km1) == 0) {
+                mpq_clear(Bnew_km1); mpq_clear(mu_new); mpq_clear(Bnew_k);
+                compute_gs(0);
+                k = (k > 1) ? k - 1 : 1;
+                continue;
+            }
+
+            /* mu_new[k][k-1] */
+            mpq_mul(mu_new, tmp_q, Bsq[k-1]);
+            mpq_div(mu_new, mu_new, Bnew_km1);
+
+            /* Bnew[k] */
+            mpq_mul(Bnew_k, Bsq[k-1], Bsq[k]);
+            mpq_div(Bnew_k, Bnew_k, Bnew_km1);
+
+            /* Update mu for rows i > k */
+            for (int i = k+1; i < n; i++) {
+                mpq_t oikm1, oik;
+                mpq_init(oikm1); mpq_init(oik);
+                mpq_set(oikm1, mu[i*n+(k-1)]);
+                mpq_set(oik, mu[i*n+k]);
+
+                mpq_mul(mu[i*n+(k-1)], oikm1, mu_new);
+                mpq_mul(tmp_q2, oik, Bsq[k]);
+                mpq_div(tmp_q2, tmp_q2, Bnew_km1);
+                mpq_add(mu[i*n+(k-1)], mu[i*n+(k-1)], tmp_q2);
+
+                mpq_mul(mu[i*n+k], tmp_q, oik);
+                mpq_sub(mu[i*n+k], oikm1, mu[i*n+k]);
+
+                mpq_clear(oikm1); mpq_clear(oik);
+            }
+
+            for (int j = 0; j < k-1; j++)
+                mpq_swap(mu[(k-1)*n+j], mu[k*n+j]);
+
+            mpq_set(mu[k*n+(k-1)], mu_new);
+            mpq_set(Bsq[k-1], Bnew_km1);
+            mpq_set(Bsq[k], Bnew_k);
+
+            mpq_clear(Bnew_km1); mpq_clear(mu_new); mpq_clear(Bnew_k);
+            k = (k > 1) ? k-1 : 1;
+        }
+    }
+
+    for (int i = 0; i < n*n; i++) mpq_clear(mu[i]);
+    for (int i = 0; i < n; i++) mpq_clear(Bsq[i]);
+    mpq_clear(delta_q); mpq_clear(tmp_q); mpq_clear(tmp_q2);
+    mpq_clear(half_q); mpq_clear(neg_half_q);
+    mpz_clear(tmp_z); mpz_clear(rmu);
+    free(mu); free(Bsq);
+}
+
+/* ================================================================== */
+/* Factor base selection                                               */
+/* ================================================================== */
+static int select_factor_base(const mpz_t N, int *fb, int fb_max, int prime_limit) {
+    int nprimes;
+    int *primes = sieve_primes(prime_limit, &nprimes);
+    int cnt = 0;
+    mpz_t p_mpz;
+    mpz_init(p_mpz);
+    for (int i = 0; i < nprimes && cnt < fb_max; i++) {
+        if (primes[i] == 2) { fb[cnt++] = 2; continue; }
+        mpz_set_ui(p_mpz, primes[i]);
+        if (mpz_legendre(N, p_mpz) >= 0) fb[cnt++] = primes[i];
+    }
+    mpz_clear(p_mpz);
+    free(primes);
+    return cnt;
+}
+
+/* ================================================================== */
+/* Trial-divide val over factor base, fill exponent vector             */
+/* Returns 1 if fully smooth                                           */
+/* ================================================================== */
+static int trial_factor(const mpz_t val, const int *fb, int fb_size, int *exponents) {
+    memset(exponents, 0, sizeof(int) * fb_size);
+    if (mpz_sgn(val) == 0) return 0;
+
     mpz_t tmp;
     mpz_init(tmp);
-    mpz_mul(tmp, root, root);
-    int result = (mpz_cmp(tmp, n) == 0);
+    mpz_abs(tmp, val);
+
+    for (int i = 0; i < fb_size; i++) {
+        while (mpz_divisible_ui_p(tmp, fb[i])) {
+            mpz_divexact_ui(tmp, tmp, fb[i]);
+            exponents[i]++;
+        }
+    }
+    int smooth = (mpz_cmp_ui(tmp, 1) == 0);
     mpz_clear(tmp);
-    return result;
+    return smooth;
 }
 
-// Small primes for sieve
-static const int SMALL_PRIMES[] = {
-    3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
-    53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113
-};
-#define NUM_SMALL_PRIMES 29
-
-// Modular square root via Tonelli-Shanks for small primes
-static int modsqrt(int n, int p) {
-    n = ((n % p) + p) % p;
-    if (n == 0) return 0;
-    if (p == 2) return n;
-
-    // Check if n is QR mod p
-    int pow = 1;
-    for (int i = 0; i < (p-1)/2; i++) pow = (int)((long long)pow * n % p);
-    if (pow != 1) return -1; // not a QR
-
-    if (p % 4 == 3) {
-        pow = 1;
-        int exp = (p + 1) / 4;
-        int base = n;
-        while (exp > 0) {
-            if (exp & 1) pow = (int)((long long)pow * base % p);
-            base = (int)((long long)base * base % p);
-            exp >>= 1;
-        }
-        return pow;
-    }
-
-    // General Tonelli-Shanks
-    int q = p - 1, s = 0;
-    while (q % 2 == 0) { q /= 2; s++; }
-
-    int z = 2;
-    while (1) {
-        pow = 1;
-        for (int i = 0; i < (p-1)/2; i++) pow = (int)((long long)pow * z % p);
-        if (pow == p - 1) break;
-        z++;
-    }
-
-    int m = s;
-    int c = 1;
-    { int base = z, exp = q;
-      while (exp > 0) {
-        if (exp & 1) c = (int)((long long)c * base % p);
-        base = (int)((long long)base * base % p);
-        exp >>= 1;
-      }
-    }
-    int t = 1;
-    { int base = n, exp = q;
-      while (exp > 0) {
-        if (exp & 1) t = (int)((long long)t * base % p);
-        base = (int)((long long)base * base % p);
-        exp >>= 1;
-      }
-    }
-    int r = 1;
-    { int base = n, exp = (q + 1) / 2;
-      while (exp > 0) {
-        if (exp & 1) r = (int)((long long)r * base % p);
-        base = (int)((long long)base * base % p);
-        exp >>= 1;
-      }
-    }
-
-    while (1) {
-        if (t == 1) return r;
-        int i = 0;
-        int tmp = t;
-        while (tmp != 1) {
-            tmp = (int)((long long)tmp * tmp % p);
-            i++;
-        }
-        int b = c;
-        for (int j = 0; j < m - i - 1; j++) b = (int)((long long)b * b % p);
-        m = i;
-        c = (int)((long long)b * b % p);
-        t = (int)((long long)t * c % p);
-        r = (int)((long long)r * b % p);
-    }
-}
-
-int fermat_enhanced(mpz_t N, mpz_t factor) {
-    mpz_t s, s2, diff, root;
-    mpz_inits(s, s2, diff, root, NULL);
-
-    // s = ceil(√N)
-    mpz_sqrt(s, N);
-    mpz_mul(s2, s, s);
-    if (mpz_cmp(s2, N) < 0) mpz_add_ui(s, s, 1);
-
-    // Compute allowed residues for s modulo small primes
-    // s² ≡ N (mod p) means s ≡ ±√(N mod p) (mod p)
-    unsigned char *sieve = NULL;
-    int sieve_mod = 1;
-    int prime_list[NUM_SMALL_PRIMES];
-    int roots1[NUM_SMALL_PRIMES], roots2[NUM_SMALL_PRIMES];
-    int num_sieve_primes = 0;
-
-    // Use product of first few primes as sieve modulus
-    // We'll use CRT-style sieve
-    for (int i = 0; i < NUM_SMALL_PRIMES && SMALL_PRIMES[i] <= 113; i++) {
-        int p = SMALL_PRIMES[i];
-        int n_mod_p = (int)mpz_fdiv_ui(N, p);
-        int r = modsqrt(n_mod_p, p);
-        if (r < 0) {
-            // N is not QR mod p, so p | N or no solution
-            // Actually this means s² can never be ≡ N mod p
-            // So we can skip s values where s² ≡ N (mod p) fails
-            // But since N is a semiprime, if p doesn't divide N,
-            // then N is not QR mod p means s²-N is never 0 mod p.
-            // This is fine - we just note no constraint from this prime.
-            prime_list[num_sieve_primes] = p;
-            roots1[num_sieve_primes] = -1; // no valid residue
-            roots2[num_sieve_primes] = -1;
-            num_sieve_primes++;
-            continue;
-        }
-        prime_list[num_sieve_primes] = p;
-        roots1[num_sieve_primes] = r;
-        roots2[num_sieve_primes] = (p - r) % p;
-        num_sieve_primes++;
-    }
-
-    // Combined sieve using product of first few primes
-    // Use primes up to 31 for combined modulus: 3*5*7*11*13*17*19*23*29*31 = 100280245065
-    // Too large. Use smaller set: 3*5*7*11*13*17*19*23 = 223092870
-    long long combined_mod = 1;
-    int num_combined = 0;
-    for (int i = 0; i < num_sieve_primes; i++) {
-        if (combined_mod * prime_list[i] > 200000000LL) break;
-        combined_mod *= prime_list[i];
-        num_combined = i + 1;
-    }
-
-    // Build sieve: for each residue 0..combined_mod-1, check if it's valid
-    // A residue r is valid if for each prime p in our set:
-    //   r ≡ roots1[i] or roots2[i] (mod prime_list[i])
-    // Valid residues are candidates for s mod combined_mod
-
-    // For a combined modulus of ~200M, we can't enumerate all residues
-    // Instead, use CRT to generate valid residues
-    // Number of valid residues: ∏(2 or 0 or 1 per prime) ≈ 2^8 = 256 per combined_mod
-
-    // Actually, let's use a simpler approach: sieve with individual primes
-    // Check each candidate s against all primes
-
-    long long limit = 1000000000LL; // 10^9 candidates max
-    long long s_start_ui = 0; // offset from ceil(√N)
-
-    mpz_t s_base;
-    mpz_init_set(s_base, s); // s_base = ceil(√N)
-
-    int found = 0;
-    for (long long offset = 0; offset < limit; offset++) {
-        // Check modular constraints
-        int valid = 1;
-        // Quick check: s = s_base + offset
-        // s mod p = (s_base mod p + offset mod p) mod p
-        for (int i = 0; i < num_sieve_primes; i++) {
-            int p = prime_list[i];
-            if (roots1[i] == -1) continue; // N not QR mod p, skip
-            int s_mod_p = (int)((mpz_fdiv_ui(s_base, p) + (offset % p)) % p);
-            if (s_mod_p != roots1[i] && s_mod_p != roots2[i]) {
-                valid = 0;
-                break;
-            }
-        }
-        if (!valid) continue;
-
-        // This candidate passes modular screening
-        mpz_add_ui(s, s_base, offset);
-        mpz_mul(s2, s, s);
-        mpz_sub(diff, s2, N);
-
-        if (is_perfect_square(diff, root)) {
-            // s² - N = root² => N = (s-root)(s+root)
-            mpz_sub(factor, s, root);
-            if (mpz_cmp_ui(factor, 1) > 0 && mpz_cmp(factor, N) < 0) {
-                found = 1;
-                break;
-            }
-        }
-    }
-
-    mpz_clears(s, s2, diff, root, s_base, NULL);
-    return found;
-}
-
-/* ==================== Strategy 2: Dixon/Lehman hybrid ==================== */
-/*
- * Lehman's method: for balanced semiprimes with |p-q| < N^(1/3),
- * searches for (a, b) with 4aN = (2a*s + b)² for small a and b.
- *
- * We extend this by using modular information to reduce the search space.
- * For each k = 1, 2, ..., we look for s near √(kN) such that
- * 4kN - s² is a perfect square times something small.
- */
-
-int lehman_enhanced(mpz_t N, mpz_t factor, int k_max) {
-    mpz_t kN, s, s2, diff, root, four_kN, g;
-    mpz_inits(kN, s, s2, diff, root, four_kN, g, NULL);
-
-    for (int k = 1; k <= k_max; k++) {
-        mpz_mul_ui(kN, N, k);
-        mpz_mul_ui(four_kN, kN, 4);
-
-        // s starts at ceil(2*√(kN))
-        mpz_sqrt(s, four_kN);
-        mpz_mul(s2, s, s);
-        if (mpz_cmp(s2, four_kN) < 0) mpz_add_ui(s, s, 1);
-
-        // Search range: from s to s + ceil(N^(1/6) / (4√k))
-        // For balanced semiprimes this range should be small
-        mpz_t range;
-        mpz_init(range);
-        mpz_root(range, N, 6); // N^(1/6)
-        unsigned long range_ul = mpz_get_ui(range);
-        if (range_ul > 10000000UL) range_ul = 10000000UL;
-        range_ul = range_ul / (2 * (unsigned long)ceil(sqrt(k))) + 1;
-
-        for (unsigned long j = 0; j <= range_ul; j++) {
-            mpz_mul(s2, s, s);
-            mpz_sub(diff, s2, four_kN);
-
-            if (mpz_sgn(diff) >= 0 && is_perfect_square(diff, root)) {
-                // 4kN = s² - root² = (s-root)(s+root)
-                mpz_add(g, s, root);
-                mpz_gcd(factor, g, N);
-                if (mpz_cmp_ui(factor, 1) > 0 && mpz_cmp(factor, N) < 0) {
-                    mpz_clears(kN, s, s2, diff, root, four_kN, g, range, NULL);
-                    return 1;
-                }
-                mpz_sub(g, s, root);
-                mpz_gcd(factor, g, N);
-                if (mpz_cmp_ui(factor, 1) > 0 && mpz_cmp(factor, N) < 0) {
-                    mpz_clears(kN, s, s2, diff, root, four_kN, g, range, NULL);
-                    return 1;
-                }
-            }
-            mpz_add_ui(s, s, 1);
-        }
-        mpz_clear(range);
-    }
-
-    mpz_clears(kN, s, s2, diff, root, four_kN, g, NULL);
-    return 0;
-}
-
-/* ==================== Strategy 3: Smooth congruence via lattice ==================== */
-/*
- * Novel approach: Generate congruences x² ≡ y (mod N) where y is small,
- * using lattice reduction.
- *
- * Build a lattice where short vectors correspond to (x, y) pairs with
- * x² - y ≡ 0 (mod N) and |y| is small.
- *
- * Lattice basis:
- *   B = [ N   0 ]
- *       [ a   1 ]
- * where a ≈ √N (mod N).
- *
- * Short vectors (v1, v2) of this lattice satisfy v1 ≡ a*v2 (mod N).
- * If v1 = x, v2 = 1, then x ≡ a (mod N) and x² ≡ a² ≡ N (mod N).
- *
- * But we need x² - kN = y where y is smooth. The lattice gives us
- * small |x| values where x² mod N is also small.
- *
- * Extended: use a higher-dimensional lattice with multiple "small root" vectors.
- */
-
-/* Simple 2x2 lattice reduction (Gauss reduction) */
+/* ================================================================== */
+/* Relation storage                                                    */
+/* ================================================================== */
 typedef struct {
-    mpz_t a11, a12, a21, a22;
-} lattice2;
+    mpz_t x;          /* x value */
+    int *exponents;    /* exponent vector (fb_size entries) */
+    int sign;          /* 1 if x^2 - N < 0 */
+} relation_t;
 
-void lattice2_init(lattice2 *L) {
-    mpz_inits(L->a11, L->a12, L->a21, L->a22, NULL);
-}
+/* ================================================================== */
+/* Gaussian elimination mod 2                                          */
+/* Returns list of ALL dependencies found (array of arrays)            */
+/* ================================================================== */
+typedef unsigned long bitmask_t;
+#define BPW (sizeof(bitmask_t)*8)
 
-void lattice2_clear(lattice2 *L) {
-    mpz_clears(L->a11, L->a12, L->a21, L->a22, NULL);
-}
+typedef struct {
+    int *indices;
+    int count;
+} dependency_t;
 
-// Gauss lattice reduction for 2x2 lattice
-void gauss_reduce(lattice2 *L) {
-    mpz_t dot, norm1, norm2, q, tmp;
-    mpz_inits(dot, norm1, norm2, q, tmp, NULL);
+static dependency_t *gauss_find_deps(relation_t *rels, int nrels, int fb_size, int *ndeps_out) {
+    int ncols = fb_size + 1;  /* +1 for sign */
+    int nw_exp = (ncols + BPW - 1) / BPW;
+    int nw_hist = (nrels + BPW - 1) / BPW;
+    int nw = nw_exp + nw_hist;
 
-    for (int iter = 0; iter < 1000; iter++) {
-        // norm1 = |v1|² = a11² + a12²
-        mpz_mul(norm1, L->a11, L->a11);
-        mpz_mul(tmp, L->a12, L->a12);
-        mpz_add(norm1, norm1, tmp);
-
-        // norm2 = |v2|² = a21² + a22²
-        mpz_mul(norm2, L->a21, L->a21);
-        mpz_mul(tmp, L->a22, L->a22);
-        mpz_add(norm2, norm2, tmp);
-
-        // Ensure v1 is shorter
-        if (mpz_cmp(norm1, norm2) > 0) {
-            mpz_swap(L->a11, L->a21);
-            mpz_swap(L->a12, L->a22);
-            mpz_swap(norm1, norm2);
-        }
-
-        // dot = v1 · v2
-        mpz_mul(dot, L->a11, L->a21);
-        mpz_mul(tmp, L->a12, L->a22);
-        mpz_add(dot, dot, tmp);
-
-        // q = round(dot / norm1)
-        // q = (2*dot + norm1) / (2*norm1)  for rounding
-        mpz_mul_ui(tmp, dot, 2);
-        if (mpz_sgn(dot) >= 0)
-            mpz_add(tmp, tmp, norm1);
-        else
-            mpz_sub(tmp, tmp, norm1);
-        mpz_mul_ui(norm1, norm1, 2);
-        mpz_tdiv_q(q, tmp, norm1);
-        mpz_divexact_ui(norm1, norm1, 2);
-
-        if (mpz_sgn(q) == 0) break;
-
-        // v2 = v2 - q * v1
-        mpz_mul(tmp, q, L->a11);
-        mpz_sub(L->a21, L->a21, tmp);
-        mpz_mul(tmp, q, L->a12);
-        mpz_sub(L->a22, L->a22, tmp);
+    bitmask_t **rows = malloc(sizeof(bitmask_t*) * nrels);
+    for (int i = 0; i < nrels; i++) {
+        rows[i] = calloc(nw, sizeof(bitmask_t));
+        for (int j = 0; j < fb_size; j++)
+            if (rels[i].exponents[j] & 1)
+                rows[i][j/BPW] |= (1UL << (j%BPW));
+        if (rels[i].sign & 1)
+            rows[i][fb_size/BPW] |= (1UL << (fb_size%BPW));
+        rows[i][nw_exp + i/BPW] |= (1UL << (i%BPW));
     }
 
-    mpz_clears(dot, norm1, norm2, q, tmp, NULL);
-}
-
-/*
- * Lattice-based smooth congruence search:
- * For various multipliers k, build lattice:
- *   v1 = (N, 0)
- *   v2 = (floor(√(kN)), 1) * scaling
- * After reduction, short vectors give (x, c) with x ≈ c * √(kN) (mod N)
- * so x² ≈ c² * kN (mod N) and x² mod N ≈ c² * kN - q*N for small q
- */
-
-int lattice_smooth_factor(mpz_t N, mpz_t factor, int time_limit_sec) {
-    time_t start = time(NULL);
-
-    mpz_t sqrtN, x, x2, residue, g;
-    mpz_inits(sqrtN, x, x2, residue, g, NULL);
-    mpz_sqrt(sqrtN, N);
-
-    // Try various scaling factors and multipliers
-    for (int k = 1; k <= 10000 && time(NULL) - start < time_limit_sec; k++) {
-        lattice2 L;
-        lattice2_init(&L);
-
-        // Lattice: v1 = (N, 0), v2 = (floor(√(kN)) mod N, k)
-        mpz_t kN, sqrtkN;
-        mpz_inits(kN, sqrtkN, NULL);
-        mpz_mul_ui(kN, N, k);
-        mpz_sqrt(sqrtkN, kN);
-
-        // Scale: we want both components comparable
-        // v1 = (N, 0), v2 = (sqrtkN, 1)
-        // After reduction, short vector (a, b) satisfies a ≡ b*sqrtkN (mod N)
-        // So a² ≡ b²*kN (mod N)
-        // If b is small, a² - b²*kN = qN for some q, and |a² - b²*kN| is small
-
-        mpz_set(L.a11, N);
-        mpz_set_ui(L.a12, 0);
-        mpz_mod(L.a21, sqrtkN, N);
-        mpz_set_ui(L.a22, 1);
-
-        gauss_reduce(&L);
-
-        // Check both short vectors
-        for (int vec = 0; vec < 2; vec++) {
-            mpz_t *ax = (vec == 0) ? &L.a11 : &L.a21;
-            mpz_t *bx = (vec == 0) ? &L.a12 : &L.a22;
-
-            // x = a, coefficient = b
-            // x² - b²*kN ≡ 0 (mod N)
-            // gcd(x - b*sqrtkN, N) or gcd(x + b*sqrtkN, N) might give factor
-
-            if (mpz_sgn(*bx) == 0) continue;
-
-            mpz_mul(x, *bx, sqrtkN);
-            mpz_sub(g, *ax, x);
-            mpz_gcd(g, g, N);
-            if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
-                mpz_set(factor, g);
-                lattice2_clear(&L);
-                mpz_clears(kN, sqrtkN, sqrtN, x, x2, residue, g, NULL);
-                return 1;
-            }
-
-            mpz_add(g, *ax, x);
-            mpz_gcd(g, g, N);
-            if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
-                mpz_set(factor, g);
-                lattice2_clear(&L);
-                mpz_clears(kN, sqrtkN, sqrtN, x, x2, residue, g, NULL);
-                return 1;
+    /* Row echelon form */
+    int *used = calloc(nrels, sizeof(int));
+    for (int col = 0; col < ncols; col++) {
+        int pr = -1;
+        for (int r = 0; r < nrels; r++) {
+            if (!used[r] && (rows[r][col/BPW] & (1UL << (col%BPW)))) {
+                pr = r; break;
             }
         }
-
-        lattice2_clear(&L);
-        mpz_clears(kN, sqrtkN, NULL);
+        if (pr == -1) continue;
+        used[pr] = 1;
+        for (int r = 0; r < nrels; r++) {
+            if (r != pr && (rows[r][col/BPW] & (1UL << (col%BPW)))) {
+                for (int w = 0; w < nw; w++) rows[r][w] ^= rows[pr][w];
+            }
+        }
     }
 
-    mpz_clears(sqrtN, x, x2, residue, g, NULL);
-    return 0;
+    /* Collect all zero rows (dependencies) */
+    int max_deps = nrels;
+    dependency_t *deps = malloc(sizeof(dependency_t) * max_deps);
+    int ndeps = 0;
+
+    for (int r = 0; r < nrels; r++) {
+        int all_zero = 1;
+        for (int w = 0; w < nw_exp; w++)
+            if (rows[r][w]) { all_zero = 0; break; }
+        if (!all_zero) continue;
+
+        int cnt = 0;
+        for (int b = 0; b < nrels; b++)
+            if (rows[r][nw_exp + b/BPW] & (1UL << (b%BPW))) cnt++;
+        if (cnt < 1) continue;
+
+        deps[ndeps].indices = malloc(sizeof(int) * cnt);
+        deps[ndeps].count = cnt;
+        int idx = 0;
+        for (int b = 0; b < nrels; b++)
+            if (rows[r][nw_exp + b/BPW] & (1UL << (b%BPW)))
+                deps[ndeps].indices[idx++] = b;
+        ndeps++;
+    }
+
+    for (int i = 0; i < nrels; i++) free(rows[i]);
+    free(rows);
+    free(used);
+    *ndeps_out = ndeps;
+    return deps;
 }
 
-/* ==================== Strategy 4: Smooth number accumulation ==================== */
-/*
- * Novel idea: Instead of sieving, generate random x values and compute
- * x² mod N. Accumulate partial factorizations using a "factor tree":
- *
- * 1. For many x values, compute r = x² mod N
- * 2. For each pair (r_i, r_j), compute gcd(r_i, r_j)
- * 3. Common factors reveal shared prime factors
- * 4. Build factor base dynamically from discovered primes
- * 5. Once enough relations found, do linear algebra
- *
- * This avoids the traditional sieve entirely and may discover
- * structure in the residues.
- */
+/* ================================================================== */
+/* Try to extract a factor from a dependency                           */
+/* Returns 1 if nontrivial factor found                                */
+/* ================================================================== */
+static int try_dependency(const mpz_t N, relation_t *rels, const int *fb,
+                          int fb_size, const dependency_t *dep, mpz_t factor_out) {
+    /* x_prod = product of x_i mod N */
+    /* y = product of p_j^(sum_exp_j/2) mod N  (with sign adjustment) */
+    mpz_t x_prod, y, g;
+    mpz_inits(x_prod, y, g, NULL);
+    mpz_set_ui(x_prod, 1);
 
-/* ==================== Main ==================== */
+    int *sum_exp = calloc(fb_size, sizeof(int));
+    int sign_sum = 0;
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <N>\n", argv[0]);
+    for (int d = 0; d < dep->count; d++) {
+        int ri = dep->indices[d];
+        mpz_mul(x_prod, x_prod, rels[ri].x);
+        mpz_mod(x_prod, x_prod, N);
+        for (int j = 0; j < fb_size; j++)
+            sum_exp[j] += rels[ri].exponents[j];
+        sign_sum += rels[ri].sign;
+    }
+
+    /* Verify all exponents are even */
+    int ok = 1;
+    for (int j = 0; j < fb_size; j++) {
+        if (sum_exp[j] % 2 != 0) { ok = 0; break; }
+    }
+    if (sign_sum % 2 != 0) ok = 0;
+
+    if (!ok) {
+        free(sum_exp);
+        mpz_clears(x_prod, y, g, NULL);
+        return 0;
+    }
+
+    /* Compute y = product of p_j^(sum_exp_j/2) mod N */
+    mpz_set_ui(y, 1);
+    for (int j = 0; j < fb_size; j++) {
+        int he = sum_exp[j] / 2;
+        if (he > 0) {
+            mpz_t pe;
+            mpz_init(pe);
+            mpz_ui_pow_ui(pe, fb[j], he);
+            mpz_mul(y, y, pe);
+            mpz_mod(y, y, N);
+            mpz_clear(pe);
+        }
+    }
+
+    /* Try gcd(x_prod - y, N) */
+    mpz_sub(g, x_prod, y);
+    mpz_mod(g, g, N);
+    mpz_gcd(g, g, N);
+    if (mpz_cmp_ui(g, 1) != 0 && mpz_cmp(g, N) != 0) {
+        mpz_set(factor_out, g);
+        free(sum_exp);
+        mpz_clears(x_prod, y, g, NULL);
         return 1;
     }
 
-    mpz_t N, factor, cofactor;
-    mpz_inits(N, factor, cofactor, NULL);
-    mpz_set_str(N, argv[1], 10);
+    /* Try gcd(x_prod + y, N) */
+    mpz_add(g, x_prod, y);
+    mpz_mod(g, g, N);
+    mpz_gcd(g, g, N);
+    if (mpz_cmp_ui(g, 1) != 0 && mpz_cmp(g, N) != 0) {
+        mpz_set(factor_out, g);
+        free(sum_exp);
+        mpz_clears(x_prod, y, g, NULL);
+        return 1;
+    }
+
+    free(sum_exp);
+    mpz_clears(x_prod, y, g, NULL);
+    return 0;
+}
+
+/* ================================================================== */
+/* Main lattice factoring routine                                      */
+/* ================================================================== */
+static int lattice_factor(const mpz_t N, mpz_t factor_out) {
+    size_t digits = mpz_sizeinbase(N, 10);
+
+    /* Configure factor base size based on digit count.
+     * Use the L(N) = exp(sqrt(ln N * ln ln N)) heuristic.
+     * The optimal smoothness bound B ≈ L(N)^{1/2√2}.
+     * fb_max limits how many primes we select; prime_limit is the sieve
+     * bound for generating candidate primes. */
+    /* B = L(N)^{1/sqrt(2)} is the standard QS smoothness bound.
+     * We scale it down slightly since lattice methods with trial
+     * factoring are slower per candidate than proper QS sieving. */
+    double lnN = digits * log(10.0);
+    double L = exp(sqrt(lnN * log(lnN)));
+    /* Balance factor base size vs smoothness probability.
+     * Larger B = more smooth numbers but more relations needed.
+     * With a proper sieve, higher B is better. */
+    double B = pow(L, 0.55);
+    if (B < 100) B = 100;
+    if (B > 200000) B = 200000;
+
+    int prime_limit = (int)(B * 1.2);
+    int fb_max = (int)(B / log(B)) + 20;
+    if (fb_max > 5000) fb_max = 5000;
+
+    int *fb = malloc(sizeof(int) * fb_max);
+    int fb_size = select_factor_base(N, fb, fb_max, prime_limit);
+    if (fb_size < 3) {
+        fprintf(stderr, "Factor base too small (%d)\n", fb_size);
+        free(fb);
+        return 0;
+    }
+
+    printf("  Factor base: %d primes (2 .. %d)\n", fb_size, fb[fb_size-1]);
+
+    /* Compute sqrt(N) mod p for each FB prime */
+    mpz_t *roots = malloc(sizeof(mpz_t) * fb_size);
+    mpz_t p_mpz, n_mod_p;
+    mpz_init(p_mpz); mpz_init(n_mod_p);
+
+    for (int i = 0; i < fb_size; i++) {
+        mpz_init(roots[i]);
+        mpz_set_ui(p_mpz, fb[i]);
+        mpz_mod(n_mod_p, N, p_mpz);
+        if (fb[i] == 2) {
+            mpz_set_ui(roots[i], mpz_odd_p(N) ? 1 : 0);
+        } else {
+            tonelli_shanks(roots[i], n_mod_p, p_mpz);
+        }
+    }
+
+    mpz_t sqrt_N;
+    mpz_init(sqrt_N);
+    mpz_sqrt(sqrt_N, N);
+
+    /* Allocate relations */
+    int needed = fb_size + 5;
+    int max_rels = needed * 4;
+    relation_t *rels = malloc(sizeof(relation_t) * max_rels);
+    for (int i = 0; i < max_rels; i++) {
+        mpz_init(rels[i].x);
+        rels[i].exponents = calloc(fb_size, sizeof(int));
+        rels[i].sign = 0;
+    }
+    int nrels = 0;
+
+    /* ------------------------------------------------------------ */
+    /* Phase 1: Logarithmic sieve near sqrt(N) for smooth x^2-N    */
+    /* Uses sieve-by-primes: accumulate log contributions, then     */
+    /* only trial-factor candidates whose log sum is close to the   */
+    /* expected log of x^2-N.                                       */
+    /* ------------------------------------------------------------ */
+    {
+        long sieve_size = 500000;
+        if (digits > 15) sieve_size = 2000000;
+        if (digits > 25) sieve_size = 8000000;
+        if (digits > 35) sieve_size = 30000000;
+        if (digits > 45) sieve_size = 60000000;
+
+        /* sieve_start = sqrt(N) - sieve_size/2 */
+        mpz_t sieve_start;
+        mpz_init(sieve_start);
+        mpz_sub_ui(sieve_start, sqrt_N, sieve_size / 2);
+        if (mpz_sgn(sieve_start) <= 0) mpz_set_ui(sieve_start, 2);
+
+        /* Allocate log sieve array */
+        float *logsum = calloc(sieve_size, sizeof(float));
+
+        /* For the sieve, we accumulate log(p) for each prime dividing x^2-N.
+         * A position is a candidate if the accumulated log is close to
+         * log(|x^2-N|). Since |x^2-N| varies with position, we use a
+         * per-position approach: store expected_log[j] and compare.
+         *
+         * expected_log[j] = log(|sieve_start+j|^2 - N|)
+         * We precompute this approximately. For positions near sqrt(N):
+         *   |x^2-N| ≈ |2*sqrt(N)*(x - sqrt(N)) + (x-sqrt(N))^2|
+         *
+         * Threshold: accept if logsum[j] > expected_log[j] - T
+         * where T accounts for one large prime we might miss. */
+        double log_largest_fb = log((double)fb[fb_size-1]);
+        /* Large tolerance: we expect smooth numbers to have most of their
+         * log accounted for by sieved primes. Allow missing up to half
+         * the expected log since prime powers and near-misses are common. */
+        double T = log_largest_fb * 3.0 + 5.0;
+
+        /* Precompute approximate expected log for sieve positions.
+         * Position j in the sieve corresponds to x = sieve_start + j.
+         * We compute delta = x - sqrt(N), then |x^2-N| ≈ |2*sqrt(N)*delta + delta^2|.
+         * For efficiency, compute log(|x^2-N|) approximately using double. */
+        double dsqrt = mpz_get_d(sqrt_N);
+        double dstart = mpz_get_d(sieve_start);
+        float *expected_log = malloc(sizeof(float) * sieve_size);
+        for (long j = 0; j < sieve_size; j++) {
+            double dx = dstart + j;
+            double delta = dx - dsqrt;
+            double residual = fabs(2.0 * dsqrt * delta + delta * delta);
+            if (residual < 1.0) residual = 1.0;
+            expected_log[j] = (float)log(residual);
+        }
+
+        /* For each FB prime, find starting offsets and sieve */
+        mpz_t tmp_off;
+        mpz_init(tmp_off);
+
+        for (int fi = 0; fi < fb_size; fi++) {
+            int p = fb[fi];
+            float logp = logf((float)p);
+
+            /* Find offset where (sieve_start + offset)^2 ≡ N (mod p)
+             * i.e., sieve_start + offset ≡ ±root (mod p)
+             * offset ≡ root - sieve_start (mod p)  and  offset ≡ -root - sieve_start (mod p) */
+
+            /* Compute sieve_start mod p */
+            unsigned long s_mod_p = mpz_fdiv_ui(sieve_start, p);
+            unsigned long r = mpz_get_ui(roots[fi]);
+
+            /* For p=2, handle specially */
+            if (p == 2) {
+                /* x^2 - N mod 2: if N is odd, x^2-N is even when x is odd */
+                unsigned long start = (s_mod_p % 2 == 1) ? 0 : 1;
+                for (long j = start; j < sieve_size; j += 2)
+                    logsum[j] += logp;
+                continue;
+            }
+
+            /* Two roots: r and p-r */
+            for (int sign = 0; sign < 2; sign++) {
+                unsigned long root_val = (sign == 0) ? r : (p - r);
+                if (root_val >= (unsigned long)p) root_val %= p;
+
+                long off = (long)root_val - (long)s_mod_p;
+                if (off < 0) off += p;
+
+                /* Sieve with this root */
+                for (long j = off; j < sieve_size; j += p)
+                    logsum[j] += logp;
+
+                /* Also sieve prime powers */
+                long pp = (long)p * p;
+                while (pp < sieve_size * 2 && pp > 0) {
+                    /* Find offset for p^k */
+                    /* We need (sieve_start + j)^2 ≡ N (mod p^k) */
+                    /* This requires lifting the root, which is complex.
+                     * For simplicity, just check divisibility during trial factor. */
+                    break;
+                }
+            }
+        }
+
+        /* Now scan for candidates where logsum ≈ expected_log and trial-factor */
+        mpz_t sx, sv;
+        mpz_init(sx); mpz_init(sv);
+        int *ev = calloc(fb_size, sizeof(int));
+        int candidates = 0;
+
+        for (long j = 0; j < sieve_size && nrels < max_rels; j++) {
+            if (logsum[j] < expected_log[j] - T) continue;
+            candidates++;
+
+            mpz_add_ui(sx, sieve_start, j);
+            mpz_mul(sv, sx, sx);
+            mpz_sub(sv, sv, N);
+            if (mpz_sgn(sv) == 0) continue;
+
+            int sign = (mpz_sgn(sv) < 0) ? 1 : 0;
+
+            if (trial_factor(sv, fb, fb_size, ev)) {
+                mpz_set(rels[nrels].x, sx);
+                memcpy(rels[nrels].exponents, ev, sizeof(int)*fb_size);
+                rels[nrels].sign = sign;
+                nrels++;
+            }
+        }
+
+        free(ev);
+        free(logsum);
+        free(expected_log);
+        mpz_clears(sx, sv, sieve_start, tmp_off, NULL);
+        printf("  Sieve phase: %d smooth relations found (checked %d candidates)\n", nrels, candidates);
+    }
+
+    /* ------------------------------------------------------------ */
+    /* Phase 2: Lattice-based CRT approach for more relations        */
+    /* Use subsets of FB primes, CRT to find x ≡ r_i (mod p_i),     */
+    /* then search near sqrt(N) for smooth x^2-N.                   */
+    /* ------------------------------------------------------------ */
+    if (nrels < needed) {
+        printf("  Lattice-CRT phase (have %d, need %d)...\n", nrels, needed);
+
+        mpz_t crt_x, crt_mod, tmp_crt, inv_z;
+        mpz_inits(crt_x, crt_mod, tmp_crt, inv_z, NULL);
+
+        int *ev = calloc(fb_size, sizeof(int));
+        mpz_t base_x, test_x, test_val;
+        mpz_inits(base_x, test_x, test_val, NULL);
+
+        /* Try subsets of increasing size */
+        for (int ss = 3; ss <= fb_size && ss <= 12 && nrels < needed; ss++) {
+            for (int attempt = 0; attempt < 100 && nrels < needed; attempt++) {
+                /* Select ss primes from FB (skip p=2 for CRT simplicity) */
+                int *sidx = malloc(sizeof(int) * ss);
+                mpz_set_ui(crt_x, 0);
+                mpz_set_ui(crt_mod, 1);
+                int ok = 1;
+
+                for (int i = 0; i < ss && ok; i++) {
+                    int idx = 1 + ((attempt * 7 + i * 13 + ss * 3) % (fb_size - 1));
+                    sidx[i] = idx;
+                    mpz_set_ui(p_mpz, fb[idx]);
+
+                    /* Check coprimality with current modulus */
+                    mpz_t g;
+                    mpz_init(g);
+                    mpz_gcd(g, crt_mod, p_mpz);
+                    if (mpz_cmp_ui(g, 1) != 0) { mpz_clear(g); ok = 0; break; }
+                    mpz_clear(g);
+
+                    /* CRT step */
+                    mpz_sub(tmp_crt, roots[idx], crt_x);
+                    mpz_mod(tmp_crt, tmp_crt, p_mpz);
+                    if (!mpz_invert(inv_z, crt_mod, p_mpz)) { ok = 0; break; }
+                    mpz_mul(tmp_crt, tmp_crt, inv_z);
+                    mpz_mod(tmp_crt, tmp_crt, p_mpz);
+                    mpz_addmul(crt_x, crt_mod, tmp_crt);
+                    mpz_mul(crt_mod, crt_mod, p_mpz);
+                    mpz_mod(crt_x, crt_x, crt_mod);
+                }
+
+                if (!ok) { free(sidx); continue; }
+
+                /* Find k so that crt_x + k*crt_mod ≈ sqrt(N) */
+                mpz_sub(tmp_crt, sqrt_N, crt_x);
+                mpz_fdiv_q(tmp_crt, tmp_crt, crt_mod);
+
+                mpz_set(base_x, crt_x);
+                mpz_addmul(base_x, tmp_crt, crt_mod);
+
+                /* Search near base_x */
+                mpz_set(test_x, base_x);
+                mpz_submul_ui(test_x, crt_mod, 200);
+
+                for (int delta = 0; delta < 400 && nrels < max_rels; delta++) {
+                    mpz_mul(test_val, test_x, test_x);
+                    mpz_sub(test_val, test_val, N);
+                    if (mpz_sgn(test_val) != 0) {
+                        int sign = (mpz_sgn(test_val) < 0) ? 1 : 0;
+                        if (trial_factor(test_val, fb, fb_size, ev)) {
+                            /* Check for duplicates */
+                            int dup = 0;
+                            for (int r = 0; r < nrels; r++)
+                                if (mpz_cmp(rels[r].x, test_x) == 0) { dup = 1; break; }
+                            if (!dup) {
+                                mpz_set(rels[nrels].x, test_x);
+                                memcpy(rels[nrels].exponents, ev, sizeof(int)*fb_size);
+                                rels[nrels].sign = sign;
+                                nrels++;
+                            }
+                        }
+                    }
+                    mpz_add(test_x, test_x, crt_mod);
+                }
+
+                free(sidx);
+            }
+        }
+
+        free(ev);
+        mpz_clears(crt_x, crt_mod, tmp_crt, inv_z, base_x, test_x, test_val, NULL);
+        printf("  After lattice-CRT: %d relations total\n", nrels);
+    }
+
+    /* ------------------------------------------------------------ */
+    /* Phase 3: LLL lattice for candidate generation                 */
+    /* Build lattice where short vectors give x with x^2-N divisible */
+    /* by many FB primes. We use the approach:                       */
+    /*   Row 0: (M, 0, 0, ..., 0)  where M = prod of subset primes  */
+    /*   Row i: (r_i, 0, ..., p_i, ..., 0) with r_i in col 0       */
+    /* Short vectors give small linear combinations.                 */
+    /* ------------------------------------------------------------ */
+    if (nrels < needed && fb_size >= 4) {
+        printf("  LLL lattice phase...\n");
+
+        int ldim = (fb_size < 12) ? fb_size : 12;
+        int mdim = ldim + 1;  /* matrix is mdim x mdim */
+
+        mpz_t *lat = malloc(sizeof(mpz_t) * mdim * mdim);
+        for (int i = 0; i < mdim * mdim; i++) mpz_init_set_ui(lat[i], 0);
+
+        /* Compute M = product of first ldim FB primes (skipping 2) */
+        mpz_t M;
+        mpz_init_set_ui(M, 1);
+        for (int i = 0; i < ldim && i + 1 < fb_size; i++)
+            mpz_mul_ui(M, M, fb[i + 1]);
+
+        /* Row 0: (M, 0, ..., 0) */
+        mpz_set(MAT(lat, 0, 0, mdim), M);
+
+        /* Row i (1..ldim): (r_i, 0, ..., p_i, ..., 0) */
+        for (int i = 0; i < ldim; i++) {
+            int fi = i + 1;  /* skip p=2 */
+            if (fi >= fb_size) break;
+            mpz_set(MAT(lat, i+1, 0, mdim), roots[fi]);
+            mpz_set_ui(MAT(lat, i+1, i+1, mdim), fb[fi]);
+        }
+
+        printf("  Running LLL on %d x %d lattice...\n", mdim, mdim);
+        lll_reduce(lat, mdim, mdim);
+        printf("  LLL complete.\n");
+
+        /* Extract x candidates from short vectors (column 0) */
+        int *ev = calloc(fb_size, sizeof(int));
+        mpz_t sx, sv, adj;
+        mpz_inits(sx, sv, adj, NULL);
+
+        for (int row = 0; row < mdim && nrels < max_rels; row++) {
+            mpz_abs(sx, MAT(lat, row, 0, mdim));
+            if (mpz_sgn(sx) == 0) continue;
+
+            /* Adjust to be near sqrt(N): find k such that sx + k*M ≈ sqrt(N) */
+            mpz_sub(adj, sqrt_N, sx);
+            mpz_fdiv_q(adj, adj, M);
+            mpz_addmul(sx, adj, M);
+
+            /* Search near this x */
+            mpz_t tx, tv;
+            mpz_init(tx); mpz_init(tv);
+            mpz_set(tx, sx);
+            mpz_submul_ui(tx, M, 20);
+
+            for (int d = 0; d < 40 && nrels < max_rels; d++) {
+                mpz_mul(tv, tx, tx);
+                mpz_sub(tv, tv, N);
+                if (mpz_sgn(tv) != 0) {
+                    int sign = (mpz_sgn(tv) < 0) ? 1 : 0;
+                    if (trial_factor(tv, fb, fb_size, ev)) {
+                        int dup = 0;
+                        for (int r = 0; r < nrels; r++)
+                            if (mpz_cmp(rels[r].x, tx) == 0) { dup = 1; break; }
+                        if (!dup) {
+                            mpz_set(rels[nrels].x, tx);
+                            memcpy(rels[nrels].exponents, ev, sizeof(int)*fb_size);
+                            rels[nrels].sign = sign;
+                            nrels++;
+                        }
+                    }
+                }
+                mpz_add(tx, tx, M);
+            }
+            mpz_clear(tx); mpz_clear(tv);
+        }
+
+        free(ev);
+        mpz_clears(sx, sv, adj, M, NULL);
+        for (int i = 0; i < mdim * mdim; i++) mpz_clear(lat[i]);
+        free(lat);
+        printf("  After LLL phase: %d relations total\n", nrels);
+    }
+
+    printf("  Collected %d relations (needed %d)\n", nrels, needed);
+
+    if (nrels < needed) {
+        fprintf(stderr, "  Not enough relations (%d < %d)\n", nrels, needed);
+        goto fail;
+    }
+
+    /* ------------------------------------------------------------ */
+    /* Phase 4: Gaussian elimination + factor extraction              */
+    /* ------------------------------------------------------------ */
+    {
+        int ndeps = 0;
+        dependency_t *deps = gauss_find_deps(rels, nrels, fb_size, &ndeps);
+        printf("  Gaussian elimination found %d dependencies\n", ndeps);
+
+        for (int d = 0; d < ndeps; d++) {
+            if (try_dependency(N, rels, fb, fb_size, &deps[d], factor_out)) {
+                printf("  Dependency %d yielded a factor!\n", d);
+                for (int i = 0; i < ndeps; i++) free(deps[i].indices);
+                free(deps);
+                goto success;
+            }
+        }
+
+        for (int i = 0; i < ndeps; i++) free(deps[i].indices);
+        free(deps);
+        printf("  No dependency yielded a nontrivial factor\n");
+    }
+
+fail:
+    for (int i = 0; i < fb_size; i++) mpz_clear(roots[i]);
+    free(roots);
+    mpz_clears(p_mpz, n_mod_p, sqrt_N, NULL);
+    for (int i = 0; i < max_rels; i++) { mpz_clear(rels[i].x); free(rels[i].exponents); }
+    free(rels);
+    free(fb);
+    return 0;
+
+success:
+    for (int i = 0; i < fb_size; i++) mpz_clear(roots[i]);
+    free(roots);
+    mpz_clears(p_mpz, n_mod_p, sqrt_N, NULL);
+    for (int i = 0; i < max_rels; i++) { mpz_clear(rels[i].x); free(rels[i].exponents); }
+    free(rels);
+    free(fb);
+    return 1;
+}
+
+/* ================================================================== */
+/* Pollard's rho (for comparison / fallback)                           */
+/* ================================================================== */
+static int pollard_rho(const mpz_t N, mpz_t factor_out) {
+    mpz_t x, y, d, c, tmp;
+    mpz_inits(x, y, d, c, tmp, NULL);
+    gmp_randstate_t st;
+    gmp_randinit_default(st);
+    gmp_randseed_ui(st, 42);
+
+    for (int a = 0; a < 50; a++) {
+        mpz_urandomm(x, st, N);
+        mpz_set(y, x);
+        mpz_urandomm(c, st, N);
+        if (mpz_sgn(c) == 0) mpz_set_ui(c, 1);
+        mpz_set_ui(d, 1);
+
+        while (mpz_cmp_ui(d, 1) == 0) {
+            mpz_mul(x, x, x); mpz_add(x, x, c); mpz_mod(x, x, N);
+            mpz_mul(y, y, y); mpz_add(y, y, c); mpz_mod(y, y, N);
+            mpz_mul(y, y, y); mpz_add(y, y, c); mpz_mod(y, y, N);
+            mpz_sub(tmp, x, y); mpz_abs(tmp, tmp);
+            mpz_gcd(d, tmp, N);
+        }
+        if (mpz_cmp(d, N) != 0) {
+            mpz_set(factor_out, d);
+            mpz_clears(x, y, d, c, tmp, NULL);
+            gmp_randclear(st);
+            return 1;
+        }
+    }
+    mpz_clears(x, y, d, c, tmp, NULL);
+    gmp_randclear(st);
+    return 0;
+}
+
+/* ================================================================== */
+/* Main                                                                */
+/* ================================================================== */
+int main(int argc, char **argv) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <N> [rho]\n", argv[0]);
+        return 1;
+    }
+
+    mpz_t N, factor;
+    mpz_inits(N, factor, NULL);
+    if (mpz_set_str(N, argv[1], 10) != 0) {
+        fprintf(stderr, "Invalid number: %s\n", argv[1]);
+        return 1;
+    }
 
     if (mpz_cmp_ui(N, 4) < 0) {
-        gmp_printf("N=%Zd is too small\n", N);
-        mpz_clears(N, factor, cofactor, NULL);
+        gmp_printf("%Zd is too small\n", N);
         return 1;
     }
+    if (mpz_even_p(N)) { printf("2\n"); mpz_clears(N, factor, NULL); return 0; }
+    if (mpz_perfect_power_p(N)) {
+        mpz_t root;
+        mpz_init(root);
+        for (unsigned long e = 2; e <= 64; e++)
+            if (mpz_root(root, N, e)) {
+                gmp_printf("%Zd (perfect %lu-th power)\n", root, e);
+                mpz_clear(root); mpz_clears(N, factor, NULL); return 0;
+            }
+        mpz_clear(root);
+    }
 
-    // Check for small factors first
-    for (unsigned long p = 2; p < 1000000; p++) {
-        if (mpz_divisible_ui_p(N, p)) {
-            mpz_set_ui(factor, p);
-            mpz_divexact(cofactor, N, factor);
-            gmp_printf("%Zd = %Zd * %Zd\n", N, factor, cofactor);
-            mpz_clears(N, factor, cofactor, NULL);
-            return 0;
+    int use_rho = (argc >= 3 && strcmp(argv[2], "rho") == 0);
+
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+
+    int found;
+    if (use_rho) {
+        printf("Pollard's rho:\n");
+        found = pollard_rho(N, factor);
+    } else {
+        gmp_printf("Lattice factoring: N = %Zd (%zd digits)\n", N, mpz_sizeinbase(N, 10));
+        found = lattice_factor(N, factor);
+        if (!found) {
+            printf("Lattice failed, falling back to Pollard's rho...\n");
+            found = pollard_rho(N, factor);
         }
     }
 
-    int digits = (int)(mpz_sizeinbase(N, 10));
-    printf("Factoring %d-digit number\n", digits);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    double elapsed = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec)/1e9;
 
-    time_t start = time(NULL);
-
-    // Strategy 1: Enhanced Fermat (fast for close factors)
-    printf("Trying enhanced Fermat...\n");
-    if (fermat_enhanced(N, factor)) {
+    if (found) {
+        mpz_t cofactor;
+        mpz_init(cofactor);
         mpz_divexact(cofactor, N, factor);
-        double elapsed = difftime(time(NULL), start);
-        gmp_printf("%Zd = %Zd * %Zd (Fermat, %.1fs)\n", N, factor, cofactor, elapsed);
-        mpz_clears(N, factor, cofactor, NULL);
-        return 0;
+        gmp_printf("Factor: %Zd\n", factor);
+        gmp_printf("Cofactor: %Zd\n", cofactor);
+        mpz_clear(cofactor);
+    } else {
+        printf("Failed to find a factor.\n");
     }
-    printf("Fermat: no close factors found (%.0fs)\n", difftime(time(NULL), start));
+    printf("Time: %.4f seconds\n", elapsed);
 
-    // Strategy 2: Lehman enhanced
-    printf("Trying enhanced Lehman...\n");
-    int k_max = 1000000; // search up to k=10^6
-    if (lehman_enhanced(N, factor, k_max)) {
-        mpz_divexact(cofactor, N, factor);
-        double elapsed = difftime(time(NULL), start);
-        gmp_printf("%Zd = %Zd * %Zd (Lehman k<=%d, %.1fs)\n", N, factor, cofactor, k_max, elapsed);
-        mpz_clears(N, factor, cofactor, NULL);
-        return 0;
-    }
-    printf("Lehman: no factors found with k<=%d (%.0fs)\n", k_max, difftime(time(NULL), start));
-
-    // Strategy 3: Lattice smooth congruence
-    printf("Trying lattice-based search...\n");
-    if (lattice_smooth_factor(N, factor, 60)) {
-        mpz_divexact(cofactor, N, factor);
-        double elapsed = difftime(time(NULL), start);
-        gmp_printf("%Zd = %Zd * %Zd (Lattice, %.1fs)\n", N, factor, cofactor, elapsed);
-        mpz_clears(N, factor, cofactor, NULL);
-        return 0;
-    }
-    printf("Lattice: no factors found (%.0fs)\n", difftime(time(NULL), start));
-
-    printf("All strategies failed after %.0fs\n", difftime(time(NULL), start));
-    mpz_clears(N, factor, cofactor, NULL);
-    return 1;
+    mpz_clears(N, factor, NULL);
+    return found ? 0 : 1;
 }
