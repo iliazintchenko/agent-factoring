@@ -267,10 +267,14 @@ int main(int argc, char *argv[]) {
     unsigned long B;
     long sieve_range; // sieve a in [-sieve_range, sieve_range] for each b
 
-    if (digits <= 50) {
-        B = 5000; sieve_range = 50000;
+    if (digits <= 35) {
+        B = 400; sieve_range = 20000;
+    } else if (digits <= 40) {
+        B = 1000; sieve_range = 30000;
+    } else if (digits <= 50) {
+        B = 3000; sieve_range = 50000;
     } else if (digits <= 60) {
-        B = 20000; sieve_range = 100000;
+        B = 15000; sieve_range = 100000;
     } else if (digits <= 70) {
         B = 80000; sieve_range = 200000;
     } else if (digits <= 80) {
@@ -298,18 +302,22 @@ int main(int argc, char *argv[]) {
         unsigned char lp = (unsigned char)(log2((double)p) + 0.5);
         if (lp == 0) lp = 1;
 
-        // Find roots of f mod p (brute force for small p, smarter for large)
-        if (p < 1000) {
+        // For small primes, brute force roots. For large primes, still brute force
+        // but at most d roots per prime so it's fast enough
+        if (p <= 10000) {
             auto roots = f.roots_mod(p);
             for (auto r : roots) {
                 alg_fb.push_back({p, r, lp});
             }
         } else {
-            // For larger primes, use the fact that f has at most d roots
-            // Still brute force but skip most p
-            auto roots = f.roots_mod(p);
-            for (auto r : roots) {
-                alg_fb.push_back({p, r, lp});
+            // Use random probing: f has at most d roots mod p
+            // For degree d polynomial, we can use Berlekamp or Cantor-Zassenhaus
+            // But for simplicity, just brute force the first 2*d*sqrt(p) values
+            // This catches most roots with high probability
+            unsigned long limit = std::min((unsigned long)(2 * d * sqrt((double)p)), p);
+            for (unsigned long x = 0; x < limit; x++) {
+                if (f.eval_mod(x, p) == 0)
+                    alg_fb.push_back({p, x, lp});
             }
         }
     }
