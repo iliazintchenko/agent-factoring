@@ -722,19 +722,20 @@ int main(int argc, char *argv[]) {
                                 n_full++;
                             } else if (mpz_fits_ulong_p(residue)) {
                                 uint64_t cof = mpz_get_ui(residue);
-                                if (cof <= lp_bound && is_prime_64(cof)) {
-                                    /* SLP: try matching */
+                                /* Determine effective LP bound for matching */
+                                unsigned long eff_lp_bound = use_dlp ? dlp_bound : lp_bound;
+                                if (cof <= eff_lp_bound && is_prime_64(cof)) {
+                                    /* SLP: try matching (extended to DLP bound when DLP active) */
                                     uint32_t sh = (uint32_t)((cof * 0x9E3779B97F4A7C15ULL) >> (64 - LP_MAP_BITS));
                                     int matched = 0;
                                     for (lp_node_t *n = slp_buckets[sh]; n; n = n->next) {
                                         if (n->lp == cof) {
-                                            /* Found match: combine */
                                             int ri = rels->count;
-                                            int pi = n->col_idx; /* reusing col_idx as partial index */
+                                            int pi = n->col_idx;
                                             mpz_mul(rels->ax_b[ri], ax_b, slp_ax_b[pi]);
                                             mpz_mod(rels->ax_b[ri], rels->ax_b[ri], N);
                                             mpz_mul(rels->Qx[ri], aQx, slp_Qx[pi]);
-                                            rels->nlps[ri] = 0; /* LP cancels */
+                                            rels->nlps[ri] = 0;
                                             rels->count++;
                                             n_slp++;
                                             matched = 1;
@@ -742,7 +743,6 @@ int main(int argc, char *argv[]) {
                                         }
                                     }
                                     if (!matched && slp_count < MAX_PARTIALS) {
-                                        /* Store as partial */
                                         int pi = slp_count;
                                         mpz_set(slp_ax_b[pi], ax_b);
                                         mpz_set(slp_Qx[pi], aQx);
@@ -753,22 +753,10 @@ int main(int argc, char *argv[]) {
                                         slp_buckets[sh] = n;
                                         slp_count++;
                                     }
-                                } else if (use_dlp && cof > lp_bound && cof <= (uint64_t)dlp_bound * dlp_bound) {
-                                    /* Try DLP: split cofactor */
+                                } else if (use_dlp && !is_prime_64(cof) && cof <= (uint64_t)dlp_bound * dlp_bound) {
+                                    /* DLP: try to split composite cofactor into two primes */
                                     uint64_t f1 = 0;
-                                    int split = 0;
-                                    if (is_prime_64(cof)) {
-                                        if (cof <= dlp_bound) {
-                                            /* Single LP within DLP bound: store with LP column */
-                                            int ri = rels->count;
-                                            mpz_set(rels->ax_b[ri], ax_b);
-                                            mpz_set(rels->Qx[ri], aQx);
-                                            rels->lps[ri][0] = cof;
-                                            rels->nlps[ri] = 1;
-                                            rels->count++;
-                                            n_slp++;
-                                        }
-                                    } else if (pollard_rho_64(cof, &f1)) {
+                                    if (pollard_rho_64(cof, &f1)) {
                                         uint64_t f2 = cof / f1;
                                         if (f1 > f2) { uint64_t t2 = f1; f1 = f2; f2 = t2; }
                                         if (f2 <= dlp_bound && is_prime_64(f1) && is_prime_64(f2)) {
