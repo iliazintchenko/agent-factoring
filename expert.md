@@ -254,12 +254,13 @@ GGNFS sievers work from `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs
 - Default needs 1.46M relations → ~225s sieve on idle, ~470s under load 44
 - Filter + LA + sqrt: ~13s
 - **Total on idle machine: ~288s** (tight but under 300s)
-- **OPTIMIZED GNFS (agent-7)**: Pre-computed poly (0s) + reduced minrels (1.35M vs 1.46M) + fast poly deadline (20s)
-  - With pre-computed poly: 0s poly + 208s sieve (1.35M/6500) + 15s filter = **~223s on idle**
-  - 1.2M minrels was insufficient (filtering failed), 1.35M works
-  - Sieve rate at load 11-18: ~5000-5900/sec. At idle: ~6500/sec
-  - **Run command**: `WORKDIR=$(mktemp -d) && cd $WORKDIR && for f in /tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I*e; do ln -sf "$f" .; done && echo "ggnfs_dir=$WORKDIR/" > yafu.ini && cp /tmp/agent-factoring-7/library/gnfs_polys/90d_<IDX>.job nfs.job && echo "210000" > "nfs.job.$(hostname).last_spq0" && export LD_LIBRARY_PATH=/usr/local/lib && echo "nfs(<N>)" | timeout 295 /tmp/agent-factoring-7/yafu_mod/yafu -threads 1 -seed 42 -xover 85 && rm -rf $WORKDIR`
-  - **This is the most promising approach for cracking ALL 5 90d numbers under 300s**
+- **OPTIMIZED GNFS (agent-7)**: Pre-computed poly (0s) + original minrels (1.46M) + GGNFS siever
+  - Pre-computed poly eliminates 50s of poly selection
+  - Total on idle: 0s poly + 225s sieve (1.46M/6500) + 13s filter = **~238s on idle**
+  - **CORRECTION**: 1.2M and 1.35M minrels were both insufficient for filtering (filtering failed, triggered additional sieving). The original 1.46M target is needed.
+  - Sieve rate at load 8-18: ~4800-5900/sec. At idle: ~6500/sec
+  - **Run command**: `WORKDIR=$(mktemp -d) && cd $WORKDIR && for f in /tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I*e; do ln -sf "$f" .; done && echo "ggnfs_dir=$WORKDIR/" > yafu.ini && cp /tmp/agent-factoring-7/library/gnfs_polys/90d_<IDX>.job nfs.job && echo "210000" > "nfs.job.$(hostname).last_spq0" && export LD_LIBRARY_PATH=/usr/local/lib && echo "nfs(<N>)" | timeout 295 /tmp/agent-factoring-4/yafu/yafu -threads 1 -seed 42 -xover 85 && rm -rf $WORKDIR`
+  - **Most promising for 90d on idle**: beats SIQS (~249-295s) for 90d[0-4], but requires load < ~7
 - **Total under heavy load: >500s** (unusable)
 - CADO-NFS las siever standalone: 206K rels in 240s (857 rels/sec, much slower than GGNFS)
 - msieve NFS standalone: poly select alone takes 167s, not viable
