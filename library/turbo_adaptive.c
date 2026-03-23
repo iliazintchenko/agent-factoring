@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <immintrin.h>
 #include <time.h>
 #include <stdint.h>
 #include <gmp.h>
@@ -542,16 +541,8 @@ static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_d
         if (pr != pivot) { gf2w *t = rows[pr]; rows[pr] = rows[pivot]; rows[pivot] = t; }
         for (int r = 0; r < new_nrows; r++) {
             if (r == pivot) continue;
-            if (!((rows[r][c/64] >> (c%64)) & 1)) continue;
-            int w = 0;
-#ifdef __AVX512F__
-            for (; w + 8 <= total_words; w += 8) {
-                __m512i a = _mm512_loadu_si512((__m512i*)(rows[r] + w));
-                __m512i b = _mm512_loadu_si512((__m512i*)(rows[pivot] + w));
-                _mm512_storeu_si512((__m512i*)(rows[r] + w), _mm512_xor_si512(a, b));
-            }
-#endif
-            for (; w < total_words; w++) rows[r][w] ^= rows[pivot][w];
+            if ((rows[r][c/64] >> (c%64)) & 1)
+                for (int w = 0; w < total_words; w++) rows[r][w] ^= rows[pivot][w];
         }
         pivot++;
     }
@@ -668,8 +659,8 @@ static params_t get_params(int bits) {
     if (bits <= 210) return (params_t){4000, 30, 180, 160, 0.835, 1};
     if (bits <= 220) return (params_t){5500,  30, 200, 180, 0.84, 1};
     if (bits <= 230) return (params_t){7000,  38, 200, 200, 0.845, 1};
-    if (bits <= 240) return (params_t){9000,  46, 200, 220, 0.85, 1};
-    if (bits <= 252) return (params_t){11000, 56, 200, 250, 0.85, 1};
+    if (bits <= 245) return (params_t){9000, 48, 200, 220, 0.85, 1};
+    if (bits <= 250) return (params_t){12000, 56, 200, 250, 0.855, 1};
     if (bits <= 260) return (params_t){16000, 66, 200, 300, 0.86, 1};
     if (bits <= 270) return (params_t){22000, 80, 200, 350, 0.865, 1};
     if (bits <= 280) return (params_t){30000, 96, 200, 400, 0.87, 1};
@@ -909,67 +900,30 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            /* Precompute initial root offsets for block 0 */
-            static uint32_t blk_off1[MAX_FB], blk_off2[MAX_FB];
-            {
-                int64_t bbase0 = -M;
-                for (int i = 1; i < bucket_thresh; i++) {
-                    if (soln1[i] == 0xFFFFFFFF) { blk_off1[i] = blk_off2[i] = 0; continue; }
-                    uint32_t p = fb->prime[i];
-                    int64_t o1 = ((int64_t)soln1[i] - bbase0) % (int64_t)p; if (o1 < 0) o1 += p;
-                    int64_t o2 = ((int64_t)soln2[i] - bbase0) % (int64_t)p; if (o2 < 0) o2 += p;
-                    blk_off1[i] = (uint32_t)o1;
-                    blk_off2[i] = (uint32_t)o2;
-                }
-            }
-
             /* === Sieve each block === */
             for (int blk = 0; blk < total_blocks; blk++) {
                 int64_t bbase = (int64_t)blk * BLOCK_SIZE - M;
                 memset(sieve, 0, BLOCK_SIZE);
 
-                /* Small/medium primes - optimized inner loops with tracked offsets */
+                /* Small/medium primes */
                 for (int i = 1; i < bucket_thresh; i++) {
                     if (soln1[i] == 0xFFFFFFFF) continue;
                     uint32_t p = fb->prime[i];
                     if (p < 4) continue;
                     uint8_t lp = fb->logp[i];
-                    uint32_t off1 = blk_off1[i], off2 = blk_off2[i];
+                    int64_t off1 = ((int64_t)soln1[i] - bbase) % (int64_t)p; if (off1 < 0) off1 += p;
+                    int64_t off2 = ((int64_t)soln2[i] - bbase) % (int64_t)p; if (off2 < 0) off2 += p;
                     if (soln1[i] == soln2[i]) {
-                        uint32_t j = off1;
-                        for (; j + 3*p < BLOCK_SIZE; j += 4*p) {
-                            sieve[j] += lp; sieve[j+p] += lp;
-                            sieve[j+2*p] += lp; sieve[j+3*p] += lp;
-                        }
-                        for (; j < BLOCK_SIZE; j += p) sieve[j] += lp;
+                        for (int64_t j = off1; j < BLOCK_SIZE; j += p) sieve[j] += lp;
                     } else {
-                        /* Interleave both roots with 2x unroll */
-                        uint32_t j1 = off1, j2 = off2;
-                        while (j1 + p < BLOCK_SIZE && j2 + p < BLOCK_SIZE) {
-                            sieve[j1] += lp; sieve[j2] += lp;
-                            sieve[j1+p] += lp; sieve[j2+p] += lp;
-                            j1 += 2*p; j2 += 2*p;
-                        }
-                        while (j1 < BLOCK_SIZE) { sieve[j1] += lp; j1 += p; }
-                        while (j2 < BLOCK_SIZE) { sieve[j2] += lp; j2 += p; }
+                        for (int64_t j = off1; j < BLOCK_SIZE; j += p) sieve[j] += lp;
+                        for (int64_t j = off2; j < BLOCK_SIZE; j += p) sieve[j] += lp;
                     }
                 }
 
                 /* Bucket entries */
                 for (int e = 0; e < buckets[blk].count; e++)
                     sieve[buckets[blk].entries[e].pos] += buckets[blk].entries[e].logp;
-
-                /* Update offsets for next block (avoid modular arithmetic) */
-                if (blk + 1 < total_blocks) {
-                    for (int i = 1; i < bucket_thresh; i++) {
-                        if (soln1[i] == 0xFFFFFFFF) continue;
-                        uint32_t p = fb->prime[i];
-                        if (p < 4) continue;
-                        uint32_t bs = BLOCK_SIZE % p;
-                        blk_off1[i] = (blk_off1[i] >= bs) ? blk_off1[i] - bs : blk_off1[i] + p - bs;
-                        blk_off2[i] = (blk_off2[i] >= bs) ? blk_off2[i] - bs : blk_off2[i] + p - bs;
-                    }
-                }
 
                 /* === Scan for candidates === */
                 for (int j = 0; j < BLOCK_SIZE; j++) {
@@ -1031,49 +985,95 @@ int main(int argc, char *argv[]) {
                             if (split64(cof, &f1, &f2)) {
                                 if (f1 > f2) { uint64_t t = f1; f1 = f2; f2 = t; }
                                 if (f1 <= lp_bound && f2 <= lp_bound) {
-                                    int pi = rels_add(part, ax_b, aQx, f1, f2);
                                     dlp_found++;
+
+                                    /* DLP→SLP pipeline: check if either LP matches an SLP partial */
+                                    int m1 = lp_find(slp, f1);
+                                    int m2 = lp_find(slp, f2);
+                                    if (m1 >= 0 && m2 >= 0 && m1 != m2) {
+                                        /* Both LPs match SLP partials! DLP+SLP+SLP → full */
+                                        mpz_mul(tmp, ax_b, part->ax_b[m1]);
+                                        mpz_mul(tmp, tmp, part->ax_b[m2]);
+                                        mpz_mod(tmp, tmp, N);
+                                        mpz_mul(tmp2, aQx, part->Qx[m1]);
+                                        mpz_mul(tmp2, tmp2, part->Qx[m2]);
+                                        rels_add(full, tmp, tmp2, 0, 0);
+                                        combined_dlp++;
+                                    } else if (m1 >= 0) {
+                                        /* f1 matched SLP: DLP+SLP → new SLP partial with LP=f2 */
+                                        mpz_mul(tmp, ax_b, part->ax_b[m1]);
+                                        mpz_mod(tmp, tmp, N);
+                                        mpz_mul(tmp2, aQx, part->Qx[m1]);
+                                        int pi2 = rels_add(part, tmp, tmp2, f2, 0);
+                                        if (pi2 >= 0) lp_insert(slp, f2, pi2);
+                                        combined_dlp++;
+                                    } else if (m2 >= 0) {
+                                        /* f2 matched SLP: DLP+SLP → new SLP partial with LP=f1 */
+                                        mpz_mul(tmp, ax_b, part->ax_b[m2]);
+                                        mpz_mod(tmp, tmp, N);
+                                        mpz_mul(tmp2, aQx, part->Qx[m2]);
+                                        int pi2 = rels_add(part, tmp, tmp2, f1, 0);
+                                        if (pi2 >= 0) lp_insert(slp, f1, pi2);
+                                        combined_dlp++;
+                                    } else {
+                                        /* No SLP match: store as SLP with f1 */
+                                        int pi = rels_add(part, ax_b, aQx, f1, f2);
+                                        if (pi >= 0) {
+                                            lp_insert(slp, f1, pi);
+                                            /* Also insert with f2 for future matches */
+                                            lp_insert(slp, f2, pi);
+                                        }
+                                    }
+
+                                    int pi = -1; /* For DLP graph compatibility */
+                                    if (m1 < 0 && m2 < 0) pi = 0; /* only do graph matching if no SLP match */
                                     if (pi >= 0) {
                                         /* Add to DLP graph */
                                         int cycle = dlp_add_edge(dlp_g, f1, f2);
                                         if (cycle) dlp_cycles++;
 
-                                        /* DLP→SLP pipeline: check if either LP has SLP match */
-                                        int m1 = lp_find(slp, f1);
-                                        int m2 = lp_find(slp, f2);
-                                        if (m1 >= 0 && m2 >= 0 && m1 != m2) {
-                                            /* Both LPs match: DLP+SLP+SLP → full relation */
-                                            mpz_mul(tmp, ax_b, part->ax_b[m1]);
-                                            mpz_mul(tmp, tmp, part->ax_b[m2]);
-                                            mpz_mod(tmp, tmp, N);
-                                            mpz_mul(tmp2, aQx, part->Qx[m1]);
-                                            mpz_mul(tmp2, tmp2, part->Qx[m2]);
-                                            rels_add(full, tmp, tmp2, 0, 0);
-                                            combined_dlp++;
-                                        } else if (m1 >= 0) {
-                                            /* f1 matched: DLP+SLP → new SLP with LP=f2 */
-                                            mpz_mul(tmp, ax_b, part->ax_b[m1]);
-                                            mpz_mod(tmp, tmp, N);
-                                            mpz_mul(tmp2, aQx, part->Qx[m1]);
-                                            int npi = rels_add(part, tmp, tmp2, f2, 0);
-                                            if (npi >= 0) lp_insert(slp, f2, npi);
-                                            combined_dlp++;
-                                        } else if (m2 >= 0) {
-                                            /* f2 matched: DLP+SLP → new SLP with LP=f1 */
-                                            mpz_mul(tmp, ax_b, part->ax_b[m2]);
-                                            mpz_mod(tmp, tmp, N);
-                                            mpz_mul(tmp2, aQx, part->Qx[m2]);
-                                            int npi = rels_add(part, tmp, tmp2, f1, 0);
-                                            if (npi >= 0) lp_insert(slp, f1, npi);
-                                            combined_dlp++;
-                                        } else {
-                                            /* No SLP match: store with both LPs for future matches */
-                                            int npi1 = rels_add(part, ax_b, aQx, f1, 0);
-                                            if (npi1 >= 0) lp_insert(slp, f1, npi1);
-                                            int npi2 = rels_add(part, ax_b, aQx, f2, 0);
-                                            if (npi2 >= 0) lp_insert(slp, f2, npi2);
+                                        /* Hash by each LP for pairwise matching */
+                                        /* When we find another relation with the same LP,
+                                         * we can try to combine them */
+                                        uint32_t h1 = (uint32_t)((f1 * 0x9E3779B97F4A7C15ULL) >> (64-DLP_PAIR_HASH_BITS));
+                                        uint32_t h2 = (uint32_t)((f2 * 0x9E3779B97F4A7C15ULL) >> (64-DLP_PAIR_HASH_BITS));
+
+                                        /* Look for matching pair */
+                                        for (dp_e_t *e = dp_hash[h1]; e; e = e->next) {
+                                            if (e->lp == f1) {
+                                                int oi = e->rel_idx;
+                                                if (part->lp2[oi] == f2 || part->lp1[oi] == f2) {
+                                                    /* Exact DLP pair match! */
+                                                    mpz_mul(tmp, ax_b, part->ax_b[oi]); mpz_mod(tmp, tmp, N);
+                                                    mpz_mul(tmp2, aQx, part->Qx[oi]);
+                                                    rels_add(full, tmp, tmp2, 0, 0);
+                                                    combined_dlp++;
+                                                    break;
+                                                }
+                                            }
                                         }
-                                    }
+                                        for (dp_e_t *e = dp_hash[h2]; e; e = e->next) {
+                                            if (e->lp == f2) {
+                                                int oi = e->rel_idx;
+                                                if (part->lp1[oi] == f1 || part->lp2[oi] == f1) {
+                                                    /* Already matched above */
+                                                    break;
+                                                }
+                                                if (part->lp1[oi] == f2 || part->lp2[oi] == f2) {
+                                                    /* Two DLP sharing one LP - need 3rd for cycle */
+                                                    /* Skip for now - exact pair match only */
+                                                }
+                                            }
+                                        }
+
+                                        /* Insert into DLP hash */
+                                        if (dp_pool_used + 2 <= MAX_PARTIAL_RELS * 2) {
+                                            dp_e_t *e1 = &dp_pool[dp_pool_used++];
+                                            e1->lp = f1; e1->rel_idx = pi; e1->next = dp_hash[h1]; dp_hash[h1] = e1;
+                                            dp_e_t *e2 = &dp_pool[dp_pool_used++];
+                                            e2->lp = f2; e2->rel_idx = pi; e2->next = dp_hash[h2]; dp_hash[h2] = e2;
+                                        }
+                                    } /* end if (pi >= 0) */
                                 }
                             }
                         }
@@ -1084,10 +1084,20 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            /* Progress */
+            /* Progress + Adaptive threshold */
             if (total_polys % 500 == 0) {
                 double t = elapsed_sec();
                 if (t > 275.0) break;
+                /* Adaptive: if behind schedule, lower threshold */
+                if (total_polys % 2000 == 0 && t > 30.0) {
+                    double expected_rate = (double)target / 265.0; /* rels/sec needed */
+                    double actual_rate = (double)full->count / t;
+                    if (actual_rate < expected_rate * 0.85 && threshold > 15) {
+                        threshold--;
+                        fprintf(stderr, "  ADAPTIVE: lowering thresh to %d (rate %.1f vs needed %.1f)\n",
+                                threshold, actual_rate, expected_rate);
+                    }
+                }
                 if (total_polys % 2000 == 0)
                     fprintf(stderr, "  poly=%d rels=%d/%d (full=%d slp=%d dlp=%d) part=%d dlp_found=%d t=%.1fs\n",
                             total_polys, full->count, target,
