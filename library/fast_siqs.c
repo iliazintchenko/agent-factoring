@@ -949,9 +949,34 @@ int main(int argc, char *argv[]) {
                         long off = ((long)root - (long)block_start_x) % (long)p;
                         if (off < 0) off += p;
 
-                        /* Sieve this root */
-                        for (int j = (int)off; j < BLOCKSIZE; j += p)
-                            sieve_array[j] += lp;
+                        /* Sieve this root - unrolled for small primes */
+                        int j = (int)off;
+                        if (p < BLOCKSIZE / 4) {
+                            /* 4x unroll for very small primes */
+                            int p2 = p * 2, p3 = p * 3, p4 = p * 4;
+                            int limit = BLOCKSIZE - p3;
+                            while (j <= limit) {
+                                sieve_array[j] += lp;
+                                sieve_array[j + p] += lp;
+                                sieve_array[j + p2] += lp;
+                                sieve_array[j + p3] += lp;
+                                j += p4;
+                            }
+                            /* handle remaining */
+                            while (j < BLOCKSIZE) { sieve_array[j] += lp; j += p; }
+                        } else if (p < BLOCKSIZE / 2) {
+                            /* 2x unroll for medium primes */
+                            int limit = BLOCKSIZE - p;
+                            while (j <= limit) {
+                                sieve_array[j] += lp;
+                                sieve_array[j + p] += lp;
+                                j += p * 2;
+                            }
+                            if (j < BLOCKSIZE) sieve_array[j] += lp;
+                        } else {
+                            /* Large primes: max 1 hit per block per root */
+                            if (j < BLOCKSIZE) sieve_array[j] += lp;
+                        }
                     }
                 }
 
