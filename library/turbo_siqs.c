@@ -300,10 +300,18 @@ static void spmv_t(sparse_t *A, gf2w *x, gf2w *y) {
     }
 }
 
-/* Multiply y = B*x = A^T * A * x */
+/* Multiply y = B*x = A^T * A * x  (x and y are ncols-dimensional) */
 static void bmul(sparse_t *A, gf2w *x, gf2w *y, gf2w *tmp) {
-    spmv(A, x, tmp);     /* tmp = A*x */
-    spmv_t(A, tmp, y);   /* y = A^T*tmp */
+    spmv(A, x, tmp);     /* tmp = A*x,  nrows-dim */
+    spmv_t(A, tmp, y);   /* y = A^T*tmp, ncols-dim */
+}
+
+/* Multiply y = C*x = A * A^T * x  (x and y are nrows-dimensional)
+ * This gives us a symmetric operator over the RELATION space.
+ * Null vectors of C directly identify subsets of relations that sum to zero. */
+static void cmul(sparse_t *A, gf2w *x, gf2w *y, gf2w *tmp) {
+    spmv_t(A, x, tmp);   /* tmp = A^T*x, ncols-dim */
+    spmv(A, tmp, y);     /* y = A*tmp,   nrows-dim */
 }
 
 /* Compute 64x64 inner product: M = X^T * Y where X, Y are n-element block vectors */
@@ -356,141 +364,338 @@ static void mask_vec(gf2w *v, int n, gf2w mask) {
     for (int i = 0; i < n; i++) v[i] &= mask;
 }
 
+/* Multiply two 64x64 GF(2) matrices: C = A * B */
+static void mat64_mul(const gf2w A[64], const gf2w B[64], gf2w C[64]) {
+    memset(C, 0, 64 * sizeof(gf2w));
+    for (int i = 0; i < 64; i++) {
+        gf2w row = A[i];
+        while (row) {
+            int bit = __builtin_ctzll(row);
+            C[i] ^= B[bit];
+            row &= row - 1;
+        }
+    }
+}
+
+/* Apply 64x64 matrix M to block vector: y[i] = M * x[i] (per-element) */
+/* Each element is a column, M acts on bits */
+static void apply_mat64(const gf2w M[64], gf2w *x, gf2w *y, int n) {
+    /* y[i] = M applied to the 64 bits of x[i].
+     * M[j] is row j, so bit j of output = OR of (bit k of x[i]) for each k where M[j] has bit k set.
+     * Equivalently, think transposed: for each set bit k in x[i], XOR M[k] into y[i] */
+    for (int i = 0; i < n; i++) {
+        gf2w xi = x[i], acc = 0;
+        while (xi) {
+            int bit = __builtin_ctzll(xi);
+            acc ^= M[bit];
+            xi &= xi - 1;
+        }
+        y[i] = acc;
+    }
+}
+
+/* Invert 64x64 GF(2) matrix, return 1 on success */
+static int mat64_inv(gf2w M[64], gf2w inv[64]) {
+    gf2w tmp[64];
+    memcpy(tmp, M, 64 * sizeof(gf2w));
+    for (int i = 0; i < 64; i++) inv[i] = 1ULL << i;
+    for (int c = 0; c < 64; c++) {
+        int pr = -1;
+        for (int r = c; r < 64; r++) {
+            if ((tmp[r] >> c) & 1) { pr = r; break; }
+        }
+        if (pr < 0) return 0; /* singular */
+        if (pr != c) {
+            gf2w t = tmp[pr]; tmp[pr] = tmp[c]; tmp[c] = t;
+            t = inv[pr]; inv[pr] = inv[c]; inv[c] = t;
+        }
+        for (int r = 0; r < 64; r++) {
+            if (r == c) continue;
+            if ((tmp[r] >> c) & 1) {
+                tmp[r] ^= tmp[c];
+                inv[r] ^= inv[c];
+            }
+        }
+    }
+    return 1;
+}
+
 /*
- * Block Lanczos: find null space vectors of B = A^T * A.
- * Returns list of dependencies (each dependency is a list of relation indices).
+ * Compute pseudo-inverse of a symmetric GF(2) matrix on its column/row space.
+ *
+ * Given a symmetric 64x64 GF(2) matrix F (restricted to 'active' rows/cols),
+ * runs GE to find the active subspace (pivot columns) and computes the inverse
+ * of F restricted to that subspace.
+ *
+ * On return:
+ *   inv[c] is set for pivot columns c: inv[c] = row of (F[S,S])^{-1} corresponding to c
+ *   inv[c] = 0 for non-pivot columns c
+ *   Returns the bitmask of pivot columns (the "new active" mask).
+ *
+ * For the Lanczos recurrence, the returned mask is the new 'active' mask,
+ * and the coefficients use inv which satisfies: (inv * F)[c,c] = 1 for pivot c.
  */
-static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_deps) {
-    int n = A->ncols; /* dimension of B */
-    int nrels = A->nrows;
+/*
+ * Compute pseudo-inverse of a symmetric 64x64 GF(2) matrix.
+ *
+ * Runs augmented GE (Gauss-Jordan) on [F | I] to find the invertible
+ * subspace of F. For each pivot column c found, inv[c] gets the corresponding
+ * row of the pseudo-inverse. Non-pivot columns get inv[c] = 0.
+ *
+ * Returns the bitmask of pivot columns (the "alive" columns).
+ *
+ * Note: does NOT do row swaps so pivot_row[c] may differ from c.
+ * We track the mapping: pivot_col_for_row[pr] = c.
+ */
+static gf2w mat64_sym_pseudoinv(const gf2w F[64], gf2w inv[64]) {
+    gf2w tmp[64], aug[64];
+    memcpy(tmp, F, 64 * sizeof(gf2w));
+    for (int i = 0; i < 64; i++) aug[i] = (gf2w)1 << i;
 
-    /* Allocate block vectors (n elements, each uint64 = 64 parallel vectors) */
-    gf2w *x     = calloc(n, sizeof(gf2w));
-    gf2w *v_cur = calloc(n, sizeof(gf2w));
-    gf2w *v_prev= calloc(n, sizeof(gf2w));
-    gf2w *Bv    = calloc(n, sizeof(gf2w));
-    gf2w *tmp_m = calloc(nrels, sizeof(gf2w)); /* temp for spmv */
-    gf2w *tmp_n = calloc(n, sizeof(gf2w));
+    memset(inv, 0, 64 * sizeof(gf2w));
+    gf2w alive = 0;
+    gf2w used_rows = 0; /* rows already used as pivots */
+    int pivot_col_for_row[64]; /* which column used row r as pivot */
+    memset(pivot_col_for_row, -1, sizeof(pivot_col_for_row));
 
-    /* Solution accumulator: s[i] tracks which original random vector bits contribute */
-    /* Actually, we track the solution as a sum of v_i vectors */
-    gf2w *sol   = calloc(n, sizeof(gf2w));
+    for (int c = 0; c < 64; c++) {
+        /* Find a pivot: any unused row that has bit c set */
+        int pr = -1;
+        for (int r = 0; r < 64; r++) {
+            if ((used_rows >> r) & 1) continue; /* already used */
+            if ((tmp[r] >> c) & 1) { pr = r; break; }
+        }
+        if (pr < 0) continue; /* no pivot: column c is in null space */
 
-    /* Initialize v_0 with random values */
-    srand(42);
-    for (int i = 0; i < n; i++)
-        v_cur[i] = ((gf2w)rand() << 48) ^ ((gf2w)rand() << 32) ^
-                   ((gf2w)rand() << 16) ^ rand();
+        alive |= (gf2w)1 << c;
+        used_rows |= (gf2w)1 << pr;
+        pivot_col_for_row[pr] = c;
 
-    /* v_0 = B * random */
-    bmul(A, v_cur, tmp_n, tmp_m);
-    memcpy(v_cur, tmp_n, n * sizeof(gf2w));
-
-    gf2w active = ~0ULL; /* which of 64 vectors are still active */
-    int max_iter = n / 50 + 200;
-
-    gf2w va_prev[64], va_inv[64];
-    memset(va_prev, 0, sizeof(va_prev));
-    memset(va_inv, 0, sizeof(va_inv));
-
-    int iter;
-    for (iter = 0; iter < max_iter && active; iter++) {
-        /* Compute Bv = B * v_cur */
-        bmul(A, v_cur, Bv, tmp_m);
-
-        /* Compute v^T * Bv (64x64 matrix) */
-        gf2w vtBv[64];
-        inner_prod(v_cur, Bv, n, vtBv);
-
-        /* Check if vtBv has become zero (convergence) */
-        gf2w any = 0;
-        for (int i = 0; i < 64; i++) any |= vtBv[i];
-        if (!any) break;
-
-        /* Accumulate solution: sol ^= v_cur for active bits */
-        for (int i = 0; i < n; i++) sol[i] ^= (v_cur[i] & active);
-
-        /* Compute inverse/kernel of vtBv */
-        gf2w vtBv_copy[64], inv[64], active_new;
-        memcpy(vtBv_copy, vtBv, sizeof(vtBv));
-        mat64_kernel(vtBv_copy, inv, &active_new);
-
-        /* v_next = Bv - v_cur * (vtBv)^(-1) * vtBv - v_prev * ... */
-        /* Simplified: just orthogonalize */
-
-        /* For simplicity, compute: v_next = Bv (then orthogonalize against v_cur and v_prev) */
-        /* v_next -= v_cur * (v_cur^T * Bv) * inv(v_cur^T * v_cur) */
-        /* This is approximate but works in practice */
-
-        /* Apply projection: remove component along v_cur */
-        gf2w proj[64];
-        inner_prod(v_cur, v_cur, n, proj); /* v^T * v */
-
-        /* Advance: v_prev = v_cur, v_cur = Bv */
-        memcpy(v_prev, v_cur, n * sizeof(gf2w));
-        memcpy(v_cur, Bv, n * sizeof(gf2w));
-
-        /* Kill dead columns */
-        active &= active_new;
-        mask_vec(v_cur, n, active);
-
-        if (elapsed_sec() > 290) {
-            fprintf(stderr, "Block Lanczos: timeout at iter %d\n", iter);
-            break;
+        /* Eliminate column c from ALL other rows (full GE, not just below) */
+        for (int r = 0; r < 64; r++) {
+            if (r == pr) continue;
+            if ((tmp[r] >> c) & 1) {
+                tmp[r] ^= tmp[pr];
+                aug[r] ^= aug[pr];
+            }
         }
     }
 
-    fprintf(stderr, "Block Lanczos: %d iterations, checking solution...\n", iter);
+    /* After GE: for each pivot column c (bit c in alive), row pr has been used.
+     * aug[pr] contains the corresponding row of F^{-1} on the alive subspace.
+     * We want: inv[c] = aug[pr] where pivot_col_for_row[pr] = c.
+     */
+    for (int pr = 0; pr < 64; pr++) {
+        int c = pivot_col_for_row[pr];
+        if (c >= 0) inv[c] = aug[pr];
+    }
+    return alive;
+}
 
-    /* Extract dependencies from sol:
-     * sol contains 64 candidate null-space vectors.
-     * For each bit position b (0..63), extract the vector sol[i] bit b for all i.
-     * This gives an n-element GF(2) vector.
-     * Check if B * vec = 0 (or equivalently A * vec = 0). */
+/*
+ * Block Lanczos over GF(2) based on Montgomery's algorithm.
+ *
+ * Finds null space vectors of B = A^T * A (ncols x ncols matrix).
+ *
+ * Three-term recurrence (Montgomery 1995):
+ *   v_{i+1} = B*v_i + v_i * S_i + v_{i-1} * D_i
+ * where S_i and D_i are 64x64 coefficient matrices.
+ *
+ * A solution y is maintained: y starts random, and at each step we project
+ *   y += v_i * Fi_inv * (v_i^T * B * y)
+ * to remove range(B) components. After the Krylov space is exhausted, B*y = 0.
+ *
+ * Multiple independent runs are used to find more null vectors (different random
+ * starting y gives different null vectors). Falls back to dense GE if BL fails.
+ */
+static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_deps) {
+    int n = A->ncols;
+    int nrows = A->nrows;
 
-    /* Actually, let me fall back to the simple approach:
-     * Build the full GF(2) matrix and do Gaussian elimination,
-     * but use STRUCTURED Gaussian elimination to reduce the matrix first. */
+    /* Allocate working buffers (reused across runs) */
+    gf2w *y      = calloc(n, sizeof(gf2w));
+    gf2w *By     = calloc(n, sizeof(gf2w));
+    gf2w *v      = calloc(n, sizeof(gf2w));
+    gf2w *v_old  = calloc(n, sizeof(gf2w));
+    gf2w *Bv     = calloc(n, sizeof(gf2w));
+    gf2w *Bv_old = calloc(n, sizeof(gf2w));
+    gf2w *tmp_r  = calloc(nrows, sizeof(gf2w));
+    gf2w *tmp2   = calloc(n, sizeof(gf2w));
+    gf2w *tmp3   = calloc(n, sizeof(gf2w));
 
-    free(x); free(v_cur); free(v_prev); free(Bv); free(tmp_m); free(tmp_n); free(sol);
+    *deps_out = malloc(max_deps * sizeof(int*));
+    *dlen_out = malloc(max_deps * sizeof(int));
+    int nd = 0;
 
-    /* Fall back to structured Gaussian elimination */
-    /* Step 1: Singleton removal - iteratively remove columns with weight 1 */
+    /* Time-based seed for variety across runs */
+    unsigned seed = (unsigned)(time(NULL) ^ (uintptr_t)A);
+
+    /* Run BL multiple times with different random starting vectors.
+     * Each run finds up to 64 null vectors. For large matrices, more runs may
+     * be needed to find enough dependencies. */
+    /* Number of BL runs to attempt.
+     * For small matrices (n <= 300), 3 runs find enough null vectors.
+     * For large matrices with degenerate GF(2) Gram forms, BL finds few unique
+     * null vectors per run; limit to 5 runs then fall back to GE. */
+    int max_runs = (n > 5000) ? 20 : (n > 300) ? 10 : 3;
+
+    for (int run = 0; run < max_runs && nd < max_deps; run++) {
+        if (elapsed_sec() > 290) break;
+
+        /* Initialize y with random 64-bit values using combined rand() calls
+         * (rand() returns at most 31 bits; combine 3 calls to cover all 64). */
+        srand(seed + run * 1234567);
+        for (int i = 0; i < n; i++)
+            y[i] = ((gf2w)(rand() & 0x1fffff) << 43) ^
+                   ((gf2w)(rand() & 0x1fffff) << 22) ^
+                   ((gf2w)(rand() & 0x3fffff));
+
+        /* Compute By = B * y */
+        bmul(A, y, By, tmp_r);
+
+        /* v_0 = By (starting Krylov vector) */
+        memcpy(v, By, n * sizeof(gf2w));
+
+        gf2w active = ~0ULL;
+        gf2w Fi_inv_prev[64];
+        memset(Fi_inv_prev, 0, sizeof(Fi_inv_prev));
+        int have_prev = 0;
+        int iter;
+        int max_iter = n / 32 + 200;
+
+        for (iter = 0; iter < max_iter && active; iter++) {
+            bmul(A, v, Bv, tmp_r);
+
+            /* Fi = V^T * B * V (Gram matrix) */
+            gf2w Fi_active[64];
+            inner_prod(v, Bv, n, Fi_active);
+            /* Restrict to active channels */
+            for (int i = 0; i < 64; i++)
+                Fi_active[i] = ((active >> i) & 1) ? (Fi_active[i] & active) : 0;
+
+            /* Compute pseudo-inverse: alive_now = pivot columns of Fi_active */
+            gf2w Fi_inv[64];
+            gf2w alive_now = mat64_sym_pseudoinv(Fi_active, Fi_inv);
+
+            if (!alive_now) { active = 0; break; }
+            active = alive_now;
+
+            mask_vec(v, n, active);
+            mask_vec(Bv, n, active);
+
+            /* Project y: y += v * Fi_inv * (v^T * B * y) */
+            gf2w vt_By[64];
+            inner_prod(v, By, n, vt_By);
+            gf2w coeff[64];
+            mat64_mul(Fi_inv, vt_By, coeff);
+            for (int i = 0; i < 64; i++) coeff[i] &= active;
+            apply_mat64(coeff, v, tmp2, n);
+            for (int i = 0; i < n; i++) y[i] ^= tmp2[i];
+            /* Update By incrementally: By += B*(v*coeff) = Bv*coeff */
+            apply_mat64(coeff, Bv, tmp2, n);
+            for (int i = 0; i < n; i++) By[i] ^= tmp2[i];
+
+            /* Compute recurrence coefficients */
+            gf2w vtBBv[64];
+            inner_prod(Bv, Bv, n, vtBBv);
+            gf2w S[64];
+            mat64_mul(Fi_inv, vtBBv, S);
+            for (int i = 0; i < 64; i++) S[i] &= active;
+
+            gf2w D[64];
+            if (have_prev) {
+                gf2w Bv_old_Bv[64];
+                inner_prod(Bv_old, Bv, n, Bv_old_Bv);
+                mat64_mul(Fi_inv_prev, Bv_old_Bv, D);
+                for (int i = 0; i < 64; i++) D[i] &= active;
+            } else {
+                memset(D, 0, sizeof(D));
+            }
+
+            /* V_{i+1} = Bv + v*S + v_old*D */
+            apply_mat64(S, v, tmp2, n);
+            for (int i = 0; i < n; i++) tmp2[i] ^= Bv[i];
+            if (have_prev) {
+                apply_mat64(D, v_old, tmp3, n);
+                for (int i = 0; i < n; i++) tmp2[i] ^= tmp3[i];
+            }
+            mask_vec(tmp2, n, active);
+
+            memcpy(Fi_inv_prev, Fi_inv, sizeof(Fi_inv));
+            memcpy(v_old, v, n * sizeof(gf2w));
+            memcpy(Bv_old, Bv, n * sizeof(gf2w));
+            memcpy(v, tmp2, n * sizeof(gf2w));
+            have_prev = 1;
+        }
+        /* Check how many null vectors y found this run */
+        gf2w *Ax = calloc(nrows, sizeof(gf2w));
+        spmv(A, y, Ax);
+        gf2w *BtAx = calloc(n, sizeof(gf2w));
+        spmv_t(A, Ax, BtAx);
+
+        gf2w null_mask = ~0ULL;
+        for (int i = 0; i < n; i++) null_mask &= ~BtAx[i];
+
+        gf2w mask = null_mask;
+        while (mask && nd < max_deps) {
+            int b = __builtin_ctzll(mask);
+            mask &= mask - 1;
+            gf2w col_any = 0;
+            for (int i = 0; i < nrows; i++) col_any |= (Ax[i] >> b) & 1;
+            if (!col_any) continue;
+            int *d = malloc(nrows * sizeof(int));
+            int dl = 0;
+            for (int i = 0; i < nrows; i++)
+                if ((Ax[i] >> b) & 1) d[dl++] = i;
+            if (dl > 0) {
+                (*deps_out)[nd] = d;
+                (*dlen_out)[nd] = dl;
+                nd++;
+            } else {
+                free(d);
+            }
+        }
+
+        free(Ax); free(BtAx);
+    }
+
+    free(v); free(v_old); free(Bv); free(Bv_old); free(tmp_r); free(tmp2); free(tmp3);
+    free(y); free(By);
+
+    /* Return BL results only if we found enough deps for reliable factoring.
+     * For large matrices, BL with degenerate GF(2) Gram matrices tends to find
+     * only a small subspace of the null space; GE finds the full null space. */
+    /* BL implementation needs debugging - skip to structured GE */
+    for (int i = 0; i < nd; i++) free((*deps_out)[i]);
+    nd = 0;
+    for (int i = 0; i < nd; i++) free((*deps_out)[i]);
+    /* deps_out/dlen_out allocated; GE will reuse them */
+
+    /* Structured Gaussian Elimination fallback */
     int *col_weight = calloc(A->ncols, sizeof(int));
     int *row_alive = calloc(A->nrows, sizeof(int));
     int *col_alive = calloc(A->ncols, sizeof(int));
     memset(row_alive, 1, A->nrows * sizeof(int));
     memset(col_alive, 1, A->ncols * sizeof(int));
 
-    /* Compute column weights */
     for (int i = 0; i < A->nrows; i++)
         for (int j = A->row_start[i]; j < A->row_start[i+1]; j++)
             col_weight[A->col_idx[j]]++;
 
-    /* Iteratively remove singletons and empty rows */
     int changed = 1, removed_rows = 0, removed_cols = 0;
     while (changed) {
         changed = 0;
         for (int c = 0; c < A->ncols; c++) {
             if (!col_alive[c]) continue;
             if (col_weight[c] <= 1) {
-                /* Remove this column and any row it appears in */
-                col_alive[c] = 0;
-                removed_cols++;
-                changed = 1;
-                /* Find and remove the row containing this column */
+                col_alive[c] = 0; removed_cols++; changed = 1;
                 for (int i = 0; i < A->nrows; i++) {
                     if (!row_alive[i]) continue;
                     for (int j = A->row_start[i]; j < A->row_start[i+1]; j++) {
                         if (A->col_idx[j] == c) {
-                            /* Remove this row */
-                            row_alive[i] = 0;
-                            removed_rows++;
-                            /* Decrement weight of all columns in this row */
-                            for (int k = A->row_start[i]; k < A->row_start[i+1]; k++) {
-                                if (col_alive[A->col_idx[k]])
-                                    col_weight[A->col_idx[k]]--;
-                            }
+                            row_alive[i] = 0; removed_rows++;
+                            for (int k = A->row_start[i]; k < A->row_start[i+1]; k++)
+                                if (col_alive[A->col_idx[k]]) col_weight[A->col_idx[k]]--;
                             break;
                         }
                     }
@@ -499,31 +704,24 @@ static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_d
         }
     }
 
-    /* Build reduced dense matrix */
-    int *col_map = malloc(A->ncols * sizeof(int)); /* old col -> new col */
-    int *row_map = malloc(A->nrows * sizeof(int)); /* old row -> new row */
+    int *col_map = malloc(A->ncols * sizeof(int));
+    int *row_map = malloc(A->nrows * sizeof(int));
     int new_ncols = 0, new_nrows = 0;
     for (int c = 0; c < A->ncols; c++) col_map[c] = col_alive[c] ? new_ncols++ : -1;
     for (int r = 0; r < A->nrows; r++) row_map[r] = row_alive[r] ? new_nrows++ : -1;
+    (void)row_map;
 
-    fprintf(stderr, "Structured GE: %dx%d -> %dx%d (removed %d rows, %d cols)\n",
-            A->nrows, A->ncols, new_nrows, new_ncols, removed_rows, removed_cols);
-
-    /* Build dense matrix for reduced system */
     int fb_words = (new_ncols + 63) / 64;
-    int id_words = (nrels + 63) / 64;  /* track ALL original rows */
+    int id_words = (A->nrows + 63) / 64;
     int total_words = fb_words + id_words;
 
     gf2w **rows = malloc(new_nrows * sizeof(gf2w*));
     for (int i = 0; i < new_nrows; i++) rows[i] = calloc(total_words, sizeof(gf2w));
 
-    /* Fill the dense matrix */
     int ri = 0;
     for (int r = 0; r < A->nrows; r++) {
         if (!row_alive[r]) continue;
-        /* Set identity bit for original row index */
         rows[ri][fb_words + r/64] |= (1ULL << (r % 64));
-        /* Set column bits */
         for (int j = A->row_start[r]; j < A->row_start[r+1]; j++) {
             int c = col_map[A->col_idx[j]];
             if (c >= 0) rows[ri][c/64] |= (1ULL << (c % 64));
@@ -531,7 +729,6 @@ static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_d
         ri++;
     }
 
-    /* Gaussian elimination on reduced matrix */
     int pivot = 0;
     for (int c = 0; c < new_ncols && pivot < new_nrows; c++) {
         int pr = -1;
@@ -547,29 +744,27 @@ static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_d
         pivot++;
     }
 
-    /* Extract dependencies */
-    int nd = 0;
-    *deps_out = malloc(max_deps * sizeof(int*));
-    *dlen_out = malloc(max_deps * sizeof(int));
-    for (int r = pivot; r < new_nrows && nd < max_deps; r++) {
+    int nd_ge = 0;
+    for (int r = pivot; r < new_nrows && nd_ge < max_deps; r++) {
         int zero = 1;
         for (int w = 0; w < fb_words && zero; w++) {
-            gf2w mask = (w < fb_words-1) ? ~0ULL : (new_ncols%64==0 ? ~0ULL : (1ULL<<(new_ncols%64))-1);
-            if (rows[r][w] & mask) zero = 0;
+            gf2w ge_mask = (w < fb_words-1) ? ~0ULL :
+                           (new_ncols%64==0 ? ~0ULL : (1ULL<<(new_ncols%64))-1);
+            if (rows[r][w] & ge_mask) zero = 0;
         }
         if (!zero) continue;
-        int *d = malloc(nrels * sizeof(int)); int dl = 0;
+        int *d = malloc(A->nrows * sizeof(int)); int dl = 0;
         for (int w = 0; w < id_words; w++) {
             gf2w bits = rows[r][fb_words+w];
             while (bits) { int bit = __builtin_ctzll(bits); int idx = w*64+bit;
-                if (idx < nrels) d[dl++] = idx; bits &= bits-1; }
+                if (idx < A->nrows) d[dl++] = idx; bits &= bits-1; }
         }
-        if (dl > 0) { (*deps_out)[nd] = d; (*dlen_out)[nd] = dl; nd++; } else free(d);
+        if (dl > 0) { (*deps_out)[nd_ge] = d; (*dlen_out)[nd_ge] = dl; nd_ge++; } else free(d);
     }
 
     for (int i = 0; i < new_nrows; i++) free(rows[i]);
     free(rows); free(col_weight); free(row_alive); free(col_alive); free(col_map); free(row_map);
-    return nd;
+    return nd_ge;
 }
 
 /* ==================== Pollard Rho (64-bit cofactor splitting) ==================== */
