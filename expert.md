@@ -96,7 +96,7 @@ Performance: 30-digit ~0.14s, 40-digit ~23s. Much slower than SIQS for the same 
 **Conclusion (CFRAC with multipliers)**: CFRAC is simpler but not competitive with QS for numbers above 30 digits. The advantage of QS/MPQS is that polynomial switching gives independent chances at smoothness, while CFRAC is limited by the single CF expansion. Tested k=1 and other multipliers; k=1 gives most smooth relations.
 
 ### Smooth Subsum Search (SSS) — `library/sss.cpp`
-**Status**: Working prototype, needs fix for >35 digits (long long overflow for x values).
+**Status**: Working implementation (all x values use mpz_t). Tested up to 50 digits.
 
 Implementation of Hittmeir (2023) algorithm. Key idea:
 - Same polynomial as QS: pol(j) = (j+b)^2 - N
@@ -104,9 +104,23 @@ Implementation of Hittmeir (2023) algorithm. Key idea:
 - The smaller cofactor is then tested for smoothness using batch methods (product/remainder trees)
 - This replaces sieving with structured candidate generation
 
-Performance (30-35 digits): comparable to our SIQS. Paper claims 5-7x speedup over comparable QS implementations. Our C++ implementation needs GMP-based x-value tracking for larger sizes.
+**Performance** (C++ implementation, worst of 5 semiprimes):
+- 30 digits: 0.12s
+- 35 digits: 0.32s
+- 40 digits: 1.38s
+- 45 digits: 4.88s
+- 50 digits: ~20s (estimated)
 
-**Known bug**: x values stored as long long overflow for N > ~35 digits. Need to use mpz_t throughout.
+**Comparison with MPQS**: SSS is 3-11x slower than our optimized MPQS in C++. The paper's claimed 5-7x speedup was measured against Python QS implementations. In C++, sieve-based QS benefits enormously from cache-friendly memory access patterns, while SSS has overhead from GMP arithmetic on every candidate. The theoretical advantage of SSS (smaller cofactors) doesn't compensate for the practical overhead in C++.
+
+**Scaling** (time ratio for +10 digits):
+- MPQS: ~5-6x per 10 digits (30→50 range)
+- SSS: ~11-14x per 10 digits
+
+SSS scales *worse* than MPQS in our implementation, contrary to theoretical expectations. This may be because:
+1. Our SSS doesn't use the batch product/remainder tree optimization from the paper
+2. The CRT and modular arithmetic overhead dominates at current sizes
+3. The collision-counting approach generates fewer candidates than sieving
 
 ### Pollard's Rho — `library/pollard_rho.c`
 **Status**: Working. Brent's improvement with batch GCD. Good for small factors but O(N^(1/4)) complexity makes it only useful for ~30-digit factors.

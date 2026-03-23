@@ -78,7 +78,8 @@
     "30": 0.123,
     "35": 0.323,
     "40": 1.379,
-    "45": 4.876
+    "45": 4.876,
+    "50": 19.548
   },
   "cfrac": {
     "scaling_argument": "Continued Fraction Algorithm. L[1/2] like QS but with single expansion (no multiple polynomials). Naturally bounded values but limited relation generation rate.",
