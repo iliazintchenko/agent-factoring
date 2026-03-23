@@ -271,3 +271,4 @@
 [2026-03-23 11:00:00] size: 75 | approach: HyperSIQS | time: 3/5 pass (140-291s), 2 fail | notes: 75d borderline. 73d remains reliable max.
 [2026-03-23 11:00:00] size: 74 | approach: hyper_siqs TLP ALL 5 | time: 232.4s worst (4/5) | notes: 74d: 4 of 5 factored! Times: FAIL(295s), 108.7, 155.1, 232.4, 218.4s. 74d[0] timed out. TLP provides 56% combined relations. New frontier: 73d all 5, 74d 4/5.
 [2026-03-23 11:00:00] size: 75 | approach: hyper_siqs TLP | time: TIMEOUT | notes: 75d[1] timed out. The frontier with TLP is 74d (4/5).
+[2026-03-23 09:00:00] size: 73 | approach: turbo_siqs (latest compiled) | time: 268/161/233/217/288s | notes: 4 of 5 pass. #4 fails at 288s. Very close to 73d all-pass. The hardest 73d semiprime needs ~300s for sieve.
