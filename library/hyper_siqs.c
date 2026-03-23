@@ -257,11 +257,11 @@ static params_t get_params(int bits) {
     if (bits <= 170) return (params_t){2200, 10, 70, 100, 0.81};
     if (bits <= 180) return (params_t){3200, 14, 80, 100, 0.82};
     if (bits <= 190) return (params_t){4500, 18, 80, 120, 0.83};
-    if (bits <= 200) return (params_t){6500, 12, 90, 120, 0.84};
-    if (bits <= 210) return (params_t){9000, 15, 90, 150, 0.845};
+    if (bits <= 200) return (params_t){6500, 24, 90, 120, 0.84};
+    if (bits <= 210) return (params_t){9000, 30, 90, 150, 0.845};
     if (bits <= 220) return (params_t){12000, 38, 100, 150, 0.85};
-    if (bits <= 230) return (params_t){16000, 46, 100, 180, 0.855};
-    if (bits <= 240) return (params_t){22000, 56, 110, 200, 0.86};
+    if (bits <= 230) return (params_t){14000, 46, 100, 180, 0.855};
+    if (bits <= 240) return (params_t){18000, 56, 110, 200, 0.86};
     if (bits <= 250) return (params_t){30000, 68, 110, 250, 0.865};
     if (bits <= 260) return (params_t){40000, 80, 120, 300, 0.87};
     if (bits <= 280) return (params_t){55000, 100, 120, 350, 0.875};
@@ -880,11 +880,11 @@ int main(int argc, char *argv[]) {
                                 if (nf == 2 && factors[0] <= (u64)lp_bound && factors[1] <= (u64)lp_bound) {
                                     u64 lp1 = factors[0] < factors[1] ? factors[0] : factors[1];
                                     u64 lp2 = factors[0] < factors[1] ? factors[1] : factors[0];
-                                    /* Try SLP match first */
+                                    /* Try SLP match */
                                     int m1 = lp_find(slp_hash, lp1);
                                     int m2 = lp_find(slp_hash, lp2);
                                     if (m1 >= 0 && m2 >= 0) {
-                                        /* DLP + 2 SLPs = full */
+                                        /* DLP + 2 SLPs = full relation */
                                         mpz_mul(tmp, ax_b, part_rels->axb[m1]);
                                         mpz_mul(tmp, tmp, part_rels->axb[m2]);
                                         mpz_mod(tmp, tmp, N);
