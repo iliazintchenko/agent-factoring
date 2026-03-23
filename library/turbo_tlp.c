@@ -464,7 +464,7 @@ int main(int argc, char *argv[]) {
 
     /* Threshold: lower when DLP is enabled to catch more LP candidates */
     double log2_Qmax = kN_bits / 2.0 + 0.5 + log2((double)M);
-    int dlp_bonus = P.dlp ? 5 : 0; /* moderate DLP threshold bonus */
+    int dlp_bonus = P.dlp ? 4 : 0; /* safe DLP threshold bonus */
     int threshold = (int)(log2_Qmax * P.thresh_adj) - 3 - dlp_bonus;
     if (threshold < 20) threshold = 20;
 
