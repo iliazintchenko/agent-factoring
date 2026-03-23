@@ -665,7 +665,7 @@ static void sieve_block(int block_idx, int M, uint8_t init_val_unused) {
     /* Sieve with small and medium primes */
     for (int i = fb_sieve_start; i < fb_count; i++) {
         uint32_t p = fb_p[i];
-        if (p > SIEVE_SIZE) break; /* large primes handled by bucket sieve */
+        if (p > SIEVE_SIZE) break;
         uint8_t lp = fb_logp[i];
 
         /* Two roots per prime */
@@ -673,25 +673,10 @@ static void sieve_block(int block_idx, int M, uint8_t init_val_unused) {
             int32_t r = (root == 0) ? soln1[i] : soln2[i];
             if (r < 0) continue;
 
-            /* Compute position within this block */
             int32_t start_pos = r - block_start;
             while (start_pos < 0) start_pos += p;
-            if (start_pos >= SIEVE_SIZE) start_pos %= p; /* Shouldn't happen but safety */
 
-            /* Inner sieve loop - compiler can vectorize/unroll this */
             uint32_t pos = (uint32_t)start_pos;
-
-            /* Unroll for very small primes */
-            if (p < 32) {
-                /* Heavily unrolled for tiny primes */
-                while (pos + 4 * p < SIEVE_SIZE) {
-                    sieve[pos] -= lp;
-                    sieve[pos + p] -= lp;
-                    sieve[pos + 2*p] -= lp;
-                    sieve[pos + 3*p] -= lp;
-                    pos += 4 * p;
-                }
-            }
             while (pos < SIEVE_SIZE) {
                 sieve[pos] -= lp;
                 pos += p;
