@@ -147,8 +147,14 @@ NB=20 B=120K on 90d (all 5 semiprimes):
 - 90d[2]: **~300s** on idle (previously timed out at 295s boundary). Factored via resume in 12.5s after accumulated siqs.dat from killed runs.
 - 90d[3]: **287.6s** ✓ (loaded machine, load ~20)
 - 90d[4]: **286.7s** ✓ (loaded machine, load ~20)
-- 3/5 pass under 300s. 90d[0] needs ~315s on idle, 90d[2] needs ~300s. NOT achieved within 300s per-run budget.
+- 3/5 pass under 300s. 90d[0] needs ~305-310s on idle, 90d[2] needs ~301-303s. NOT achieved within 300s per-run budget.
 - **Source modifications (closnuf, UPM1, VBITS=512) provide no measurable improvement** — A/B test on 90d[1]: 250.7s (modified) vs 247.1s (baseline), i.e. 1.5% slower.
+- **Confirmed under low load (load ~10)**: 90d[1]=248.7, 90d[3]=282.7, 90d[4]=281.2. 90d[0] ETA 4s at timeout. 90d[2] sieve COMPLETES (120596/120080 rels) but BL doesn't finish in remaining 0-5s.
+- **PGO build**: ~3% SLOWER (5604 vs 5778 rels/sec). Profile-guided opt doesn't improve hand-written AVX512 intrinsics.
+- **MFBD=2.0**: Increases sieve rate (6080 vs 5300) but doesn't save enough total time. B=115K+MFBD=2.0 makes things worse (only 1/5 pass vs 3/5 default).
+- **-march=native (Zen 5)**: Identical performance to -march=skylake-avx512.
+- **CPU pinning (taskset)**: No improvement.
+- **Conclusion**: 90d[0,2] require ~301-310s. Need 2-5% total speedup to break through.
 
 ### 90d GNFS Direct Sieve Pipeline (agent-5)
 Pre-computed polynomial + direct GGNFS sieve + YAFU post-processing:
