@@ -88,6 +88,18 @@ YAFU SIQS single-core times (worst of 5 semiprimes per size):
 
 Key features: bucket sieving, Gray code self-init, SLP matching (LP_mult=200), structured Gaussian elimination (singleton removal before dense GE). 48KB L1-cache-optimized sieve blocks.
 
+HyperSIQS2 with TLP + optimizations (worst of 5 per size):
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 70 | 69.1s | | **12x** |
+| 72 | 144.9s | ~2.1x/2d | |
+| 73 | 139.9s | ~1x/1d | |
+| 74 | 201s | 1.4x/1d | |
+| 75 | 286s | 1.4x/1d | |
+
+Key innovation: TLP (triple large primes) + incremental root offsets (no per-block mod div) + AVX512 GF(2) LA + interleaved two-root sieve. **First implementation to reliably factor all 5 semiprimes at 75 digits.** TLP gives fundamentally better relation yield per polynomial than SLP/DLP alone.
+
 SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
