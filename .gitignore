@@ -2,8 +2,6 @@ agent.log
 *.swp
 .venv_name
 .env
-cado-nfs
-yafu
 
 # Build artifacts
 *.o

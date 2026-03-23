@@ -31,8 +31,6 @@ ENVIRONMENT:
   ```
   The point is not to minimize any single time — it's to see how each approach's time grows with digit count. An approach that's slower at 50 digits but scales better is more interesting than one that's fast at 50 but hits a wall at 70. Run each approach across as many sizes as feasible and record the full scaling curve.
 - semiprimes.json: the frozen test suite. Contains balanced semiprimes from 30 to 100 digits, 5 random ones per size. Format: `{"30": ["num1", "num2", ...], "31": [...], ...}`. **Do not modify this file.**
-- yafu/: source code of YAFU (Yet Another Factoring Utility). Strong SIQS implementation. Useful reference for algorithms, data structures, and parameter tuning.
-- cado-nfs/: source code of CADO-NFS, the best-in-class NFS implementation. Useful reference for polynomial selection, sieving strategies, and linear algebra. This is specifically meant for parallel factoring algorithm. Not for single-threaded execution.
 
 RULES:
 

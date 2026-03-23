@@ -108,13 +108,6 @@ for i in $(seq 1 "$NUM_AGENTS"); do
   fi
   [ -n "$GIT_USER_NAME" ] && git -C "$REPO_DIR" config user.name "$GIT_USER_NAME"
   [ -n "$GIT_USER_EMAIL" ] && git -C "$REPO_DIR" config user.email "$GIT_USER_EMAIL"
-  # Clone reference factoring tools if not already present
-  if [ ! -d "$REPO_DIR/yafu" ]; then
-    git clone --depth 1 https://github.com/bbuhrow/yafu.git "$REPO_DIR/yafu" && rm -rf "$REPO_DIR/yafu/.git"
-  fi
-  if [ ! -d "$REPO_DIR/cado-nfs" ]; then
-    git clone --depth 1 https://gitlab.inria.fr/cado-nfs/cado-nfs.git "$REPO_DIR/cado-nfs" && rm -rf "$REPO_DIR/cado-nfs/.git"
-  fi
 done
 
 # Launch agents in background, fully detached from this SSH session
