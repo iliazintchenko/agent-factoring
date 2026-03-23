@@ -22,6 +22,12 @@
 
 - **dixon_batch.cpp** — Dixon's method with batch smoothness. Does NOT work (dead end).
 
+- **gnfs.cpp** — General Number Field Sieve prototype. Base-m polynomial selection (degree 3-5), line sieving on rational and algebraic factor bases, polynomial arithmetic in Z[α]/(f,N) for algebraic square root. Demonstrates L[1/3] scaling for numbers >70 digits. Compile: `g++ -O3 -o gnfs gnfs.cpp -lgmp`
+
+- **chain_factor.cpp** — CFRAC (Continued Fraction Factoring) with single large prime variation. Uses CF expansion of sqrt(N) and trial division for smoothness. L[1/2] scaling. Compile: `g++ -O3 -o chain_factor chain_factor.cpp -lgmp`
+
+- **siqs_opt.cpp** — Optimized SIQS with block sieving and double large prime variation. Compile: `g++ -O3 -o siqs_opt siqs_opt.cpp -lgmp`
+
 ## Utilities
 
 - **bench.py** — Benchmarking script. Usage: `python3 bench.py <binary> <approach_name> [sizes...]`
