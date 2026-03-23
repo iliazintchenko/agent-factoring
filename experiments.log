@@ -134,27 +134,6 @@
 [2026-03-22 23:15:00] size: ALL | approach: Novel algorithm analysis | time: N/A | notes: Comprehensive research: lattice sieve QS, batch smoothness, enhanced LP, balanced semiprime exploitation, hybrid ECM+SIQS — all dead ends. Hardware bottleneck (no vpscatterb on AMD Zen4) is fundamental. Only paths forward: (1) source-level SIQS tweaks, (2) GNFS on idle machine.
 [2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf+VBITS512 NB=20 B=120K on 90d[0] | time: TIMEOUT (load=23) | notes: sieve rate ~4800 rels/sec under high load, ETA ~300s. closnuf change (digits_n+1 vs +3) didn't clearly help at high load.
 [2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf NB=18 B=100K on 90d[0] | time: FAIL (>295s) | notes: ~4120-4250 rels/sec. NB=18/B=100K significantly slower than NB=20/B=120K for 90d.
-[2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf NB=24 B=130K on 90d[0] | time: RUNNING | notes: ~5400 rels/sec initially but needs 130K rels (more than 120K). Net effect unclear.
-[2026-03-22 23:15:00] size: 90 | approach: yafu_mod closnuf NB=16 B=110K on 90d[0] | time: RUNNING | notes: ~4650 rels/sec. Slightly slower than NB=20/B=120K.
-[2026-03-22 23:26:00] size: 50 | approach: gnfs_simple (custom GNFS line siever) | time: 0.27s (only 317/6811 rels) | notes: GNFS line sieve too slow for competition. 1172 rels/sec. Fast poly root finding via modular GCD works. Need lattice sieve for NFS to be competitive.
-[2026-03-22 23:26:00] size: 60 | approach: gnfs_simple (custom GNFS) | time: ~41 rels/sec | notes: FB construction fast (0.19s for 60K bound). Sieve is the bottleneck. Not competitive.
-[2026-03-22 23:00:00] size: 90 | approach: yafu_mod VBITS=512+closnuf SIQS NB=20 B=120K | time: TIMEOUT | notes: closnuf +1 (was +3 for 90d). All 5 timed out under load=40-60. Sieve rates 4600-5400 rels/sec.
-[2026-03-22 23:10:00] size: 90 | approach: GNFS YAFU+GGNFS lasieve5_64/bin/ sievers | time: FAIL | notes: GGNFS sievers lacked +x permission (chmod fix). After fixing, sievers work but GNFS too slow: 487s sieve for 1.46M rels at 3000 rels/sec. Total ~590s.
-[2026-03-22 23:12:00] size: 90 | approach: GNFS fast (no ECM, min poly) | time: FAIL | notes: Even skipping ECM pretesting (43s) and using -psearch min (15s), sieve still needs ~487s. NFS not viable for 90d single-core.
-[2026-03-22 23:17:00] size: 89 | approach: yafu_mod VBITS=512+closnuf SIQS NB=18 B=100K | time: 283.7 | notes: 89d[0-3]: 235.5, 227.1, 264.3, 283.7s. 89d[4] timed out under load=24. VBITS=512 does NOT affect QS BL (uses msieve uint64_t code). closnuf change from 92→88 for 89d.
-[2026-03-22 23:22:00] size: 50 | approach: custom siqs_optimized.c SLP+DLP | time: 5.4 | notes: Working custom SIQS, 30-45x slower than YAFU. 30d:0.33s, 50d:5.4s. Scalar sieve is the bottleneck.
-[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS (closnuf+UPM1) NB=20 B=120K 90d[1] | time: 255.4 | notes: PASS! Under load 22. closnuf=digits_n+1, DO_UPM1 enabled.
-[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[3] | time: 289.2 | notes: PASS. Under load 22.
-[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[4] | time: 284.3 | notes: PASS. Under load 22.
-[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[0] | time: FAIL | notes: Timeout at 295s under load 22. Hardest number.
-[2026-03-22 23:38:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[2] | time: FAIL | notes: Timeout at 295s under load 22. Second hardest number.
-[2026-03-22 23:32:00] size: 90 | approach: YAFU GNFS (GGNFS sievers) 90d[0] | time: FAIL | notes: Timeout at 295s under load 22. Only reached q=277889, ~50% of relations. GNFS needs idle machine.
-[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K 90d[0] (load 15.8) | time: FAIL (295s) | notes: Sieve COMPLETED (ETA reached 0 at 5520 rels/sec) but Block Lanczos didn't finish. Total sieve ~290s, needed 5-10s more for BL. On idle machine (<5 load), sieve ~275s + BL 5s = ~280s — should pass.
-[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=24 B=160K 90d[0] (load 15.5) | time: FAIL | notes: B=160K too large, not enough time.
-[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=20 B=120K LPB=30 90d[0] (load 15.5) | time: FAIL | notes: LPB=30 doesn't help.
-[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=18 B=100K 90d[0] (load 19) | time: FAIL | notes: Different params don't help under load.
-[2026-03-22 23:49:00] size: 90 | approach: yafu_mod SIQS NB=22 B=130K 90d[0] (load 19) | time: FAIL | notes: No improvement with NB=22.
-[2026-03-22 23:49:00] size: 90 | approach: stock YAFU SIQS NB=20 B=120K 90d[0] (load 19) | time: FAIL | notes: Stock YAFU same as yafu_mod under load — closnuf difference too small to measure.
 [2026-03-22 23:26:00] size: 50 | approach: gnfs_simple (custom GNFS line siever) | time: 0.27s (only 317/6811 rels) | notes: GNFS line sieve too slow for competition.
 [2026-03-22 23:00:00] size: 90 | approach: yafu_mod VBITS=512+closnuf SIQS NB=20 B=120K | time: TIMEOUT | notes: closnuf +1 (was +3 for 90d). All 5 timed out under load=40-60.
 [2026-03-22 23:17:00] size: 89 | approach: yafu_mod VBITS=512+closnuf SIQS NB=18 B=100K | time: 283.7 | notes: 89d[0-3]: 235.5, 227.1, 264.3, 283.7s. VBITS=512 does NOT affect QS BL (uses msieve uint64_t code).
@@ -209,3 +188,6 @@
 [2026-03-23 00:00:00] size: 90 | approach: GNFS pipeline (pre-computed poly, 1.2M target) 90d[0] | time: 260 (filter fail) | notes: Sieve 253s at 4800 rels/sec (load 25). 1.22M rels → 1.19M unique. Filtering FAILED: reduced to 180K rels, wants 1M more. Need 1.46M rels target.
 [2026-03-23 00:03:00] size: 90 | approach: GNFS pipeline (pre-computed poly, 1.4M target) 90d[0] | time: 268 (msieve fail) | notes: Sieve 268s at 4850 rels/sec (load 15). Got 1.3M of 1.4M target. Budget exhausted before target reached. At load <5 (~5500-6500 rels/sec), would reach 1.46M in 225-265s.
 [2026-03-23 00:03:00] size: 90 | approach: Summary 90d | time: N/A | notes: Neither SIQS nor GNFS can do 90d under load>10. SIQS: sieve completes at load 15 but BL doesn't finish. GNFS: sieve too slow at load 15 (need 1.46M rels at 4850/sec=301s). Both approaches need load <5-10 for all 5 to pass.
+[2026-03-22 23:54:00] size: 90 | approach: GNFS pre-computed poly + reduced minrels on 90d[4] | time: TIMEOUT (275s sieve, load ~18) | notes: Skipped poly selection entirely (0s vs 18-50s). Collected 1.19M of 1.2M target. Sieve rate ~4327 rels/sec under load. Estimated idle time (6500/sec): 185s sieve + 13s filter = ~198s total. MOST PROMISING APPROACH for 90d.
+[2026-03-23 00:05:00] size: 90 | approach: original YAFU SIQS NB=20 B=120K on 90d[1] | time: 249.0 | notes: load ~12. PASS. Original baseline.
+[2026-03-23 00:05:00] size: 90 | approach: yafu_mod (closnuf+UPM1) SIQS NB=20 B=120K on 90d[1] | time: 254.1 | notes: load ~12. PASS but 5s slower than original. closnuf change doesn't help 90d[1].
