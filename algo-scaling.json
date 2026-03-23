@@ -74,19 +74,22 @@
     "35": 0.261
   },
   "sss_v2": {
+    "scaling_argument": "Smooth Subsum Search v2 (optimized C++ with sorted-array collision counting). Scales significantly better than MPQS beyond 50 digits: 50->60 ratio is 8.4x for SSS vs ~39x for MPQS.",
     "30": 0.063,
     "35": 0.303,
-    "40": 1.33,
+    "40": 0.783,
     "45": 4.72,
-    "55": 55.396
+    "50": 17.441,
+    "55": 55.011,
+    "60": 147.145
   },
   "mpqs": {
-    "50": 0.0,
-    "51": 0.0,
-    "52": 0.0,
-    "54": 0.0,
-    "53": 0.0,
-    "55": 0.0,
-    "56": 0.0
+    "scaling_argument": "MPQS (library/mpqs.c). Single-prime A, 2LP variation. NOTE: bench.py needs fixed output parsing for this binary — output is 'factor cofactor' not 'FACTOR: factor'.",
+    "30": 0.055,
+    "35": 0.047,
+    "40": 0.288,
+    "45": 0.775,
+    "50": 1.790,
+    "55": 25.314
   }
 }
