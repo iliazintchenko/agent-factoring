@@ -25,8 +25,14 @@
 - **DLP-SIQS (Double Large Prime)**: Implemented with Pollard rho cofactor splitting and union-find DLP graph. 5-100x slower than YAFU (30d: 0.07s, 50d: 12.7s, 55d: 64.5s). DLP matching produces few combined relations — the bottleneck is the scalar sieve, not the LP strategy.
 
 ### Approaches with some promise
-- **SPQS (Smooth Polynomial QS / Multi-Polynomial Batch Sieve)**: Novel approach that sieves MULTIPLE SIQS polynomials simultaneously over the same sieve block. For each 'a' value, generates BATCH_POLYS (=4) b-values and processes them in a single pass over the factor base. This amortizes the outer loop over FB primes and produces ~4x more smooth candidates per sieve iteration. Results: 1.4x slower than YAFU at 30d, 8x at 50d, 44x at 60d. **Best custom implementation.** See scaling data below.
-- **CADO-NFS**: Successfully built from source. NFS implementation with L[1/3] scaling. Factored 60d in ~28s wallclock (139s CPU multi-threaded). Running benchmarks for 70-90d. The key question is whether NFS shows better scaling than QS for 80-100d numbers despite higher overhead.
+- **SIQS-Bucket with Gray Code + DLP→SLP Pipeline** (siqs_bucket.c): **Current best custom implementation.** Key optimizations:
+  1. YAFU-calibrated parameters (reduced sieve interval from 14x too large)
+  2. Gray code self-initialization (O(FB) additions per poly switch instead of O(FB) mod_inverse calls)
+  3. DLP→SLP pipeline matching: DLP cofactors (p1,p2) checked against SLP hash; if either matches, creates new SLP partial with remaining LP
+  4. Bucket sieve for large FB primes
+  Results: 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU), 65d=70.7s (best custom by 25%). At 65d, DLP pipeline contributes 24% of all relations.
+- **SPQS (Smooth Polynomial QS / Multi-Polynomial Batch Sieve)**: Sieves 4 polynomials simultaneously per block. Amortizes FB prime iteration. 1.4x-44x slower than YAFU.
+- **CADO-NFS**: Successfully built from source. NFS implementation with L[1/3] scaling. Factored 60d in ~28s wallclock (139s CPU multi-threaded). Key insight: NFS doesn't beat QS until ~100-130 digits in L-notation terms.
 
 ## Key Algorithmic Insights
 
@@ -37,10 +43,10 @@
 5. **The GF(2) linear algebra step**: Finding null space vectors over GF(2) is fast (Block Lanczos/Wiedemann). The hard part is generating enough relations, not solving the system.
 6. **No known algorithm exploits balanced structure**: SIQS is factor-structure-agnostic. No published approach specifically targets N = p*q where p ≈ q ≈ √N with better complexity than general-purpose factoring.
 7. **Multi-polynomial batching helps**: SPQS shows that processing multiple polynomials per sieve block amortizes the FB prime iteration overhead. At 4 polynomials per batch, smooth candidate yield increases ~3-4x per sieve pass with only ~15% memory overhead. The improvement narrows as FB size grows (larger sizes have more primes, and the inner loop dominates over the outer loop).
-8. **DLP graph matching is hard**: Even with aggressive LP bounds (300x FB max), the DLP graph has too few edges for cycle formation at moderate sizes. **Update**: DLP with SQUFOF cofactorization tested through 65d — zero composite DLP cofactors found. After trial division by FB, residues > LP_bound are almost always prime at 30-65d. DLP only becomes useful at 80+ digits.
+8. **DLP→SLP pipeline is the key DLP strategy**: Direct DLP-DLP matching (graph cycles) is useless below 80d (birthday paradox). Instead, DLP→SLP pipeline: for each DLP cofactor (p1,p2), check if p1 or p2 is in the SLP hash. If matched, combine DLP+SLP → new SLP partial with remaining LP. At 65d, this contributes 24% of all relations. Previous implementations used DLP graph matching which produced ~0 combined relations.
 9. **Trial division after sieve is the main custom implementation bottleneck**: YAFU uses sieve-informed trial division (only tests primes whose sieve roots match x), plus bucket sieving for large primes. Custom implementations doing naive trial division lose 10-50x here.
 10. **Bucket sieve is critical for large factor bases**: Without bucket sieve, sieve hits for primes > BLOCK_SIZE cause random memory access (cache misses). Bucket sieve pre-sorts hits by block, converting to sequential access. Key implementation detail: buckets MUST create new slices when they fill up (>75% of BUCKET_ALLOC). Without this, entries are silently dropped, causing 2.3x fewer relations per polynomial.
-11. **Parameter tuning: sieve interval size is critical**: YAFU uses tiny sieve intervals (1-8 blocks per side) because its AVX512 sieve is fast enough that polynomial overhead is small. For scalar implementations, larger intervals (10-50 blocks) are better because they amortize the per-polynomial overhead (mpz operations for b,c computation, ainv computation, etc.).
+11. **Parameter tuning: sieve interval + Gray code**: YAFU uses tiny sieve intervals (1-3 blocks per side) because Gray code self-initialization makes polynomial switching O(FB) simple additions instead of O(FB) modular inversions. With Gray code, even scalar implementations should use small M (2-4 blocks). This was confirmed: reducing M from 28 blocks to 2 blocks AND adding Gray code cut 60d time from 21s to 7.8s.
 12. **DLP with LP columns vs matching**: SLP (single large prime) is best handled by hash-matching (combine two relations with same LP). DLP (double large prime) can use LP columns in the GF(2) matrix instead of graph cycle detection. The LP-column approach is simpler but requires more relations. For SLP-only, matching is always better (no extra matrix columns needed).
 13. **Adaptive sieve threshold improves SLP matching**: Lowering the threshold by ~6 bits for larger sizes dramatically increases SLP partials, improving matching rate by ~33% at 55d. The tradeoff is more TD on false positives, but SLP gains compensate. Best scaling improvement found so far.
 14. **Negative results**: MCFRAC (multi-CF, 70-300x slower, sequential), PairQS (paired smooth, LESS smooth than individual), batch=8/16 (no improvement, inner loop dominates), bucket sieve without batch poly (slower than SPQS).
@@ -58,18 +64,29 @@ YAFU SIQS single-core times (worst of 5 semiprimes per size):
 | 89 | 294s | ~7x per 9d |
 | 90+ | >300s | |
 
-SPQS Batch Sieve (worst of 5 per size):
+SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 30 | 0.031s | | 2.2x |
+| 35 | 0.054s | ~1.7x/5d | |
+| 40 | 0.177s | 3.3x/5d | 10x |
+| 45 | 0.323s | 1.8x/5d | |
+| 50 | 0.860s | 2.7x/5d | 7.2x |
+| 55 | 4.98s | 5.8x/5d | |
+| 60 | 8.92s | 1.8x/5d | 12.7x |
+| 65 | 70.7s | 7.9x/5d | |
+
+SPQS Batch Sieve (previous best, worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
 |--------|------|--------|---------|
 | 30 | 0.02s | | 1.4x |
 | 35 | 0.042s | ~2x/5d | |
 | 40 | 0.148s | 3.5x/5d | 8.7x |
-| 45 | 0.48s | 3.2x/5d | |
-| 50 | 0.998s | 2.1x/5d | 8.3x |
+| 50 | 0.998s | | 8.3x |
 | 55 | 5.18s | 5.2x/5d | |
 | 60 | 31.1s | 6.0x/5d | 44x |
-| 65 | running | | |
 
 DLP-SIQS (worst of 5 per size):
 
