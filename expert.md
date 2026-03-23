@@ -224,6 +224,10 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 - **batch_smooth.c**, **batch_qs.c**, **batch_siqs.c**: Batch smoothness approaches. NEGATIVE RESULT.
 - **lattice_factor.c**, **lattice_factor_v2.c**, **lattice_factor_batch.c**: Lattice-based approaches. NEGATIVE RESULT.
 
+### NFS (Novel)
+- **nfs_complete.c**: Complete GNFS with degree-3 polynomial, line sieving, GF(2) LA with 100 QC columns, AND two algebraic sqrt approaches (Hensel lift + Couveignes CRT). Sieve works (8000 rels in 73s for 30d). LA works (64 deps). Both sqrt methods verified: T^2=S confirmed at full precision. **Remaining issue**: all dependencies give trivial gcd(X±Y,N) = N or 1. Both Hensel and CRT approaches produce the same sign. Root cause likely in QC column computation or the LA matrix setup, not the sqrt itself. Reference implementation: stubbscroll/nfs on GitHub. `gcc -O3 -march=native -o nfs_complete library/nfs_complete.c -lgmp -lm`
+- **siqs_adaptive.c**: SIQS with Gray code self-init, YAFU-calibrated parameters with linear interpolation, bucket sieving. Reaches 65d (271s). Not competitive with best custom SIQS. `gcc -O3 -march=native -o siqs_adaptive library/siqs_adaptive.c -lgmp -lm`
+
 ### Other
 - **pollard_rho.c**: Brent variant. Not competitive above 30d.
 - **factor_oracle.c**: Multi-strategy oracle. Useful for small factors.
