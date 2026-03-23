@@ -24,6 +24,7 @@
 #include <time.h>
 #include <gmp.h>
 #include <immintrin.h>
+#include "block_lanczos.h"
 
 #define SEED 42
 #define BLOCK_SZ 32768
@@ -44,7 +45,7 @@ static double elapsed(void) {
 }
 
 /* ===================== 64-bit modular arithmetic ===================== */
-typedef unsigned long long u64;
+/* u64 already defined in block_lanczos.h as uint64_t */
 typedef __uint128_t u128;
 
 static inline u64 mulmod64(u64 a, u64 b, u64 m) {
@@ -260,8 +261,8 @@ static params_t get_params(int bits) {
     if (bits <= 200) return (params_t){6500, 24, 90, 120, 0.84};
     if (bits <= 210) return (params_t){9000, 30, 90, 150, 0.845};
     if (bits <= 220) return (params_t){12000, 38, 100, 150, 0.85};
-    if (bits <= 230) return (params_t){14000, 46, 100, 180, 0.855};
-    if (bits <= 240) return (params_t){18000, 56, 110, 200, 0.86};
+    if (bits <= 230) return (params_t){10000, 46, 200, 180, 0.855};
+    if (bits <= 240) return (params_t){14000, 56, 200, 200, 0.86};
     if (bits <= 250) return (params_t){30000, 68, 110, 250, 0.865};
     if (bits <= 260) return (params_t){40000, 80, 120, 300, 0.87};
     if (bits <= 280) return (params_t){55000, 100, 120, 350, 0.875};
@@ -396,7 +397,8 @@ static gf2_t *gf2_create(int nr, int nc) {
     m->wprow = m->fbw + m->idw;
     m->rows = malloc(nr * sizeof(u64*));
     for (int i = 0; i < nr; i++) {
-        m->rows[i] = calloc(m->wprow, sizeof(u64));
+        m->rows[i] = aligned_alloc(64, ((m->wprow * sizeof(u64) + 63) / 64) * 64);
+        memset(m->rows[i], 0, ((m->wprow * sizeof(u64) + 63) / 64) * 64);
         m->rows[i][m->fbw + i/64] |= (1ULL << (i % 64));
     }
     return m;
@@ -1028,8 +1030,25 @@ int main(int argc, char *argv[]) {
     }
 
     int **deps; int *dlen;
-    int ndeps = gf2_solve(mat, &deps, &dlen, 64);
-    fprintf(stderr, "LA: %d dependencies from %dx%d matrix (%.2fs)\n", ndeps, nrels, ncols, elapsed());
+    int ndeps;
+
+    /* Try Block Lanczos first (faster for large sparse matrices) */
+    if (nrels > 500) {
+        sparse_matrix_t *sp = sparse_from_dense(mat->rows, nrels, ncols);
+        fprintf(stderr, "LA: trying Block Lanczos on %dx%d matrix (nnz=%d)...\n", nrels, ncols, sp->nnz);
+        double t_la = elapsed();
+        ndeps = block_lanczos_solve(sp, &deps, &dlen, 64);
+        fprintf(stderr, "LA: Block Lanczos found %d deps in %.2fs\n", ndeps, elapsed() - t_la);
+        free(sp->row_start); free(sp->col_idx); free(sp);
+        if (ndeps == 0) {
+            fprintf(stderr, "LA: Block Lanczos failed, falling back to Gaussian\n");
+            ndeps = gf2_solve(mat, &deps, &dlen, 64);
+            fprintf(stderr, "LA: Gaussian found %d deps (%.2fs)\n", ndeps, elapsed());
+        }
+    } else {
+        ndeps = gf2_solve(mat, &deps, &dlen, 64);
+        fprintf(stderr, "LA: %d dependencies from %dx%d matrix (%.2fs)\n", ndeps, nrels, ncols, elapsed());
+    }
 
     /* ==================== Square Root ==================== */
     for (int d = 0; d < ndeps; d++) {
