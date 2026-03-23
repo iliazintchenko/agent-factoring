@@ -734,37 +734,28 @@ static void sieve_special_q(uint32_t q, uint32_t qroot) {
         }
 
         /* step = a0_inv mod p (stride in i for consecutive j) */
-        int64_t di = (int64_t)(a1 * a0_inv % p);
+        uint32_t di = (uint32_t)((uint64_t)a1 * a0_inv % p);
+
+        /* Optimized: use recurrence i_sieve[j+1] = (i_sieve[j] - di) mod p
+         * Avoids per-row multiplication */
+        uint32_t i_sieve = (uint32_t)((uint64_t)(SIEVE_I/2) % p);
 
         for (int32_t j = 0; j < SIEVE_J; j++) {
-            /* Starting i for this j:
-             * i_start ≡ -j * a1 * a0_inv mod p */
-            int64_t i_off = (-(int64_t)j * di % (int64_t)p);
-            if (i_off < 0) i_off += p;
-
-            /* Convert to sieve array index: sieve[i] where i in [0, SIEVE_I)
-             * represents i_actual = i - SIEVE_I/2 in lattice coords.
-             * We need i_actual ≡ i_off mod p, so i ≡ (i_off + SIEVE_I/2) mod p */
-            uint32_t i_sieve = (uint32_t)((i_off + SIEVE_I/2) % p);
-
-            for (uint32_t i = i_sieve; i < (uint32_t)SIEVE_I; i += p) {
-                uint32_t idx = j * SIEVE_I + i;
-                alg_sieve[idx] += logp;
-            }
+            uint8_t *row = alg_sieve + (uint32_t)j * SIEVE_I;
+            for (uint32_t i = i_sieve; i < (uint32_t)SIEVE_I; i += p)
+                row[i] += logp;
+            i_sieve = i_sieve >= di ? i_sieve - di : i_sieve + p - di;
         }
     }
 
-    /* Sieve rational side by factor base primes (similar logic) */
+    /* Sieve rational side (same optimized logic) */
     for (uint32_t fi = 0; fi < rat_fb.count; fi++) {
         uint32_t p = rat_fb.entries[fi].p;
         uint32_t r = rat_fb.entries[fi].r;
         uint8_t logp = rat_fb.entries[fi].logp;
 
-        if (p < SIEVE_SMALL_CUTOFF) continue; /* Trial divide later */
+        if (p < SIEVE_SMALL_CUTOFF) continue;
 
-        /* Rational polynomial: g(a,b) = Y1*a + Y0*b = 0 mod p
-         * So a ≡ -Y0/Y1 * b mod p, i.e., a ≡ r*b mod p (where r is the root)
-         * Same lattice sieve logic as algebraic side */
         int64_t a0 = ((int64_t)e0.x - (int64_t)r * e0.y) % (int64_t)p;
         int64_t a1 = ((int64_t)e1.x - (int64_t)r * e1.y) % (int64_t)p;
         if (a0 < 0) a0 += p;
@@ -773,38 +764,31 @@ static void sieve_special_q(uint32_t q, uint32_t qroot) {
         if (a0 == 0) {
             if (a1 == 0) continue;
             for (int32_t j = 0; j < SIEVE_J; j += p) {
-                for (int32_t i = 0; i < SIEVE_I; i++) {
-                    uint32_t idx = j * SIEVE_I + i;
-                    rat_sieve[idx] += logp;
-                }
+                uint8_t *row = rat_sieve + (uint32_t)j * SIEVE_I;
+                for (int32_t i = 0; i < SIEVE_I; i++)
+                    row[i] += logp;
             }
             continue;
         }
 
         uint64_t a0_inv;
         {
-            int64_t aa = a0, bb = p;
-            int64_t old_s = 1, s = 0;
+            int64_t aa = a0, bb = p, old_s = 1, s = 0;
             while (bb != 0) {
-                int64_t qq = aa / bb;
-                int64_t tmp = aa - qq * bb; aa = bb; bb = tmp;
+                int64_t qq = aa / bb, tmp = aa - qq * bb; aa = bb; bb = tmp;
                 tmp = old_s - qq * s; old_s = s; s = tmp;
             }
             a0_inv = ((old_s % (int64_t)p) + p) % p;
         }
 
-        int64_t di = (int64_t)(a1 * a0_inv % p);
+        uint32_t di = (uint32_t)((uint64_t)a1 * a0_inv % p);
+        uint32_t i_sieve = (uint32_t)((uint64_t)(SIEVE_I/2) % p);
 
         for (int32_t j = 0; j < SIEVE_J; j++) {
-            int64_t i_off = (-(int64_t)j * di % (int64_t)p);
-            if (i_off < 0) i_off += p;
-
-            uint32_t i_sieve = (uint32_t)((i_off + SIEVE_I/2) % p);
-
-            for (uint32_t i = i_sieve; i < (uint32_t)SIEVE_I; i += p) {
-                uint32_t idx = j * SIEVE_I + i;
-                rat_sieve[idx] += logp;
-            }
+            uint8_t *row = rat_sieve + (uint32_t)j * SIEVE_I;
+            for (uint32_t i = i_sieve; i < (uint32_t)SIEVE_I; i += p)
+                row[i] += logp;
+            i_sieve = i_sieve >= di ? i_sieve - di : i_sieve + p - di;
         }
     }
 
