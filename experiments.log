@@ -217,3 +217,10 @@
 [2026-03-22 23:35:00] size: 80 | approach: yafu_mod SIQS DLP analysis on 80d[0] (NB=12 -v) | time: 44.4 | notes: DLP cofactoring: 0 failures in 336731 attempts. microECM is near-100% effective. SQUFOF fallback would add 0 benefit.
 [2026-03-23 00:00:00] size: 90 | approach: yafu_mod GNFS on 90d[1] (precomputed poly, minrels=1.2M, load=12) | time: FAIL (>295s) | notes: GGNFS sieve rate 3700 rels/sec at load 12. Only reached ~900K of 1.2M target. Need load<10 for 5000+/sec.
 [2026-03-23 00:13:00] size: 90 | approach: yafu_mod GNFS on 90d[3] (precomputed poly, minrels=1.0M, load=14) | time: FAIL (>295s) | notes: Sieve rate ~2900 rels/sec at load 14. Only 429K of 1.0M in 295s. GNFS requires load<8 for 90d in 300s.
+[2026-03-23 00:00:00] size: 90 | approach: GNFS direct sieve (90d[1], precomputed poly, Q=210K, QRANGE=5000) | time: FAIL | notes: 1.397M/1.46M rels in 265s. Sieve rate 5270/sec. 63K short. Load ~22.
+[2026-03-23 00:05:00] size: 90 | approach: GNFS direct sieve (90d[1], Q=250K, QRANGE=6000) | time: FAIL(293s) | notes: 1.496M rels in 270s. Post-processing BL at 66% when timeout. 28.5s needed for BL, only 23s available.
+[2026-03-23 00:10:00] size: 90 | approach: GNFS v3 (90d[1], Q=250K, QRANGE=3000, sieve 253s) | time: FAIL | notes: 1.408M rels (below 1.46M). YAFU filtering failed: "wants 1M more".
+[2026-03-23 00:15:00] size: 90 | approach: GNFS v5 (90d[1], Q=250K, QRANGE=4000, sieve 268s) | time: 295s(BL 99%) | notes: 1.49M rels in 268s. BL reached 99% (73506/74317) but timed out. 1s short.
+[2026-03-23 00:20:00] size: 90 | approach: GNFS v7 (90d[1], Q=250K, QRANGE=1500, sieve 264s) | time: 295s(BL 94%) | notes: 1.461M rels in 264s. BL reached 94% (73494/78004). Matrix larger due to extra rels. 2s short.
+[2026-03-23 00:25:00] size: 90 | approach: GNFS v8 (90d[1], Q=250K, QRANGE=1500, 298s budget) | time: 298s(BL 94%) | notes: Same sieve 264s, BL needs 36s total but got 34s. Under load=22, BL at 2162 dims/sec.
+[2026-03-23 00:25:00] size: 90 | approach: GNFS 90d[1] timing analysis | time: n/a | notes: Sieve: 264s (5530/sec). BL: 36s (78K matrix). Total: 300s. ON EDGE at load=22. Idle machine estimate: 243s sieve + 28s BL = 271s.
