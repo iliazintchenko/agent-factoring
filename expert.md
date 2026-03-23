@@ -2,14 +2,20 @@
 
 ## Why factoring is hard: the smoothness bottleneck
 
-All known sub-exponential factoring algorithms (QS, NFS) rely on the same core idea: find a congruence x² ≡ y² (mod N) by combining "smooth" numbers — integers that factor entirely over a small prime base. The algorithm's runtime is dominated by two costs:
+All known sub-exponential factoring algorithms (QS, NFS, CFRAC) rely on finding **smooth numbers** — numbers that factor completely over a small prime base. The fundamental tension:
 
-1. **Finding smooth numbers**: The probability that a random number near N^(1/2) is B-smooth is roughly u^(-u) where u = log(N^(1/2))/log(B). Larger B makes smoothness more likely but...
+1. **Finding smooth numbers**: The probability that a random number near N^(1/2) is B-smooth is roughly ρ(u) where u = log(N^(1/2))/log(B) and ρ is the Dickman function. Larger B makes smoothness more likely but...
 2. **Linear algebra over GF(2)**: ...a larger factor base means a larger matrix to reduce.
 
 The optimal B balances these: QS gets L[1/2, 1+o(1)], NFS gets L[1/3, (64/9)^(1/3)] by using algebraic number fields to generate numbers that are "smaller" relative to their smoothness bound.
 
 **Key insight**: The smoothness bottleneck comes from the _size_ of the numbers being tested. If we could generate candidate relations where the numbers to factor are much smaller than sqrt(N), we could get a better complexity. NFS achieves this by working in number fields; is there a way to do even better?
+
+**Possible escape routes:**
+1. Find smooth numbers without sieving (batch smoothness, algebraic construction)
+2. Use a third "image" to split values further (could give L[1/4]?)
+3. Avoid smooth numbers entirely (period-finding, lattice methods, spectral methods)
+4. Exploit special structure of balanced semiprimes specifically
 
 ## Schnorr lattice factoring (reviewed, does not scale)
 
@@ -22,20 +28,41 @@ The paper claims polynomial time, but analysis of the approach shows the lattice
 ## Current implementations
 
 ### SIQS (Self-Initializing Quadratic Sieve)
-**Status**: Working implementation in `library/siqs.cpp`.
+**Status**: Working implementation in `library/siqs.cpp` (from another agent).
 
-Our SIQS implementation uses:
-- Self-initializing polynomials (CRT-based b computation)
-- Large prime variation (single LP)
-- GF(2) Gaussian elimination
-- Factor base sizing and sieve parameters tuned per digit count
+Uses self-initializing polynomials (CRT-based b computation), large prime variation, GF(2) Gaussian elimination, factor base sizing and sieve parameters tuned per digit count. Expected L[1/2] scaling.
 
-Performance characteristics (being benchmarked): Expected L[1/2] scaling — roughly 8-10x slower per +10 digits.
+### MPQS (Multiple Polynomial Quadratic Sieve)
+**Status**: Working implementation in `library/mpqs.c`.
+
+Built a working MPQS with:
+- Factor base of primes where N is a QR, scaled by digit count
+- Polynomial A = product of k FB primes (k chosen so A ≈ sqrt(2N)/M)
+- B via CRT from sqrt(N) mod each A-prime, C = (B²-N)/A
+- Sieve with log-approximation threshold
+- Large prime variation with hash table for combining partials
+- Gaussian elimination mod 2 with identity augmentation for null-space tracking
+- Square root computation including large prime factors from combined partials
+
+**Key implementation detail**: The congruence is (Ax+B)² ≡ A·f(x) (mod N) where f(x) = Ax²+2Bx+C. The exponent vector must include A's prime factors (each with +1 exponent) in addition to the trial division of f(x). Missing this causes near-zero rank in the GF(2) matrix.
+
+**Performance** (single core, worst case across 5 semiprimes per size):
+- 30 digits: ~0.02s
+- 52 digits: ~1.2s
+- 60 digits: ~29s
+- 65 digits: ~87s
+
+This is slower than YAFU's optimized SIQS by a factor of ~100x (YAFU does 60 digits in 0.7s). The main bottlenecks:
+1. No self-initialization (recompute sieve offsets from scratch for each poly)
+2. No block sieving (poor cache utilization)
+3. Single large prime only (no 2LP/3LP)
+4. Polynomial selection not optimized (random A, should use Gray code enumeration)
+5. Gaussian elimination is dense O(n³) instead of structured sparse
 
 ### ECM (Elliptic Curve Method)
-**Status**: Working wrapper around GMP-ECM in `library/ecm_factor.cpp`.
+**Status**: Working wrapper around GMP-ECM in `library/ecm_factor.c`.
 
-Uses progressive B1 stages with deterministic seed=42. Good for finding small factors but fundamentally limited by factor size (not N size). For balanced semiprimes, expected to be competitive with QS up to ~50 digits.
+Uses Suyama parameterization with sigma values < 2^32, seeded from deterministic RNG with seed=42. Good for finding small factors but fundamentally limited by factor size (not N size). For balanced semiprimes, competitive with QS up to ~50 digits.
 
 ## Novel approach ideas to explore
 
@@ -45,13 +72,22 @@ Shor's algorithm exploits periodicity in x → a^x mod N using QFT. Classically,
 - Can lattice reduction on the "frequency domain" of modular exponentiation reveal period information?
 
 ### 2. Number field sieve (NFS) implementation
-NFS achieves L[1/3], which would be a significant improvement over our SIQS L[1/2] for numbers >70 digits. Worth implementing even though it's not novel — it gives us a stronger baseline.
+NFS achieves L[1/3], which would be a significant improvement over SIQS L[1/2] for numbers >70 digits. Worth implementing even though it's not novel — it gives us a stronger baseline. Requires polynomial selection, 2D sieve, and square root in number field.
 
 ### 3. Smooth number amplification
 Idea: instead of testing random numbers for smoothness, use algebraic identities to construct numbers that are "partially smooth" by design, then only need to test a smaller cofactor for smoothness.
 
-### 4. Lattice-based relation finding
+### 4. Batch smoothness testing (Bernstein's method)
+Instead of sieving, generate many candidates and use product trees + remainder trees to batch-test smoothness. Asymptotically better I/O complexity than sieving for very large smoothness bounds.
+
+### 5. Multi-image approach for L[1/4]
+**Speculative**: if NFS gets L[1/3] from two images (rational + algebraic), could THREE images give L[1/4]? This would require finding a suitable third algebraic structure. Related to "tower NFS" ideas but for general composites.
+
+### 6. Lattice-based relation finding
 Use LLL/BKZ not on the factor base lattice (Schnorr's approach, which fails), but on a smaller lattice to find _pairs_ of numbers whose product is smooth. The key difference: we only need the lattice to find structure in O(1) relations at a time, not encode the entire factor base.
 
-### 5. p-adic / Hensel lifting approaches
+### 7. p-adic / Hensel lifting approaches
 Use the p-adic structure of Z/NZ to iteratively lift partial factorizations. If N = pq, then working mod small powers of primes might reveal information about p and q.
+
+### 8. Spectral/algebraic approaches
+Exploit the group structure of Z_N* ≅ Z_{p-1} × Z_{q-1} without smooth numbers. Possibly via random walks, exponential sums, or character sums that distinguish the product structure from a cyclic group.
