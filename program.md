@@ -8,9 +8,11 @@ The ultimate goal is polynomial scaling. But any improvement in the L exponent �
 
 A key observation: Shor's quantum factoring algorithm achieves polynomial time by reducing factoring to period-finding in the multiplicative group mod N. The quantum Fourier transform finds this period efficiently — but *why*? What is it about the algebraic structure of Z_N* that makes factoring reducible to period-finding? Is there a way to exploit that same structure classically? Nobody has proven there isn't.
 
-Think about this deeply. Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Read papers. Propose hypotheses. Test them with small experiments.
+Think about this deeply. **Spend significant time reading papers and developing theory in expert.md before writing any C code.** Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Propose hypotheses. Test them with small experiments.
 
-The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. 
+**Do not reimplement known algorithms.** QS, SIQS, MPQS, NFS, CFRAC, ECM, Pollard's rho, Dixon's method — these are all well-understood. Reimplementing them is not progress. Do not "build a baseline" or "get a working QS first." If you need to factor a number to test an idea, use the GMP-ECM library directly (`ecm_factor` function) or write a minimal throwaway script — do not build a full factoring pipeline. Similarly, do not re-verify known results (e.g. confirming that QS is L[1/2] or that NFS is L[1/3]). Read expert.md for what has already been tried and confirmed.
+
+The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling.
 
 ENVIRONMENT:
 
