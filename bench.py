@@ -1,52 +1,45 @@
 #!/usr/bin/env python3
-"""Benchmark factoring across digit sizes. Runs one number at a time."""
-import json, subprocess, sys, time, os
+"""Benchmark factoring implementations on semiprimes.json"""
+import json, subprocess, time, sys
 
-os.environ['LD_LIBRARY_PATH'] = '/usr/local/lib'
+binary = sys.argv[1] if len(sys.argv) > 1 else './siqs_native'
+sizes = sys.argv[2:] if len(sys.argv) > 2 else [str(s) for s in range(30, 76)]
 
 with open('semiprimes.json') as f:
-    data = json.load(f)
-
-binary = sys.argv[1] if len(sys.argv) > 1 else './factor'
-sizes = sorted(data.keys(), key=int)
-if len(sys.argv) > 2:
-    lo = int(sys.argv[2])
-    hi = int(sys.argv[3]) if len(sys.argv) > 3 else lo
-    sizes = [s for s in sizes if lo <= int(s) <= hi]
+    sp = json.load(f)
 
 results = {}
 for size in sizes:
-    nums = data[size]
+    if size not in sp:
+        continue
     times = []
     all_ok = True
-    for i, n in enumerate(nums):
+    for i, n in enumerate(sp[size]):
         t0 = time.monotonic()
-        try:
-            r = subprocess.run([binary, n], capture_output=True, timeout=300,
-                             env={**os.environ, 'LD_LIBRARY_PATH': '/usr/local/lib'})
-            elapsed = time.monotonic() - t0
-            if r.returncode == 0:
-                factor = r.stdout.decode().strip()
-                nn, ff = int(n), int(factor)
-                if nn % ff == 0 and ff > 1 and ff < nn:
-                    times.append(elapsed)
-                else:
-                    print(f"  WRONG: {size}d #{i}: {factor}")
-                    all_ok = False; times.append(300)
-            else:
-                print(f"  FAIL: {size}d #{i}: {r.stderr.decode().strip()[:100]}")
-                all_ok = False; times.append(300)
-        except subprocess.TimeoutExpired:
-            print(f"  TIMEOUT: {size}d #{i}")
-            all_ok = False; times.append(300)
-
-    worst = max(times) if times else 300
-    status = "OK" if all_ok else "PARTIAL"
-    print(f"{size}d: worst={worst:.3f}s  [{', '.join(f'{t:.3f}' for t in times)}]  {status}")
-    sys.stdout.flush()
+        r = subprocess.run(['timeout', '295', binary, n], capture_output=True, text=True)
+        t1 = time.monotonic()
+        factor = r.stdout.strip()
+        ok = factor != '' and 'FAIL' not in factor
+        if ok:
+            f_val = int(factor)
+            N = int(n)
+            ok = N % f_val == 0 and f_val > 1 and f_val < N
+        elapsed_t = t1 - t0 if ok else -1
+        times.append(elapsed_t)
+        if not ok:
+            all_ok = False
+            print(f'  {size}d[{i}]: FAIL ({t1-t0:.1f}s)', file=sys.stderr)
+        else:
+            print(f'  {size}d[{i}]: {elapsed_t:.3f}s OK', file=sys.stderr)
+    worst = max(times)
+    if worst > 295:
+        worst = -1
     results[size] = worst
+    status = 'OK' if all_ok and worst > 0 else 'PARTIAL' if any(t > 0 for t in times) else 'FAIL'
+    print(f'{size}d worst={worst:.3f}s [{status}]  all={[round(t,3) for t in times]}')
+    if worst > 280 or worst < 0:
+        print(f'Stopping at {size}d (timeout)')
+        break
 
-print("\n--- Summary ---")
-for size in sorted(results.keys(), key=int):
-    t = results[size]
-    print(f"  {size}d: {t:.3f}s {'OK' if t < 300 else 'FAIL'}")
+print('\n--- JSON ---')
+print(json.dumps({k: round(v, 3) for k, v in results.items() if v > 0}, indent=2))

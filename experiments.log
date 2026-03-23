@@ -36,3 +36,7 @@
 [2026-03-23 03:35:00] size: 30-65 | approach: Hybrid SIQS (hybrid_siqs.c) | time: 0.279-86.2s | notes: Combined SPQS multi-poly batch (4 polys) with bucket sieve for large primes. Slower at small sizes (overhead from batch setup) but fastest at 65d (86.2s vs spqs2 94s). Growth: ~4.5x per 5d at 60-65d.
 [2026-03-23 03:35:00] size: 65 | approach: SPQS original (spqs.c) | time: 165.2s worst | notes: All 5 semiprimes factored. Growth from 60d(31s) to 65d(165s) = 5.3x per 5d.
 [2026-03-23 03:35:00] size: 70 | approach: fast_siqs | time: TIMEOUT (>295s) | notes: All 5 semiprimes timed out at 70d. fast_siqs growth rate too steep for 70d.
+
+[2026-03-23 03:30:00] size: 30-65 | approach: siqs_native (batch+Gray code) | time: 0.029-79s | notes: Profiled at 60d: sieve=73%, scan+TD=25%, other=2%. SPV tried but hurt. 30d=0.029s, 40d=0.201s, 50d=0.953s, 60d=19.3s, 65d=79s.
+[2026-03-23 03:30:00] size: 60 | approach: hyper_siqs (TLP) single number | time: 9.1s | notes: 2x faster than SPQS at 60d. But 70d=218s due to LA (164s for 22000x22000 matrix).
+[2026-03-23 03:30:00] size: 60 | approach: NFS (nfs_factor.c) | time: FAIL | notes: 0 candidates. Norms too large for smoothness. NFS only viable for 100+d.

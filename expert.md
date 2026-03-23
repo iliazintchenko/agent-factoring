@@ -146,13 +146,15 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 ## Custom Implementations in library/
 
 ### Working implementations (best to worst)
-- **spqs_dlp.c**: SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s vs 5.2s SPQS). DLP doesn't contribute below 65d but adaptive threshold improves SLP matching. `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
-- **spqs2.c / spqs.c**: Best custom at 30-65d. SPQS2 adds bucket sieve to batch approach. 1.4-44x slower than YAFU. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
-- **fast_siqs.c**: Bucket sieve SIQS with __int128 trial division, sieve-informed TD, Gray code self-init, SLP. 15-25x slower than YAFU. 30-65d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
-- **siqs_opt.c**: Bucket sieve SIQS, Gray code poly, SLP matching, tracked offsets and 64-bit scanning. 2-46x slower. 30-70d. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
-- **dlp_opt.c**: DLP SIQS with LP columns in GF(2) matrix. Hybrid SLP matching + DLP. Testing at 70d+.
-- **siqs_bucket.c**: Similar optimized SIQS with bucket sieve. Comparable to fast_siqs. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
-- **sqqs.c**: Special-Q QS (novel, uses special primes to reduce Q(x) size). NEGATIVE RESULT: overhead exceeds benefit.
+- **siqs_bucket.c**: **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve. 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+- **hyper_siqs.c**: **Best at 60d** (single number). TLP SIQS with bucket sieve, Gray code, Pollard rho cofactor splitting. 9s on one 60d number. But at 70d (218s), LA dominates due to huge 22000x22000 matrix. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+- **spqs2.c**: **Best at 70d** (165s). SPQS with bucket sieve. `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
+- **spqs_dlp.c**: SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
+- **fast_siqs.c**: Bucket sieve SIQS with __int128 TD, sieve-informed TD, Gray code, SLP. 18s at 60d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
+- **siqs_native.c**: Batch polynomials (4) + Gray code + SLP + native 128-bit TD. 19s at 60d. `gcc -O3 -march=native -o siqs_native library/siqs_native.c -lgmp -lm`
+- **siqs_opt.c**: Bucket sieve SIQS, tracked offsets, 64-bit scanning. 2-46x slower. 30-70d. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
+- **dlp_opt.c**: DLP SIQS with LP columns in GF(2) matrix. Testing at 70d+.
+- **spqs.c**: Multi-polynomial batch sieve SIQS. 1.4-44x slower than YAFU. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
 - **dlp_siqs.c**: SIQS with DLP (Pollard rho splitting). 5-100x slower. 30-55d.
 - **siqs2.c**: Working SIQS, SLP, Gray code. 30-80x slower.
 - **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower.
@@ -174,11 +176,28 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 
 ## Key Bottleneck Analysis
 
-The gap between custom SIQS (15-25x slower) and YAFU comes from:
+### Profiling Results (siqs_native, 60d)
+- **Sieve inner loop: 73%** of total sieve time. The scattered byte stores `sieve[j] += logp` for each FB prime dominate.
+- **Candidate scan + trial division: 25%**. Scanning sieve for candidates above threshold, then GMP trial division.
+- **Polynomial setup: 2%**. Gray code solution updates are fast.
+
+### Gap vs YAFU (15-30x slower)
 1. **Scalar sieve inner loop** (~60% of gap): YAFU uses AVX512BW vectorized sieve; custom uses scalar byte stores. No portable C workaround exists.
-2. **Trial division efficiency** (~20%): YAFU uses sieve-root-informed TD with multiplication-by-inverse; custom uses mpz_divisible_ui_p fallback for some primes.
-3. **Polynomial overhead** (~10%): YAFU's self-init is highly optimized with incremental root updates; custom recomputes roots from scratch.
+2. **Trial division efficiency** (~20%): YAFU uses sieve-root-informed TD with multiplication-by-inverse; custom uses mpz_divisible_ui_p fallback for primes where Q(x) exceeds 128 bits. Native 128-bit TD helps for smaller numbers.
+3. **Polynomial overhead** (~10%): YAFU's self-init is highly optimized with incremental root updates; custom recomputes roots from scratch. Gray code helps but isn't as fast as YAFU's approach.
 4. **Parameter tuning** (~10%): YAFU has decades of tuning; custom parameters are close but not optimal.
+
+### TLP (Triple Large Primes) Trade-off
+- At 60d: TLP gives 2x speedup (9s vs 19s) by dramatically increasing relation yield per sieve pass
+- At 70d: TLP HURTS (218s vs 165s) because the large FB (22000 primes) creates a 22000x22000 GF(2) matrix, and Gaussian elimination takes 164s (75% of total time)
+- **Key insight**: TLP requires Block Lanczos or Block Wiedemann to handle the larger matrices efficiently. Without it, moderate FB + SLP/DLP is faster for 70d+
+
+### SPV (Small Prime Variation) - NEGATIVE RESULT
+- Skip sieving with primes < 256 and adjust threshold by expected contribution
+- Saves ~40% of sieve work but introduces many false positives
+- With native 128-bit TD, false positives are cheap to reject, but the imprecise threshold adjustment causes more misses too
+- Net effect: approximately zero improvement or slight regression
+- Would need a more sophisticated SPV implementation (e.g., sieve initialization with precomputed small prime contributions)
 
 The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (scattered byte stores at stride p) is inherently memory-bound and benefits enormously from wide SIMD gather/scatter.
 
