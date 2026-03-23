@@ -1,0 +1,409 @@
+/*
+ * gnfs_work.c - Complete GNFS for 50-70 digit semiprimes
+ * Compile: gcc -O3 -march=native -o gnfs_work library/gnfs_work.c -lgmp -lm
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <math.h>
+#include <time.h>
+#include <gmp.h>
+
+#define SEED 42
+#define MAX_DEG 5
+#define MAX_RELS 200000
+#define MAX_DEPS 64
+#define NUM_QC 40
+
+static struct timespec g_start;
+static double elapsed(void){struct timespec now;clock_gettime(CLOCK_MONOTONIC,&now);
+    return(now.tv_sec-g_start.tv_sec)+(now.tv_nsec-g_start.tv_nsec)/1e9;}
+
+typedef struct{int deg,rfb,afb,sa,sb;double rtf,atf;}params_t;
+static params_t get_params(int b){
+    if(b<=100)return(params_t){3,5000,10000,25000,5000,.50,.50};
+    if(b<=120)return(params_t){3,6000,12000,30000,6000,.50,.50};
+    if(b<=140)return(params_t){3,8000,15000,35000,8000,.50,.50};
+    if(b<=160)return(params_t){3,10000,18000,40000,10000,.50,.50};
+    if(b<=170)return(params_t){3,12000,22000,50000,12000,.50,.50};
+    if(b<=190)return(params_t){3,18000,30000,60000,15000,.50,.50};
+    if(b<=210)return(params_t){4,25000,40000,70000,15000,.50,.50};
+    if(b<=235)return(params_t){4,35000,55000,90000,20000,.50,.50};
+    return(params_t){4,45000,70000,110000,25000,.50,.50};
+}
+
+static int *sieve_primes(int bnd,int *cnt){
+    char *s=calloc(bnd+1,1);for(int i=2;(long)i*i<=bnd;i++)if(!s[i])for(int j=i*i;j<=bnd;j+=i)s[j]=1;
+    int n=0;for(int i=2;i<=bnd;i++)if(!s[i])n++;int *p=malloc(n*sizeof(int));int k=0;
+    for(int i=2;i<=bnd;i++)if(!s[i])p[k++]=i;free(s);*cnt=n;return p;}
+
+typedef struct{int deg;mpz_t c[MAX_DEG+1];mpz_t m;}poly_t;
+static void poly_init(poly_t *p){for(int i=0;i<=MAX_DEG;i++)mpz_init(p->c[i]);mpz_init(p->m);}
+static void poly_clear(poly_t *p){for(int i=0;i<=MAX_DEG;i++)mpz_clear(p->c[i]);mpz_clear(p->m);}
+
+static int poly_select(poly_t *p,const mpz_t N,int d){
+    p->deg=d;mpz_t mb,mt,rem,bm,tc[MAX_DEG+1];mpz_inits(mb,mt,rem,bm,NULL);
+    for(int i=0;i<=d;i++)mpz_init(tc[i]);mpz_root(mb,N,d+1);
+    double best=1e300;int found=0;
+    for(int delta=-20;delta<=20;delta++){
+        mpz_set(mt,mb);if(delta>=0)mpz_add_ui(mt,mt,delta);else mpz_sub_ui(mt,mt,-delta);
+        if(mpz_sgn(mt)<=0)continue;mpz_set(rem,N);
+        for(int i=0;i<=d;i++)mpz_tdiv_qr(rem,tc[i],rem,mt);
+        if(mpz_sgn(rem)!=0)mpz_add(tc[d],tc[d],rem);
+        mpz_set_ui(rem,0);for(int i=d;i>=0;i--){mpz_mul(rem,rem,mt);mpz_add(rem,rem,tc[i]);}
+        if(mpz_cmp(rem,N)!=0){mpz_sub(rem,N,rem);mpz_add(tc[0],tc[0],rem);}
+        double sc=0;for(int i=0;i<=d;i++)sc+=fabs(mpz_get_d(tc[i]));
+        if(sc<best){best=sc;mpz_set(bm,mt);for(int i=0;i<=d;i++)mpz_set(p->c[i],tc[i]);found=1;}
+    }
+    mpz_set(p->m,bm);for(int i=0;i<=d;i++)mpz_clear(tc[i]);mpz_clears(mb,mt,rem,bm,NULL);
+    return found?0:-1;
+}
+
+static void poly_eval_homog(mpz_t res,poly_t *p,long a,unsigned long b){
+    mpz_t t,ap,bp;mpz_inits(t,ap,bp,NULL);mpz_set_ui(res,0);mpz_set_si(ap,1);mpz_ui_pow_ui(bp,b,p->deg);
+    for(int i=0;i<=p->deg;i++){mpz_mul(t,p->c[i],ap);mpz_mul(t,t,bp);mpz_add(res,res,t);
+        mpz_mul_si(ap,ap,a);if(i<p->deg&&b>0)mpz_divexact_ui(bp,bp,b);}
+    mpz_clears(t,ap,bp,NULL);
+}
+
+typedef struct{uint32_t *p,*r;uint8_t *l;int sz,cap;}fb_t;
+static fb_t *fb_new(int c){fb_t *f=malloc(sizeof(fb_t));f->p=malloc(c*4);f->r=malloc(c*4);f->l=malloc(c);f->sz=0;f->cap=c;return f;}
+static void fb_add(fb_t *f,uint32_t p,uint32_t r,uint8_t l){if(f->sz>=f->cap){f->cap*=2;f->p=realloc(f->p,f->cap*4);f->r=realloc(f->r,f->cap*4);f->l=realloc(f->l,f->cap);}f->p[f->sz]=p;f->r[f->sz]=r;f->l[f->sz]=l;f->sz++;}
+static void fb_free(fb_t *f){free(f->p);free(f->r);free(f->l);free(f);}
+static fb_t *build_rfb(poly_t *py,int bnd){int np;int *pr=sieve_primes(bnd,&np);fb_t *fb=fb_new(np+10);for(int i=0;i<np;i++)fb_add(fb,pr[i],mpz_fdiv_ui(py->m,pr[i]),(uint8_t)(log2(pr[i])+.5));free(pr);return fb;}
+static fb_t *build_afb(poly_t *py,int bnd){int np;int *pr=sieve_primes(bnd,&np);fb_t *fb=fb_new(np*py->deg+10);
+    for(int i=0;i<np;i++){uint32_t p=pr[i];uint8_t lp=(uint8_t)(log2(p)+.5);uint64_t cm[MAX_DEG+1];
+        for(int j=0;j<=py->deg;j++)cm[j]=mpz_fdiv_ui(py->c[j],p);
+        for(uint32_t x=0;x<p;x++){uint64_t v=0;for(int j=py->deg;j>=0;j--)v=(v*x+cm[j])%p;if(v==0)fb_add(fb,p,x,lp);}}
+    free(pr);return fb;}
+
+typedef struct{long *a;uint32_t *b;int16_t **re,**ae;int *rs,*as;int cnt,cap;}rels_t;
+static rels_t *rels_new(int cap,int rn,int an){rels_t *r=calloc(1,sizeof(rels_t));r->a=malloc(cap*sizeof(long));r->b=malloc(cap*4);r->re=malloc(cap*sizeof(int16_t*));r->ae=malloc(cap*sizeof(int16_t*));r->rs=calloc(cap,sizeof(int));r->as=calloc(cap,sizeof(int));for(int i=0;i<cap;i++){r->re[i]=calloc(rn,sizeof(int16_t));r->ae[i]=calloc(an,sizeof(int16_t));}r->cap=cap;return r;}
+static int trial_div(mpz_t n,fb_t *fb,int16_t *e,int *s){*s=0;if(mpz_sgn(n)<0){*s=1;mpz_neg(n,n);}if(mpz_sgn(n)==0)return 0;memset(e,0,fb->sz*sizeof(int16_t));for(int i=0;i<fb->sz;i++){uint32_t p=fb->p[i];while(mpz_divisible_ui_p(n,p)){e[i]++;mpz_divexact_ui(n,n,p);}}return mpz_cmp_ui(n,1)==0;}
+
+typedef uint64_t u64;
+typedef struct{u64 **rows;int nr,nc,fw,iw,wp;}gf2_t;
+static gf2_t *gf2_new(int nr,int nc){gf2_t *m=malloc(sizeof(gf2_t));m->nr=nr;m->nc=nc;m->fw=(nc+63)/64;m->iw=(nr+63)/64;m->wp=m->fw+m->iw;m->rows=malloc(nr*sizeof(u64*));for(int i=0;i<nr;i++){m->rows[i]=calloc(m->wp,sizeof(u64));m->rows[i][m->fw+i/64]|=(1ULL<<(i%64));}return m;}
+static void gf2_free(gf2_t *m){for(int i=0;i<m->nr;i++)free(m->rows[i]);free(m->rows);free(m);}
+static int gf2_solve(gf2_t *m,int ***dp,int **dl,int mx){int pv=0;for(int c=0;c<m->nc&&pv<m->nr;c++){int pr=-1;for(int r=pv;r<m->nr;r++)if((m->rows[r][c/64]>>(c%64))&1){pr=r;break;}if(pr<0)continue;if(pr!=pv){u64 *t=m->rows[pr];m->rows[pr]=m->rows[pv];m->rows[pv]=t;}for(int r=0;r<m->nr;r++){if(r==pv)continue;if((m->rows[r][c/64]>>(c%64))&1)for(int w=0;w<m->wp;w++)m->rows[r][w]^=m->rows[pv][w];}pv++;}int nd=0;*dp=malloc(mx*sizeof(int*));*dl=malloc(mx*sizeof(int));for(int r=pv;r<m->nr&&nd<mx;r++){int z=1;for(int w=0;w<m->fw&&z;w++){u64 mk=(w<m->fw-1)?~0ULL:(m->nc%64==0?~0ULL:(1ULL<<(m->nc%64))-1);if(m->rows[r][w]&mk)z=0;}if(!z)continue;int *d=malloc(m->nr*sizeof(int));int n=0;for(int w=0;w<m->iw;w++){u64 bits=m->rows[r][m->fw+w];while(bits){int b=__builtin_ctzll(bits);int idx=w*64+b;if(idx<m->nr)d[n++]=idx;bits&=bits-1;}}if(n>0){(*dp)[nd]=d;(*dl)[nd]=n;nd++;}else free(d);}return nd;}
+
+static uint64_t mulmod64(uint64_t a,uint64_t b,uint64_t m){return(unsigned __int128)a*b%m;}
+static uint64_t powmod64(uint64_t b,uint64_t e,uint64_t m){uint64_t r=1;b%=m;while(e){if(e&1)r=mulmod64(r,b,m);b=mulmod64(b,b,m);e>>=1;}return r;}
+
+/* ====== Polynomial ring Z_M[x]/(f(x)) ====== */
+/* Multiply a * b mod (f, M), all mpz arrays of length d */
+static void prmul(mpz_t *res, const mpz_t *a, const mpz_t *b,
+                   const mpz_t *fc, int d, const mpz_t M) {
+    mpz_t prod[2*MAX_DEG], t;
+    for(int i=0;i<2*d;i++) mpz_init_set_ui(prod[i],0);
+    mpz_init(t);
+    for(int i=0;i<d;i++) for(int j=0;j<d;j++){
+        mpz_mul(t,a[i],b[j]);mpz_add(prod[i+j],prod[i+j],t);mpz_mod(prod[i+j],prod[i+j],M);
+    }
+    /* Reduce using f: x^d = -(c0+c1*x+...+c_{d-1}*x^{d-1})/c_d */
+    mpz_t lci; mpz_init(lci);
+    if (!mpz_invert(lci, fc[d], M)) {
+        /* GCD of fc[d] and M is non-trivial! This reveals a factor. */
+        mpz_t g; mpz_init(g); mpz_gcd(g, fc[d], M);
+        if (mpz_cmp_ui(g,1)>0 && mpz_cmp(g,M)<0) {
+            mpz_t co; mpz_init(co); mpz_divexact(co,M,g);
+            gmp_printf("%Zd\n%Zd\n",g,co); mpz_clear(co);
+            exit(0); /* Found factor! */
+        }
+        mpz_clear(g);
+        mpz_set_ui(lci,0); /* fallback */
+    }
+    for(int k=2*(d-1);k>=d;k--){
+        if(mpz_sgn(prod[k])==0) continue;
+        mpz_t c; mpz_init(c);
+        mpz_mul(c,prod[k],lci); mpz_mod(c,c,M);
+        for(int j=0;j<d;j++){
+            mpz_mul(t,c,fc[j]); mpz_sub(prod[k-d+j],prod[k-d+j],t);
+            mpz_mod(prod[k-d+j],prod[k-d+j],M);
+        }
+        mpz_set_ui(prod[k],0); mpz_clear(c);
+    }
+    for(int i=0;i<d;i++) mpz_set(res[i],prod[i]);
+    for(int i=0;i<2*d;i++) mpz_clear(prod[i]);
+    mpz_clears(t,lci,NULL);
+}
+
+/* Compute base^exp mod (f, M) via repeated squaring */
+static void prpow(mpz_t *res, const mpz_t *base, const mpz_t exp,
+                   const mpz_t *fc, int d, const mpz_t M) {
+    mpz_t b[MAX_DEG], r[MAX_DEG];
+    for(int i=0;i<d;i++){mpz_init_set(b[i],base[i]);mpz_init_set_ui(r[i],0);}
+    mpz_set_ui(r[0],1); /* r = 1 */
+
+    /* Binary method */
+    int nbits = mpz_sizeinbase(exp, 2);
+    for(int bit = nbits-1; bit >= 0; bit--) {
+        /* Square r */
+        prmul(r, r, r, fc, d, M);
+        /* If bit is set, multiply by base */
+        if (mpz_tstbit(exp, bit))
+            prmul(r, r, b, fc, d, M);
+    }
+    for(int i=0;i<d;i++) mpz_set(res[i],r[i]);
+    for(int i=0;i<d;i++){mpz_clear(b[i]);mpz_clear(r[i]);}
+}
+
+int main(int argc, char *argv[]) {
+    clock_gettime(CLOCK_MONOTONIC, &g_start);
+    gmp_randstate_t rstate; gmp_randinit_default(rstate); gmp_randseed_ui(rstate, SEED);
+
+    mpz_t N; mpz_init(N);
+    if(argc>=2) mpz_set_str(N,argv[1],10);
+    else{char buf[1024];if(!fgets(buf,sizeof buf,stdin)){fprintf(stderr,"No input\n");return 1;}
+        char *p=buf;while(*p==' '||*p=='\t')p++;char *e=p+strlen(p)-1;while(e>p&&(*e=='\n'||*e=='\r'||*e==' '))*e--=0;mpz_set_str(N,p,10);}
+    int digits=(int)mpz_sizeinbase(N,10),bits=(int)mpz_sizeinbase(N,2);
+    fprintf(stderr,"GNFS: %dd (%db)\n",digits,bits);
+
+    /* Trial division */
+    for(unsigned long p=2;p<1000000;p++){if(mpz_divisible_ui_p(N,p)){mpz_t q;mpz_init(q);mpz_divexact_ui(q,N,p);gmp_printf("%lu\n%Zd\n",p,q);mpz_clears(q,N,NULL);return 0;}}
+    if(mpz_perfect_power_p(N)){mpz_t r;mpz_init(r);for(int e=2;e<=64;e++)if(mpz_root(r,N,e)){mpz_t o;mpz_init(o);mpz_divexact(o,N,r);gmp_printf("%Zd\n%Zd\n",r,o);mpz_clears(r,o,N,NULL);return 0;}mpz_clear(r);}
+
+    params_t P=get_params(bits);
+    fprintf(stderr,"d=%d rfb=%d afb=%d sa=%d sb=%d\n",P.deg,P.rfb,P.afb,P.sa,P.sb);
+
+    poly_t poly;poly_init(&poly);
+    if(poly_select(&poly,N,P.deg)<0){fprintf(stderr,"poly fail\n");return 1;}
+    gmp_fprintf(stderr,"m=%Zd\nf(x)=",poly.m);
+    for(int i=poly.deg;i>=0;i--)gmp_fprintf(stderr," %+Zd*x^%d",poly.c[i],i);fprintf(stderr,"\n");
+    {mpz_t v;mpz_init(v);mpz_set_ui(v,0);for(int i=poly.deg;i>=0;i--){mpz_mul(v,v,poly.m);mpz_add(v,v,poly.c[i]);}if(mpz_cmp(v,N)!=0){fprintf(stderr,"f(m)!=N\n");return 1;}mpz_clear(v);}
+
+    fb_t *rfb=build_rfb(&poly,P.rfb),*afb=build_afb(&poly,P.afb);
+    fprintf(stderr,"rfb=%d afb=%d t=%.1fs\n",rfb->sz,afb->sz,elapsed());
+
+    uint32_t qcp[NUM_QC],qcr[NUM_QC];int nqc=0;
+    {int nqp;int *qp=sieve_primes(P.afb+5000,&nqp);
+     for(int i=0;i<nqp&&nqc<NUM_QC;i++){if(qp[i]<=P.afb)continue;uint32_t p=qp[i];
+         uint64_t cm[MAX_DEG+1];for(int j=0;j<=poly.deg;j++)cm[j]=mpz_fdiv_ui(poly.c[j],p);
+         for(uint32_t x=0;x<p;x++){uint64_t v=0;for(int j=poly.deg;j>=0;j--)v=(v*x+cm[j])%p;if(v==0){qcp[nqc]=p;qcr[nqc]=x;nqc++;break;}}}free(qp);}
+
+    int ncols=1+rfb->sz+1+afb->sz+nqc;
+    int target=ncols+30;
+
+    int sw=2*P.sa+1;uint8_t *rsv=malloc(sw),*asv=malloc(sw);
+    int rcap=target+1000;if(rcap>MAX_RELS)rcap=MAX_RELS;
+    rels_t *rels=rels_new(rcap,rfb->sz,afb->sz);
+    mpz_t rn,an;mpz_inits(rn,an,NULL);
+
+    fprintf(stderr,"Sieving (target=%d)...\n",target);int tc=0;
+    for(uint32_t b=1;b<=(uint32_t)P.sb&&rels->cnt<target;b++){
+        if(elapsed()>180){fprintf(stderr,"timeout b=%u r=%d\n",b,rels->cnt);break;}
+        if(b%200==0)fprintf(stderr,"  b=%u r=%d/%d c=%d t=%.1fs\n",b,rels->cnt,target,tc,elapsed());
+        memset(rsv,0,sw);memset(asv,0,sw);
+        for(int i=0;i<rfb->sz;i++){uint32_t p=rfb->p[i];uint8_t l=rfb->l[i];uint64_t h=((uint64_t)(b%p)*rfb->r[i])%p;long off=((long)h+P.sa)%(long)p;if(off<0)off+=p;for(int j=(int)off;j<sw;j+=p)rsv[j]+=l;}
+        for(int i=0;i<afb->sz;i++){uint32_t p=afb->p[i];uint8_t l=afb->l[i];uint64_t h=((uint64_t)(b%p)*afb->r[i])%p;long off=((long)h+P.sa)%(long)p;if(off<0)off+=p;for(int j=(int)off;j<sw;j+=p)asv[j]+=l;}
+        double lr=log2((double)P.sa+(double)b*mpz_get_d(poly.m));
+        double la=0;{double am=P.sa,bv=b,sum=0;for(int i=0;i<=poly.deg;i++)sum+=fabs(mpz_get_d(poly.c[i]))*pow(am,i)*pow(bv,poly.deg-i);la=log2(sum+1.0);}
+        int rt=(int)(lr*P.rtf),at=(int)(la*P.atf);
+        for(int j=0;j<sw;j++){
+            if(rsv[j]<rt||asv[j]<at)continue;
+            long a=-(long)P.sa+j;if(!a)continue;long ga=a<0?-a:a,gb=(long)b;while(gb){long t=gb;gb=ga%gb;ga=t;}if(ga!=1)continue;tc++;
+            mpz_mul_ui(rn,poly.m,b);mpz_t at2;mpz_init_set_si(at2,a);mpz_sub(rn,at2,rn);mpz_clear(at2);
+            poly_eval_homog(an,&poly,a,b);
+            int rsn,asn;int16_t *re=rels->re[rels->cnt],*ae=rels->ae[rels->cnt];
+            if(!trial_div(rn,rfb,re,&rsn))continue;if(!trial_div(an,afb,ae,&asn))continue;
+            rels->a[rels->cnt]=a;rels->b[rels->cnt]=b;rels->rs[rels->cnt]=rsn;rels->as[rels->cnt]=asn;rels->cnt++;if(rels->cnt>=rcap)break;
+        }
+    }
+    fprintf(stderr,"Sieve: %d rels %d cand %.1fs\n",rels->cnt,tc,elapsed());
+    free(rsv);free(asv);
+    if(rels->cnt<ncols+1){fprintf(stderr,"Not enough: %d<%d\n",rels->cnt,ncols+1);return 1;}
+
+    int nrels=rels->cnt;
+    gf2_t *mat=gf2_new(nrels,ncols);
+    for(int r=0;r<nrels;r++){int c=0;
+        if(rels->rs[r])mat->rows[r][c/64]^=(1ULL<<(c%64));c++;
+        for(int k=0;k<rfb->sz;k++){if(rels->re[r][k]&1)mat->rows[r][c/64]^=(1ULL<<(c%64));c++;}
+        if(rels->as[r])mat->rows[r][c/64]^=(1ULL<<(c%64));c++;
+        for(int k=0;k<afb->sz;k++){if(rels->ae[r][k]&1)mat->rows[r][c/64]^=(1ULL<<(c%64));c++;}
+        for(int k=0;k<nqc;k++){
+            uint64_t av=((int64_t)(rels->a[r]%(int64_t)qcp[k])+(int64_t)qcp[k])%(int64_t)qcp[k];
+            uint64_t bv2=mulmod64((uint64_t)(rels->b[r]%qcp[k]),(uint64_t)qcr[k],(uint64_t)qcp[k]);
+            uint64_t v=(av+qcp[k]-bv2)%qcp[k];
+            if(v!=0&&powmod64(v,(qcp[k]-1)/2,qcp[k])!=1)mat->rows[r][c/64]^=(1ULL<<(c%64));c++;
+        }
+    }
+    fprintf(stderr,"Gauss elim (%dx%d)...\n",nrels,ncols);
+    int **deps;int *dlen;int ndeps=gf2_solve(mat,&deps,&dlen,MAX_DEPS);
+    fprintf(stderr,"%d deps (%.1fs)\n",ndeps,elapsed());gf2_free(mat);
+    if(!ndeps){fprintf(stderr,"no deps\n");return 1;}
+
+    /* ====== Square root ====== */
+    mpz_t X,tmp;mpz_inits(X,tmp,NULL);int found=0;
+    int d = poly.deg;
+
+    /* Precompute f coefficients mod N */
+    mpz_t fc[MAX_DEG+1];
+    for(int i=0;i<=d;i++){mpz_init(fc[i]);mpz_mod(fc[i],poly.c[i],N);}
+
+    for(int di=0;di<ndeps&&!found;di++){
+        if(elapsed()>260)break;
+        fprintf(stderr,"Dep %d (sz %d)...\n",di,dlen[di]);
+
+        int *rex=calloc(rfb->sz,sizeof(int)),*aex=calloc(afb->sz,sizeof(int));
+        int rn2=0,an2=0;
+        for(int i=0;i<dlen[di];i++){int ri=deps[di][i];
+            for(int c=0;c<rfb->sz;c++)rex[c]+=rels->re[ri][c];
+            for(int c=0;c<afb->sz;c++)aex[c]+=rels->ae[ri][c];
+            rn2+=rels->rs[ri];an2+=rels->as[ri];}
+        int even=1;if(rn2&1)even=0;if(an2&1)even=0;
+        for(int c=0;c<rfb->sz&&even;c++)if(rex[c]&1)even=0;
+        for(int c=0;c<afb->sz&&even;c++)if(aex[c]&1)even=0;
+        if(!even){free(rex);free(aex);continue;}
+
+        /* X = rational sqrt = prod(p^(e/2)) mod N */
+        mpz_set_ui(X,1);
+        for(int c=0;c<rfb->sz;c++){if(rex[c]<=0)continue;
+            mpz_set_ui(tmp,rfb->p[c]);mpz_powm_ui(tmp,tmp,rex[c]/2,N);mpz_mul(X,X,tmp);mpz_mod(X,X,N);}
+
+        long *da=malloc(dlen[di]*sizeof(long));
+        uint32_t *db=malloc(dlen[di]*sizeof(uint32_t));
+        for(int i=0;i<dlen[di];i++){da[i]=rels->a[deps[di][i]];db[i]=rels->b[deps[di][i]];}
+
+        /* Compute S(x) = prod(a_i - b_i*x) mod (f, N) */
+        fprintf(stderr,"  Product in ring...\n");
+        mpz_t S[MAX_DEG];
+        for(int k=0;k<d;k++) mpz_init_set_ui(S[k],0);
+        mpz_set_ui(S[0],1);
+
+        mpz_t factor[MAX_DEG];
+        for(int k=0;k<d;k++) mpz_init(factor[k]);
+
+        for(int i=0;i<dlen[di];i++){
+            mpz_set_si(factor[0],da[i]);mpz_mod(factor[0],factor[0],N);
+            mpz_set_si(factor[1],-(long)db[i]);mpz_mod(factor[1],factor[1],N);
+            for(int k=2;k<d;k++) mpz_set_ui(factor[k],0);
+            prmul(S,S,factor,fc,d,N);
+        }
+        for(int k=0;k<d;k++) mpz_clear(factor[k]);
+
+        fprintf(stderr,"  Product done (%.1fs)\n",elapsed());
+
+        /* Algebraic sqrt via probabilistic method in Z_N[x]/(f):
+         * We want T such that T^2 = S in the ring.
+         * Use: T = S^((N^d+1)/4) if N^d ≡ 3 mod 4 (unlikely)
+         * General: pick random h, compute (h^2 - S)^((N^d-1)/2) then extract sqrt.
+         *
+         * Adleman-Manders-Miller for the ring:
+         * Write N^d - 1 = 2^s * q where q odd.
+         * For random h:
+         *   compute h^q mod (f, N)
+         *   then square s times
+         * If we get identity before -1, we can extract a factor.
+         *
+         * But N is composite! We don't know the factorization of N^d - 1.
+         * Actually |Z_N[x]/(f)^*| = |(Z_p[x]/(f))^* x (Z_q[x]/(f))^*|
+         * = (p^d-1)(q^d-1) (when f is irreducible mod both p and q, which it's not
+         * necessarily since f has roots mod N = p*q).
+         *
+         * Simpler approach: compute S^((N+1)/2) in the ring.
+         * This doesn't give the full square root in the ring, but it might give
+         * an element whose evaluation at m gives a non-trivial square root of X^2 mod N.
+         *
+         * Actually for the scalar: if T(m)^2 = X^2 mod N, then T(m) is a square root
+         * of X^2 mod N. There are 4 such roots. Computing the product
+         * prod(a_i - b_i*m) mod N directly and taking its "square root" via
+         * S^((N+1)/2) mod N (if N ≡ 3 mod 4) gives one root.
+         * But this root is the same as X or -X (since the computation is in Z/NZ).
+         *
+         * The key: by computing in the POLYNOMIAL ring rather than in Z/NZ,
+         * the operations are "lifted" and can produce a DIFFERENT square root.
+         * Specifically: S^((N+1)/2) evaluated in Z_N[x]/(f(x)) then evaluated at m
+         * gives a square root that may differ from X computed from the rational FB.
+         *
+         * Let's try it!
+         */
+
+        /* Compute exponent = (N+1)/2 (works if N is odd, which it is for semiprimes) */
+        mpz_t exp2; mpz_init(exp2);
+        mpz_add_ui(exp2, N, 1);
+        mpz_tdiv_q_2exp(exp2, exp2, 1); /* (N+1)/2 */
+
+        fprintf(stderr,"  Computing S^((N+1)/2) in ring (%zu-bit exp)...\n",
+                mpz_sizeinbase(exp2, 2));
+
+        mpz_t T[MAX_DEG];
+        for(int k=0;k<d;k++) mpz_init(T[k]);
+        prpow(T, S, exp2, fc, d, N);
+
+        fprintf(stderr,"  Power done (%.1fs)\n", elapsed());
+
+        /* Y = T(m) mod N */
+        mpz_t Y; mpz_init(Y); mpz_set_ui(Y, 0);
+        for(int k=d-1;k>=0;k--){mpz_mul(Y,Y,poly.m);mpz_add(Y,Y,T[k]);mpz_mod(Y,Y,N);}
+
+        /* Check Y^2 = X^2 mod N */
+        mpz_t y2,x2; mpz_inits(y2,x2,NULL);
+        mpz_mul(y2,Y,Y);mpz_mod(y2,y2,N);
+        mpz_mul(x2,X,X);mpz_mod(x2,x2,N);
+        gmp_fprintf(stderr,"  Y=%Zd\n  Y^2=%Zd\n  X^2=%Zd\n  eq=%d\n",Y,y2,x2,mpz_cmp(y2,x2)==0);
+
+        mpz_t g; mpz_init(g);
+        if (mpz_cmp(y2,x2)==0) {
+            /* Y^2 = X^2 mod N, try factoring */
+            mpz_sub(g,X,Y);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+            if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
+                mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;
+            }
+            if(!found){mpz_add(g,X,Y);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
+                    mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;
+                }
+            }
+        }
+
+        if (!found) {
+            /* Try other exponents */
+            /* N^2+1)/2 */
+            mpz_mul(exp2, N, N); mpz_add_ui(exp2, exp2, 1); mpz_tdiv_q_2exp(exp2, exp2, 1);
+            fprintf(stderr,"  Trying N^2 exponent...\n");
+            prpow(T, S, exp2, fc, d, N);
+            mpz_set_ui(Y, 0);
+            for(int k=d-1;k>=0;k--){mpz_mul(Y,Y,poly.m);mpz_add(Y,Y,T[k]);mpz_mod(Y,Y,N);}
+            mpz_mul(y2,Y,Y);mpz_mod(y2,y2,N);
+            if(mpz_cmp(y2,x2)==0){
+                mpz_sub(g,X,Y);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}
+                if(!found){mpz_add(g,X,Y);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                    if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
+            }
+        }
+
+        if (!found) {
+            /* Try (N^3+1)/2 for degree 3 */
+            mpz_t N3; mpz_init(N3);
+            mpz_pow_ui(N3, N, d);
+            mpz_add_ui(N3, N3, 1);
+            mpz_tdiv_q_2exp(exp2, N3, 1);
+            fprintf(stderr,"  Trying N^%d exponent...\n", d);
+            prpow(T, S, exp2, fc, d, N);
+            mpz_set_ui(Y, 0);
+            for(int k=d-1;k>=0;k--){mpz_mul(Y,Y,poly.m);mpz_add(Y,Y,T[k]);mpz_mod(Y,Y,N);}
+            mpz_mul(y2,Y,Y);mpz_mod(y2,y2,N);
+            gmp_fprintf(stderr,"  Y^2=%Zd X^2=%Zd eq=%d\n",y2,x2,mpz_cmp(y2,x2)==0);
+            if(mpz_cmp(y2,x2)==0){
+                mpz_sub(g,X,Y);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}
+                if(!found){mpz_add(g,X,Y);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                    if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){mpz_t co;mpz_init(co);mpz_divexact(co,N,g);gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
+            }
+            mpz_clear(N3);
+        }
+
+        mpz_clears(g,y2,x2,Y,exp2,NULL);
+        for(int k=0;k<d;k++){mpz_clear(S[k]);mpz_clear(T[k]);}
+        free(da);free(db);free(rex);free(aex);
+    }
+
+    if(!found){fprintf(stderr,"Failed\n");return 1;}
+    fprintf(stderr,"Done: %.1fs\n",elapsed());
+    for(int i=0;i<=d;i++) mpz_clear(fc[i]);
+    mpz_clears(X,tmp,rn,an,N,NULL);poly_clear(&poly);fb_free(rfb);fb_free(afb);
+    gmp_randclear(rstate);
+    return 0;
+}
