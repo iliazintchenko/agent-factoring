@@ -508,262 +508,279 @@ static gf2w mat64_sym_pseudoinv(const gf2w F[64], gf2w inv[64]) {
  * Multiple independent runs are used to find more null vectors (different random
  * starting y gives different null vectors). Falls back to dense GE if BL fails.
  */
-static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_deps) {
-    int n = A->ncols;
-    int nrows = A->nrows;
+/*
+ * Structured GE helper: XOR-merge two sorted integer arrays (GF(2) symmetric difference).
+ * Returns number of elements in result stored in out[].
+ * out[] must have capacity at least len1+len2.
+ */
+static int xor_merge(const int *a, int la, const int *b, int lb, int *out) {
+    int i = 0, j = 0, k = 0;
+    while (i < la && j < lb) {
+        if (a[i] < b[j]) out[k++] = a[i++];
+        else if (b[j] < a[i]) out[k++] = b[j++];
+        else { i++; j++; } /* cancel */
+    }
+    while (i < la) out[k++] = a[i++];
+    while (j < lb) out[k++] = b[j++];
+    return k;
+}
 
-    /* Allocate working buffers (reused across runs) */
-    gf2w *y      = calloc(n, sizeof(gf2w));
-    gf2w *By     = calloc(n, sizeof(gf2w));
-    gf2w *v      = calloc(n, sizeof(gf2w));
-    gf2w *v_old  = calloc(n, sizeof(gf2w));
-    gf2w *Bv     = calloc(n, sizeof(gf2w));
-    gf2w *Bv_old = calloc(n, sizeof(gf2w));
-    gf2w *tmp_r  = calloc(nrows, sizeof(gf2w));
-    gf2w *tmp2   = calloc(n, sizeof(gf2w));
-    gf2w *tmp3   = calloc(n, sizeof(gf2w));
+static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_deps) {
+    int ncols = A->ncols;
+    int nrows = A->nrows;
 
     *deps_out = malloc(max_deps * sizeof(int*));
     *dlen_out = malloc(max_deps * sizeof(int));
-    int nd = 0;
 
-    /* Time-based seed for variety across runs */
-    unsigned seed = (unsigned)(time(NULL) ^ (uintptr_t)A);
+    /*
+     * Structured Gaussian Elimination with Singleton and Doubleton Merging.
+     *
+     * Maintain mutable sparse rows and original-row tracking.
+     * Each logical row carries:
+     *   - row_buf[r]: sorted list of alive column indices (updated through merges)
+     *   - orig_buf[r]: sorted list of original row indices (XOR-accumulated)
+     *
+     * At the start of each pass, rebuild the col->row index (col_rows[c]) from
+     * current row_buf of alive rows. This keeps the index accurate after merges.
+     *
+     * Phase 1: Singleton removal — remove weight-1 cols and their unique row.
+     * Phase 2: Doubleton merge — for weight-2 col c in rows r1,r2: set r2=r1 XOR r2,
+     *          remove r1 and c.
+     * Repeat until stable, then run dense GE on remaining rows.
+     */
 
-    /* Run BL multiple times with different random starting vectors.
-     * Each run finds up to 64 null vectors. For large matrices, more runs may
-     * be needed to find enough dependencies. */
-    /* Number of BL runs to attempt.
-     * For small matrices (n <= 300), 3 runs find enough null vectors.
-     * For large matrices with degenerate GF(2) Gram forms, BL finds few unique
-     * null vectors per run; limit to 5 runs then fall back to GE. */
-    int max_runs = (n > 5000) ? 20 : (n > 300) ? 10 : 3;
+    /* Mutable row storage */
+    int *row_len = calloc(nrows, sizeof(int));
+    int **row_buf = malloc(nrows * sizeof(int*));
+    int *orig_len = malloc(nrows * sizeof(int));
+    int **orig_buf = malloc(nrows * sizeof(int*));
 
-    for (int run = 0; run < max_runs && nd < max_deps; run++) {
-        if (elapsed_sec() > 290) break;
-
-        /* Initialize y with random 64-bit values using combined rand() calls
-         * (rand() returns at most 31 bits; combine 3 calls to cover all 64). */
-        srand(seed + run * 1234567);
-        for (int i = 0; i < n; i++)
-            y[i] = ((gf2w)(rand() & 0x1fffff) << 43) ^
-                   ((gf2w)(rand() & 0x1fffff) << 22) ^
-                   ((gf2w)(rand() & 0x3fffff));
-
-        /* Compute By = B * y */
-        bmul(A, y, By, tmp_r);
-
-        /* v_0 = By (starting Krylov vector) */
-        memcpy(v, By, n * sizeof(gf2w));
-
-        gf2w active = ~0ULL;
-        gf2w Fi_inv_prev[64];
-        memset(Fi_inv_prev, 0, sizeof(Fi_inv_prev));
-        int have_prev = 0;
-        int iter;
-        int max_iter = n / 32 + 200;
-
-        for (iter = 0; iter < max_iter && active; iter++) {
-            bmul(A, v, Bv, tmp_r);
-
-            /* Fi = V^T * B * V (Gram matrix) */
-            gf2w Fi_active[64];
-            inner_prod(v, Bv, n, Fi_active);
-            /* Restrict to active channels */
-            for (int i = 0; i < 64; i++)
-                Fi_active[i] = ((active >> i) & 1) ? (Fi_active[i] & active) : 0;
-
-            /* Compute pseudo-inverse: alive_now = pivot columns of Fi_active */
-            gf2w Fi_inv[64];
-            gf2w alive_now = mat64_sym_pseudoinv(Fi_active, Fi_inv);
-
-            if (!alive_now) { active = 0; break; }
-            active = alive_now;
-
-            mask_vec(v, n, active);
-            mask_vec(Bv, n, active);
-
-            /* Project y: y += v * Fi_inv * (v^T * B * y) */
-            gf2w vt_By[64];
-            inner_prod(v, By, n, vt_By);
-            gf2w coeff[64];
-            mat64_mul(Fi_inv, vt_By, coeff);
-            for (int i = 0; i < 64; i++) coeff[i] &= active;
-            apply_mat64(coeff, v, tmp2, n);
-            for (int i = 0; i < n; i++) y[i] ^= tmp2[i];
-            /* Update By incrementally: By += B*(v*coeff) = Bv*coeff */
-            apply_mat64(coeff, Bv, tmp2, n);
-            for (int i = 0; i < n; i++) By[i] ^= tmp2[i];
-
-            /* Compute recurrence coefficients */
-            gf2w vtBBv[64];
-            inner_prod(Bv, Bv, n, vtBBv);
-            gf2w S[64];
-            mat64_mul(Fi_inv, vtBBv, S);
-            for (int i = 0; i < 64; i++) S[i] &= active;
-
-            gf2w D[64];
-            if (have_prev) {
-                gf2w Bv_old_Bv[64];
-                inner_prod(Bv_old, Bv, n, Bv_old_Bv);
-                mat64_mul(Fi_inv_prev, Bv_old_Bv, D);
-                for (int i = 0; i < 64; i++) D[i] &= active;
-            } else {
-                memset(D, 0, sizeof(D));
-            }
-
-            /* V_{i+1} = Bv + v*S + v_old*D */
-            apply_mat64(S, v, tmp2, n);
-            for (int i = 0; i < n; i++) tmp2[i] ^= Bv[i];
-            if (have_prev) {
-                apply_mat64(D, v_old, tmp3, n);
-                for (int i = 0; i < n; i++) tmp2[i] ^= tmp3[i];
-            }
-            mask_vec(tmp2, n, active);
-
-            memcpy(Fi_inv_prev, Fi_inv, sizeof(Fi_inv));
-            memcpy(v_old, v, n * sizeof(gf2w));
-            memcpy(Bv_old, Bv, n * sizeof(gf2w));
-            memcpy(v, tmp2, n * sizeof(gf2w));
-            have_prev = 1;
-        }
-        /* Check how many null vectors y found this run */
-        gf2w *Ax = calloc(nrows, sizeof(gf2w));
-        spmv(A, y, Ax);
-        gf2w *BtAx = calloc(n, sizeof(gf2w));
-        spmv_t(A, Ax, BtAx);
-
-        gf2w null_mask = ~0ULL;
-        for (int i = 0; i < n; i++) null_mask &= ~BtAx[i];
-
-        gf2w mask = null_mask;
-        while (mask && nd < max_deps) {
-            int b = __builtin_ctzll(mask);
-            mask &= mask - 1;
-            gf2w col_any = 0;
-            for (int i = 0; i < nrows; i++) col_any |= (Ax[i] >> b) & 1;
-            if (!col_any) continue;
-            int *d = malloc(nrows * sizeof(int));
-            int dl = 0;
-            for (int i = 0; i < nrows; i++)
-                if ((Ax[i] >> b) & 1) d[dl++] = i;
-            if (dl > 0) {
-                (*deps_out)[nd] = d;
-                (*dlen_out)[nd] = dl;
-                nd++;
-            } else {
-                free(d);
-            }
-        }
-
-        free(Ax); free(BtAx);
+    for (int r = 0; r < nrows; r++) {
+        int len = A->row_start[r+1] - A->row_start[r];
+        row_buf[r] = malloc((len + 1) * sizeof(int));
+        row_len[r] = len;
+        for (int j = 0; j < len; j++)
+            row_buf[r][j] = A->col_idx[A->row_start[r] + j];
+        orig_buf[r] = malloc(sizeof(int));
+        orig_buf[r][0] = r;
+        orig_len[r] = 1;
     }
 
-    free(v); free(v_old); free(Bv); free(Bv_old); free(tmp_r); free(tmp2); free(tmp3);
-    free(y); free(By);
+    int *row_alive = malloc(nrows * sizeof(int));
+    int *col_alive = malloc(ncols * sizeof(int));
+    memset(row_alive, 1, nrows * sizeof(int));
+    memset(col_alive, 1, ncols * sizeof(int));
 
-    /* Return BL results only if we found enough deps for reliable factoring.
-     * For large matrices, BL with degenerate GF(2) Gram matrices tends to find
-     * only a small subspace of the null space; GE finds the full null space. */
-    /* BL implementation needs debugging - skip to structured GE */
-    for (int i = 0; i < nd; i++) free((*deps_out)[i]);
-    nd = 0;
-    for (int i = 0; i < nd; i++) free((*deps_out)[i]);
-    /* deps_out/dlen_out allocated; GE will reuse them */
+    /* col_rows[c]: dynamic list of alive rows containing c (rebuilt each pass) */
+    /* col_cnt[c]: working count of alive rows (modified during pass) */
+    /* col_size[c]: actual number of entries in col_rows[c] (set at rebuild, not modified) */
+    int **col_rows = malloc(ncols * sizeof(int*));
+    int *col_cnt = calloc(ncols, sizeof(int));
+    int *col_size = calloc(ncols, sizeof(int)); /* size of col_rows[c] list */
+    int *col_cap = calloc(ncols, sizeof(int));
+    for (int c = 0; c < ncols; c++) {
+        col_rows[c] = malloc(4 * sizeof(int));
+        col_cap[c] = 4;
+    }
 
-    /* Structured Gaussian Elimination fallback */
-    int *col_weight = calloc(A->ncols, sizeof(int));
-    int *row_alive = calloc(A->nrows, sizeof(int));
-    int *col_alive = calloc(A->ncols, sizeof(int));
-    memset(row_alive, 1, A->nrows * sizeof(int));
-    memset(col_alive, 1, A->ncols * sizeof(int));
+    int removed_rows = 0, removed_cols = 0;
+    int *tmp_xor = malloc((A->nnz + ncols) * sizeof(int)); /* temp buffer for XOR */
 
-    for (int i = 0; i < A->nrows; i++)
-        for (int j = A->row_start[i]; j < A->row_start[i+1]; j++)
-            col_weight[A->col_idx[j]]++;
+    int pass = 0;
+    for (;;) {
+        pass++;
 
-    int changed = 1, removed_rows = 0, removed_cols = 0;
-    while (changed) {
-        changed = 0;
-        for (int c = 0; c < A->ncols; c++) {
+        /* Rebuild col_rows from current row_buf of alive rows */
+        for (int c = 0; c < ncols; c++) col_cnt[c] = 0;
+        for (int r = 0; r < nrows; r++) {
+            if (!row_alive[r]) continue;
+            for (int j = 0; j < row_len[r]; j++) {
+                int c = row_buf[r][j];
+                if (!col_alive[c]) continue;
+                if (col_cnt[c] >= col_cap[c]) {
+                    col_cap[c] *= 2;
+                    col_rows[c] = realloc(col_rows[c], col_cap[c] * sizeof(int));
+                }
+                col_rows[c][col_cnt[c]++] = r;
+            }
+        }
+        /* Save the actual size of col_rows[c] (col_cnt will be modified during the pass) */
+        memcpy(col_size, col_cnt, ncols * sizeof(int));
+
+        int changed = 0;
+
+        /* Singleton removal */
+        for (int c = 0; c < ncols; c++) {
             if (!col_alive[c]) continue;
-            if (col_weight[c] <= 1) {
-                col_alive[c] = 0; removed_cols++; changed = 1;
-                for (int i = 0; i < A->nrows; i++) {
-                    if (!row_alive[i]) continue;
-                    for (int j = A->row_start[i]; j < A->row_start[i+1]; j++) {
-                        if (A->col_idx[j] == c) {
-                            row_alive[i] = 0; removed_rows++;
-                            for (int k = A->row_start[i]; k < A->row_start[i+1]; k++)
-                                if (col_alive[A->col_idx[k]]) col_weight[A->col_idx[k]]--;
-                            break;
-                        }
-                    }
+            if (col_cnt[c] > 1) continue;
+            col_alive[c] = 0; removed_cols++; changed = 1;
+            if (col_cnt[c] == 0) continue;
+            /* Find the ONE alive row containing c from col_rows[c]
+             * Use col_size[c] (not col_cnt[c]) since col_cnt was decremented during this pass */
+            int r = -1;
+            for (int k = 0; k < col_size[c]; k++) {
+                if (row_alive[col_rows[c][k]]) { r = col_rows[c][k]; break; }
+            }
+            if (r < 0) continue;
+            row_alive[r] = 0; removed_rows++;
+            /* Decrement counts for cols in this removed row */
+            for (int j = 0; j < row_len[r]; j++) {
+                int cc = row_buf[r][j];
+                if (col_alive[cc]) col_cnt[cc]--;
+            }
+        }
+
+        /* Doubleton merging */
+        for (int c = 0; c < ncols; c++) {
+            if (!col_alive[c]) continue;
+            if (col_cnt[c] != 2) continue;
+
+            /* Find two alive rows from col_rows[c] (use col_size, not col_cnt) */
+            int r1 = -1, r2 = -1;
+            for (int k = 0; k < col_size[c]; k++) {
+                if (!row_alive[col_rows[c][k]]) continue;
+                if (r1 < 0) r1 = col_rows[c][k];
+                else { r2 = col_rows[c][k]; break; }
+            }
+            if (r1 < 0 || r2 < 0) continue;
+
+            /* Compute new row content: XOR (symmetric difference) of r1 and r2 */
+            int len1 = row_len[r1], len2 = row_len[r2];
+            int ni = xor_merge(row_buf[r1], len1, row_buf[r2], len2, tmp_xor);
+
+            /* Remove dead columns from result */
+            int ni2 = 0;
+            for (int j = 0; j < ni; j++)
+                if (col_alive[tmp_xor[j]]) tmp_xor[ni2++] = tmp_xor[j];
+            ni = ni2;
+
+            /* Update col_cnt: only columns in BOTH r1 and r2 (cancelled) lose 2 */
+            {
+                int i1 = 0, i2 = 0;
+                while (i1 < len1 && i2 < len2) {
+                    int a = row_buf[r1][i1], b = row_buf[r2][i2];
+                    if (a == b) {
+                        if (col_alive[a]) col_cnt[a] -= 2;
+                        i1++; i2++;
+                    } else if (a < b) i1++;
+                    else i2++;
                 }
             }
+
+            /* Replace r2's content */
+            free(row_buf[r2]);
+            row_buf[r2] = malloc((ni + 1) * sizeof(int));
+            memcpy(row_buf[r2], tmp_xor, ni * sizeof(int));
+            row_len[r2] = ni;
+
+            /* Merge orig_buf: symmetric difference */
+            {
+                int ol1 = orig_len[r1], ol2 = orig_len[r2];
+                int *new_orig = malloc((ol1 + ol2 + 1) * sizeof(int));
+                int oi = xor_merge(orig_buf[r1], ol1, orig_buf[r2], ol2, new_orig);
+                free(orig_buf[r2]);
+                orig_buf[r2] = new_orig;
+                orig_len[r2] = oi;
+            }
+
+            /* Remove column c and row r1 */
+            col_alive[c] = 0; removed_cols++;
+            col_cnt[c] = 0;
+            row_alive[r1] = 0; removed_rows++;
+            changed = 1;
         }
+
+        if (!changed) break;
     }
 
-    int *col_map = malloc(A->ncols * sizeof(int));
-    int *row_map = malloc(A->nrows * sizeof(int));
-    int new_ncols = 0, new_nrows = 0;
-    for (int c = 0; c < A->ncols; c++) col_map[c] = col_alive[c] ? new_ncols++ : -1;
-    for (int r = 0; r < A->nrows; r++) row_map[r] = row_alive[r] ? new_nrows++ : -1;
-    (void)row_map;
+    free(tmp_xor);
+    for (int c = 0; c < ncols; c++) free(col_rows[c]);
+    free(col_rows); free(col_cnt); free(col_size); free(col_cap);
+
+    int remaining_rows = nrows - removed_rows;
+    int remaining_cols = ncols - removed_cols;
+    fprintf(stderr, "  SGE (%d passes): removed %d rows, %d cols; remaining %d x %d\n",
+            pass, removed_rows, removed_cols, remaining_rows, remaining_cols);
+
+    /* Build dense matrix for GE */
+    int *col_map = malloc(ncols * sizeof(int));
+    int new_ncols = 0;
+    for (int c = 0; c < ncols; c++) col_map[c] = col_alive[c] ? new_ncols++ : -1;
+
+    int new_nrows = 0;
+    for (int r = 0; r < nrows; r++) if (row_alive[r]) new_nrows++;
+
+    fprintf(stderr, "  Dense GE: %d x %d matrix\n", new_nrows, new_ncols);
 
     int fb_words = (new_ncols + 63) / 64;
-    int id_words = (A->nrows + 63) / 64;
+    int id_words = (nrows + 63) / 64;
     int total_words = fb_words + id_words;
 
-    gf2w **rows = malloc(new_nrows * sizeof(gf2w*));
-    for (int i = 0; i < new_nrows; i++) rows[i] = calloc(total_words, sizeof(gf2w));
+    gf2w **ge_rows = malloc(new_nrows * sizeof(gf2w*));
+    for (int i = 0; i < new_nrows; i++) ge_rows[i] = calloc(total_words, sizeof(gf2w));
 
     int ri = 0;
-    for (int r = 0; r < A->nrows; r++) {
+    for (int r = 0; r < nrows; r++) {
         if (!row_alive[r]) continue;
-        rows[ri][fb_words + r/64] |= (1ULL << (r % 64));
-        for (int j = A->row_start[r]; j < A->row_start[r+1]; j++) {
-            int c = col_map[A->col_idx[j]];
-            if (c >= 0) rows[ri][c/64] |= (1ULL << (c % 64));
+        /* Identity bits: one bit per original row in orig_buf[r] */
+        for (int k = 0; k < orig_len[r]; k++) {
+            int orig = orig_buf[r][k];
+            ge_rows[ri][fb_words + orig/64] |= (1ULL << (orig % 64));
+        }
+        /* FB columns */
+        for (int j = 0; j < row_len[r]; j++) {
+            int c = col_map[row_buf[r][j]];
+            if (c >= 0) ge_rows[ri][c/64] |= (1ULL << (c % 64));
         }
         ri++;
     }
 
+    /* Dense GE over GF(2) */
     int pivot = 0;
     for (int c = 0; c < new_ncols && pivot < new_nrows; c++) {
         int pr = -1;
         for (int r = pivot; r < new_nrows; r++)
-            if ((rows[r][c/64] >> (c%64)) & 1) { pr = r; break; }
+            if ((ge_rows[r][c/64] >> (c%64)) & 1) { pr = r; break; }
         if (pr < 0) continue;
-        if (pr != pivot) { gf2w *t = rows[pr]; rows[pr] = rows[pivot]; rows[pivot] = t; }
+        if (pr != pivot) { gf2w *t = ge_rows[pr]; ge_rows[pr] = ge_rows[pivot]; ge_rows[pivot] = t; }
         for (int r = 0; r < new_nrows; r++) {
             if (r == pivot) continue;
-            if ((rows[r][c/64] >> (c%64)) & 1)
-                for (int w = 0; w < total_words; w++) rows[r][w] ^= rows[pivot][w];
+            if ((ge_rows[r][c/64] >> (c%64)) & 1)
+                for (int w = 0; w < total_words; w++) ge_rows[r][w] ^= ge_rows[pivot][w];
         }
         pivot++;
     }
 
     int nd_ge = 0;
     for (int r = pivot; r < new_nrows && nd_ge < max_deps; r++) {
+        /* Check all FB columns are zero */
         int zero = 1;
         for (int w = 0; w < fb_words && zero; w++) {
             gf2w ge_mask = (w < fb_words-1) ? ~0ULL :
                            (new_ncols%64==0 ? ~0ULL : (1ULL<<(new_ncols%64))-1);
-            if (rows[r][w] & ge_mask) zero = 0;
+            if (ge_rows[r][w] & ge_mask) zero = 0;
         }
         if (!zero) continue;
-        int *d = malloc(A->nrows * sizeof(int)); int dl = 0;
+        /* Extract dependency from identity bits */
+        int *d = malloc(nrows * sizeof(int)); int dl = 0;
         for (int w = 0; w < id_words; w++) {
-            gf2w bits = rows[r][fb_words+w];
-            while (bits) { int bit = __builtin_ctzll(bits); int idx = w*64+bit;
-                if (idx < A->nrows) d[dl++] = idx; bits &= bits-1; }
+            gf2w bits = ge_rows[r][fb_words+w];
+            while (bits) {
+                int bit = __builtin_ctzll(bits);
+                int idx = w*64+bit;
+                if (idx < nrows) d[dl++] = idx;
+                bits &= bits-1;
+            }
         }
         if (dl > 0) { (*deps_out)[nd_ge] = d; (*dlen_out)[nd_ge] = dl; nd_ge++; } else free(d);
     }
 
-    for (int i = 0; i < new_nrows; i++) free(rows[i]);
-    free(rows); free(col_weight); free(row_alive); free(col_alive); free(col_map); free(row_map);
+    /* Cleanup */
+    for (int i = 0; i < new_nrows; i++) free(ge_rows[i]);
+    free(ge_rows);
+    for (int r = 0; r < nrows; r++) { free(row_buf[r]); free(orig_buf[r]); }
+    free(row_buf); free(row_len); free(orig_buf); free(orig_len);
+    free(row_alive); free(col_alive); free(col_map);
     return nd_ge;
 }
 
@@ -855,7 +872,7 @@ static params_t get_params(int bits) {
     if (bits <= 220) return (params_t){5500,  30, 200, 180, 0.84, 1};
     if (bits <= 230) return (params_t){7000,  38, 200, 200, 0.845, 1};
     if (bits <= 240) return (params_t){9000,  46, 200, 220, 0.85, 1};
-    if (bits <= 250) return (params_t){12000, 56, 200, 250, 0.855, 1};
+    if (bits <= 250) return (params_t){20000, 56, 150, 300, 0.86, 1};
     if (bits <= 260) return (params_t){16000, 66, 200, 300, 0.86, 1};
     if (bits <= 270) return (params_t){22000, 80, 200, 350, 0.865, 1};
     if (bits <= 280) return (params_t){30000, 96, 200, 400, 0.87, 1};
