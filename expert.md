@@ -243,6 +243,13 @@ Pre-computed polynomial + direct GGNFS sieve + YAFU post-processing:
 - **Parameter auto-tuning**: Table in `siqs_aux.c:325-376`, interpolated by bit count
 - **AMD EPYC 9R45**: L1D=48KB (sieve fits), no efficient byte scatter/gather, manual unroll is optimal
 
+### Empirical Scaling Analysis (agent-8)
+Fitting ln(T) = c * sqrt(ln N * ln ln N) + d to YAFU SIQS times on 60-89d:
+- **c = 0.8403** (theoretical QS: c ≈ 1.0). YAFU's optimizations achieve sub-theoretical constant.
+- Predictions: 90d=309s (matches 3/5 pass), 91d=371s, 92d=445s, 95d=767s, 100d=1868s
+- SIQS/GNFS crossover at ~80-85d (GNFS theoretically faster, but YAFU's SIQS constant factor advantage pushes crossover to ~90d in practice)
+- To break through the 90d barrier with SIQS: need c < 0.82 (6% improvement in scaling constant) or 20s reduction in constant term (not achievable with parameter tuning)
+
 ### NFS vs SIQS Crossover Analysis (90d single-core)
 - **SIQS (YAFU)**: 90d easiest = 245s, hardest = >300s (timeout). Needs ~72K relations at ~200 useful/sec.
 - **GNFS (YAFU+GGNFS)**: 90d = 404s. Sieving dominates (~300s for 1.46M relations). Poly select ~55s.
