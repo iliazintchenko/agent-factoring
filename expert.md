@@ -110,10 +110,11 @@ SIQS-Bucket with Gray Code + DLP→SLP Pipeline (worst of 5 per size):
 | 55 | 4.97s | 5.9x/5d | |
 | 60 | 9.86s | 2.0x/5d | 14.1x |
 | 65 | 72.5s | 7.4x/5d | |
-| 70 | 111.6s | 1.5x/5d | 19.2x |
-| 72 | 230.4s | ~2.1x/2d | |
+| 70 | 88.7s | 1.3x/5d | **15.3x** |
+| 72 | 188.8s | ~2.1x/2d | |
+| 73 | 295s (4/5) | ~1.6x/1d | |
 
-**Key innovation**: DLP→SLP pipeline creates positive feedback at 65-72d. Growth drops from 7.4x/5d to 1.5x/5d.
+**Key innovations**: (1) DLP→SLP pipeline: positive feedback loop at 65-73d. (2) TLP with primality pre-check. (3) 48KB L1 sieve blocks. (4) Gray code self-init. (5) Incremental sieve offsets. **Best custom at 70d (88.7s) and 72d (188.8s).**
 
 SPQS2 Bucket Sieve (worst of 5 per size):
 
