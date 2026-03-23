@@ -135,12 +135,13 @@ The GGNFS sievers at `yafu/factor/lasieve5_64/bin/` work correctly but need:
 
 ### YAFU SIQS on 90d — Closest Attempt
 NB=20 B=120K on 90d (all 5 semiprimes):
-- 90d[0]: timeout (>295s)
-- 90d[1]: **248.6s** ✓
-- 90d[2]: timeout (>295s, sieve done but BL didn't finish)
-- 90d[3]: **282.3s** ✓
-- 90d[4]: **281.2s** ✓
-- 3/5 pass, 2/5 exceed 300s with YAFU SIQS.
+- 90d[0]: **319.3s** on loaded machine (load ~18). Estimated ~260-280s on idle. Still exceeds 300s single-run.
+- 90d[1]: **247.1s** ✓ (baseline on loaded machine, load ~24)
+- 90d[2]: **~300s** on idle (previously timed out at 295s boundary). Factored via resume in 12.5s after accumulated siqs.dat from killed runs.
+- 90d[3]: **287.6s** ✓ (loaded machine, load ~20)
+- 90d[4]: **286.7s** ✓ (loaded machine, load ~20)
+- 3/5 pass under 300s. 90d[0] needs ~315s on idle, 90d[2] needs ~300s. NOT achieved within 300s per-run budget.
+- **Source modifications (closnuf, UPM1, VBITS=512) provide no measurable improvement** — A/B test on 90d[1]: 250.7s (modified) vs 247.1s (baseline), i.e. 1.5% slower.
 
 ### Alternatives Explored
 | Approach | Result |
