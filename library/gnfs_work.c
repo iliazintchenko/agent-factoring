@@ -435,10 +435,24 @@ int main(int argc, char *argv[]) {
         if (!found) {
             fprintf(stderr,"  Trying Hensel lifting algebraic sqrt...\n");
 
-            /* Find prime where f has d distinct roots (brute force, p < 50000) */
+            /* Multi-prime CRT: compute T(m) mod N using many small primes.
+             * For each prime q where f splits:
+             *   - Find roots r_1,...,r_d of f mod q
+             *   - Compute S_j = prod(a_i - b_i*r_j) mod q
+             *   - Compute T_j = sqrt(S_j) mod q (fixed sign: < q/2)
+             *   - Lagrange: T(m) mod q
+             * CRT across primes gives T(m) mod (product of q's).
+             * When product > N, reduce mod N. Try both ± signs at end. */
+
+            /* Collect CRT primes and T(m) values */
+            #define MAX_CRT2 100
+            unsigned long crt2_q[MAX_CRT2];
+            unsigned long crt2_tm[MAX_CRT2]; /* T(m) mod q for each prime */
+            int ncrt2 = 0;
+
             unsigned long hp = 0;
             unsigned long hr[MAX_DEG];
-            for (unsigned long q = 10007; q < 50000 && !hp; q += 2) {
+            for (unsigned long q = 1009; q < 50000 && ncrt2 < MAX_CRT2; q += 2) {
                 mpz_set_ui(tmp, q);
                 if (!mpz_probab_prime_p(tmp, 2)) continue;
                 int nr = 0;
@@ -453,7 +467,129 @@ int main(int argc, char *argv[]) {
                 if (nr == d) hp = q;
             }
 
-            if (hp > 0) {
+            /* Convert to multi-prime CRT: for each suitable prime, compute T(m) mod q */
+            for (unsigned long q2 = 1009; q2 < 50000 && ncrt2 < MAX_CRT2; q2 += 2) {
+                mpz_set_ui(tmp, q2);
+                if (!mpz_probab_prime_p(tmp, 2)) continue;
+                /* Check f has d distinct roots mod q2 */
+                int nr2 = 0;
+                unsigned long rts2[MAX_DEG+1];
+                for (unsigned long x = 0; x < q2 && nr2 <= d; x++) {
+                    unsigned long long val = 0;
+                    for (int j = d; j >= 0; j--) {
+                        unsigned long cj = mpz_fdiv_ui(fc[j], q2);
+                        val = (val * x + cj) % q2;
+                    }
+                    if (val == 0) rts2[nr2++] = x;
+                }
+                if (nr2 != d) continue;
+
+                /* Compute S_j = prod(a_i - b_i*r_j) mod q2 */
+                unsigned long Sj[MAX_DEG];
+                int sq_ok = 1;
+                unsigned long Tj[MAX_DEG];
+                for (int j = 0; j < d && sq_ok; j++) {
+                    unsigned long long pv = 1;
+                    for (int i = 0; i < dlen[di]; i++) {
+                        long long t2 = ((da[i] % (long long)q2) + q2) % q2;
+                        t2 = (t2 + q2 - ((unsigned long long)db[i] % q2 * rts2[j]) % q2) % q2;
+                        pv = pv * (unsigned long long)t2 % q2;
+                    }
+                    Sj[j] = (unsigned long)pv;
+                    /* sqrt mod q2 */
+                    if (pv == 0) { Tj[j] = 0; continue; }
+                    unsigned long long r2=1,b2=pv,e2=(q2-1)/2; unsigned long long m2=q2;
+                    while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}
+                    if (r2 != 1) { sq_ok = 0; break; }
+                    /* Tonelli-Shanks */
+                    if (q2%4==3){r2=1;b2=pv;e2=(q2+1)/4;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}Tj[j]=(unsigned long)r2;}
+                    else{unsigned long Q3=q2-1,S3=0;while(Q3%2==0){Q3/=2;S3++;}
+                        unsigned long z2=2;for(;;){r2=1;b2=z2;e2=(q2-1)/2;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}if(r2==m2-1)break;z2++;}
+                        unsigned long long M3=S3,c3,t3,R3;
+                        r2=1;b2=z2;e2=Q3;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}c3=r2;
+                        r2=1;b2=pv;e2=Q3;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}t3=r2;
+                        r2=1;b2=pv;e2=(Q3+1)/2;while(e2){if(e2&1)r2=r2*b2%m2;b2=b2*b2%m2;e2>>=1;}R3=r2;
+                        for(;;){if(t3==1){Tj[j]=(unsigned long)R3;break;}int i3=0;unsigned long long tt=t3;
+                        while(tt!=1){tt=tt*tt%q2;i3++;}unsigned long long bb=c3;
+                        for(int jj=0;jj<(int)M3-i3-1;jj++)bb=bb*bb%q2;M3=i3;c3=bb*bb%q2;t3=t3*c3%q2;R3=R3*bb%q2;}}
+                    /* Canonical sign: T_j < q/2 */
+                    if (Tj[j] > q2/2) Tj[j] = q2 - Tj[j];
+                }
+                if (!sq_ok) continue;
+
+                /* Lagrange: T(m) mod q2 */
+                unsigned long mmod = mpz_fdiv_ui(poly.m, q2);
+                unsigned long long result = 0;
+                for (int j = 0; j < d; j++) {
+                    unsigned long long num = Tj[j], den = 1;
+                    for (int k = 0; k < d; k++) {
+                        if (k == j) continue;
+                        num = num * ((mmod + q2 - rts2[k]) % q2) % q2;
+                        den = den * ((rts2[j] + q2 - rts2[k]) % q2) % q2;
+                    }
+                    unsigned long long inv = 1, bb = den, ee = q2 - 2;
+                    while (ee) { if (ee&1) inv=inv*bb%q2; bb=bb*bb%q2; ee>>=1; }
+                    result = (result + num * inv % q2) % q2;
+                }
+                crt2_q[ncrt2] = q2;
+                crt2_tm[ncrt2] = (unsigned long)result;
+                ncrt2++;
+            }
+
+            fprintf(stderr,"  CRT: %d primes for dep %d\n", ncrt2, di);
+
+            /* CRT to combine T(m) values */
+            if (ncrt2 >= 2) {
+                mpz_t crt_val, crt_mod;
+                mpz_inits(crt_val, crt_mod, NULL);
+                mpz_set_ui(crt_val, crt2_tm[0]);
+                mpz_set_ui(crt_mod, crt2_q[0]);
+
+                for (int qi = 1; qi < ncrt2; qi++) {
+                    unsigned long q2 = crt2_q[qi];
+                    unsigned long tm_q = crt2_tm[qi];
+                    /* CRT: combine crt_val mod crt_mod with tm_q mod q2 */
+                    unsigned long a_mod_q = mpz_fdiv_ui(crt_val, q2);
+                    long diff = (long)tm_q - (long)a_mod_q;
+                    if (diff < 0) diff += q2;
+                    unsigned long inv_m = 1;
+                    { unsigned long long iv=1, bb=mpz_fdiv_ui(crt_mod,q2), ee=q2-2;
+                      while(ee){if(ee&1)iv=iv*bb%q2;bb=bb*bb%q2;ee>>=1;} inv_m=(unsigned long)iv; }
+                    unsigned long t = (unsigned long long)((unsigned long)diff) * inv_m % q2;
+                    mpz_addmul_ui(crt_val, crt_mod, t);
+                    mpz_mul_ui(crt_mod, crt_mod, q2);
+
+                    /* Check if accumulated product > N */
+                    if (qi > 0 && mpz_cmp(crt_mod, N) > 0) {
+                        mpz_t Y_crt;
+                        mpz_init(Y_crt);
+                        mpz_mod(Y_crt, crt_val, N);
+
+                        /* Try both signs */
+                        mpz_sub(g, X, Y_crt); mpz_mod(g,g,N); mpz_gcd(g,g,N);
+                        if(mpz_cmp_ui(g,1)>0 && mpz_cmp(g,N)<0){
+                            mpz_t co;mpz_init(co);mpz_divexact(co,N,g);
+                            gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}
+                        if(!found){
+                            mpz_add(g,X,Y_crt);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                            if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
+                                mpz_t co;mpz_init(co);mpz_divexact(co,N,g);
+                                gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
+                        if(!found){
+                            /* Try negating Y */
+                            mpz_sub(Y_crt, N, Y_crt);
+                            mpz_sub(g,X,Y_crt);mpz_mod(g,g,N);mpz_gcd(g,g,N);
+                            if(mpz_cmp_ui(g,1)>0&&mpz_cmp(g,N)<0){
+                                mpz_t co;mpz_init(co);mpz_divexact(co,N,g);
+                                gmp_printf("%Zd\n%Zd\n",g,co);mpz_clear(co);found=1;}}
+                        mpz_clear(Y_crt);
+                        if (found) break;
+                    }
+                }
+                mpz_clears(crt_val, crt_mod, NULL);
+            }
+
+            if (0 && hp > 0) { /* DISABLED: old Hensel approach */
                 fprintf(stderr,"  p=%lu, roots:", hp);
                 for (int j = 0; j < d; j++) fprintf(stderr," %lu", hr[j]);
                 fprintf(stderr,"\n");
