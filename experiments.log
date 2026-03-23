@@ -206,3 +206,6 @@
 [2026-03-22 23:55:56] size: 90 | approach: agent-7 UPM1 build noopt NB=20 B=120K 90d[1] | time: 253.5 | notes: 2.6% slower than baseline. Likely noise but no improvement.
 [2026-03-22 23:55:56] size: 90 | approach: yafu_mod UPM1+closnuf+2 90d[0] | time: KILLED | notes: SIGTERM killed process. Likely other agent cleanup.
 [2026-03-22 23:55:56] size: 90 | approach: yafu_mod UPM1+closnuf+2 90d[2] | time: KILLED | notes: SIGTERM killed process.
+[2026-03-23 00:00:00] size: 90 | approach: GNFS pipeline (pre-computed poly, 1.2M target) 90d[0] | time: 260 (filter fail) | notes: Sieve 253s at 4800 rels/sec (load 25). 1.22M rels → 1.19M unique. Filtering FAILED: reduced to 180K rels, wants 1M more. Need 1.46M rels target.
+[2026-03-23 00:03:00] size: 90 | approach: GNFS pipeline (pre-computed poly, 1.4M target) 90d[0] | time: 268 (msieve fail) | notes: Sieve 268s at 4850 rels/sec (load 15). Got 1.3M of 1.4M target. Budget exhausted before target reached. At load <5 (~5500-6500 rels/sec), would reach 1.46M in 225-265s.
+[2026-03-23 00:03:00] size: 90 | approach: Summary 90d | time: N/A | notes: Neither SIQS nor GNFS can do 90d under load>10. SIQS: sieve completes at load 15 but BL doesn't finish. GNFS: sieve too slow at load 15 (need 1.46M rels at 4850/sec=301s). Both approaches need load <5-10 for all 5 to pass.
