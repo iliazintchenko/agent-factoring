@@ -275,3 +275,4 @@
 [2026-03-23 11:00:00] size: 73 | approach: hyper_siqs (updated) | time: 168.4s | notes: BREAKTHROUGH: the previously-failing 73d #5583558852 now factored in 168s. TLP strategy was improved by other agents.
 [2026-03-23 11:00:00] size: 74 | approach: hyper_siqs | time: 234.1s worst | notes: ALL 5 74d semiprimes factored: 109s, 156s, 206s, 221s, 234s. New ceiling: 74d!
 [2026-03-23 11:00:00] size: 75 | approach: hyper_siqs | time: 3/5 pass, 2 FAIL | notes: 75d: 3 pass (146s, 233s, 289s), 2 timeout. 75d is borderline — some semiprimes too hard.
+[2026-03-23 12:00:00] size: 75 | approach: HyperSIQS | time: 262.3s (worst of 5) | notes: ALL 5 75d factored (193-262s)! FB=15000, LP=200x. Extends reliable max to 75d. Key finding: LARGER FB (15000 vs 12000) better at 75d because higher smoothness probability. Previous failures were from FB too small (9000-12000).
