@@ -300,3 +300,4 @@
 [2026-03-23 15:00:00] size: 77 | approach: HyperSIQS merged (incremental offsets + interleaved roots) | time: 292s | notes: 77d[0] BARELY passes (292/295s). FB=18000, LP=300x. Sieve=200s, LA=41s. Very tight - likely only 1-2 of 5 semiprimes would pass.
 [2026-03-23 13:00:00] size: 77 | approach: hyper_siqs | time: ALL FAIL | notes: 77d: 0/5 pass. All timeout. 76d is the confirmed ceiling for custom SIQS. Gap to YAFU: 13 digits (76d vs 89d).
 [2026-03-23 11:00:00] size: 76 | approach: hyper_siqs (updated) | time: 135/162/267(FAIL) | notes: 2 of 5 pass, #2 fails at 267s. Very close to 76d all-pass. Updated hyper_siqs.c (69 lines changed).
+[2026-03-23 15:00:00] size: 76 | approach: hyper_siqs TLP ALL 5 | time: 282.5s worst (4/5) | notes: 76d definitive: FAIL, 282.5, 258.0, 251.9, 261.9s. 76d[0] (1735...2557, 251 bits) is the only failure. All other 76d numbers factor in 252-283s. The frontier: 75d all 5, 76d 4/5, 77d infeasible.
