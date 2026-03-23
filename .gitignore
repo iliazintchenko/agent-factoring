@@ -13,3 +13,7 @@ gmon.out
 
 # Compiled binaries (keep only source in git)
 library/*/build/
+library/ecm_factor
+library/mpqs
+library/pollard_rho
+library/siqs

@@ -1,11 +1,15 @@
 # Library Index
 
-## Factoring implementations
-- `ecm_factor.c` — ECM factoring using GMP-ECM library. Usage: `./ecm_factor <N> [B1] [curves]`. Compiles with `-I/usr/local/include -L/usr/local/lib -lecm -lgmp -lm`.
-- `mpqs.c` — Multiple Polynomial Quadratic Sieve. Usage: `./mpqs <N>`. Compiles with `-lgmp -lm`. Full MPQS with CRT-based polynomial generation and large prime variation.
-- `siqs.c` — Basic QS (window-shifting). Not competitive — exists for reference only. MPQS is strictly better.
+## Factoring Tools
 
-## Benchmarking
-- `bench_ecm.sh` — Run ECM across all semiprime sizes, parallel execution.
-- `bench_mpqs.sh` — Run MPQS across semiprime sizes 30-70, parallel execution.
-- `run_bench.sh` — Generic benchmark runner for any factoring binary.
+- **ecm_factor.c** — ECM factoring using GMP-ECM library. Suyama parametrization with deterministic sigma from seed=42 RNG. Tries increasing B1 bounds from 10K to 100B. Compile: `gcc -O3 -o ecm_factor ecm_factor.c -lgmp -lecm -L/usr/local/lib -I/usr/local/include -lm`
+
+- **mpqs.cpp** — Self-Initializing Quadratic Sieve (SIQS). Multi-polynomial QS using products of fb primes for 'a' values. Includes single large prime variation and GF(2) Gaussian elimination. Seed=42. Compile: `g++ -O3 -o mpqs mpqs.cpp -lgmp -lm`
+
+- **pollard_rho.c** — Pollard's rho with Brent's cycle detection and batch GCD. Good for small factors. Seed=42. Compile: `gcc -O3 -o pollard_rho pollard_rho.c -lgmp -lm`
+
+## Utilities
+
+- **bench.py** — Python benchmarking script. Runs a factoring binary against semiprimes.json, records to experiments.log, prints scaling data. Usage: `python3 bench.py <binary> <approach_name> [sizes...]`
+
+- **run_bench.sh** — Shell benchmarking script (deprecated, use bench.py instead).
