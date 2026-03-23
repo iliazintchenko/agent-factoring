@@ -1172,29 +1172,80 @@ static int solve_matrix(sparse_mat_t *B, int **dep_out, int *dep_len_out) {
         }
     }
 
-    /* Extract deps, preferring longer ones. Min length 4 to avoid trivial pairs. */
-    int min_len = 4;
-    for (int pass = 0; pass < 2 && ndeps < 64; pass++) {
-        for (int ni = 0; ni < num_null && ndeps < 64; ni++) {
-            int r = null_rows[ni].row;
-            int dlen = null_rows[ni].len;
-            if (pass == 0 && dlen < min_len) continue; /* skip short on first pass */
+    /* Extract deps. First try long natural ones, then XOR pairs of short ones. */
 
+    /* Pass 1: collect long deps (length >= 4) */
+    for (int ni = 0; ni < num_null && ndeps < 32; ni++) {
+        if (null_rows[ni].len < 4) continue;
+        int r = null_rows[ni].row;
+        int *dep = malloc(m * sizeof(int));
+        int dl = 0;
+        for (int w = 0; w < id_words; w++) {
+            uint64_t bits = ident[r][w];
+            while (bits) {
+                int b = __builtin_ctzll(bits);
+                if (w * 64 + b < m) dep[dl++] = w * 64 + b;
+                bits &= bits - 1;
+            }
+        }
+        dep_out[ndeps] = dep;
+        dep_len_out[ndeps] = dl;
+        ndeps++;
+    }
+
+    /* Generate random combinations of null space basis vectors */
+    /* The null space is spanned by ident[r] for all null rows r */
+    /* Random XOR combinations create more diverse dependencies */
+
+    /* Collect null space basis vectors (identity column vectors) */
+    int basis_count = (num_null < 200) ? num_null : 200;
+    uint64_t **basis = malloc(basis_count * sizeof(uint64_t*));
+    for (int i = 0; i < basis_count; i++) {
+        basis[i] = malloc(id_words * sizeof(uint64_t));
+        memcpy(basis[i], ident[null_rows[i].row], id_words * sizeof(uint64_t));
+    }
+
+    /* Generate random deps by XOR-ing random subsets of basis vectors */
+    srand(42);
+    for (int trial = 0; trial < 200 && ndeps < 64; trial++) {
+        /* Create random combination */
+        uint64_t *combo = calloc(id_words, sizeof(uint64_t));
+
+        /* XOR 3-7 random basis vectors */
+        int nxor = 3 + (rand() % 5);
+        for (int k = 0; k < nxor; k++) {
+            int bi = rand() % basis_count;
+            for (int w = 0; w < id_words; w++)
+                combo[w] ^= basis[bi][w];
+        }
+
+        /* Extract dependency */
+        int dl = 0;
+        for (int w = 0; w < id_words; w++) {
+            uint64_t bits = combo[w];
+            while (bits) { dl++; bits &= bits - 1; }
+        }
+
+        if (dl >= 3) {
             int *dep = malloc(m * sizeof(int));
-            int dl = 0;
+            int dl2 = 0;
             for (int w = 0; w < id_words; w++) {
-                uint64_t bits = ident[r][w];
+                uint64_t bits = combo[w];
                 while (bits) {
                     int b = __builtin_ctzll(bits);
-                    if (w * 64 + b < m) dep[dl++] = w * 64 + b;
+                    if (w * 64 + b < m) dep[dl2++] = w * 64 + b;
                     bits &= bits - 1;
                 }
             }
             dep_out[ndeps] = dep;
-            dep_len_out[ndeps] = dl;
+            dep_len_out[ndeps] = dl2;
             ndeps++;
         }
+        free(combo);
     }
+
+    for (int i = 0; i < basis_count; i++) free(basis[i]);
+    free(basis);
     free(null_rows);
 
     for (int r = 0; r < m; r++) { free(mat[r]); free(ident[r]); }
@@ -1267,24 +1318,29 @@ static int try_factor(int *dep, int dep_len, int *rel_indices, mpz_t N, mpz_t kN
     }
 
     /* Compute X = product of primes ^ (exp/2) mod N */
+    /* Important: compute as full precision integer first, then reduce mod N */
     mpz_set_ui(X, 1);
-    for (int i = 0; i < fb_count; i++) {
+    int neg_count = total_exp[0]; /* -1 count */
+    for (int i = 1; i < fb_count; i++) {
         int e = total_exp[i] / 2;
         if (e <= 0) continue;
-        if (i == 0) continue; /* -1 sentinel */
-        mpz_ui_pow_ui(temp, fb_p[i], e);
-        mpz_mul(X, X, temp);
-        mpz_mod(X, X, N);
+        /* Multiply in full precision to maintain correct sign */
+        for (int k = 0; k < e; k++) {
+            mpz_mul_ui(X, X, fb_p[i]);
+            /* Reduce periodically to keep numbers manageable */
+            if (mpz_sizeinbase(X, 2) > 2000)
+                mpz_mod(X, X, N);
+        }
     }
-    /* Include accumulated LP contributions from merged SLP pairs (LP^1 in sqrt) */
+    /* Include accumulated LP contributions from merged SLP pairs */
     mpz_mul(X, X, prod_Q);
     mpz_mod(X, X, N);
 
     /* Y = prod_Y mod N, X = sqrt(prod_Q) mod N */
     mpz_mod(Y, prod_Y, N);
 
-    /* Debug: always verify X^2 ≡ Y^2 (mod N) */
-    {
+    /* Debug: verify X^2 ≡ Y^2 (mod N) for first dep */
+    if (dep_len >= 2 && dep_len <= 500) {
         mpz_t X2, Y2;
         mpz_init(X2); mpz_init(Y2);
         mpz_mul(X2, X, X); mpz_mod(X2, X2, N);
@@ -1308,6 +1364,19 @@ static int try_factor(int *dep, int dep_len, int *rel_indices, mpz_t N, mpz_t kN
     /* gcd(X - Y, N) and gcd(X + Y, N) */
     mpz_sub(temp, X, Y);
     mpz_gcd(g, temp, N);
+
+    /* Debug: print first 3 deps' gcd details */
+    static int dep_debug_count = 0;
+    if (dep_debug_count < 3) {
+        gmp_fprintf(stderr, "  dep gcd(Y-X,N)=%Zd  gcd(Y+X,N)=", g);
+        mpz_add(temp, X, Y);
+        mpz_t g2; mpz_init(g2);
+        mpz_gcd(g2, temp, N);
+        gmp_fprintf(stderr, "%Zd  deplen=%d\n", g2, dep_len);
+        gmp_fprintf(stderr, "    X=%Zd\n    Y=%Zd\n", X, Y);
+        mpz_clear(g2);
+        dep_debug_count++;
+    }
 
     int found = 0;
     if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
@@ -1507,9 +1576,9 @@ int main(int argc, char **argv) {
                     int x_sieve = blk * SIEVE_SIZE + candidates[ci];
                     int x_actual = x_sieve - M;
 
-                    /* Skip mirror positions: only process x >= 0 to avoid
-                     * duplicate Q values (Q(x) = Q(-x-2B/A)) */
-                    if (x_actual < 0) continue;
+                    /* Include both positive and negative x values.
+                     * Mirror positions (x and -x-2B/A) give same Q but opposite Y signs.
+                     * Both are needed for the square root step to produce non-trivial gcd. */
 
                     /* Compute Q(x) = (A*x + B)^2 - kN, divided by A */
                     /* = A*x^2 + 2*B*x + C */
