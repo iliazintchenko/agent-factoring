@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#ifdef __AVX512F__
+#include <immintrin.h>
+#endif
 
 typedef uint64_t u64;
 
@@ -130,8 +133,16 @@ static int sg_solve(sg_mat_t *m, int ***deps, int **dlen, int max) {
         if (pr != piv) { u64 *t = m->rows[pr]; m->rows[pr] = m->rows[piv]; m->rows[piv] = t; }
         for (int r = 0; r < m->nr; r++) {
             if (r == piv) continue;
-            if ((m->rows[r][c/64] >> (c%64)) & 1)
-                for (int w = 0; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w];
+            if (!((m->rows[r][c/64] >> (c%64)) & 1)) continue;
+            int w = 0;
+#ifdef __AVX512F__
+            for (; w + 8 <= m->wprow; w += 8) {
+                __m512i a = _mm512_loadu_si512((__m512i*)(m->rows[r] + w));
+                __m512i b = _mm512_loadu_si512((__m512i*)(m->rows[piv] + w));
+                _mm512_storeu_si512((__m512i*)(m->rows[r] + w), _mm512_xor_si512(a, b));
+            }
+#endif
+            for (; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w];
         }
         piv++;
     }
