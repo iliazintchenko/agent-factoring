@@ -1,210 +1,54 @@
 # Expert Knowledge
 
-## Why factoring is hard: the smoothness bottleneck
+## The smoothness bottleneck
 
-All known sub-exponential factoring algorithms (QS, NFS, CFRAC) rely on finding **smooth numbers** — numbers that factor completely over a small prime base. The fundamental tension:
+All known sub-exponential factoring algorithms rely on finding **smooth numbers**. The L-exponent is determined by the size of values being tested for smoothness:
+- QS: tests values of size ~√N → L[1/2]
+- NFS: uses algebraic number fields to reduce values to ~N^(2/3) → L[1/3]
+- Hypothetical L[1/4]: would need values of size ~N^(1/4) or equivalent
 
-1. **Finding smooth numbers**: The probability that a random number near N^(1/2) is B-smooth is roughly ρ(u) where u = log(N^(1/2))/log(B) and ρ is the Dickman function. Larger B makes smoothness more likely but...
-2. **Linear algebra over GF(2)**: ...a larger factor base means a larger matrix to reduce.
+Any approach that still tests numbers of size √N for smoothness will remain L[1/2]. To do better, you must either generate smaller candidates, or avoid smoothness entirely.
 
-The optimal B balances these: QS gets L[1/2, 1+o(1)], NFS gets L[1/3, (64/9)^(1/3)] by using algebraic number fields to generate numbers that are "smaller" relative to their smoothness bound.
-
-**Key insight**: The smoothness bottleneck comes from the _size_ of the numbers being tested. If we could generate candidate relations where the numbers to factor are much smaller than sqrt(N), we could get a better complexity. NFS achieves this by working in number fields; is there a way to do even better?
-
-The L-function exponent depends on the balance between B and V:
-- QS: V ≈ √N → L[1/2]
-- NFS: V ≈ N^{2/3} (reduced via algebraic norms) → L[1/3]
-- Hypothetical L[1/4]: would need V ≈ N^{1/4} or equivalent
-
-The quasi-polynomial DLP breakthrough in small-characteristic fields (Barbulescu-Gaudry-Joux-Thomé 2013) shows L[1/3] barriers CAN be broken for related problems. The technique exploits systematic factorization properties of polynomials over finite fields that have no known analog over Z.
-
-**Possible escape routes:**
-1. Find smooth numbers without sieving (batch smoothness, algebraic construction)
-2. Use a third "image" to split values further (could give L[1/4]?)
-3. Avoid smooth numbers entirely (period-finding, lattice methods, spectral methods)
-4. Exploit special structure of balanced semiprimes specifically
+The quasi-polynomial DLP breakthrough (Barbulescu-Gaudry-Joux-Thomé 2013) shows L[1/3] barriers CAN be broken for related problems in function fields. The technique exploits systematic factorization of polynomials over finite fields — no known analog over Z. The "translation problem" from function fields to number fields is a major open question.
 
 ## Schnorr lattice factoring (reviewed, does not scale)
 
-Schnorr (2021) proposed reducing factoring to finding short vectors in a lattice constructed from the prime factorizations of smooth numbers near sqrt(N). The idea: if you can find a short enough vector, it encodes a multiplicative relation that yields a factor.
+Schnorr (2021) proposed reducing factoring to SVP in a lattice built from smooth number factorizations. Claims polynomial time, but the lattice dimension grows with the smoothness bound (~50K dimensions for 90-digit numbers). LLL/BKZ is infeasible at that scale. Confirmed by Ducas (CWI) — 0 relations in 1000 trials with Schnorr's claimed parameters.
 
-The paper claims polynomial time, but analysis of the approach shows the lattice dimension grows roughly as the number of primes in the factor base, which for 90-digit numbers means ~50K dimensions. LLL/BKZ reduction in 50K dimensions is completely infeasible.
+**Lesson**: Any lattice approach that depends on a large smooth factor base inherits the same sub-exponential dimension growth. Haven't tested yet — maybe worth exploring to understand the failure mode empirically.
 
-**Conclusion**: The lattice dimension is tied to the smoothness bound, which grows sub-exponentially with N. So this doesn't escape the smoothness bottleneck — it just reformulates it as a lattice problem that's equally hard. Any lattice-based approach that depends on a large smooth factor base will have the same problem. Tested by Ducas (CWI Amsterdam) — 0 factoring relations in 1000 trials with Schnorr's claimed parameters.
+## Smooth Subsum Search — Hittmeir 2023 (tested, disappointing in practice)
 
-## Current implementations
+Uses CRT to construct values guaranteed divisible by several factor base primes, then tests the smaller cofactor for smoothness. Replaces sieving with structured candidate generation. Still L[1/2] but with potentially better constants.
 
-### MPQS (Multiple Polynomial Quadratic Sieve) — `library/mpqs.c`
-**Status**: Working, well-optimized implementation from another agent.
+**Result**: 3-11x slower than MPQS in our C++ implementation. The paper's claimed 5-7x speedup was measured against Python QS. In C++, sieve-based QS benefits from cache-friendly memory access, while SSS has per-candidate GMP overhead. SSS scales ~11-14x per +10 digits vs MPQS's ~5-6x — *worse* than expected.
 
-Uses self-initializing polynomials (CRT-based b computation), large prime variation, GF(2) Gaussian elimination, factor base sizing and sieve parameters tuned per digit count. Expected L[1/2] scaling.
+Possible reasons: our implementation lacks the batch product/remainder tree optimization from the paper; CRT overhead dominates at current sizes. Worth revisiting with proper batch smoothness testing.
 
-Built with:
-- Factor base of primes where N is a QR, scaled by digit count
-- Polynomial A = product of k FB primes (k chosen so A ≈ sqrt(2N)/M)
-- B via CRT from sqrt(N) mod each A-prime, C = (B²-N)/A
-- Sieve with log-approximation threshold
-- Large prime variation with hash table for combining partials
-- Gaussian elimination mod 2
+## Spectral methods on Cayley graphs (dead end classically)
 
-**Performance** (single core, worst case across 5 semiprimes per size):
-- 30 digits: ~0.02s
-- 52 digits: ~1.2s
-- 55 digits: ~18s
-- 60 digits: ~29s
-- 65 digits: ~87s
+The Cayley graph of (Z/NZ)* with small prime generators encodes the group structure. Eigenvalues would reveal the factorization. **Problem**: the group has φ(N) elements, so computing the spectrum is exponential classically. This is exactly what Shor's QFT solves. No known way to extract useful spectral information without quantum superposition.
 
-### MPQS2 implementation (working baseline, L[1/2])
+## Research survey
 
-Implemented a Multiple Polynomial Quadratic Sieve using a = q^2 (Hensel-lifted) polynomials. Key implementation details:
+- **No classical sub-L[1/3] algorithm exists** for general integer factoring.
+- **Regev (2023)**: Improved quantum factoring — O~(n^{3/2}) gates vs Shor's O~(n^2). Fundamentally quantum, no classical dequantization known.
+- **Stange (2022)**: Multiplicative relation framework — reduces factoring to index calculus in (Z/NZ)*. Clean formulation but achieves same L[1/2] or L[1/3] with NFS techniques. Not an improvement.
+- **Umans & Wang (2025)**: Deterministic N^{1/6+o(1)} factoring conditional on a number-theoretic conjecture. Still exponential.
+- **Harvey-Hittmeir**: Best deterministic bound N^{1/5+o(1)}. Still exponential.
 
-- **Polynomial**: g(x) = (q^2 * x + b)^2 - N where b^2 ≡ N (mod q^2)
-- **Hensel lift**: from sqrt(N) mod q to sqrt(N) mod q^2 using t = -s * (2*r0)^{-1} mod q, b = r0 + t*q
-- **Critical correctness issue**: Since (ax+b)^2 ≡ q^2 * R(x) (mod N), the y-value in the square congruence must include the product of all q values from the dependency. Forgetting this causes LA to always fail (trivial GCDs).
-- **Sieve**: standard log-approximation sieve with FB primes, threshold ≈ 0.55 * log(max |R(x)|)
-- **Large prime variation**: accept residues up to 300 * max_FB_prime, combine pairs with same LP
+## Failed approaches
 
-### Performance (preliminary)
-- 30 digits: 0.054s, 40 digits: 0.7s, 50 digits: ~15s
-- Scaling is L[1/2] as expected: roughly 8-10x per 10 digits
-- Slower than YAFU SIQS (which uses true SIQS with product-of-primes `a`)
+- **Dixon's random squares with batch smoothness**: Random x² mod N values are ~N in size, far too large for smoothness. Cannot work without polynomial structure to reduce value size.
+- **CFRAC**: L[1/2] but single expansion limits relation generation rate. Not competitive with multi-polynomial QS above 30 digits.
+- **ECM for balanced semiprimes**: Complexity depends on smallest factor. For balanced semiprimes, factors are ~N^(1/2), so ECM is L[1/2] in N and not competitive above ~50 digits.
 
-### Key parameter choices
-- FB size and sieve half-interval scale with digit count (hand-tuned)
-- q ≈ sqrt(sqrt(2N) / sieve_len) to keep a = q^2 at the right scale
-- Trial division is the bottleneck for large numbers (should switch to batch methods)
+## Open directions
 
-### SIQS v2 (Self-Initializing QS) — `library/mpqs.cpp`
-**Status**: Working but less optimized. Uses random A-value selection with CRT-based b computation. Works well up to ~50 digits.
+These are starting points, not an exhaustive list.
 
-Additional implementation in `library/siqs_factor.cpp`: multi-polynomial SIQS, single large prime variation, GF(2) Gaussian elimination. Tested: 30 digits (0.01s), 40 digits (0.2s), 50 digits (1.4s).
-
-### ECM (Elliptic Curve Method) — `library/ecm_factor.c` / `library/ecm_factor.cpp`
-**Status**: Working wrapper around GMP-ECM.
-
-Uses Suyama parameterization with sigma values < 2^32, seeded from deterministic RNG with seed=42. Complexity is L[1/2] of the *smallest factor*, not N itself. For balanced semiprimes (each factor ~d/2 digits), competitive with QS up to ~50 digits but struggles with balanced semiprimes > 55 digits. Scaling data collected for 30-55 digits.
-
-ECM scales with the size of the _smallest_ factor, not N. For balanced semiprimes, factors are ~N^(1/2), so ECM has L[1/2] complexity in terms of N. Competitive with QS up to ~50 digits on balanced semiprimes.
-
-### CFRAC (Continued Fraction Algorithm) — `library/cfrac.cpp`
-**Status**: Working.
-
-Uses continued fraction expansion of sqrt(N) to generate smooth numbers bounded by 2*sqrt(N). Single large prime variation. L[1/2] complexity like QS but with a single "polynomial" (the CF expansion), limiting relation generation rate.
-
-Performance: 30-digit ~0.14s, 40-digit ~23s. Much slower than SIQS for the same digit count — the lack of multiple polynomials is the bottleneck.
-
-**Conclusion (CFRAC with multipliers)**: CFRAC is simpler but not competitive with QS for numbers above 30 digits. The advantage of QS/MPQS is that polynomial switching gives independent chances at smoothness, while CFRAC is limited by the single CF expansion. Tested k=1 and other multipliers; k=1 gives most smooth relations.
-
-### Smooth Subsum Search (SSS) — `library/sss.cpp`
-**Status**: Working implementation (all x values use mpz_t). Tested up to 50 digits.
-
-Implementation of Hittmeir (2023) algorithm. Key idea:
-- Same polynomial as QS: pol(j) = (j+b)^2 - N
-- But instead of sieving, uses CRT to construct j values where pol(j) is **guaranteed divisible** by several factor base primes
-- The smaller cofactor is then tested for smoothness using batch methods (product/remainder trees)
-- This replaces sieving with structured candidate generation
-
-**Performance** (C++ implementation, worst of 5 semiprimes):
-- 30 digits: 0.12s
-- 35 digits: 0.32s
-- 40 digits: 1.38s
-- 45 digits: 4.88s
-- 50 digits: ~20s (estimated)
-
-**Comparison with MPQS**: SSS is 3-11x slower than our optimized MPQS in C++. The paper's claimed 5-7x speedup was measured against Python QS implementations. In C++, sieve-based QS benefits enormously from cache-friendly memory access patterns, while SSS has overhead from GMP arithmetic on every candidate. The theoretical advantage of SSS (smaller cofactors) doesn't compensate for the practical overhead in C++.
-
-**Scaling** (time ratio for +10 digits):
-- MPQS: ~5-6x per 10 digits (30→50 range)
-- SSS: ~11-14x per 10 digits
-
-SSS scales *worse* than MPQS in our implementation, contrary to theoretical expectations. This may be because:
-1. Our SSS doesn't use the batch product/remainder tree optimization from the paper
-2. The CRT and modular arithmetic overhead dominates at current sizes
-3. The collision-counting approach generates fewer candidates than sieving
-
-### Pollard's Rho — `library/pollard_rho.c`
-**Status**: Working. Brent's improvement with batch GCD. Good for small factors but O(N^(1/4)) complexity makes it only useful for ~30-digit factors.
-
-### YAFU SIQS Baseline (historical, from algo-scaling.json)
-- Reference implementation (removed): L[1/2] scaling
-- Data: 30d=0.014s through 89d=294s
-- ~8-10x slowdown per +10 digits (consistent with L[1/2])
-
-## Research survey: what approaches could beat L[1/2]?
-
-Based on literature review (2020-2026):
-
-### No classical sub-L[1/3] algorithm exists
-GNFS at L[1/3, (64/9)^(1/3)] remains the asymptotic state of the art. No classical algorithm has achieved sub-L[1/3] complexity for general integers.
-
-### Regev's quantum factoring (2023)
-O~(n^{3/2}) quantum gates (vs Shor's O~(n^2)). Ragavan & Vaikuntanathan reduced space to O(n log n) qubits. Pilatte (2024) proved unconditional correctness. **Fundamentally quantum — no classical dequantization known.**
-
-### Hittmeir's Smooth Subsum Search (2023) — IMPLEMENTED
-L[1/2] with better constants than QS. Demonstrated 5-7x speedup over comparable SIQS. Uses CRT-based structured candidate generation. **Our implementation works for small sizes; needs overflow fix for larger sizes.**
-
-### Umans & Wang conjecture (2025) — SPECULATIVE
-If a number-theoretic conjecture holds: deterministic N^{1/6+o(1)} factoring. But this is still exponential, far slower than QS/NFS.
-
-### Harvey-Hittmeir deterministic bound
-N^{1/5+o(1)} deterministic factoring — best known deterministic bound. Still exponential.
-
-### NFS (Number Field Sieve) — L[1/3]
-Key elements:
-- Choose polynomial f(x) of degree d with f(m) ≡ 0 (mod N)
-- Sieve in two "factor bases" simultaneously (rational and algebraic)
-- Norms on the algebraic side are ~N^(1/d), much smaller than QS
-
-### Smooth number amplification
-Idea: instead of testing random numbers for smoothness, use algebraic identities to construct numbers that are "partially smooth" by design, then only need to test a smaller cofactor for smoothness.
-- Residue chains: find sequences where consecutive ratios are smooth
-- Birthday-type attacks: find pairs whose product is smooth
-
-### Batch smoothness testing (Bernstein's method)
-Instead of sieving, generate many candidates and use product trees + remainder trees to batch-test smoothness. Asymptotically better I/O complexity than sieving for very large smoothness bounds. Could reduce the constant factor significantly, even if the scaling exponent stays the same.
-
-### Spectral methods on Cayley graphs
-The Cayley graph of (Z/NZ)* with small prime generators encodes the group structure. Eigenvalues reveal the character decomposition, which would give the group structure and hence factorization. **Problem**: The group has phi(N) elements, so computing the spectrum requires exponential time classically. This is exactly what Shor's QFT does quantumly. No known way to extract useful spectral information without quantum superposition.
-
-### Stange's multiplicative relation framework (2022)
-Reduces factoring to index calculus in (Z/NZ)*: finding multiplicative relations prod(p_i^{e_i}) = prod(q_j^{f_j}) mod N reveals lambda(N). Achieves L[1/2] in basic form, L[1/3] with NFS techniques. Conceptually clean but not an improvement.
-
-### Function field analogy
-The quasi-polynomial DLP breakthrough uses descent in function field towers. Over Z (number fields), the analogous descent produces integers with no smoothness guarantee. The "translation problem" from function fields to number fields is a major open problem. TNFS/exTNFS variants are steps in this direction for DLP but haven't broken L[1/3] for factoring.
-
-### Algebraic group structure exploitation
-Exploit the group structure of Z_N* ≅ Z_{p-1} × Z_{q-1} without smooth numbers. Possibly via random walks, exponential sums, or character sums that distinguish the product structure from a cyclic group.
-- Pollard's p-1 works when p-1 is smooth
-- Williams' p+1 works when p+1 is smooth
-- ECM works in random elliptic curve groups
-- What about working in higher-dimensional algebraic groups where period-finding is easier?
-
-## Failed approaches / dead ends
-
-### Dixon's random squares with batch smoothness
-**Tested**: Random x^2 mod N values are ~N in size, far too large for smoothness testing. The probability of a random number near N being B-smooth is astronomically low. QS works because it generates numbers of size ~sqrt(N) via polynomial structure. **This approach cannot work without the polynomial structure.**
-
-### Basic QS (single polynomial)
-**Tested**: Q(x) = (sqrt(N)+x)^2 - N grows as O(sqrt(N)*x). At the edge of the sieve interval, values are too large for smoothness. The fix is MPQS/SIQS with multiple polynomials keeping |Q(x)| bounded by sqrt(N/2).
-
-## Key technical lessons
-
-1. **SIQS polynomial generation**: The 'a' value must be ≈ sqrt(2N)/M (a product of multiple FB primes), NOT a single prime. Using single primes gives c = (b²-N)/a ≈ N/a which is huge, defeating the purpose.
-
-2. **SIQS congruence**: The identity is (ax+b)² ≡ a·Q(x) (mod N). The exponent vector must include the factor 'a' — missing this gives near-zero rank in GF(2) matrix.
-
-3. **CFRAC identity**: After step k of the CF expansion, the identity uses p_{k-1} (the PREVIOUS convergent) not p_k, and the sign is (-1)^k.
-
-4. **SSS insight**: By using CRT to guarantee divisibility by several primes, the cofactor to test is much smaller, increasing smoothness probability. This is fundamentally different from sieving and could have better practical performance.
-
-## What to try next
-
-1. **Fix SSS for larger sizes** (mpz_t for x values) and benchmark against MPQS up to 70+ digits
-2. **Implement a basic GNFS** for L[1/3] scaling on 70-100 digit numbers — even an unoptimized implementation would show better scaling than L[1/2]
-3. **Hybrid ECM+QS**: Use ECM as a fast first-pass filter, then QS for remaining composites
-4. **Lattice-enhanced smooth finding**: Use LLL on small lattices to find pairs of numbers whose product is more likely smooth
-5. **Multi-large-prime variation**: 2LP and 3LP can dramatically increase relation yield
-6. **Optimize MPQS2**: batch smoothness detection (product tree + batch GCD), better polynomial selection
-7. **Smooth polynomial families**: test whether certain polynomial constructions yield systematically smoother values
-8. **Multi-dimensional lattice sieving**: explore whether high-dimensional NFS with optimized sieving can push below L[1/3]
-9. **Hybrid approaches**: combine ECM curve selection with QS-style relation collection
+- **Algebraic group structure**: Z_N* ≅ Z_{p-1} × Z_{q-1} but we can't see this decomposition. Can random walks, character sums, or higher-dimensional algebraic groups reveal it without smooth numbers?
+- **Third image / multi-image NFS**: NFS uses two images (rational and algebraic). Could a third image reduce norms further, yielding L[1/4]?
+- **Smooth polynomial families**: Do certain polynomial constructions yield systematically smoother values than random?
+- **Batch smoothness (Bernstein)**: Product/remainder trees for smoothness detection. Better I/O complexity than sieving for large bounds. Could improve constants even if exponent stays the same.
+- **Function field analogies**: Can techniques from the quasi-polynomial DLP breakthrough be adapted to number fields?
