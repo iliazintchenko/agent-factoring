@@ -1,6 +1,6 @@
 {
   "yafu_siqs_baseline": {
-    "scaling_argument": "SIQS is L[1/2, 1+o(1)] = exp((1+o(1)) * sqrt(ln N * ln ln N)). For each +10 digits, time multiplies by ~8-10x. This is the best known single-core performance for numbers under 100 digits. Any novel approach should aim for a slower growth rate \u2014 e.g. L[1/3] grows ~3-4x per +10 digits, L[1/4] would grow ~2x.",
+    "scaling_argument": "SIQS is L[1/2, 1+o(1)] = exp((1+o(1)) * sqrt(ln N * ln ln N)). For each +10 digits, time multiplies by ~8-10x.",
     "30": 0.014,
     "40": 0.017,
     "50": 0.12,
@@ -40,55 +40,53 @@
     "54": 15.721,
     "55": 43.501
   },
-  "siqs_baseline": {
-    "30": 0.036,
-    "31": 0.021,
-    "32": 0.025,
-    "33": 0.021,
-    "34": 0.026,
-    "35": 0.072,
-    "36": 0.042,
-    "37": 0.051,
-    "38": 0.071,
-    "39": 0.163,
-    "40": 0.277,
-    "41": 0.144,
-    "42": 0.147,
-    "43": 0.302,
-    "44": 0.675,
-    "45": 0.604,
-    "46": 0.738,
-    "47": 1.342,
-    "48": 1.846,
-    "49": 1.76,
-    "50": 1.514,
-    "51": 2.923,
-    "52": 3.47,
-    "53": 2.724,
-    "54": 4.666,
-    "55": 5.885,
-    "56": 5.394,
-    "57": 6.055,
-    "58": 7.442,
-    "59": 12.002,
-    "60": 17.472
+  "ecm": {
+    "30": 0.077,
+    "35": 0.23,
+    "40": 0.5,
+    "45": 2.184,
+    "50": 4.362,
+    "55": 14.553,
+    "60": 211.271
   },
-  "mpqs": {
-    "scaling_argument": "MPQS implementation (library/mpqs.c). L[1/2] with single-prime A values, 2LP variation.",
-    "30": 0.055, "35": 0.047, "40": 0.288, "45": 0.775, "50": 1.790, "55": 25.314
+  "siqs": {
+    "30": 0.11,
+    "35": 0.428,
+    "40": 1.503,
+    "45": 2.314,
+    "50": 7.638,
+    "55": 40.675,
+    "58": 94.44,
+    "59": 99.159,
+    "60": 120.879,
+    "61": 129.513,
+    "62": 103.672,
+    "63": 189.639,
+    "64": 149.805,
+    "65": 200.911
   },
   "sss": {
-    "scaling_argument": "Smooth Subsum Search (Hittmeir 2023). L[1/2] but with CRT-based structured candidate generation instead of sieving. Constructs x values where pol(x) is guaranteed divisible by several FB primes, then tests smaller cofactor.",
-    "30": 0.123,
-    "35": 0.323,
-    "40": 1.379,
-    "45": 4.876,
-    "50": 19.548,
-    "55": 55.011
+    "30": 0.107,
+    "31": 0.093,
+    "32": 0.107,
+    "33": 0.159,
+    "34": 0.162,
+    "35": 0.261
   },
-  "cfrac": {
-    "scaling_argument": "Continued Fraction Algorithm. L[1/2] like QS but with single expansion (no multiple polynomials). Naturally bounded values but limited relation generation rate.",
-    "30": 0.14,
-    "40": 23.0
+  "sss_v2": {
+    "30": 0.063,
+    "35": 0.303,
+    "40": 1.33,
+    "45": 4.72,
+    "55": 55.396
+  },
+  "mpqs": {
+    "50": 0.0,
+    "51": 0.0,
+    "52": 0.0,
+    "54": 0.0,
+    "53": 0.0,
+    "55": 0.0,
+    "56": 0.0
   }
 }
