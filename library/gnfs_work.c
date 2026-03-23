@@ -395,6 +395,217 @@ int main(int argc, char *argv[]) {
             mpz_clear(N3);
         }
 
+        /* ===== CRT-based algebraic sqrt ===== */
+        if (!found) {
+            fprintf(stderr,"  Trying CRT algebraic sqrt (d=%d)...\n", d);
+            /* Find primes q where f(x) mod q has exactly d distinct roots */
+            /* Use small primes for brute-force root finding */
+            #define MAX_CRT_PRIMES 30
+            unsigned long crt_q[MAX_CRT_PRIMES];
+            unsigned long crt_roots[MAX_CRT_PRIMES][MAX_DEG];
+            int crt_nroots[MAX_CRT_PRIMES];
+            int ncrt = 0;
+
+            /* Collect CRT primes */
+            for (unsigned long q = 1000; q < 50000 && ncrt < MAX_CRT_PRIMES; q++) {
+                mpz_set_ui(tmp, q);
+                if (!mpz_probab_prime_p(tmp, 3)) continue;
+                /* Find roots of f mod q by brute force */
+                int nr = 0;
+                unsigned long roots_q[MAX_DEG+1];
+                for (unsigned long x = 0; x < q && nr <= d; x++) {
+                    unsigned long long val = 0;
+                    for (int j = d; j >= 0; j--) {
+                        unsigned long cj = mpz_fdiv_ui(fc[j], q);
+                        val = (val * x + cj) % q;
+                    }
+                    if (val == 0) roots_q[nr++] = x;
+                }
+                if (nr != d) continue; /* need exactly d distinct roots */
+                crt_q[ncrt] = q;
+                for (int j = 0; j < d; j++) crt_roots[ncrt][j] = roots_q[j];
+                crt_nroots[ncrt] = d;
+                ncrt++;
+            }
+            fprintf(stderr,"  Found %d CRT primes with %d roots each\n", ncrt, d);
+
+            if (ncrt >= 3) {
+                /* For each CRT prime: compute S_j = prod(a_i - b_i*r_j) mod q
+                 * Then T_j = sqrt(S_j) mod q (2 choices each) */
+
+                /* Enumerate sign combinations using first few primes */
+                int max_sign_combos = 1;
+                for (int i = 0; i < d; i++) max_sign_combos *= 2;
+
+                /* Compute T(m) mod q for each CRT prime, for each sign combo */
+                unsigned long *tm_per_q = malloc(ncrt * max_sign_combos * sizeof(unsigned long));
+
+                for (int qi = 0; qi < ncrt; qi++) {
+                    unsigned long q = crt_q[qi];
+                    unsigned long mmod = mpz_fdiv_ui(poly.m, q);
+
+                    /* S_j = prod(a_i - b_i*r_j) mod q */
+                    unsigned long S_j[MAX_DEG];
+                    for (int j = 0; j < d; j++) {
+                        unsigned long long prod_val = 1;
+                        for (int i = 0; i < dlen[di]; i++) {
+                            long long aval = da[i];
+                            unsigned long long bval = db[i];
+                            long long term = ((aval % (long long)q) + q) % q;
+                            term = (term + q - (bval % q * crt_roots[qi][j]) % q) % q;
+                            prod_val = prod_val * (unsigned long long)term % q;
+                        }
+                        S_j[j] = (unsigned long)prod_val;
+                    }
+
+                    /* For each sign combo, compute T(m) mod q via Lagrange */
+                    for (int sc = 0; sc < max_sign_combos; sc++) {
+                        unsigned long T_j[MAX_DEG];
+                        for (int j = 0; j < d; j++) {
+                            /* sqrt(S_j) mod q */
+                            unsigned long s = S_j[j];
+                            /* Tonelli-Shanks */
+                            unsigned long long r2 = 1, b2 = s, e2 = (q+1)/4;
+                            if (q % 4 != 3) {
+                                /* Full Tonelli-Shanks for q != 3 mod 4 */
+                                unsigned long Q2 = q-1, S2 = 0;
+                                while (Q2%2==0) { Q2/=2; S2++; }
+                                unsigned long z = 2;
+                                for (;;) { unsigned long long rr=1,bb=z,ee=(q-1)/2;
+                                    while (ee) { if (ee&1) rr=rr*bb%q; bb=bb*bb%q; ee>>=1; }
+                                    if (rr==q-1) break; z++; }
+                                unsigned long long c2,t2,R2,M3=S2;
+                                r2=1;b2=z;e2=Q2; while (e2) { if (e2&1) r2=r2*b2%q; b2=b2*b2%q; e2>>=1; } c2=r2;
+                                r2=1;b2=s;e2=Q2; while (e2) { if (e2&1) r2=r2*b2%q; b2=b2*b2%q; e2>>=1; } t2=r2;
+                                r2=1;b2=s;e2=(Q2+1)/2; while (e2) { if (e2&1) r2=r2*b2%q; b2=b2*b2%q; e2>>=1; } R2=r2;
+                                while (t2!=1) { int ii=0; unsigned long long tt=t2;
+                                    while (tt!=1) { tt=tt*tt%q; ii++; }
+                                    unsigned long long bb2=c2; for (int jj=0;jj<(int)M3-ii-1;jj++) bb2=bb2*bb2%q;
+                                    M3=ii; c2=bb2*bb2%q; t2=t2*c2%q; R2=R2*bb2%q; }
+                                r2 = R2;
+                            } else {
+                                r2=1;b2=s;e2=(q+1)/4;
+                                while (e2) { if (e2&1) r2=r2*b2%q; b2=b2*b2%q; e2>>=1; }
+                            }
+                            /* Apply sign */
+                            T_j[j] = (sc & (1<<j)) ? (unsigned long)(q - r2) : (unsigned long)r2;
+                        }
+
+                        /* Lagrange interpolation: T(m) mod q */
+                        unsigned long long result = 0;
+                        for (int j = 0; j < d; j++) {
+                            unsigned long long num = T_j[j];
+                            unsigned long long den = 1;
+                            for (int k = 0; k < d; k++) {
+                                if (k == j) continue;
+                                num = num * ((mmod + q - crt_roots[qi][k]) % q) % q;
+                                den = den * ((crt_roots[qi][j] + q - crt_roots[qi][k]) % q) % q;
+                            }
+                            /* Invert den */
+                            unsigned long long inv = 1, bb = den, ee = q - 2;
+                            while (ee) { if (ee&1) inv=inv*bb%q; bb=bb*bb%q; ee>>=1; }
+                            result = (result + num * inv % q) % q;
+                        }
+                        tm_per_q[qi * max_sign_combos + sc] = (unsigned long)result;
+                    }
+                }
+
+                /* Now try CRT combinations.
+                 * Use first 3 primes: 8^3 = 512 combos for d=3.
+                 * For each combo, compute T(m) mod (q1*q2*q3) via CRT,
+                 * then check gcd(X - T(m), N). */
+                fprintf(stderr,"  Trying %d^%d = %d CRT combinations...\n",
+                        max_sign_combos, (ncrt < 3 ? ncrt : 3),
+                        ncrt < 3 ? 0 : max_sign_combos * max_sign_combos * max_sign_combos);
+
+                /* Need product of primes > N. For 30d, ~10 primes of ~5000 needed.
+                 * To limit exponential blowup (8^k), check after each prime addition
+                 * and only continue with candidates that give Y^2 = X^2 mod N */
+                int nprimes_to_use = ncrt;
+                /* Use iterative CRT with pruning */
+
+                /* Start with all sign combos for first prime.
+                 * For subsequent primes: for each existing candidate,
+                 * check which of the 8 new values it's consistent with (mod q).
+                 * This keeps the candidate count bounded. */
+                mpz_t *candidates = malloc(max_sign_combos * sizeof(mpz_t));
+                int ncand = max_sign_combos;
+                for (int i = 0; i < max_sign_combos; i++)
+                    mpz_init_set_ui(candidates[i], tm_per_q[0 * max_sign_combos + i]);
+                mpz_t mod_acc;
+                mpz_init_set_ui(mod_acc, crt_q[0]);
+
+                for (int qi = 1; qi < nprimes_to_use && !found; qi++) {
+                    unsigned long q = crt_q[qi];
+
+                    /* For each candidate, find which of the 8 sign combos it matches */
+                    int max_new = ncand * max_sign_combos;
+                    if (max_new > 50000) { /* too many - just keep best candidates */
+                        max_new = 50000;
+                    }
+                    mpz_t *new_cand = malloc(max_new * sizeof(mpz_t));
+                    int nc2 = 0;
+
+                    unsigned long ma_inv_q;
+                    { unsigned long long inv=1, bb=mpz_fdiv_ui(mod_acc,q), ee=q-2;
+                      while (ee) { if (ee&1) inv=inv*bb%q; bb=bb*bb%q; ee>>=1; }
+                      ma_inv_q = (unsigned long)inv; }
+
+                    for (int ci = 0; ci < ncand && nc2 < max_new; ci++) {
+                        unsigned long a_mod_q = mpz_fdiv_ui(candidates[ci], q);
+                        /* Check all 8 sign combos */
+                        for (int sc = 0; sc < max_sign_combos; sc++) {
+                            unsigned long tm_q = tm_per_q[qi * max_sign_combos + sc];
+                            /* CRT: x = candidates[ci] + mod_acc * ((tm_q - a_mod_q) * inv mod q) */
+                            long diff = (long)tm_q - (long)a_mod_q;
+                            if (diff < 0) diff += q;
+                            unsigned long t_val = (unsigned long long)((unsigned long)diff) * ma_inv_q % q;
+                            if (nc2 >= max_new) break;
+                            mpz_init(new_cand[nc2]);
+                            mpz_mul_ui(new_cand[nc2], mod_acc, t_val);
+                            mpz_add(new_cand[nc2], new_cand[nc2], candidates[ci]);
+                            nc2++;
+                        }
+                    }
+
+                    for (int ci = 0; ci < ncand; ci++) mpz_clear(candidates[ci]);
+                    free(candidates);
+                    candidates = new_cand;
+                    ncand = nc2;
+                    mpz_mul_ui(mod_acc, mod_acc, q);
+
+                    /* If mod_acc > N, try each candidate */
+                    if (mpz_cmp(mod_acc, N) > 0) {
+                        fprintf(stderr,"  CRT > N after %d primes, %d candidates\n", qi+1, ncand);
+                        for (int ci = 0; ci < ncand && !found; ci++) {
+                            mpz_mod(tmp, candidates[ci], N);
+                            mpz_sub(g, X, tmp); mpz_mod(g,g,N); mpz_gcd(g,g,N);
+                            if (mpz_cmp_ui(g,1)>0 && mpz_cmp(g,N)<0) {
+                                mpz_t co; mpz_init(co); mpz_divexact(co,N,g);
+                                gmp_printf("%Zd\n%Zd\n",g,co); mpz_clear(co); found=1;
+                            }
+                            if (!found) {
+                                mpz_add(g,X,tmp); mpz_mod(g,g,N); mpz_gcd(g,g,N);
+                                if (mpz_cmp_ui(g,1)>0 && mpz_cmp(g,N)<0) {
+                                    mpz_t co; mpz_init(co); mpz_divexact(co,N,g);
+                                    gmp_printf("%Zd\n%Zd\n",g,co); mpz_clear(co); found=1;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            fprintf(stderr,"  No factor from %d candidates, trying next dep\n", ncand);
+                        }
+                        break; /* move to next dependency */
+                    }
+                }
+
+                for (int ci = 0; ci < ncand; ci++) mpz_clear(candidates[ci]);
+                free(candidates);
+                mpz_clear(mod_acc);
+                free(tm_per_q);
+            }
+        }
+
         mpz_clears(g,y2,x2,Y,exp2,NULL);
         for(int k=0;k<d;k++){mpz_clear(S[k]);mpz_clear(T[k]);}
         free(da);free(db);free(rex);free(aex);
