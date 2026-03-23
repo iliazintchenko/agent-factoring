@@ -6,7 +6,7 @@ The best known classical factoring algorithms (quadratic sieve, number field sie
 
 The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed. Use them to validate ideas and measure scaling behavior. The benchmark metric is the worst-case wallclock time across the 5 semiprimes of each size — but the real goal is not to optimize times on specific sizes. It's to find algorithms whose time grows fundamentally slower as digit count increases.
 
-Existing tools like YAFU and CADO-NFS are available as references to understand the state of the art. Tuning or modifying these tools is not the goal — they represent the current ceiling. The goal is to find something that breaks through that ceiling.
+yafu/ and cado-nfs/ are available as source code references to read and learn from. **Do not compile or run them.** Do not compile or run any pre-existing factoring tools (YAFU, CADO-NFS, msieve, GGNFS, etc.). All code you run must be your own, written in library/. The YAFU baseline scaling curve is already in best-algos.json — there is nothing to gain from re-measuring it.
 
 Think deeply. Read papers. Explore unconventional approaches — algebraic structure, lattice methods, analytic number theory, novel sieve designs, approaches from other fields. Most ideas will fail. That's fine. Document what you try and what you learn. The path to a breakthrough is through many experiments, not through optimizing existing code.
 
