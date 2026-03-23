@@ -257,8 +257,8 @@ static params_t get_params(int bits) {
     if (bits <= 170) return (params_t){2200, 10, 70, 100, 0.81};
     if (bits <= 180) return (params_t){3200, 14, 80, 100, 0.82};
     if (bits <= 190) return (params_t){4500, 18, 80, 120, 0.83};
-    if (bits <= 200) return (params_t){6500, 24, 90, 120, 0.84};
-    if (bits <= 210) return (params_t){9000, 30, 90, 150, 0.845};
+    if (bits <= 200) return (params_t){6500, 12, 90, 120, 0.84};
+    if (bits <= 210) return (params_t){9000, 15, 90, 150, 0.845};
     if (bits <= 220) return (params_t){12000, 38, 100, 150, 0.85};
     if (bits <= 230) return (params_t){16000, 46, 100, 180, 0.855};
     if (bits <= 240) return (params_t){22000, 56, 110, 200, 0.86};
