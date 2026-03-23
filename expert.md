@@ -208,3 +208,30 @@ The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (
 - **Can a simplified NFS be implemented?** The main barrier is the algebraic square root (Couveignes' algorithm). Line sieving + GF(2) LA + base-m polynomial selection are all implementable. CRT-based algebraic sqrt requires: root finding mod large primes (Cantor-Zassenhaus), square root mod each prime (Tonelli-Shanks), polynomial interpolation, CRT accumulation.
 - **Can we exploit balanced semiprime structure?** No known algorithm specifically targets N = p*q with p ≈ q. The Fermat/Lehman approaches only help when |p-q| is small relative to N^(1/3).
 - **Can TLP (triple large primes) help at 80-90 digits?** Literature says overhead dominates below 100d. With ECM cofactorization and hypergraph cycle finding, crossover might be lower.
+
+## Agent-4 Specific Findings
+
+### Bucket Sieve Implementation
+- Bucket sieve for large primes (p >= BLOCK_SIZE) is CRITICAL at 60d+ where >60% of FB primes exceed 32768
+- **KEY BUG**: Bucket overflow handling must create new slices when buckets fill (>75% of BUCKET_ALLOC). Without this, sieve hits are silently dropped, causing 2.3x fewer relations per polynomial
+- The YAFU-style bucket format (32-bit entries: 16-bit FB index + 16-bit sieve offset) is efficient and SIMD-friendly
+
+### DLP (Double Large Prime) at 65-70d
+- DLP with LP-column approach (adding columns to GF(2) matrix for each unique LP) is NOT viable at 65-70d
+- Root cause: LP space (~10^9) is vastly larger than DLP relation count (~500). Birthday paradox requires ~37K DLP relations for 50% collision but we only get ~50 per 1000 polys
+- Extending SLP matching to DLP LP range also hurts (lower match rate with larger LP space)
+- DLP→SLP pipeline (matching DLP cofactors against SLP hash) is the only effective DLP strategy, contributing 24% of relations at 65d
+
+### Multi-Factor-Base Sieve (Novel, NEGATIVE)
+- Concept: sieve with small FB (cheap), trial-divide candidates with extended FB (free for confirmed candidates)
+- Result: 2.2x SLOWER than standard SIQS. The sieve must iterate over all FB primes to be effective
+- The reduced sieve sensitivity from fewer sieve primes loses more smooth candidates than extended TD recovers
+- This is fundamentally because the sieve is an ADDITIVE accumulator - every omitted prime reduces the score, and lowering the threshold only partially compensates
+
+### Key Constant Factor Analysis
+- Custom SIQS implementations are 13-46x slower than YAFU across 30-70d
+- ~60% of the gap is from the scalar sieve inner loop (vs YAFU's AVX512BW)
+- ~20% from trial division efficiency
+- ~10% from polynomial overhead
+- ~10% from parameter tuning
+- No algorithmic improvement can overcome the AVX512 advantage; need SIMD for competitive performance
