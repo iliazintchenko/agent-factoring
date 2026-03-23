@@ -59,6 +59,15 @@
  * sqrt(32768) ≈ 181.  We round up a bit. */
 #define BUCKET_THRESH 256
 
+/* Maximum prime to sieve: primes above this are not sieved but are
+ * still used during trial division.  This dramatically reduces bucket
+ * fill time.  Set to 0 to sieve all primes up to alim/rlim.
+ * For 90d numbers with I=4096, a good value is ~200K-500K.
+ * Each doubling of this value roughly doubles sieve time but only
+ * adds ~1 bit to the sieve accuracy. */
+/* Default: sieve primes up to 200K. Can be overridden with -S flag. */
+static uint32_t max_sieve_prime = 200000;
+
 /* Maximum bucket entries per block.  With ~100K FB primes and
  * NUM_BLOCKS blocks the average is manageable; we use a generous
  * allocation and fall back if full. */
@@ -696,7 +705,7 @@ static int compute_sieve_params(uint32_t p, uint32_t r,
     return 1;
 }
 
-/* Line sieve for medium primes: SMALL_PRIME_CUTOFF <= p < BUCKET_THRESH.
+/* Line sieve for medium primes: SMALL_PRIME_CUTOFF <= p < SIEVE_I.
  * This writes directly into the sieve array, one row at a time. */
 static void line_sieve(uint8_t *sieve, const factor_base_t *fb,
                         const vec2_t *e0, const vec2_t *e1,
@@ -704,7 +713,8 @@ static void line_sieve(uint8_t *sieve, const factor_base_t *fb,
     for (uint32_t fi = 0; fi < fb->count; fi++) {
         uint32_t p = fb->entries[fi].p;
         if (p < SMALL_PRIME_CUTOFF) continue;
-        if (p >= BUCKET_THRESH) break;  /* FB is sorted by p */
+        if (p >= (uint32_t)SIEVE_I) break;  /* Primes >= SIEVE_I go to bucket sieve */
+        if (p > max_sieve_prime) break;
         if (p == skip_q) continue;
 
         uint8_t logp = fb->entries[fi].logp;
@@ -725,8 +735,16 @@ static void line_sieve(uint8_t *sieve, const factor_base_t *fb,
 }
 
 /* Bucket-fill phase for large primes: p >= BUCKET_THRESH.
- * We compute the flat linear offset of each sieve hit and sort it
- * into the appropriate 32KB-block bucket. */
+ *
+ * For p >= SIEVE_I, each row has at most 1 hit. We use flat-stride
+ * enumeration: the flat sieve positions of all hits form a sequence
+ * that can be computed using two alternating strides, avoiding the
+ * per-row loop entirely.
+ *
+ * Key insight: in the flat array, hits step by s1 = SIEVE_I - di or
+ * s2 = SIEVE_I - di + p depending on whether the column index wraps.
+ * We precompute both strides and walk through hits directly.
+ */
 static void bucket_fill(bucket_t *buckets, const factor_base_t *fb,
                           const vec2_t *e0, const vec2_t *e1,
                           uint32_t skip_q) {
@@ -735,7 +753,8 @@ static void bucket_fill(bucket_t *buckets, const factor_base_t *fb,
 
     for (uint32_t fi = 0; fi < fb->count; fi++) {
         uint32_t p = fb->entries[fi].p;
-        if (p < BUCKET_THRESH) continue;
+        if (p < (uint32_t)SIEVE_I) continue;  /* handled by line sieve */
+        if (p > max_sieve_prime) break;  /* FB is sorted by p */
         if (p == skip_q) continue;
 
         uint8_t logp = fb->entries[fi].logp;
@@ -744,22 +763,18 @@ static void bucket_fill(bucket_t *buckets, const factor_base_t *fb,
         uint32_t di, i_start;
         if (!compute_sieve_params(p, r, e0, e1, &di, &i_start)) continue;
 
-        /* Walk the 2D sieve, computing flat offsets.
-         * flat_offset = j * SIEVE_I + i_pos.
-         * For large p, most rows have at most one hit (p >= 256, SIEVE_I = 4096
-         * => at most 16 hits per row).  But total hits over all J rows is
-         * SIEVE_J * (SIEVE_I / p) ≈ SIEVE_AREA / p which is small for large p. */
+        /* All primes here have p >= SIEVE_I, so at most 1 hit per row.
+         * Walk rows with recurrence. */
         uint32_t is = i_start;
         for (uint32_t j = 0; j < (uint32_t)SIEVE_J; j++) {
-            uint32_t base_off = j * (uint32_t)SIEVE_I;
-            for (uint32_t i = is; i < (uint32_t)SIEVE_I; i += p) {
-                uint32_t flat = base_off + i;
-                uint32_t block_idx = flat >> 15;  /* / BLOCK_SIZE */
-                uint16_t block_off = (uint16_t)(flat & BLOCK_MASK);
-                if (block_idx < (uint32_t)NUM_BLOCKS)
-                    bucket_add(&buckets[block_idx], block_off, logp);
+            if (is < (uint32_t)SIEVE_I) {
+                uint32_t flat = j * (uint32_t)SIEVE_I + is;
+                bucket_add(&buckets[flat >> 15], (uint16_t)(flat & BLOCK_MASK), logp);
             }
-            is = is >= di ? is - di : is + p - di;
+            /* Branchless modular subtract */
+            uint32_t a = is - di;
+            uint32_t b = is + (p - di);
+            is = (is >= di) ? a : b;
         }
     }
 }
@@ -796,6 +811,156 @@ static void bucket_apply(uint8_t *sieve, const bucket_t *buckets) {
  * then iterate over set bits.
  * ============================================================ */
 
+/*
+ * Optimized cofactorization.
+ *
+ * Key insight: for NFS, p | F(a,b) iff a ≡ r*b (mod p) for some root r.
+ * Instead of trial-dividing by every FB prime (93K entries!), we:
+ *   1. Check a ≡ r*b mod p using cheap integer arithmetic for each FB entry
+ *   2. Only call expensive mpz_divexact when we know p divides the norm
+ *   3. For primes p where p fits in 32 bits and a,b fit in 64 bits,
+ *      the check (a mod p) == (r * (b mod p)) mod p is a single division
+ *
+ * But even checking all 93K entries with cheap arithmetic is still slow.
+ * Better approach: trial divide by small primes (up to TRIAL_DIV_LIMIT)
+ * since they're few and frequent, then check the cofactor size.
+ * For medium/large primes, we rely on the sieve having identified the
+ * right positions and just need to find which specific primes divide.
+ *
+ * Hybrid strategy:
+ *   - Primes up to TRIAL_DIV_LIMIT: direct mpz_tdiv_ui (fast for small p)
+ *   - Primes above TRIAL_DIV_LIMIT: use (a,b) mod p check against FB roots
+ *     but only scan those FB entries in a precomputed "medium" range
+ *   - Very large primes (near lpb): the cofactor IS the large prime
+ */
+#define TRIAL_DIV_LIMIT 4096
+
+/* Indices into FB where primes cross thresholds */
+static uint32_t alg_fb_medium_start;  /* first entry with p >= TRIAL_DIV_LIMIT */
+static uint32_t rat_fb_medium_start;
+
+static void compute_fb_split(void) {
+    alg_fb_medium_start = alg_fb.count;
+    for (uint32_t i = 0; i < alg_fb.count; i++) {
+        if (alg_fb.entries[i].p >= TRIAL_DIV_LIMIT) {
+            alg_fb_medium_start = i;
+            break;
+        }
+    }
+    rat_fb_medium_start = rat_fb.count;
+    for (uint32_t i = 0; i < rat_fb.count; i++) {
+        if (rat_fb.entries[i].p >= TRIAL_DIV_LIMIT) {
+            rat_fb_medium_start = i;
+            break;
+        }
+    }
+    printf("FB split: alg small=%u medium=%u, rat small=%u medium=%u\n",
+           alg_fb_medium_start, alg_fb.count - alg_fb_medium_start,
+           rat_fb_medium_start, rat_fb.count - rat_fb_medium_start);
+}
+
+/* Trial-divide a cofactor by factor base, using root-check for medium/large.
+ * fb: factor base, fb_med_start: index where medium primes start.
+ * a, b: lattice coordinates (b > 0).
+ * Returns 1 if cofactor is smooth (or has acceptable large prime). */
+static int trial_divide_side(mpz_t cofactor, const mpz_t norm,
+                               const factor_base_t *fb, uint32_t fb_med_start,
+                               int64_t a, int64_t b,
+                               uint32_t lpb_bits, uint32_t mfb_bits,
+                               uint32_t skip_q,
+                               uint32_t *primes_out, int *np_out) {
+    int np = *np_out;
+    mpz_set(cofactor, norm);
+
+    /* Remove skip_q if given */
+    if (skip_q > 1) {
+        while (mpz_divisible_ui_p(cofactor, skip_q))
+            mpz_divexact_ui(cofactor, cofactor, skip_q);
+    }
+
+    /* Phase 1: Small primes by direct mpz trial division.
+     * These are few (< ~600 primes below 4096) and hit frequently. */
+    for (uint32_t fi = 0; fi < fb_med_start; fi++) {
+        uint32_t p = fb->entries[fi].p;
+        if (p == skip_q) continue;
+        /* Quick check: if cofactor < p, done with small primes */
+        if (mpz_cmp_ui(cofactor, p) < 0) break;
+        while (mpz_divisible_ui_p(cofactor, p)) {
+            mpz_divexact_ui(cofactor, cofactor, p);
+            if (np < MAX_REL_PRIMES) primes_out[np++] = p;
+        }
+    }
+
+    if (mpz_cmp_ui(cofactor, 1) == 0) { *np_out = np; return 1; }
+
+    /* Phase 2: Medium and large primes using root check.
+     * For each FB entry (p, r), p divides F(a,b) iff a ≡ r*b (mod p).
+     * We compute a_mod = ((a % p) + p) % p and check against (r * b_mod) % p.
+     * This avoids expensive GMP division for non-divisors. */
+    uint64_t b_pos = (uint64_t)b;  /* b > 0 guaranteed */
+
+    for (uint32_t fi = fb_med_start; fi < fb->count; fi++) {
+        uint32_t p = fb->entries[fi].p;
+        if (p == skip_q) continue;
+        /* Early exit: if cofactor < p^2, remaining factor (if any) is prime */
+        {
+            uint64_t p2 = (uint64_t)p * p;
+            if (mpz_cmp_ui(cofactor, (unsigned long)p2) < 0) break;
+        }
+
+        uint32_t r = fb->entries[fi].r;
+
+        /* Projective root sentinel */
+        if (r == p) {
+            /* p | b check */
+            if (b_pos % p == 0) {
+                while (mpz_divisible_ui_p(cofactor, p)) {
+                    mpz_divexact_ui(cofactor, cofactor, p);
+                    if (np < MAX_REL_PRIMES) primes_out[np++] = p;
+                }
+            }
+            continue;
+        }
+
+        /* Root check: a ≡ r*b (mod p) */
+        int64_t a_mod = a % (int64_t)p;
+        if (a_mod < 0) a_mod += p;
+        uint64_t b_mod = b_pos % p;
+        uint64_t rb_mod = (uint64_t)r * b_mod % p;
+
+        if ((uint64_t)a_mod != rb_mod) continue;
+
+        /* This prime divides F(a,b) — extract all powers */
+        while (mpz_divisible_ui_p(cofactor, p)) {
+            mpz_divexact_ui(cofactor, cofactor, p);
+            if (np < MAX_REL_PRIMES) primes_out[np++] = p;
+        }
+    }
+
+    *np_out = np;
+
+    /* Check cofactor */
+    if (mpz_cmp_ui(cofactor, 1) == 0) return 1;
+
+    size_t cof_bits = mpz_sizeinbase(cofactor, 2);
+    if (cof_bits <= lpb_bits) {
+        /* Single large prime */
+        if (np < MAX_REL_PRIMES)
+            primes_out[(*np_out)++] = (uint32_t)mpz_get_ui(cofactor);
+        return 1;
+    }
+    if (mfb_bits > 0 && cof_bits <= mfb_bits) {
+        /* Double large prime candidate: reject if cofactor is prime
+         * (it would be a prime > 2^lpb, too large for single LP) */
+        if (mpz_probab_prime_p(cofactor, 1)) return 0;
+        /* Accept DLP — store cofactor value */
+        if (np < MAX_REL_PRIMES)
+            primes_out[(*np_out)++] = (uint32_t)mpz_get_ui(cofactor);
+        return 1;
+    }
+    return 0;  /* cofactor too large */
+}
+
 /* Process candidate at flat index idx.  Returns 1 if a relation was found. */
 static int process_candidate(uint32_t idx, const vec2_t *e0, const vec2_t *e1,
                                uint32_t q, mpz_t anorm, mpz_t rnorm,
@@ -814,87 +979,24 @@ static int process_candidate(uint32_t idx, const vec2_t *e0, const vec2_t *e1,
     mpz_abs(anorm, anorm);
     eval_rat_poly(rnorm, &poly, a, b);
 
-    /* --- Trial-divide algebraic side --- */
-    mpz_set(cofactor, anorm);
-
-    /* Remove special-q */
-    while (mpz_divisible_ui_p(cofactor, q))
-        mpz_divexact_ui(cofactor, cofactor, q);
-
+    /* --- Algebraic side --- */
     uint32_t alg_primes[MAX_REL_PRIMES];
     int alg_np = 0;
     alg_primes[alg_np++] = q;
 
-    /* Trial divide by all algebraic FB primes (including small ones) */
-    for (uint32_t fi = 0; fi < alg_fb.count && mpz_cmp_ui(cofactor, 1) > 0; fi++) {
-        uint32_t p = alg_fb.entries[fi].p;
-        if (p == q) continue;
-        while (mpz_divisible_ui_p(cofactor, p)) {
-            mpz_divexact_ui(cofactor, cofactor, p);
-            if (alg_np < MAX_REL_PRIMES)
-                alg_primes[alg_np++] = p;
-        }
-    }
+    if (!trial_divide_side(cofactor, anorm, &alg_fb, alg_fb_medium_start,
+                            a, b, poly.lpba, poly.mfba, q,
+                            alg_primes, &alg_np))
+        return 0;
 
-    /* Check algebraic cofactor */
-    int alg_ok = 0;
-    if (mpz_cmp_ui(cofactor, 1) == 0) {
-        alg_ok = 1;
-    } else if (mpz_sizeinbase(cofactor, 2) <= poly.lpba) {
-        /* Single large prime */
-        alg_ok = 1;
-        if (alg_np < MAX_REL_PRIMES)
-            alg_primes[alg_np++] = (uint32_t)mpz_get_ui(cofactor);
-    } else if (poly.mfba > 0 && mpz_sizeinbase(cofactor, 2) <= poly.mfba) {
-        /* Double large prime: cofactor must be a product of two primes
-         * each <= 2^lpba.  Quick check: cofactor must not be a perfect
-         * square of a prime (very rare edge case). */
-        if (mpz_probab_prime_p(cofactor, 1)) {
-            /* cofactor is a single prime > 2^lpba, reject */
-            alg_ok = 0;
-        } else {
-            /* Accept as DLP — store the cofactor directly. */
-            alg_ok = 1;
-            if (alg_np < MAX_REL_PRIMES)
-                alg_primes[alg_np++] = (uint32_t)mpz_get_ui(cofactor);
-        }
-    }
-
-    if (!alg_ok) return 0;
-
-    /* --- Trial-divide rational side --- */
-    mpz_set(cofactor, rnorm);
-
+    /* --- Rational side --- */
     uint32_t rat_primes[MAX_REL_PRIMES];
     int rat_np = 0;
 
-    for (uint32_t fi = 0; fi < rat_fb.count && mpz_cmp_ui(cofactor, 1) > 0; fi++) {
-        uint32_t p = rat_fb.entries[fi].p;
-        while (mpz_divisible_ui_p(cofactor, p)) {
-            mpz_divexact_ui(cofactor, cofactor, p);
-            if (rat_np < MAX_REL_PRIMES)
-                rat_primes[rat_np++] = p;
-        }
-    }
-
-    int rat_ok = 0;
-    if (mpz_cmp_ui(cofactor, 1) == 0) {
-        rat_ok = 1;
-    } else if (mpz_sizeinbase(cofactor, 2) <= poly.lpbr) {
-        rat_ok = 1;
-        if (rat_np < MAX_REL_PRIMES)
-            rat_primes[rat_np++] = (uint32_t)mpz_get_ui(cofactor);
-    } else if (poly.mfbr > 0 && mpz_sizeinbase(cofactor, 2) <= poly.mfbr) {
-        if (mpz_probab_prime_p(cofactor, 1)) {
-            rat_ok = 0;
-        } else {
-            rat_ok = 1;
-            if (rat_np < MAX_REL_PRIMES)
-                rat_primes[rat_np++] = (uint32_t)mpz_get_ui(cofactor);
-        }
-    }
-
-    if (!rat_ok) return 0;
+    if (!trial_divide_side(cofactor, rnorm, &rat_fb, rat_fb_medium_start,
+                            a, b, poly.lpbr, poly.mfbr, 0,
+                            rat_primes, &rat_np))
+        return 0;
 
     /* Output relation */
     fprintf(outfp, "%ld,%ld:", (long)a, (long)b);
@@ -963,14 +1065,22 @@ static uint64_t scan_and_process(uint8_t *asieve, uint8_t *rsieve,
  * Sieve one special-q
  * ============================================================ */
 
+/* Accumulated timing for phases (in clock ticks) */
+static clock_t time_clear = 0, time_line = 0, time_bucket = 0;
+static clock_t time_apply = 0, time_scan = 0;
+
 static void sieve_special_q(uint32_t q, uint32_t qroot) {
     vec2_t e0 = {q, 0};
     vec2_t e1 = {qroot, 1};
     reduce_lattice(&e0, &e1);
 
+    clock_t t0, t1;
+
     /* Clear sieve arrays */
+    t0 = clock();
     memset(alg_sieve, 0, SIEVE_AREA);
     memset(rat_sieve, 0, SIEVE_AREA);
+    t1 = clock(); time_clear += t1 - t0;
 
     /* ---- Compute thresholds ---- */
     double log2_alg_norm = 0;
@@ -1007,34 +1117,76 @@ static void sieve_special_q(uint32_t q, uint32_t qroot) {
     uint8_t logq = (uint8_t)(log2((double)q) + 0.5);
     if (alg_thresh > logq) alg_thresh -= logq;
 
-    /* Subtract estimated small-prime contribution.
-     * sum(log2(p) * freq) for p < SMALL_PRIME_CUTOFF:
-     *   freq ≈ 1/p for rational, degree/p for algebraic (degree roots on average).
-     *   Total ≈ sum_{p<64}(log2(p)*degree/p) ≈ degree * ~6 ≈ 24 for degree 4.
-     *   Use a conservative estimate: */
+    /* Subtract estimated unsieved prime contribution.
+     *
+     * Small primes (< SMALL_PRIME_CUTOFF): not sieved, handled by trial div.
+     *   sum(log2(p) * degree/p) for p < 64 ≈ degree * 5 bits for algebraic.
+     *
+     * Large primes (> max_sieve_prime): not sieved, handled by root-check.
+     *   sum(log2(p)/p) for p in (max_sieve_prime, alim] ≈
+     *     integral of ln(x)/(x*ln(2)) dx = [ln(x)^2 / (2*ln(2))]
+     *   from max_sieve_prime to alim.
+     *   For degree-d polynomial, multiply by ~d (number of roots).
+     */
     uint8_t small_est = (uint8_t)(poly.degree * 5);
-    if (alg_thresh > small_est) alg_thresh -= small_est;
-    if (rat_thresh > small_est / 2) rat_thresh -= small_est / 2;
+    double large_est_alg = 0, large_est_rat = 0;
+    if (max_sieve_prime < poly.alim) {
+        double lnhi = log((double)poly.alim);
+        double lnlo = log((double)max_sieve_prime);
+        large_est_alg = poly.degree * (lnhi * lnhi - lnlo * lnlo) / (2.0 * log(2.0));
+    }
+    if (max_sieve_prime < poly.rlim) {
+        double lnhi = log((double)poly.rlim);
+        double lnlo = log((double)max_sieve_prime);
+        large_est_rat = (lnhi * lnhi - lnlo * lnlo) / (2.0 * log(2.0));
+    }
+
+    uint8_t unsieved_alg = (uint8_t)(small_est + large_est_alg);
+    uint8_t unsieved_rat = (uint8_t)(small_est / 2 + large_est_rat);
+
+    static int debug_thresh = 1;
+    if (debug_thresh) {
+        printf("Threshold debug: log2_alg_norm=%.1f log2_rat_norm=%.1f\n",
+               log2_alg_norm, log2_rat_norm);
+        printf("  alg_thresh (before sub)=%u, unsieved_alg=%u (small=%u large=%.1f)\n",
+               alg_thresh, unsieved_alg, small_est, large_est_alg);
+        printf("  rat_thresh (before sub)=%u, unsieved_rat=%u (small=%u large=%.1f)\n",
+               rat_thresh, unsieved_rat, small_est / 2, large_est_rat);
+        debug_thresh = 0;
+    }
+
+    if (alg_thresh > unsieved_alg) alg_thresh -= unsieved_alg;
+    else alg_thresh = 0;
+    if (rat_thresh > unsieved_rat) rat_thresh -= unsieved_rat;
+    else rat_thresh = 0;
 
     /* Safety floor: don't let thresholds go below a minimum */
-    if (alg_thresh < 20) alg_thresh = 20;
-    if (rat_thresh < 15) rat_thresh = 15;
+    if (alg_thresh < 15) alg_thresh = 15;
+    if (rat_thresh < 10) rat_thresh = 10;
 
     /* ---- Phase 1: Line sieve for medium primes ---- */
+    t0 = clock();
     line_sieve(alg_sieve, &alg_fb, &e0, &e1, q);
     line_sieve(rat_sieve, &rat_fb, &e0, &e1, 0);
+    t1 = clock(); time_line += t1 - t0;
 
     /* ---- Phase 2: Bucket sieve for large primes ---- */
+    t0 = clock();
     bucket_fill(alg_buckets, &alg_fb, &e0, &e1, q);
     bucket_fill(rat_buckets, &rat_fb, &e0, &e1, 0);
+    t1 = clock(); time_bucket += t1 - t0;
 
+    t0 = clock();
     bucket_apply(alg_sieve, alg_buckets);
     bucket_apply(rat_sieve, rat_buckets);
+    t1 = clock(); time_apply += t1 - t0;
 
     /* ---- Phase 3: Scan for candidates and trial-factor ---- */
+    t0 = clock();
     uint64_t rels_this_q = scan_and_process(alg_sieve, rat_sieve,
                                              alg_thresh, rat_thresh,
                                              &e0, &e1, q);
+    t1 = clock(); time_scan += t1 - t0;
 
     total_rels += rels_this_q;
 
@@ -1059,10 +1211,11 @@ int main(int argc, char *argv[]) {
         else if (strcmp(argv[i], "-c") == 0 && i + 1 < argc) q_range = atoi(argv[++i]);
         else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) out_file = argv[++i];
         else if (strcmp(argv[i], "-a") == 0 && i + 1 < argc) job_file = argv[++i];
+        else if (strcmp(argv[i], "-S") == 0 && i + 1 < argc) max_sieve_prime = (uint32_t)atol(argv[++i]);
     }
 
     if (!job_file || !start_q || !q_range) {
-        fprintf(stderr, "Usage: %s -f <startq> -c <qrange> -o <outfile> -a <jobfile>\n",
+        fprintf(stderr, "Usage: %s -f <startq> -c <qrange> -o <outfile> -a <jobfile> [-S max_sieve_prime]\n",
                 argv[0]);
         return 1;
     }
@@ -1085,8 +1238,10 @@ int main(int argc, char *argv[]) {
     /* Build factor bases */
     build_factor_bases();
 
-    /* Sort factor bases by prime (should already be sorted, but ensure) */
-    /* The FB is built in order of p, so it's sorted. */
+    /* Compute FB split points for optimized cofactorization */
+    compute_fb_split();
+
+    /* FB is built in order of p, so it's already sorted. */
 
     /* Allocate sieve arrays */
     alg_sieve = calloc(SIEVE_AREA, 1);
@@ -1148,6 +1303,13 @@ int main(int argc, char *argv[]) {
     double elapsed = (double)(clock() - start_time) / CLOCKS_PER_SEC;
     printf("\nTotal: %lu relations from %u special-q's in %.1f seconds (%.1f rels/sec)\n",
            (unsigned long)total_rels, nq, elapsed, total_rels / (elapsed + 0.001));
+
+    printf("Phase timing: clear=%.2fs line=%.2fs bucket=%.2fs apply=%.2fs scan=%.2fs\n",
+           (double)time_clear / CLOCKS_PER_SEC,
+           (double)time_line / CLOCKS_PER_SEC,
+           (double)time_bucket / CLOCKS_PER_SEC,
+           (double)time_apply / CLOCKS_PER_SEC,
+           (double)time_scan / CLOCKS_PER_SEC);
 
     fclose(outfp);
     free(alg_sieve);
