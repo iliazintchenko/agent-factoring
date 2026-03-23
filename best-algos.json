@@ -139,5 +139,8 @@
   },
   "turbo_siqs_structured_ge": {
     "70": 97.638
+  },
+  "turbo_siqs_dlp_pipeline": {
+    "70": 97.8
   }
 }
