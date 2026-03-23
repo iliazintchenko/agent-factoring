@@ -264,9 +264,10 @@ static params_t get_params(int bits) {
     if (bits <= 220) return (params_t){12000, 38, 100, 150, 0.85};
     if (bits <= 235) return (params_t){10000, 46, 200, 180, 0.855};
     if (bits <= 245) return (params_t){10000, 56, 300, 200, 0.86};
-    if (bits <= 255) return (params_t){12000, 68, 300, 250, 0.865};
-    if (bits <= 260) return (params_t){40000, 80, 120, 300, 0.87};
-    if (bits <= 280) return (params_t){55000, 100, 120, 350, 0.875};
+    if (bits <= 253) return (params_t){11000, 64, 300, 230, 0.86};
+    if (bits <= 258) return (params_t){11000, 68, 300, 250, 0.855};
+    if (bits <= 265) return (params_t){16000, 80, 250, 300, 0.87};
+    if (bits <= 280) return (params_t){22000, 96, 200, 350, 0.875};
     return (params_t){75000, 120, 130, 400, 0.88};
 }
 
@@ -566,7 +567,7 @@ int main(int argc, char *argv[]) {
     /* ==================== Main Sieve Loop ==================== */
     while (full_rels->count < target) {
         double t = elapsed();
-        if (t > 280) { fprintf(stderr, "TIMEOUT at %.1fs, rels=%d/%d\n", t, full_rels->count, target); break; }
+        if (t > 287) { fprintf(stderr, "TIMEOUT at %.1fs, rels=%d/%d\n", t, full_rels->count, target); break; }
 
         /* ---- Generate new 'a' coefficient ---- */
         {
@@ -721,7 +722,7 @@ int main(int argc, char *argv[]) {
             /* Status update */
             if (total_polys % 10 == 0) {
                 double t2 = elapsed();
-                if (t2 > 280) break;
+                if (t2 > 287) break;
                 if (total_polys <= 50 || total_polys % 100 == 0)
                     fprintf(stderr, "  poly=%d cand=%d rels=%d/%d (F=%d S=%d D=%d T=%d C=%d) t=%.2fs\n",
                             total_polys, total_candidates, full_rels->count, target,
