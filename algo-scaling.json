@@ -1,7 +1,55 @@
 {
   "yafu_siqs_baseline": {
-    "scaling_argument": "SIQS is L[1/2, 1+o(1)] = exp((1+o(1)) * sqrt(ln N * ln ln N)). For each +10 digits, time multiplies by ~8-10x. This is the best known single-core performance for numbers under 100 digits. Any novel approach should aim for a slower growth rate — e.g. L[1/3] grows ~3-4x per +10 digits, L[1/4] would grow ~2x.",
-    "30": 0.014, "40": 0.017, "50": 0.12, "60": 0.7, "70": 5.8,
-    "80": 44, "85": 136, "87": 188, "88": 222, "89": 294
+    "scaling_argument": "SIQS is L[1/2, 1+o(1)] = exp((1+o(1)) * sqrt(ln N * ln ln N)). For each +10 digits, time multiplies by ~8-10x. This is the best known single-core performance for numbers under 100 digits. Any novel approach should aim for a slower growth rate \u2014 e.g. L[1/3] grows ~3-4x per +10 digits, L[1/4] would grow ~2x.",
+    "30": 0.014,
+    "40": 0.017,
+    "50": 0.12,
+    "60": 0.7,
+    "70": 5.8,
+    "80": 44,
+    "85": 136,
+    "87": 188,
+    "88": 222,
+    "89": 294
+  },
+  "siqs": {
+    "30": 0.085,
+    "31": 0.034,
+    "32": 0.056,
+    "33": 0.149,
+    "34": 0.159,
+    "35": 0.495,
+    "36": 0.091,
+    "37": 0.121,
+    "38": 0.193,
+    "39": 0.293,
+    "40": 0.552,
+    "41": 0.408,
+    "42": 0.379,
+    "43": 0.995,
+    "44": 2.5,
+    "45": 5.773,
+    "46": 1.483,
+    "47": 2.549,
+    "48": 2.125,
+    "49": 5.242,
+    "50": 5.123,
+    "51": 3.768,
+    "52": 5.347,
+    "53": 6.754,
+    "54": 19.624
+  },
+  "ecm": {
+    "30": 0.023,
+    "31": 0.051,
+    "32": 0.104,
+    "33": 0.079,
+    "34": 0.098,
+    "35": 0.099,
+    "36": 0.066,
+    "37": 0.272,
+    "38": 0.229,
+    "39": 0.543,
+    "40": 1.045
   }
 }
