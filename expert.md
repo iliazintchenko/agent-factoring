@@ -97,6 +97,21 @@ SPQS2 Bucket Sieve (worst of 5 per size):
 | 70 | 139s | 1.5x/5d | 24x |
 | 75 | ~250s | ~1.8x/5d | |
 
+Turbo SIQS2 (AVX512 LA + DLP→SLP pipeline, worst of 5 per size):
+
+| Digits | Time | Growth | vs YAFU |
+|--------|------|--------|---------|
+| 30 | 0.058s | | 4.1x |
+| 40 | 0.144s | ~2.5x/10d | 8.5x |
+| 50 | 0.986s | ~6.8x/10d | 8.2x |
+| 55 | 3.80s | 3.9x/5d | |
+| 60 | 26.3s | 6.9x/5d | 38x |
+| 65 | 60.0s | 2.3x/5d | |
+| 70 | 97.7s | 1.6x/5d | **17x** |
+
+Note: turbo_siqs2 at 70d (97.7s) has the best scaling 60→70d (3.7x/10d vs YAFU's 8.3x/10d).
+The 48KB L1-cache sieve blocks + structured GE + DLP graph give better scaling at large sizes.
+
 SPQS Batch Sieve (worst of 5 per size):
 
 | Digits | Time | Growth | vs YAFU |
