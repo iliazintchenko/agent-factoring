@@ -13,6 +13,9 @@
  */
 
 #include "lanczos.h"
+#define u64 u64_sg
+#include "structured_gauss.h"
+#undef u64
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -822,21 +825,21 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "FAIL: not enough relations\n"); printf("FAIL\n"); return 1;
     }
 
-    /* Linear algebra */
+    /* Linear algebra using structured Gaussian elimination */
     int nrels = full->count;
     if (nrels > target) nrels = target;
     int ncols = fb->size + 1;
-    gf2_t *mat = gf2_create(nrels, ncols);
+    sg_mat_t *mat = sg_create(nrels, ncols);
 
     for (int r = 0; r < nrels; r++) {
         mpz_t Qval; mpz_init(Qval); mpz_set(Qval, full->Qx[r]);
-        if (mpz_sgn(Qval) < 0) { gf2_set(mat, r, 0); mpz_neg(Qval, Qval); }
+        if (mpz_sgn(Qval) < 0) { sg_set(mat, r, 0); mpz_neg(Qval, Qval); }
         int e2 = 0; while (mpz_even_p(Qval)) { mpz_tdiv_q_2exp(Qval, Qval, 1); e2++; }
-        if (e2 & 1) gf2_set(mat, r, 1);
+        if (e2 & 1) sg_set(mat, r, 1);
         for (int i = 1; i < fb->size; i++) {
             unsigned int p = fb->prime[i]; int e = 0;
             while (mpz_divisible_ui_p(Qval, p)) { mpz_divexact_ui(Qval, Qval, p); e++; }
-            if (e & 1) gf2_set(mat, r, i+1);
+            if (e & 1) sg_set(mat, r, i+1);
         }
         mpz_clear(Qval);
     }
@@ -844,20 +847,8 @@ int main(int argc, char *argv[]) {
     int **deps; int *dlen;
     double la_start = elapsed();
 
-    /* Try Block Lanczos first, fall back to Gauss if it fails */
-    int ndeps;
-    if (nrels > 2000) {
-        fprintf(stderr, "Using Block Lanczos for %dx%d matrix...\n", nrels, ncols);
-        sp_mat_t *sp = sp_from_dense(mat->rows, nrels, ncols);
-        ndeps = lanczos_solve(sp, &deps, &dlen, 64);
-        free(sp->row_off); free(sp->col); free(sp);
-        if (ndeps == 0) {
-            fprintf(stderr, "BL found 0 deps, falling back to Gauss...\n");
-            ndeps = gf2_solve(mat, &deps, &dlen, 64);
-        }
-    } else {
-        ndeps = gf2_solve(mat, &deps, &dlen, 64);
-    }
+    /* Structured GE with singleton/doubleton removal + dense Gauss */
+    int ndeps = sg_solve(mat, &deps, &dlen, 64);
     fprintf(stderr, "LA: %d deps from %dx%d (%.2fs)\n", ndeps, nrels, ncols, elapsed() - la_start);
 
     /* Square root */
