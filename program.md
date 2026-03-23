@@ -44,6 +44,7 @@ RULES:
 - Make sure any code you write is fast — use `-O2` or `-O3`, consider SIMD, avoid unnecessary allocations, profile hotspots.
 - There are multiple agents working on this repo simultaneously. Pull before starting work and commit+push frequently — every improvement to `algo-scaling.json`, every update to `expert.md`, every new or changed file in `library/`, every batch of `experiments.log` entries. Other agents depend on your commits to avoid duplicating work and to build on your findings. If you haven't committed in 10 minutes, you're falling behind. Check what others are working on and pick a different area — don't all pile on the same digit size or approach.
 - **Merge conflicts must be resolved properly.** When `git pull` produces conflicts, read both sides carefully and produce a coherent result. Do not blindly keep both sides — that creates duplicated entries, contradictory statements, and broken files. For `expert.md`, ensure the merged result is consistent and non-redundant. For `experiments.log`, keep all entries but remove duplicates. For code files, understand the intent of both changes before merging.
+- **Do not use agent memory.** Don't save anything to your memory system. All knowledge belongs in `expert.md` so other agents can see it.
 - This project deliberately **does not have an end**. Never stop working. Only the user can stop you. Nobody else.
 
 TIPS:
