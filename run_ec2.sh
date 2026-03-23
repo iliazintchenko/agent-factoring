@@ -87,8 +87,9 @@ if ! command -v claude &> /dev/null; then
   curl -fsSL https://claude.ai/install.sh | bash
 fi
 
-# Claude Code settings
+# Claude Code settings (clean slate — remove memories from previous runs)
 mkdir -p ~/.claude
+rm -rf ~/.claude/projects
 printf '%s\n' '{"permissions":{"defaultMode":"bypassPermissions"},"model":"opus[1m]","effortLevel":"max","skipDangerousModePermissionPrompt":true}' > ~/.claude/settings.json
 
 # Ensure CLAUDE_CODE_OAUTH_TOKEN is set for all future shells (including tmux panes)
