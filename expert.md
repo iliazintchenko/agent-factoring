@@ -176,6 +176,10 @@ Pre-computed polynomial + direct GGNFS sieve + YAFU post-processing:
 | CADO-NFS NFS | Uses multiprocessing. Violates single-core rule. |
 | AVX512 gather-scatter sieve | **20% slower** than scalar on AMD Zen4. AMD's scatter is ~10 cycles/element vs 1 cycle/element for scalar stores. |
 | Custom SIQS | See dedicated section below. 30-50x slower than YAFU due to scalar sieve. |
+| CFRAC (primorial GCD) | Working 30-55d. 8.6x slower at 30d, 693x at 50d vs YAFU. Gap widens exponentially. Confirms sieve >> sequential smooth testing. |
+| MQSS (primorial GCD QS) | Relations verify correct but LA step fails. Novel idea: replace trial division with batch GCD against primorial. Needs SLP combining fix. |
+| Batch smooth QS (product trees) | NEGATIVE: multi-precision GCD overhead makes batch approach ~50x slower than byte-level sieve. See library/batch_qs.c. |
+| Schnorr lattice factoring | NEGATIVE: For 90d, lattice dimension ~50K needed (infeasible for LLL). With small dimension (200), residues are ~10^{50} (never smooth). Theoretically sound but practically useless. |
 | VBITS=512 | Implemented: modified lanczos.h/lanczos.c to support 512-bit vectors using loop-based v_and/v_or/v_xor. Build succeeds with VBITS=512. Halves BL iteration count. 90d[1]: 250.7s (vs 248.6s baseline on idle, this on loaded machine). Combined with closnuf +2 and -noopt, promising for 90d. |
 | C-Quadratic-Sieve (Michel Leonard) | 10x slower than YAFU on 60d, fails on 70d+. Not competitive. |
 | yamaquasi (Rust SIQS) | 2.3x slower than YAFU (70d: 13.6s vs 5.8s, 85d: 264s vs 136s). |
@@ -388,6 +392,26 @@ YAFU can save/resume via siqs.dat. Key findings:
 4. **SQUFOF/Rho don't work**: O(N^{1/4}) is dramatically slower than SIQS's sub-exponential for 30+d balanced semiprimes.
 5. **The a*g(x) factor**: For SIQS, exponent matrix must track a*g(x), not g(x).
 6. **Sieve threshold**: log2(M * sqrt(N)) minus small-prime correction. Too high = few candidates, too low = false positives.
+
+## CFRAC Scaling Analysis (agent-9)
+
+### cfrac.c — Working CFRAC with primorial GCD smooth extraction
+- **Method**: Continued fraction expansion of sqrt(kN), check each Q_n for B-smoothness
+- **Novel optimization**: Extract smooth part via repeated GCD with primorial (product of all FB primes), avoiding per-prime trial division for non-smooth candidates
+- **Performance vs YAFU SIQS**:
+
+| Digits | CFRAC worst | YAFU worst | Ratio |
+|--------|------------|------------|-------|
+| 30     | 0.12s      | 0.014s     | 8.6x  |
+| 35     | 0.74s      | 0.016s     | 46x   |
+| 40     | 4.92s      | 0.017s     | 289x  |
+| 45     | 24.3s      | 0.08s      | 304x  |
+| 50     | 83.1s      | 0.12s      | 693x  |
+
+- **Scaling**: CFRAC ratio to YAFU grows exponentially. CFRAC is O(exp(√(2 ln N ln ln N))) while SIQS is O(exp(√(ln N ln ln N))). The factor of √2 in the exponent means CFRAC scales as YAFU^{√2} ≈ YAFU^{1.41}.
+- **Why CFRAC loses**: CFRAC tests one Q_n value per step (sequential). SIQS sieve tests millions of Q(x) values simultaneously (parallel via byte array). The sieve amortizes the cost of testing many positions at once.
+- **Primorial GCD optimization**: Replaces O(B) trial divisions per candidate with O(log B) GCD iterations. Saves ~50% of trial division time for non-smooth candidates (which are discarded). But since CFRAC's bottleneck is the low smoothness probability (not trial division cost), this optimization doesn't change the scaling class.
+- **Conclusion**: No sequential smooth-number method can compete with sieve-based approaches. The sieve's ability to test millions of positions in one pass is the key advantage.
 
 ## Custom NFS Lattice Siever
 
