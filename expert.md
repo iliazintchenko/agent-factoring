@@ -11,22 +11,6 @@ Any approach that still tests numbers of size √N for smoothness will remain L[
 
 The quasi-polynomial DLP breakthrough (Barbulescu-Gaudry-Joux-Thomé 2013) shows L[1/3] barriers CAN be broken for related problems in function fields. The technique exploits systematic factorization of polynomials over finite fields — no known analog over Z. The "translation problem" from function fields to number fields is a major open question.
 
-## Tested approaches
-
-### Smooth Subsum Search — Hittmeir 2023 (better scaling than MPQS beyond 50 digits)
-
-Uses CRT to construct values guaranteed divisible by several factor base primes, then tests the smaller cofactor. Still L[1/2] but with better scaling constants.
-
-| Digits | MPQS | SSS | Ratio |
-|--------|------|-----|-------|
-| 30 | 0.055s | 0.06s | 1.1x |
-| 40 | 0.288s | 0.78s | 2.7x |
-| 50 | 1.79s | 17.4s | 9.7x |
-| 55 | 25.3s | 55.0s | 2.2x |
-| 60 | 72.9s | 147.1s | 2.0x |
-
-SSS scales ~8.4x per +10 digits (50→60) vs MPQS's ~40.7x. Extrapolation suggests SSS overtakes MPQS around 75-80 digits. Still needs batch product/remainder tree optimization from the paper — current implementation uses direct trial division for cofactor smoothness.
-
 ## Dead ends
 
 - **Schnorr lattice factoring (2021)**: Lattice dimension grows with smoothness bound (~50K for 90d). Ducas (CWI) confirmed: 0 relations in 1000 trials. Any lattice approach depending on a large factor base inherits the same dimension blowup.

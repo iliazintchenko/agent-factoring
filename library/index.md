@@ -2,7 +2,7 @@
 
 ## Implementations
 
-- **sss.cpp** — Smooth Subsum Search (Hittmeir 2023). CRT-based structured candidate generation. L[1/2] but with better scaling constants than QS. See expert.md for benchmark data.
+No implementations yet.
 
 ## Utilities
 
