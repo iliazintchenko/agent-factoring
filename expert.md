@@ -82,29 +82,43 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 ## Custom Implementations in library/
 
 ### Working implementations (best to worst)
-- **spqs.c**: **Best custom.** Multi-polynomial batch sieve SIQS. 1.4-44x slower than YAFU. 30-65d+. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
-- **dlp_siqs.c**: SIQS with DLP (Pollard rho splitting), union-find graph. 5-100x slower than YAFU. 30-55d. `gcc -O3 -march=native -mavx512bw -o dlp_siqs library/dlp_siqs.c -lgmp -lm`
-- **siqs2.c**: Working SIQS, SLP, Gray code. 30-80x slower than YAFU. `gcc -O2 -march=native -o siqs2 library/siqs2.c -lgmp -lm`
-- **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower. `gcc -O3 -march=native -mavx512bw -o siqs3 library/siqs3.c -lgmp -lm`
-- **lattice_siqs.c**: Clean SIQS for scaling measurement. `gcc -O3 -march=native -o lattice_siqs library/lattice_siqs.c -lgmp -lm`
+- **fast_siqs.c**: SIQS with bucket sieving for large primes, sieve-informed TD, Gray code self-init, SLP, __int128 trial division. 15-25x slower than YAFU. 30-65d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
+- **siqs_bucket.c**: Similar optimized SIQS with bucket sieve. Comparable to fast_siqs. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+- **siqs_opt.c**: Optimized SIQS with tracked offsets and 64-bit scanning. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
+- **spqs.c**: Multi-polynomial batch sieve SIQS. 1.4-44x slower than YAFU. 30-65d+. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
+- **dlp_siqs.c**: SIQS with DLP (Pollard rho splitting). 5-100x slower. 30-55d.
+- **siqs2.c**: Working SIQS, SLP, Gray code. 30-80x slower.
+- **siqs3.c**: SIQS with DLP, inline Block Lanczos. 40-350x slower.
 
 ### Experimental / Novel
-- **specialq_qs.c**: Special-Q QS. NEGATIVE RESULT: can't collect enough relations without sieving.
+- **sqqs.c**: Special-Q enhanced QS. Lowers sieve threshold at special-Q positions. NEGATIVE RESULT: overhead exceeds benefit.
+- **latsieve_qs.c**: SIQS with ECM cofactor splitting. ECM can find additional DLP relations but overhead is too high without proper DLP graph. NEEDS more work.
+- **ecm_siqs.c**: ECM-enhanced SIQS with smaller FB and aggressive cofactorization.
+- **nfs_factor.c**: NFS skeleton with base-m polynomial selection. Algebraic square root NOT implemented.
+- **specialq_qs.c**: Special-Q QS. NEGATIVE RESULT: can't collect relations without sieving.
 - **nfs_siever.c**: Custom NFS lattice siever. Working but 2500x slower than GGNFS.
-- **gnfs_simple.c**: Line sieve NFS. Working but slow.
 - **batch_smooth.c**, **batch_qs.c**, **batch_siqs.c**: Batch smoothness approaches. NEGATIVE RESULT.
 - **lattice_factor.c**, **lattice_factor_v2.c**, **lattice_factor_batch.c**: Lattice-based approaches. NEGATIVE RESULT.
 
 ### Other
-- **mpqs.c**: MPQS with buggy sqrt step.
 - **pollard_rho.c**: Brent variant. Not competitive above 30d.
 - **factor_oracle.c**: Multi-strategy oracle. Useful for small factors.
 - **special_factor.c**: Pollard p-1, Williams p+1, ECM.
 
+## Key Bottleneck Analysis
+
+The gap between custom SIQS (15-25x slower) and YAFU comes from:
+1. **Scalar sieve inner loop** (~60% of gap): YAFU uses AVX512BW vectorized sieve; custom uses scalar byte stores. No portable C workaround exists.
+2. **Trial division efficiency** (~20%): YAFU uses sieve-root-informed TD with multiplication-by-inverse; custom uses mpz_divisible_ui_p fallback for some primes.
+3. **Polynomial overhead** (~10%): YAFU's self-init is highly optimized with incremental root updates; custom recomputes roots from scratch.
+4. **Parameter tuning** (~10%): YAFU has decades of tuning; custom parameters are close but not optimal.
+
+The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (scattered byte stores at stride p) is inherently memory-bound and benefits enormously from wide SIMD gather/scatter.
+
 ## Open Questions
 
-- **Can NFS beat QS at 85-100 digits on single core?** CADO-NFS is now built. Need to benchmark with single-thread constraint. NFS overhead (poly selection, filtering, LA, square root) may exceed QS sieve savings at these sizes.
-- **Can the batch polynomial approach be pushed further?** SPQS uses 4 polynomials per batch. More polynomials = more memory but also more candidates. The optimal batch size depends on L1 cache pressure vs relation yield.
-- **Can SIMD improve the sieve inner loop?** The key bottleneck is scattered byte stores to random positions. AVX512 vscatterdq exists but is slow on Zen4. Alternative: use vectorized sieve scanning (already done in some implementations) but the sieve update loop itself remains scalar.
-- **Can we bypass sieving entirely?** All QS variants sieve. The theoretical alternative is batch smoothness testing (product trees), but it's proven slower in practice. What about number-theoretic approaches (class groups, ideal theory)?
-- **Can TLP (triple large primes) actually help at 80-90 digits?** The literature says overhead dominates below 100d. But with aggressive ECM cofactorization and efficient hypergraph cycle finding, the crossover point might be lower.
+- **Can NFS beat QS at 85-100 digits on single core?** NFS has L[1/3] vs QS's L[1/2] scaling. But NFS implementation complexity is enormous (polynomial selection, lattice sieve, filtering, algebraic square root). The crossover depends on constant factors.
+- **Can ECM cofactorization improve SIQS?** ECM can split cofactors into DLP relations, but overhead (~10μs per ECM call) is high vs sieve amortization. Needs DLP graph (union-find) and proper exponent tracking. Potentially useful above 70d where sieve cost dominates.
+- **Can a simplified NFS be implemented?** The main barrier is the algebraic square root (Couveignes' algorithm). Line sieving + GF(2) LA + base-m polynomial selection are all implementable. CRT-based algebraic sqrt requires: root finding mod large primes (Cantor-Zassenhaus), square root mod each prime (Tonelli-Shanks), polynomial interpolation, CRT accumulation.
+- **Can we exploit balanced semiprime structure?** No known algorithm specifically targets N = p*q with p ≈ q. The Fermat/Lehman approaches only help when |p-q| is small relative to N^(1/3).
+- **Can TLP (triple large primes) help at 80-90 digits?** Literature says overhead dominates below 100d. With ECM cofactorization and hypergraph cycle finding, crossover might be lower.
