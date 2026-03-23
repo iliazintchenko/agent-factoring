@@ -378,31 +378,22 @@ static void choose_a_coefficient(mpz_t A, mpz_t kN, int s, int M, int *a_idx) {
     int range_size = range_hi - range_lo + 1;
     if (range_size < s) range_size = s;
 
-    /* Select s primes with stride based on a_id for diversity */
-    int stride = range_size / (s + 1);
-    if (stride < 1) stride = 1;
-    int offset = (a_id * 7 + 3) % stride; /* simple hash for offset */
+    /* Select s primes randomly from the range using LCG seeded by a_id */
+    uint32_t rng_state = (uint32_t)(a_id * 2654435761u + 42u);
 
     for (int j = 0; j < s; j++) {
-        int idx = range_lo + offset + j * stride;
-        /* Wrap around if needed */
-        while (idx > range_hi) idx -= range_size;
-        if (idx < range_lo) idx = range_lo;
+        rng_state = rng_state * 1103515245u + 12345u;
+        int start = range_lo + (int)(rng_state % (uint32_t)range_size);
 
-        /* Find nearest unused index */
         int best_i = -1;
         for (int d = 0; d < range_size; d++) {
-            int try_idx = idx + d;
-            if (try_idx > range_hi) try_idx -= range_size;
-            if (try_idx < range_lo) try_idx += range_size;
-            if (try_idx < range_lo || try_idx > range_hi) continue;
+            int try_idx = range_lo + ((start - range_lo + d) % range_size);
             int skip = 0;
             for (int k = 0; k < selected; k++)
                 if (a_idx[k] == try_idx) { skip = 1; break; }
             if (!skip) { best_i = try_idx; break; }
         }
         if (best_i < 0) {
-            /* Fallback */
             for (int i = lo; i <= hi; i++) {
                 int skip = 0;
                 for (int k = 0; k < selected; k++)
@@ -1101,10 +1092,13 @@ static int solve_matrix(sparse_mat_t *B, int **dep_out, int *dep_len_out) {
             mat[r][B->col_idx[j] / 64] |= (1ULL << (B->col_idx[j] % 64));
     }
 
-    /* Forward elimination */
+    /* Forward elimination with randomized pivot selection */
     int *pivot_row = malloc(n * sizeof(int));
     memset(pivot_row, -1, n * sizeof(int));
     int rank = 0;
+    srand(42);
+
+    int *col_order = NULL; /* unused */
 
     for (int col = 0; col < n && rank < m; col++) {
         /* Find pivot */
@@ -1513,7 +1507,7 @@ int main(int argc, char **argv) {
             break;
         }
 
-        int useful = count_useful_relations();
+        int useful = num_full; /* Require enough FULL relations for matrix */
         if (useful >= target_rels) {
             fprintf(stderr, "Enough relations: %d full + %d SLP + %d DLP = ~%d useful (target %d)\n",
                     num_full, num_partial, num_dlp, useful, target_rels);
@@ -1641,12 +1635,12 @@ int main(int argc, char **argv) {
             }
 
             if (elapsed_sec() > 290.0) break;
-            int useful_check = count_useful_relations();
+            int useful_check = num_full;
             if (useful_check >= target_rels) break;
         }
 
         if (elapsed_sec() > 290.0) break;
-        int useful_check = count_useful_relations();
+        int useful_check = num_full;
         if (useful_check >= target_rels) break;
     }
 
@@ -1696,7 +1690,7 @@ int main(int argc, char **argv) {
     /* For simplicity, add both relations and let the matrix handle it */
     /* Actually, let's properly merge by creating combined relations */
     int merge_start = nmat;
-    for (int m = 0; m < nmerged && nmat + 1 < MAX_RELATIONS; m++) {
+    for (int m = 0; m < 0 /* use full only */ && nmat + 1 < MAX_RELATIONS; m++) {
         /* Add BOTH relations of the merged pair. In the matrix, the LP column
          * will have the same value in both rows, so when XOR'd they cancel.
          * But we're NOT adding LP columns anymore. Instead, we create a single
@@ -1729,6 +1723,13 @@ int main(int argc, char **argv) {
         int used = 0;
         for (int c = 0; c < mat->ncols; c++) if (col_used[c]) used++;
         fprintf(stderr, "  Columns with nonzeros: %d / %d\n", used, mat->ncols);
+        /* Print first 3 rows */
+        for (int r = 0; r < 3 && r < mat->nrows; r++) {
+            fprintf(stderr, "  Row %d (%d nz): cols ", r, mat->row_start[r+1] - mat->row_start[r]);
+            for (int j = mat->row_start[r]; j < mat->row_start[r+1] && j < mat->row_start[r]+20; j++)
+                fprintf(stderr, "%d ", mat->col_idx[j]);
+            fprintf(stderr, "\n");
+        }
         free(col_used);
     }
 
