@@ -567,7 +567,7 @@ int main(int argc, char *argv[]) {
     /* ==================== Main Sieve Loop ==================== */
     while (full_rels->count < target) {
         double t = elapsed();
-        if (t > 287) { fprintf(stderr, "TIMEOUT at %.1fs, rels=%d/%d\n", t, full_rels->count, target); break; }
+        if (t > 290) { fprintf(stderr, "TIMEOUT at %.1fs, rels=%d/%d\n", t, full_rels->count, target); break; }
 
         /* ---- Generate new 'a' coefficient ---- */
         {
@@ -722,7 +722,7 @@ int main(int argc, char *argv[]) {
             /* Status update */
             if (total_polys % 10 == 0) {
                 double t2 = elapsed();
-                if (t2 > 287) break;
+                if (t2 > 290) break;
                 if (total_polys <= 50 || total_polys % 100 == 0)
                     fprintf(stderr, "  poly=%d cand=%d rels=%d/%d (F=%d S=%d D=%d T=%d C=%d) t=%.2fs\n",
                             total_polys, total_candidates, full_rels->count, target,
@@ -1100,54 +1100,79 @@ int main(int argc, char *argv[]) {
             mpz_mod(X, X, N);
         }
 
-        /* Compute Y = sqrt(product of Q-values) mod N */
+        /* Compute Y = sqrt(product of Q-values) mod N
+         * OPTIMIZED: track exponents per FB prime directly, avoiding huge products.
+         * Accumulate Y = product of p^(total_exp/2) mod N */
         mpz_set_ui(prod, 1);
-        for (int k = 0; k < dlen[d]; k++) {
-            mpz_t aq; mpz_init(aq);
-            mpz_abs(aq, full_rels->qval[deps[d][k]]);
-            mpz_mul(prod, prod, aq);
-            mpz_clear(aq);
-        }
-
-        mpz_set(residue, prod);
-        int e2 = 0;
-        while (mpz_even_p(residue)) { mpz_tdiv_q_2exp(residue, residue, 1); e2++; }
-        if (e2 & 1) goto next_dep;
-
-        mpz_set_ui(Y, 1);
-        if (e2 / 2 > 0) {
-            mpz_set_ui(tmp, 2);
-            mpz_powm_ui(tmp, tmp, e2 / 2, N);
-            mpz_mul(Y, Y, tmp);
-            mpz_mod(Y, Y, N);
-        }
-
         {
+            /* Allocate exponent counter for each FB prime */
+            int *total_exp = calloc(fb->size + 1, sizeof(int));
+            int neg_count = 0;
+
+            /* Factor each Q-value and accumulate exponents */
             int valid = 1;
-            for (int i = 1; i < fb->size; i++) {
-                unsigned int p = fb->p[i]; int e = 0;
-                while (mpz_divisible_ui_p(residue, p)) { mpz_divexact_ui(residue, residue, p); e++; }
-                if (e & 1) { valid = 0; break; }
-                if (e / 2 > 0) {
+            for (int k = 0; k < dlen[d] && valid; k++) {
+                mpz_t qv; mpz_init(qv);
+                mpz_abs(qv, full_rels->qval[deps[d][k]]);
+                if (mpz_sgn(full_rels->qval[deps[d][k]]) < 0) neg_count++;
+
+                /* Factor out powers of 2 */
+                unsigned long e2 = mpz_scan1(qv, 0);
+                if (e2 > 0) { mpz_tdiv_q_2exp(qv, qv, e2); total_exp[0] += (int)e2; }
+
+                /* Factor out FB primes */
+                for (int i = 1; i < fb->size; i++) {
+                    unsigned int p = fb->p[i];
+                    while (mpz_divisible_ui_p(qv, p)) {
+                        mpz_divexact_ui(qv, qv, p);
+                        total_exp[i]++;
+                    }
+                }
+
+                /* Remaining cofactor (large primes) */
+                if (mpz_cmp_ui(qv, 1) != 0) {
+                    /* Must be a perfect square in the combined product */
+                    /* Track as a single big cofactor - multiply into a running product */
+                    mpz_mul(prod, prod, qv);
+                }
+                mpz_clear(qv);
+            }
+
+            /* Check all exponents are even */
+            if (neg_count & 1) { valid = 0; }
+            for (int i = 0; i < fb->size && valid; i++) {
+                if (total_exp[i] & 1) { valid = 0; }
+            }
+
+            if (!valid) { free(total_exp); goto next_dep; }
+
+            /* Compute Y = product of p^(exp/2) mod N */
+            mpz_set_ui(Y, 1);
+            for (int i = 0; i < fb->size; i++) {
+                if (total_exp[i] == 0) continue;
+                unsigned int p = (i == 0) ? 2 : fb->p[i];
+                int half_exp = total_exp[i] / 2;
+                if (half_exp > 0) {
                     mpz_set_ui(tmp, p);
-                    mpz_powm_ui(tmp, tmp, e / 2, N);
+                    mpz_powm_ui(tmp, tmp, half_exp, N);
                     mpz_mul(Y, Y, tmp);
                     mpz_mod(Y, Y, N);
                 }
             }
-            if (!valid) goto next_dep;
-        }
 
-        /* Handle remaining cofactor */
-        if (mpz_cmp_ui(residue, 1) != 0) {
-            if (mpz_perfect_square_p(residue)) {
-                mpz_sqrt(tmp, residue);
-                mpz_mod(tmp, tmp, N);
-                mpz_mul(Y, Y, tmp);
-                mpz_mod(Y, Y, N);
-            } else {
-                goto next_dep;
+            /* Handle cofactor product (large primes) */
+            if (mpz_cmp_ui(prod, 1) != 0) {
+                if (mpz_perfect_square_p(prod)) {
+                    mpz_sqrt(tmp, prod);
+                    mpz_mod(tmp, tmp, N);
+                    mpz_mul(Y, Y, tmp);
+                    mpz_mod(Y, Y, N);
+                } else {
+                    free(total_exp); goto next_dep;
+                }
             }
+
+            free(total_exp);
         }
 
         /* Check X ≡ ±Y (mod N) */
