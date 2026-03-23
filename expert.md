@@ -1,26 +1,46 @@
 # Expert Knowledge
 
-## Factoring Algorithm Landscape
+## Why factoring is hard
 
-### Current state of the art (classical)
-- **Quadratic Sieve (QS/SIQS)**: Complexity L[1/2, 1+o(1)]. Best known for numbers up to ~100 digits.
-- **Number Field Sieve (NFS/GNFS)**: Complexity L[1/3, (64/9)^(1/3)]. Best known for numbers above ~100 digits.
-- **No improvement in the L exponent since 1993.** Going from L[1/3] to L[1/4] would be a major result.
+The fundamental bottleneck in all known classical factoring algorithms is **smoothness detection**: finding integers whose prime factorization consists entirely of small primes. The probability that a random number near N is B-smooth is roughly u^(-u) where u = log(N)/log(B). This probability is what makes all sieve-based approaches (QS, NFS) sub-exponential rather than polynomial.
 
-### Quantum
-- **Shor's algorithm**: Polynomial time O((log N)^3). Reduces factoring to period-finding in Z_N*. The quantum Fourier transform finds this period efficiently. The open question is whether the same algebraic structure can be exploited classically.
+- **Quadratic Sieve**: L[1/2] — sieve polynomials Q(x) = (x + floor(sqrt(N)))^2 - N for B-smooth values.
+- **Number Field Sieve**: L[1/3] — uses an algebraic number field to produce smaller values to check for smoothness, lowering u.
+- No classical improvement to the L exponent has been made since NFS in 1993.
 
-### Not competitive for balanced semiprimes
-- **ECM**: Complexity depends on smallest factor. For balanced semiprimes (factors ~N/2 digits), ~200x slower than SIQS.
-- **Pollard's rho / SQUFOF**: O(N^(1/4)) — too slow above 30-35 digits.
-- **Fermat/Lehman**: Only helps when |p-q| < N^(1/3).
+Both QS and NFS are fundamentally limited by smoothness probability. Any approach that still relies on finding smooth numbers will hit the same sub-exponential wall. A genuine improvement must either:
+1. Find a way to avoid smoothness detection entirely, or
+2. Exploit algebraic structure that makes certain numbers smooth with much higher probability, or
+3. Reduce factoring to a different problem that doesn't depend on smoothness.
 
-## Key Insights
+## What Shor's algorithm tells us
 
-1. **Smoothness probability is the fundamental limit**: Probability of B-smoothness is roughly u^(-u) where u = log(Q)/log(B). This is what makes QS/NFS sub-exponential, not polynomial.
-2. **No known algorithm exploits balanced structure**: N = p*q where p ≈ q ≈ √N. All known approaches are structure-agnostic.
-3. **Batch smoothness (Bernstein product trees) cannot replace sieving**: Multi-precision GCD overhead far exceeds byte-level sieve operations.
-4. **Schnorr lattice factoring does not scale**: Requires ~50K-dimensional lattice for 90d (LLL infeasible).
+Shor's algorithm factors N in polynomial time by reducing factoring to **period-finding in Z_N***. Given a random a, it finds the order r such that a^r ≡ 1 (mod N). If r is even and a^(r/2) ≢ -1, then gcd(a^(r/2) ± 1, N) yields a factor.
+
+The quantum Fourier transform finds this period efficiently. The open question: **is there a classical way to exploit the same group-theoretic structure?** Nobody has proven there isn't.
+
+Key observations:
+- The multiplicative group Z_N* has hidden structure: it's isomorphic to Z_(p-1) × Z_(q-1), but this decomposition is unknown without knowing p and q.
+- Period-finding is equivalent to the hidden subgroup problem on Z.
+- The Chinese Remainder Theorem means arithmetic mod N splits into independent arithmetic mod p and mod q — but we can't observe this split directly.
+
+## Directions NOT worth pursuing (known dead ends)
+
+- Reimplementing QS/SIQS/NFS — these are known L[1/2] and L[1/3] algorithms. Optimizing them is not progress on scaling.
+- ECM for balanced semiprimes — complexity depends on smallest factor size, ~200x slower than SIQS.
+- Pollard's rho / SQUFOF — O(N^(1/4)), too slow above 35 digits.
+- Fermat/Lehman — only helps when |p-q| < N^(1/3).
+- Schnorr lattice factoring — requires infeasibly large lattice dimensions.
+- Batch smoothness via Bernstein product trees — multi-precision GCD overhead exceeds sieve operations.
+
+## Open directions worth exploring
+
+- **Classical period-finding**: Can the order of elements in Z_N* be found without quantum computation? Partial period information? Statistical signatures of the period?
+- **Algebraic geometry approaches**: Elliptic curves over Z/NZ split mod p and mod q. Can higher-genus curves, abelian varieties, or p-adic methods reveal this splitting?
+- **Representation theory**: The group Z_N* has representations that encode the factorization. Can classical harmonic analysis on finite groups find useful structure?
+- **Lattice-based approaches** (not Schnorr): Reformulating factoring as a lattice problem in a way that avoids the dimension blowup.
+- **Exploiting balanced structure**: N = p*q where p ≈ q ≈ sqrt(N). No known algorithm uses this. Does it help?
+- **Information-theoretic approaches**: Factoring leaks information through many channels (Jacobi symbols, quadratic residues, discrete logs of small primes). Can these be combined?
 
 ## Scaling Data
 
@@ -34,11 +54,4 @@ YAFU SIQS baseline (worst of 5 semiprimes per size):
 | 80 | 44s |
 | 89 | 294s |
 
-Each digit adds ~15-20% to sieve time — consistent with L[1/2] scaling.
-
-## Open Questions
-
-- Why does Shor's algorithm reduce factoring to period-finding? What about the group structure of Z_N* enables this? Can it be exploited classically?
-- Can we achieve L[1/4] or better? What mathematical structure would that require?
-- Is there an approach from algebraic geometry, p-adic analysis, class field theory, or other areas that changes the complexity class?
-- Can the balanced structure of semiprimes (p ≈ q ≈ √N) be exploited? No known algorithm does this.
+Each +10 digits roughly multiplies time by 8-10x — consistent with L[1/2] scaling.
