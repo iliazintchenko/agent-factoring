@@ -1,14 +1,17 @@
 # Library Index
 
-## Best Implementations (ranked by 60d performance)
+## Best Implementations (ranked by 70d performance)
 
-1. **siqs_bucket.c** — Gray code + DLP→SLP pipeline + bucket sieve. **Best at 65d** (70.7s). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
-2. **spqs_dlp.c** — SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s), 70d (~96s single). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
-3. **spqs2.c** — SPQS + bucket sieve. **Best at 70d** (165s worst-of-5). `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
-4. **fast_siqs.c** — Bucket sieve + __int128 TD + Gray code. 18s at 60d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
-5. **siqs_opt.c** — Bucket sieve + SLP matching. 19s at 60d, 265s at 70d. `gcc -O3 -march=native -o siqs_opt library/siqs_opt.c -lgmp -lm`
-6. **spqs.c** — Multi-polynomial batch sieve (original). 31s at 60d. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
-7. **hyper_siqs.c** — TLP SIQS. Fast at 60d but LA blows up at 70d. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+1. **turbo_siqs.c** — **Best at 70d** (97.8s worst-of-5). 48KB L1-optimized blocks, BL + structured GE, DLP graph. `gcc -O3 -march=native -o turbo_siqs library/turbo_siqs.c -lgmp -lm`
+2. **siqs_bucket.c** — **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve + Block Lanczos. `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
+3. **spqs2.c** — SPQS + bucket sieve. 139s at 70d. `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
+4. **spqs_dlp.c** — SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
+5. **hyper_siqs.c** — TLP SIQS. Fast at 60d (15s) but LA bottleneck at 70d. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+6. **siqs_native.c** — Batch polys (4) + Gray code + SLP. 256s at 70d. `gcc -O3 -march=native -o siqs_native library/siqs_native.c -lgmp -lm`
+
+## Key LA Implementations
+- **lanczos.h** — Block Lanczos for sparse GF(2) matrices. 20x faster than Gaussian elimination for 10000x10000 matrices.
+- **block_lanczos.h** — Simplified BL (power iteration, doesn't converge properly).
 
 ## Novel/Experimental
 
