@@ -494,13 +494,13 @@ static int trial_divide_sieve_informed(
         unsigned int p = fb->prime[i];
         if (p < 3) continue;
 
-        /* Sieve-informed root check */
+        /* Sieve-informed root check with mpz fallback */
         if (root1[i] != 0xFFFFFFFF) {
             unsigned int xmod;
             int xp = x_pos % (int)p;
             xmod = (unsigned int)(xp < 0 ? xp + (int)p : xp);
             if (xmod != root1[i] && xmod != root2[i]) {
-                /* Root doesn't match - but still check mpz as fallback */
+                /* Root doesn't match - check with mpz as fallback */
                 if (use_fast) {
                     if (Q128 % p != 0) continue;
                 } else {
