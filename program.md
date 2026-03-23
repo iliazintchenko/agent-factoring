@@ -18,16 +18,16 @@ ENVIRONMENT:
   ```
   [YYYY-MM-DD HH:MM:SS] size: <digits> | approach: <short description> | time: <seconds or FAIL> | notes: <what was learned>
   ```
-- best-algos.json: tracks the best (fastest) algorithm found for each number size. Format:
+- best-algos.json: tracks the scaling behavior of each approach you develop. Format:
   ```json
   {
-    "<digit_count>": {
-      "time": <longest wallclock time in seconds among the 5 semiprimes of this size>,
-      "run": "<instructions for how to compile and run, pointing to library/ code>"
+    "<approach_name>": {
+      "<digit_count>": <worst-case wallclock time in seconds among the 5 semiprimes>,
+      ...
     }
   }
   ```
-  `time` is the worst-case (maximum) wallclock time across the 5 semiprimes of a given digit count — this is the number to minimize. `run` is a self-contained shell command that compiles and runs the relevant library code on a given number, e.g. `"gcc -O2 library/pollard_rho.c -o pollard_rho -lgmp && ./pollard_rho <N>"`. Keep it up to date whenever you find a faster approach.
+  The point is not to minimize any single time — it's to see how each approach's time grows with digit count. An approach that's slower at 50 digits but scales better is more interesting than one that's fast at 50 but hits a wall at 70. Run each approach across as many sizes as feasible and record the full scaling curve.
 - semiprimes.json: the frozen test suite. Contains balanced semiprimes from 30 to 100 digits, 5 random ones per size. Format: `{"30": ["num1", "num2", ...], "31": [...], ...}`. **Do not modify this file.**
 - yafu/: source code of YAFU (Yet Another Factoring Utility). Strong SIQS implementation. Useful reference for algorithms, data structures, and parameter tuning.
 - cado-nfs/: source code of CADO-NFS, the best-in-class NFS implementation. Useful reference for polynomial selection, sieving strategies, and linear algebra. This is specifically meant for parallel factoring algorithm. Not for single-threaded execution.
