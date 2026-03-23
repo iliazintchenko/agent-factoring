@@ -31,7 +31,7 @@
 #define MAX_A_FACTORS 25
 #define MAX_RELS 500000
 #define MAX_PARTIALS 2000000
-#define BATCH_POLYS 4
+#define BATCH_POLYS 2
 
 static struct timespec g_start;
 static double elapsed(void) {
@@ -209,8 +209,8 @@ static params_t get_params_by_digits(int digits) {
     if (digits <= 60) return (params_t){3000, 2,  50, 100, 0.83, 1, 100};
     if (digits <= 64) return (params_t){5400, 3,  80, 120, 0.84, 1, 150};
     if (digits <= 70) return (params_t){8000, 3, 120, 150, 0.85, 1, 200};
-    if (digits <= 72) return (params_t){10000,3, 120, 180, 0.855, 1, 200};
-    if (digits <= 73) return (params_t){12000,3, 140, 300, 0.855, 1, 250};
+    if (digits <= 72) return (params_t){10000,4, 120, 180, 0.855, 1, 200};
+    if (digits <= 73) return (params_t){12000,6, 140, 300, 0.855, 1, 250};
     if (digits <= 75) return (params_t){15000,3, 100, 200, 0.86, 1, 250};
     if (digits <= 80) return (params_t){50000,4, 100, 250, 0.885, 1, 250};
     if (digits <= 85) return (params_t){55000,3,  80, 300, 0.89, 1, 300};
