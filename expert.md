@@ -11,6 +11,33 @@ Any approach that still tests numbers of size √N for smoothness will remain L[
 
 The quasi-polynomial DLP breakthrough (Barbulescu-Gaudry-Joux-Thomé 2013) shows L[1/3] barriers CAN be broken for related problems in function fields. The technique exploits systematic factorization of polynomials over finite fields — no known analog over Z. The "translation problem" from function fields to number fields is a major open question.
 
+## Why the Pell equation is special (degree-2 uniqueness)
+
+The continued fraction of √N produces convergents p_k/q_k with **bounded residues**: |p_k² - N·q_k²| < 2√N, regardless of k. This infinite family of small residues is what makes CFRAC and QS possible.
+
+For higher-degree analogs (e.g., N^{1/3}), the situation is fundamentally different:
+- CF of N^{1/3}: convergent residues |p_k³ - N·q_k³| ≈ N^{2/3}·q_k, which **grows** with q_k
+- Thue's theorem: the equation |x^d - N·y^d| < C has **finitely many** solutions for d ≥ 3
+- Consequence: there is NO infinite family of small "cubic residues" analogous to the Pell equation
+
+This means degree ≥ 3 polynomial evaluation over Z cannot produce an unbounded family of small values. The ONLY way to use higher-degree polynomials effectively is via **number fields** (NFS), where the "norm" provides a different notion of size that isn't subject to Thue's finiteness.
+
+## The L-exponent formula for sieve algorithms
+
+For a sieve testing values of size N^β for B-smoothness:
+- Optimal smoothness bound: B = L[1/2, √(β/2)]
+- Smooth probability: ρ(u) where u = β·ln(N)/ln(B)
+- Total complexity: **L[1/2, √(2β)]**
+
+| Approach | Value size (β) | L-constant √(2β) |
+|----------|---------------|-------------------|
+| Dixon's  | 1             | √2 ≈ 1.414       |
+| QS       | 1/2           | 1.000             |
+| Hypothetical β=1/3 | 1/3 | √(2/3) ≈ 0.816  |
+| NFS      | ~2/3 but split | L[1/3] (different formula) |
+
+NFS achieves L[1/3] by splitting the norm across TWO polynomials (algebraic + rational), exploiting the number field structure to make each part smaller than what a single polynomial could achieve.
+
 ## Dead ends
 
 - **Schnorr lattice factoring (2021)**: Lattice dimension grows with smoothness bound (~50K for 90d). Ducas (CWI) confirmed: 0 relations in 1000 trials. Any lattice approach depending on a large factor base inherits the same dimension blowup.
@@ -22,6 +49,10 @@ The quasi-polynomial DLP breakthrough (Barbulescu-Gaudry-Joux-Thomé 2013) shows
 - **Lattice-based smooth value generation**: Constructing lattices where short vectors correspond to smooth products mod N reduces to Schnorr's failed approach. Short vectors have small exponents → small products → no wrapping mod N.
 - **Higher-dimensional sieving (tower NFS)**: For integer factoring (vs DLP in finite fields), extra dimensions don't reduce effective norm sizes. Tower NFS breakthrough for GF(p^n) doesn't translate.
 - **ECM failure information aggregation**: Collecting smooth/non-smooth classifications of curve orders across many ECM curves to constrain p. Success rate only reveals factor SIZE (already known), not specific factor IDENTITY.
+- **Cubic/higher-degree continued fractions**: Residues grow (Thue's theorem), giving values LARGER than QS, not smaller. A degree-d polynomial near N^{1/d} gives values ~d·N^{(d-1)/d}·M, which is worse than QS for d > 2.
+- **Group-order methods (p-1, p+1, Gaussian/Eisenstein integers)**: All give fixed group orders (p±1 variants). For balanced semiprimes where p±1 are not smooth, these are ineffective. ECM randomizes the group order but is still L[1/2].
+- **Character sum / autocorrelation approaches**: Detecting the period p in χ_N(n) requires Ω(√N) samples (information-theoretic lower bound). Same complexity as trial division.
+- **Birthday-paradox collision methods (Pollard rho variants)**: O(N^{1/4}) for balanced semiprimes regardless of the map used. Not sub-exponential.
 
 ## Research survey
 
@@ -30,6 +61,7 @@ The quasi-polynomial DLP breakthrough (Barbulescu-Gaudry-Joux-Thomé 2013) shows
 - **Stange (2022)**: Index calculus in (Z/NZ)*. Clean but same L[1/2] or L[1/3]. Not an improvement.
 - **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Still exponential.
 - **Harvey-Hittmeir**: Deterministic N^{1/5+o(1)}. Still exponential.
+- **Tower NFS (Barbulescu-Kim 2016)**: Achieves sub-L[1/3] for DLP in specific finite field extensions via tower of number fields. Key ingredient: Frobenius action allows systematic polynomial splitting at each tower level. No analog over Z for integer factoring — the "descent" works because polynomials over finite fields factor efficiently, but integers don't.
 
 ## Why novel approaches are hard
 
@@ -43,20 +75,6 @@ Standard QS/NFS sieving has per-candidate cost O(1) amortized but requires seque
 
 2. **Non-sequential candidate generation**: Sieving requires evaluating consecutive polynomial values. Batch GCD works on any set of values, enabling novel candidate generation strategies.
 
-**Practical validation**: Batch smoothness was used in the RSA-240 factoring record (2019) and the "We Are on the Same Side" paper (Eprint 2023/801) showed it can outperform Cado-NFS's sieving at RSA-250 scale.
-
-## Theoretical analysis: batch GCD + multi-large-prime
-
-**Hypothesis**: Combining batch smooth-part extraction with aggressive multi-large-prime relation combination could improve the L(1/2) constant for QS-regime factoring.
-
-Analysis: In standard QS, the optimal smoothness bound B = L(1/2, 1/√2) balances factor base size against smoothness probability. The total cost is L(1/2, √2).
-
-With batch GCD, the per-candidate cost drops from O(B) to O(polylog(B)), allowing a larger optimal B. Rough analysis suggests the optimum shifts to B ≈ L(1/2, 1) with total cost ≈ L(1/2, 1) — a constant improvement over L(1/2, √2).
-
-The multi-large-prime extension: instead of requiring candidates to be fully B-smooth, allow cofactors with up to k large prime factors. Factor these cofactors using ECM (cheap for small cofactors). Build a hypergraph of shared large primes and find even-multiplicity subsets via structured Gaussian elimination.
-
-**Status**: BSRF v1 implemented and working on 30-digit semiprimes. Using sieve for candidate detection + trial division for smooth factoring + single-LP merging. Need to test scaling and add batch GCD optimization.
-
 ## Genus-2 HECM
 
 Cosset (2009) showed that genus-2 hyperelliptic curve method (HECM) using Kummer surface arithmetic effectively runs 2 ECM curves simultaneously. Claims faster than GMP-ECM for large factors. The Jacobian of a genus-2 curve has group order ~p² (vs ~p for elliptic curves), with Hasse interval width ~p^{3/2}. The wider Hasse interval means more group orders to sample from, potentially increasing the probability of hitting a smooth order.
@@ -65,23 +83,22 @@ Asymptotically still L_p(1/2), but the constant may be better for medium-sized f
 
 ## Current approaches
 
+### DBRM (Descent-Based Relation Mining) — `library/dbrm.c`
+
+Aggressive multi-large-prime sieve with graph-based relation combining. Uses single polynomial Q(x) = (x+m)²-N with large smoothness bound B and LP matching.
+
+**Key observations (30-digit tests)**:
+- With B=50000 (fb=2539): 5165 smooth + 4352 LP-merged = 9517 rels for 2540 cols
+- Factors 30-digit semiprimes in ~7s
+- LP merging provides ~45% of useful relations
+
 ### BSRF (Batch Smooth Relation Finder) — `library/bsrf.c`
 
-Core algorithm:
-1. Choose smoothness bound B = L(1/2, 0.5) and large prime bound LP = 100*B
-2. For polynomial Q(x) = (x+m)² - N where m = ⌊√N⌋:
-   - Use logarithmic sieve to identify likely-smooth candidates
-   - Trial divide candidates over the factor base
-   - Accept relations that are either fully B-smooth or have 1 large prime ≤ LP
-3. Merge pairs of 1-LP relations sharing the same large prime
-4. Build GF(2) matrix from full relations + merged pairs
-5. Gaussian elimination to find null-space vectors (congruences of squares)
-6. Extract factors via gcd
+Core algorithm: sieve + trial division + single-LP merging + GF(2) elimination.
 
 **Key observations (30-digit tests)**:
 - Full smooth relations ~10%, single-LP ~90% of useful candidates
 - LP merging works: 807 merges from 3891 1-LP relations with LP bound 474K
-- Gaussian elimination finds ~64 dependencies, most yield valid factorizations
 
 ### SRG (Smooth Residue Graph) — `library/srg.c` (other agent)
 
@@ -97,3 +114,4 @@ Multi-stage pipeline: trial division → Pollard's rho → ECM → sieve. Includ
 - **Cross-polynomial relation sharing**: Using multiple polynomials (different multipliers k in Q_k(x) = (x+m_k)² - kN), can partial smoothness in one polynomial boost another?
 - **Cascaded algebraic descent**: Inspired by the descent step in NFS-DLP — instead of sieving a polynomial, use a descent strategy to recursively decompose random values into smooth representations. Each descent level uses smaller primes. Could this change the L-exponent?
 - **Multi-resolution factor bases**: Use a hierarchy of smoothness bounds B1 < B2 < B3, where each level relaxes smoothness requirements but adds more "virtual columns" to the LA matrix.
+- **Aggressive descent for factoring**: Explore whether multi-level descent (as used in DLP) can improve the factoring sieve beyond the standard large-prime variation.
