@@ -319,3 +319,4 @@
 [2026-03-23 20:00:00] size: 30-74 | approach: turbo_tlp | time: 0.04-293s | notes: TLP gives 2x speedup at 70d. 73d=247s, 74d=293s (all 5 ok). 75d 3/5 ok.
 [2026-03-23 21:00:00] size: 75 | approach: turbo_tlp (FB=14K for 253-bit bracket) | time: 274.8s worst | notes: ALL 5 75d factored! Increased FB from 11K to 14K for 249-253 bit kN bracket. Times: 118s, 198s, 185s, 268s, 275s. Combined with TLP + lower threshold, now matches hyper_siqs2 at 75d.
 [2026-03-23 21:00:00] size: 75 | approach: turbo_tlp | time: 274.8s worst | notes: ALL 5 75d factored with TLP + FB=14K.
+[2026-03-23 22:00:00] size: 76 | approach: turbo_tlp | time: 268.5s worst | notes: ALL 5 76d factored! Times: 228s, 238s, 254s, 268s, 268s. TLP + adaptive FB gives excellent scaling.
