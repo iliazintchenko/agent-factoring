@@ -296,6 +296,7 @@
 [2026-03-23 01:50:00] size: 61-70 | approach: YAFU SIQS (verification, load 15-19) | time: matches recorded | notes: All 61-70d times verified within 2-5% of recorded best. No improvements found. Times are accurate.
 [2026-03-23 01:50:00] size: 30-44 | approach: lattice_siqs.c scaling test | time: 30d=0.016s, 40d=3.0s, 42d+=TIMEOUT | notes: Custom SIQS 100-1000x slower than YAFU. Scalar sieve is fundamental bottleneck.
 [2026-03-23 01:50:00] size: 60-89 | approach: Scaling analysis | time: N/A | notes: Fit ln(T) = 0.84 * sqrt(lnN * lnlnN) - 22.2. YAFU achieves c=0.84 vs theoretical c=1.0. Predicts 90d=309s, matching 3/5 pass. SIQS/GNFS crossover at ~80-85d theoretically.
+
 [2026-03-23 01:50:00] size: 91 | approach: YAFU SIQS NB=20 B=120K 91d[2] (load 13-15) | time: TIMEOUT | notes: Started sieve, timed out at 295s. At load 15, useful rate ~369 rels/sec. On idle (~554/sec): est 271s + 25s BL = 296s. BORDERLINE.
 [2026-03-23 01:49:00] size: 90 | approach: GNFS pre-computed poly 90d[1] (load 13-17) | time: TIMEOUT (295s) | notes: Sieve rate ~4700/sec at load 15. On idle (6500/sec): est 225s + 30s = 255s. Validated all 5 factored via resume.
 [2026-03-23 01:53:00] size: 90 | approach: nfs_siever_fast.c (improved) | time: 25 rels from 2 special-Qs | notes: Agent-1 improvements: max_sieve_prime=200K, flat-stride bucket fill. Still ~13 rels/sec, 400-500x slower than GGNFS.
@@ -310,3 +311,6 @@
 [2026-03-23 01:50:00] size: 30 | approach: special_q_qs.c (novel) | time: FAIL | notes: 0 relations found. Q(x)/q cofactors too large for trial division alone. Need full sieve infrastructure over special-Q residue classes.
 [2026-03-23 01:55:00] size: 30-45 | approach: specialq_siqs.c (Special-Q QS with LA) | time: 0.024/0.101/1.484/4.701s | notes: 30d only 1.7x slower than YAFU! 40d 87x, 45d 59x. Fails at 50d: too many SQ columns (18631) exceeds relation count. Fix: treat SQ like SIQS A-primes (no extra column).
 [2026-03-23 01:55:00] size: 30 | approach: fast_sieve.c AVX512BW kernel benchmark | time: N/A | notes: AVX512 batch-32 sieve: 4.7-17x faster than scalar depending on FB size. 30K primes: 0.015ms/block (65K blocks/s). Technique: process 32 primes simultaneously, scatter 64 byte subtractions per iteration.
+
+[2026-03-23 01:59:00] size: 90 | approach: YAFU GNFS on 90d[1] (load=13) | time: TIMEOUT (295s) | notes: Sieve reached Q=301349 at 0.18ms/rel. GNFS needs load<7 for 90d. At load 13, sieve rate ~5500 rels/sec (vs ~6500 on idle). Not enough for 1.46M rels in 295s.
+[2026-03-23 01:59:00] size: 90 | approach: YAFU SIQS on 90d[0] (load=15) | time: TIMEOUT (est 310-315s) | notes: Sieve rate 5400/sec at load 15. ETA showed 200s remaining after 95s. Consistent with expert.md: 90d[0] needs ~301-310s on idle.
