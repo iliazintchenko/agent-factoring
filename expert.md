@@ -53,8 +53,8 @@
 14. **Negative results**: MCFRAC (multi-CF, 70-300x slower, sequential), PairQS (paired smooth, LESS smooth than individual), batch=8/16 (no improvement, inner loop dominates), bucket sieve without batch poly (slower than SPQS).
 15. **Structured GE enables larger FB**: Singleton removal (iteratively remove weight-1 columns and their rows) reduces matrix 10-20% before dense Gaussian elimination. For 12K x 12K matrix, reduces to ~10K x 10K, cutting GE time by ~30%. Combined with the 48KB L1-cache-optimized sieve blocks, this is the turbo_siqs approach that first reached 72d.
 16. **Sieve width has diminishing returns**: Experiments with nblocks=32, 56, 80 for 73d show the relation rate PER SECOND is roughly constant (28-32 rels/s) regardless of sieve width. This is because wider sieve means larger Q(x) at edges, exactly offsetting the extra positions. The optimal nblocks is where polynomial switching overhead is minimal.
-17. **73d is the practical wall for custom single-core SIQS**: With FB=12K and structured GE, the sieve needs ~275-400s (depends on number difficulty). Some 73d semiprimes are significantly harder than others (0.26 vs 0.42 rels/poly). Without SIMD sieve optimization or Block Lanczos for large FB, 73d is borderline. With a working Block Lanczos enabling FB=22K, 73d would be reliable (~275s sieve + <1s LA).
-18. **Block Lanczos is the key missing piece for 73d+**: A working BL solver on a 22K x 22K sparse matrix would complete in <1s (vs 50s+ for structured GE). This would allow FB=22K which gives 0.78 rels/poly (vs 0.27 at FB=12K), finishing the sieve in 275s. But implementing correct BL over GF(2) is tricky - Montgomery's algorithm requires careful handling of the 64×64 block Gram matrices and null space extraction.
+17. **Structured GE with doubleton merging enables 73-74d**: Doubleton merging (XOR rows sharing a weight-2 column, remove both column and one row) reduces 20K matrices to ~15K. Combined with singleton removal, a 4-5 pass structured GE takes a 20K x 20K matrix to 14K x 14K. Dense GE on the reduced matrix takes ~25-30s. This enabled FB=18-20K which gives 3x more smooth values per polynomial, pushing the reliable factoring limit from 72d to 74d.
+18. **74d is the reliable limit; 75d needs ~20% speedup**: At 74d, worst case is 290s (sieve 260s + LA 30s). At 75d, sieve needs ~340s, exceeding the 295s timeout. Batch polynomial sieving (~15% speedup) combined with a working Block Lanczos (~saves 25s LA) would bring 75d into range (~289+1 = 290s).
 
 ## Scaling Data
 
@@ -84,9 +84,10 @@ YAFU SIQS single-core times (worst of 5 semiprimes per size):
 | 70 | 97.6s | 1.6x/5d | 16.8x |
 | 71 | 172.6s | | |
 | 72 | 247.8s | ~2.5x/2d | |
-| 73 | ~276s (4/5 ok) | | |
+| 73 | 294.2s | | |
+| 74 | 289.9s | | |
 
-Key features: bucket sieving, Gray code self-init, SLP matching (LP_mult=200), structured Gaussian elimination (singleton removal before dense GE). 48KB L1-cache-optimized sieve blocks.
+Key features: bucket sieving, Gray code self-init, SLP matching (LP_mult=150-200), structured Gaussian elimination with doubleton merging (SGE reduces 20K matrix to ~14K). 48KB L1-cache-optimized sieve blocks. FB=18-20K for 73-74d (enabled by SGE). First custom SIQS to reliably factor 74-digit balanced semiprimes within 300s single-core.
 
 HyperSIQS2 with TLP + optimizations (worst of 5 per size):
 
