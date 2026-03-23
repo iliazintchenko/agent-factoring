@@ -556,6 +556,494 @@ int main(int argc, char *argv[]) {
             mpz_mod(X, X, N);
         }
 
+        /* === Couveignes CRT-based algebraic square root === */
+        /* Use multiple CRT primes to reconstruct T(m) mod N directly.
+         * For each prime p where f is irreducible mod p:
+         *   1. Compute g = f'(alpha)^2 * product(a_i - b_i*alpha) mod f mod p
+         *   2. Compute T = sqrt(g) = g^((p^d+1)/4) mod f mod p  (p = 3 mod 4)
+         *   3. Norm-based sign correction: compare Norm(T) with expected norm
+         *   4. Evaluate T(m) mod p, accumulate via CRT
+         * After all primes: Y_crt = CRT result mod N, compare with X_adj = f'(m)*X mod N
+         */
+        {
+            /* Compute f'(m) mod N for the derivative adjustment */
+            mpz_t fprime_m;
+            mpz_init_set_ui(fprime_m, 0);
+            for (int i = 1; i <= d; i++) {
+                mpz_t term; mpz_init(term);
+                mpz_mul_ui(term, coeff[i], i);
+                mpz_t mpow; mpz_init_set_ui(mpow, 1);
+                for (int j = 0; j < i - 1; j++) { mpz_mul(mpow, mpow, m); mpz_mod(mpow, mpow, N); }
+                mpz_mul(term, term, mpow);
+                mpz_mod(term, term, N);
+                mpz_add(fprime_m, fprime_m, term);
+                mpz_mod(fprime_m, fprime_m, N);
+                mpz_clears(term, mpow, NULL);
+            }
+
+            /* X_adj = f'(m) * X mod N */
+            mpz_t X_adj;
+            mpz_init(X_adj);
+            mpz_mul(X_adj, fprime_m, X);
+            mpz_mod(X_adj, X_adj, N);
+
+            /* Compute f'(x) coefficients: fpcoeff[i] = (i+1)*coeff[i+1] for i=0..d-1 */
+            /* Store as mpz, reduce per-prime */
+            mpz_t fpcoeff_mpz[MAX_DEG];
+            for (int i = 0; i < d; i++) {
+                mpz_init(fpcoeff_mpz[i]);
+                mpz_mul_ui(fpcoeff_mpz[i], coeff[i+1], i+1);
+            }
+
+            /* ev[j] = sum of algebraic exponents for AFB prime j across dependency */
+            /* aex_sum[j] already computed above */
+
+            /* We need enough CRT primes so their product > N */
+            int N_bits = (int)mpz_sizeinbase(N, 2);
+            int needed_primes = (N_bits + 30) / 30 + 2; /* each prime ~ 31 bits, conservative */
+
+            /* CRT accumulator: use GMP */
+            mpz_t crt_val, crt_mod;
+            mpz_init_set_ui(crt_val, 0);
+            mpz_init_set_ui(crt_mod, 1);
+
+            /* Scan for primes p = 3 mod 4 near 2^31, where f is irreducible mod p */
+            unsigned long crt_p_start = 2147483579UL; /* near 2^31, odd */
+            int crt_count = 0;
+            int crt_ok = 1;
+            gmp_randstate_t rng;
+            gmp_randinit_default(rng);
+            gmp_randseed_ui(rng, SEED);
+
+            #define UL_POLY_MUL(res, a, b, fv, dg, mod) do { \
+                unsigned long long _tmp[2*MAX_DEG]; \
+                for (int _i = 0; _i < 2*(dg); _i++) _tmp[_i] = 0; \
+                for (int _i = 0; _i < (dg); _i++) { \
+                    if ((a)[_i] == 0) continue; \
+                    for (int _j = 0; _j < (dg); _j++) { \
+                        if ((b)[_j] == 0) continue; \
+                        _tmp[_i+_j] = (_tmp[_i+_j] + (unsigned long long)(a)[_i] * (b)[_j]) % (mod); \
+                    } \
+                } \
+                for (int _i = 2*(dg)-2; _i >= (dg); _i--) { \
+                    if (_tmp[_i] == 0) continue; \
+                    for (int _j = 0; _j < (dg); _j++) { \
+                        _tmp[_i-(dg)+_j] = (_tmp[_i-(dg)+_j] + (mod) - (unsigned long long)_tmp[_i] * (fv)[_j] % (mod)) % (mod); \
+                    } \
+                    _tmp[_i] = 0; \
+                } \
+                for (int _i = 0; _i < (dg); _i++) (res)[_i] = (unsigned long)_tmp[_i]; \
+            } while(0)
+
+            for (unsigned long cand = crt_p_start; crt_count < needed_primes + 10; cand -= 4) {
+                if (cand < 100000) { crt_ok = 0; break; }
+                if (cand % 4 != 3) continue;
+                /* Quick primality check */
+                mpz_set_ui(tmp_z, cand);
+                if (!mpz_probab_prime_p(tmp_z, 3)) continue;
+                unsigned long cp = cand;
+
+                unsigned long fp[MAX_DEG+1]; /* f mod cp, monic */
+                {
+                    unsigned long lc = mpz_fdiv_ui(coeff[d], cp);
+                    if (lc == 0) continue; /* cp divides leading coeff, skip */
+                    /* Compute lc^{-1} mod cp */
+                    unsigned long long inv = 1, bb = lc, ee = cp - 2;
+                    while (ee) { if (ee & 1) inv = inv * bb % cp; bb = bb * bb % cp; ee >>= 1; }
+                    unsigned long lc_inv = (unsigned long)inv;
+                    for (int i = 0; i <= d; i++)
+                        fp[i] = (unsigned long)((unsigned long long)mpz_fdiv_ui(coeff[i], cp) * lc_inv % cp);
+                    /* fp[d] should be 1 now */
+                }
+
+                /* Check irreducibility: compute x^cp mod f mod cp, then gcd with f */
+                /* Compute base^exp mod f mod cp, exp given as mpz */
+                /* Use separate arrays for accumulator */
+                unsigned long xpoly[MAX_DEG]; /* x */
+                for (int i = 0; i < d; i++) xpoly[i] = 0;
+                if (d > 1) xpoly[1] = 1; else xpoly[0] = 1; /* x, or 1 if d=1 */
+
+                /* Compute x^cp mod f mod cp */
+                unsigned long xp_acc[MAX_DEG], xp_base[MAX_DEG], xp_tmp[MAX_DEG];
+                for (int i = 0; i < d; i++) { xp_acc[i] = 0; xp_base[i] = xpoly[i]; }
+                xp_acc[0] = 1; /* acc = 1 */
+
+                /* Binary exponentiation with exp = cp */
+                unsigned long exp_ul = cp;
+                while (exp_ul > 0) {
+                    if (exp_ul & 1) {
+                        UL_POLY_MUL(xp_tmp, xp_acc, xp_base, fp, d, cp);
+                        for (int i = 0; i < d; i++) xp_acc[i] = xp_tmp[i];
+                    }
+                    exp_ul >>= 1;
+                    if (exp_ul > 0) {
+                        UL_POLY_MUL(xp_tmp, xp_base, xp_base, fp, d, cp);
+                        for (int i = 0; i < d; i++) xp_base[i] = xp_tmp[i];
+                    }
+                }
+
+                /* xp_acc = x^cp mod f mod cp. Check gcd(x^cp - x, f) == 1 */
+                /* x^cp - x */
+                unsigned long xp_minus_x[MAX_DEG];
+                for (int i = 0; i < d; i++) xp_minus_x[i] = xp_acc[i];
+                xp_minus_x[1] = (xp_minus_x[1] + cp - 1) % cp;
+
+                /* Compute gcd of xp_minus_x (degree < d) with f (degree d) using Euclidean alg */
+                /* If gcd != 1 (i.e., has positive degree), f is reducible */
+                /* Euclidean GCD on polynomials mod cp */
+                unsigned long gcd_a[MAX_DEG+1], gcd_b[MAX_DEG+1];
+                int gcd_da = d, gcd_db;
+                for (int i = 0; i <= d; i++) gcd_a[i] = fp[i];
+                /* gcd_b = xp_minus_x, find its degree */
+                gcd_db = -1;
+                for (int i = d-1; i >= 0; i--) { if (xp_minus_x[i] != 0) { gcd_db = i; break; } }
+                if (gcd_db < 0) {
+                    /* x^p = x mod f, meaning all elements are roots, f splits completely */
+                    continue; /* f is reducible */
+                }
+                for (int i = 0; i <= gcd_db; i++) gcd_b[i] = xp_minus_x[i];
+
+                /* Polynomial GCD mod cp */
+                while (gcd_db >= 0) {
+                    /* a = a mod b */
+                    while (gcd_da >= gcd_db) {
+                        /* Subtract (lc_a/lc_b * x^(da-db)) * b from a */
+                        unsigned long long lc_a_inv;
+                        { unsigned long long inv2 = 1, bb2 = gcd_b[gcd_db], ee2 = cp - 2;
+                          while (ee2) { if (ee2&1) inv2=inv2*bb2%cp; bb2=bb2*bb2%cp; ee2>>=1; }
+                          lc_a_inv = inv2; }
+                        unsigned long long scale = (unsigned long long)gcd_a[gcd_da] * lc_a_inv % cp;
+                        int shift = gcd_da - gcd_db;
+                        for (int i = 0; i <= gcd_db; i++)
+                            gcd_a[i + shift] = (gcd_a[i + shift] + cp - (unsigned long)(scale * gcd_b[i] % cp)) % cp;
+                        while (gcd_da >= 0 && gcd_a[gcd_da] == 0) gcd_da--;
+                    }
+                    /* Swap a,b */
+                    for (int i = 0; i <= MAX_DEG; i++) {
+                        unsigned long t = gcd_a[i]; gcd_a[i] = gcd_b[i]; gcd_b[i] = t;
+                    }
+                    int t = gcd_da; gcd_da = gcd_db; gcd_db = t;
+                }
+                /* gcd is in gcd_a[0..gcd_da]. If gcd_da > 0, f is reducible */
+                if (gcd_da > 0) continue;
+
+                /* For d > 3: also need to check no degree-2 factors, etc.
+                 * Full check: x^(p^d) = x mod f mod p. For d=3 (prime), the above gcd check suffices.
+                 * For d=4: also check gcd(x^(p^2)-x, f)=1.
+                 * We'll do the full irreducibility test for safety. */
+                if (d == 4) {
+                    /* Compute x^(cp^2) mod f mod cp */
+                    /* x^(cp^2) = (x^cp)^cp */
+                    for (int i = 0; i < d; i++) { xp_acc[i] = 0; xp_base[i] = xp_acc[i]; }
+                    /* Actually recompute: start from x^cp (already in xp_acc before we clobbered it) */
+                    /* Need to redo: compute x^cp first, store it, then compute (x^cp)^cp */
+                    /* Re-derive x^cp */
+                    for (int i = 0; i < d; i++) { xp_base[i] = xpoly[i]; xp_acc[i] = 0; }
+                    xp_acc[0] = 1;
+                    exp_ul = cp;
+                    while (exp_ul > 0) {
+                        if (exp_ul & 1) { UL_POLY_MUL(xp_tmp, xp_acc, xp_base, fp, d, cp); for (int i = 0; i < d; i++) xp_acc[i] = xp_tmp[i]; }
+                        exp_ul >>= 1;
+                        if (exp_ul > 0) { UL_POLY_MUL(xp_tmp, xp_base, xp_base, fp, d, cp); for (int i = 0; i < d; i++) xp_base[i] = xp_tmp[i]; }
+                    }
+                    /* xp_acc = x^cp. Now compute (x^cp)^cp = x^(cp^2) */
+                    unsigned long xp2_acc[MAX_DEG], xp2_base[MAX_DEG], xp2_tmp[MAX_DEG];
+                    for (int i = 0; i < d; i++) { xp2_base[i] = xp_acc[i]; xp2_acc[i] = 0; }
+                    xp2_acc[0] = 1;
+                    exp_ul = cp;
+                    while (exp_ul > 0) {
+                        if (exp_ul & 1) { UL_POLY_MUL(xp2_tmp, xp2_acc, xp2_base, fp, d, cp); for (int i = 0; i < d; i++) xp2_acc[i] = xp2_tmp[i]; }
+                        exp_ul >>= 1;
+                        if (exp_ul > 0) { UL_POLY_MUL(xp2_tmp, xp2_base, xp2_base, fp, d, cp); for (int i = 0; i < d; i++) xp2_base[i] = xp2_tmp[i]; }
+                    }
+                    /* gcd(x^(p^2) - x, f) should be 1 */
+                    unsigned long xp2_minus_x[MAX_DEG];
+                    for (int i = 0; i < d; i++) xp2_minus_x[i] = xp2_acc[i];
+                    xp2_minus_x[1] = (xp2_minus_x[1] + cp - 1) % cp;
+
+                    int gda2 = d, gdb2;
+                    unsigned long ga2[MAX_DEG+1], gb2[MAX_DEG+1];
+                    for (int i = 0; i <= d; i++) ga2[i] = fp[i];
+                    gdb2 = -1;
+                    for (int i = d-1; i >= 0; i--) { if (xp2_minus_x[i] != 0) { gdb2 = i; break; } }
+                    if (gdb2 < 0) continue;
+                    for (int i = 0; i <= gdb2; i++) gb2[i] = xp2_minus_x[i];
+
+                    while (gdb2 >= 0) {
+                        while (gda2 >= gdb2) {
+                            unsigned long long inv2 = 1, bb2 = gb2[gdb2], ee2 = cp - 2;
+                            while (ee2) { if (ee2&1) inv2=inv2*bb2%cp; bb2=bb2*bb2%cp; ee2>>=1; }
+                            unsigned long long scale = (unsigned long long)ga2[gda2] * inv2 % cp;
+                            int shift = gda2 - gdb2;
+                            for (int i = 0; i <= gdb2; i++)
+                                ga2[i + shift] = (ga2[i + shift] + cp - (unsigned long)(scale * gb2[i] % cp)) % cp;
+                            while (gda2 >= 0 && ga2[gda2] == 0) gda2--;
+                        }
+                        for (int i = 0; i <= MAX_DEG; i++) { unsigned long t = ga2[i]; ga2[i] = gb2[i]; gb2[i] = t; }
+                        int t = gda2; gda2 = gdb2; gdb2 = t;
+                    }
+                    if (gda2 > 0) continue;
+                }
+
+                /* This prime cp is good: f is irreducible mod cp */
+                fprintf(stderr, "  CRT prime %d: p=%lu\n", crt_count, cp);
+
+                /* Step 1: Compute f'(alpha) mod f mod cp */
+                unsigned long fprime[MAX_DEG];
+                for (int i = 0; i < d; i++) fprime[i] = mpz_fdiv_ui(fpcoeff_mpz[i], cp);
+                /* Note: fprime is already a poly of degree d-1 < d, so it's reduced mod f */
+
+                /* Step 2: Compute g = f'(alpha)^2 * product(a_i - b_i * alpha) mod f mod cp */
+                /* Start with f'(alpha)^2 */
+                unsigned long gpoly[MAX_DEG], gtmp[MAX_DEG];
+                UL_POLY_MUL(gpoly, fprime, fprime, fp, d, cp);
+
+                /* Multiply by each (a_i - b_i * x) */
+                for (int i = 0; i < cur_dlen; i++) {
+                    int ri = cur_dep[i];
+                    long av = rels->a[ri];
+                    unsigned long bv = rels->b[ri];
+                    unsigned long lin[MAX_DEG];
+                    for (int j = 0; j < d; j++) lin[j] = 0;
+                    lin[0] = (unsigned long)(((long long)(av % (long)cp) + (long long)cp) % (long long)cp);
+                    lin[1] = (unsigned long)((cp - bv % cp) % cp);
+                    UL_POLY_MUL(gtmp, gpoly, lin, fp, d, cp);
+                    for (int j = 0; j < d; j++) gpoly[j] = gtmp[j];
+                }
+
+                /* Step 3: Compute T = sqrt(g) = g^((cp^d+1)/4) mod f mod cp */
+                /* Exponent (cp^d+1)/4 as mpz since cp^d is huge */
+                mpz_t sqrt_exp;
+                mpz_init(sqrt_exp);
+                mpz_set_ui(sqrt_exp, cp);
+                mpz_pow_ui(sqrt_exp, sqrt_exp, d);
+                mpz_add_ui(sqrt_exp, sqrt_exp, 1);
+                mpz_tdiv_q_ui(sqrt_exp, sqrt_exp, 4);
+
+                /* Poly powmod with unsigned long base, mpz exponent, mod cp */
+                unsigned long T[MAX_DEG], T_acc[MAX_DEG], T_base[MAX_DEG], T_tmp[MAX_DEG];
+                for (int i = 0; i < d; i++) { T_acc[i] = 0; T_base[i] = gpoly[i]; }
+                T_acc[0] = 1;
+
+                /* Binary exponentiation scanning bits of sqrt_exp */
+                int nbits_exp = (int)mpz_sizeinbase(sqrt_exp, 2);
+                for (int bit = nbits_exp - 1; bit >= 0; bit--) {
+                    /* Square acc */
+                    UL_POLY_MUL(T_tmp, T_acc, T_acc, fp, d, cp);
+                    for (int i = 0; i < d; i++) T_acc[i] = T_tmp[i];
+                    /* If bit is set, multiply by base */
+                    if (mpz_tstbit(sqrt_exp, bit)) {
+                        UL_POLY_MUL(T_tmp, T_acc, T_base, fp, d, cp);
+                        for (int i = 0; i < d; i++) T_acc[i] = T_tmp[i];
+                    }
+                }
+                for (int i = 0; i < d; i++) T[i] = T_acc[i];
+                mpz_clear(sqrt_exp);
+
+                /* Verify T^2 = g mod f mod cp */
+                {
+                    unsigned long chk[MAX_DEG];
+                    UL_POLY_MUL(chk, T, T, fp, d, cp);
+                    int ok = 1;
+                    for (int i = 0; i < d; i++) if (chk[i] != gpoly[i]) { ok = 0; break; }
+                    if (!ok) {
+                        fprintf(stderr, "    sqrt verification failed, skipping prime\n");
+                        continue;
+                    }
+                }
+
+                /* Step 4: Norm-based sign correction */
+                /* Compute n1 = Norm(T) mod cp = T^((cp^d - 1)/(cp - 1)) mod f mod cp
+                 * The result is a scalar (degree 0 polynomial). Evaluate as constant coeff. */
+                mpz_t norm_exp;
+                mpz_init(norm_exp);
+                mpz_set_ui(norm_exp, cp);
+                mpz_pow_ui(norm_exp, norm_exp, d);
+                mpz_sub_ui(norm_exp, norm_exp, 1);
+                mpz_tdiv_q_ui(norm_exp, norm_exp, cp - 1);
+
+                unsigned long N_acc[MAX_DEG], N_base[MAX_DEG], N_tmp[MAX_DEG];
+                for (int i = 0; i < d; i++) { N_acc[i] = 0; N_base[i] = T[i]; }
+                N_acc[0] = 1;
+
+                int nbits_norm = (int)mpz_sizeinbase(norm_exp, 2);
+                for (int bit = nbits_norm - 1; bit >= 0; bit--) {
+                    UL_POLY_MUL(N_tmp, N_acc, N_acc, fp, d, cp);
+                    for (int i = 0; i < d; i++) N_acc[i] = N_tmp[i];
+                    if (mpz_tstbit(norm_exp, bit)) {
+                        UL_POLY_MUL(N_tmp, N_acc, N_base, fp, d, cp);
+                        for (int i = 0; i < d; i++) N_acc[i] = N_tmp[i];
+                    }
+                }
+                mpz_clear(norm_exp);
+
+                unsigned long n1 = N_acc[0]; /* Norm(T) mod cp (should be scalar) */
+
+                /* Compute n2 = Norm(f'(alpha)) * product(afb_p[j]^(aex_sum[j]/2)) mod cp */
+                /* Norm(f'(alpha)) in F_{cp^d}: f'(alpha)^((cp^d-1)/(cp-1)) */
+                mpz_t norm_exp2;
+                mpz_init(norm_exp2);
+                mpz_set_ui(norm_exp2, cp);
+                mpz_pow_ui(norm_exp2, norm_exp2, d);
+                mpz_sub_ui(norm_exp2, norm_exp2, 1);
+                mpz_tdiv_q_ui(norm_exp2, norm_exp2, cp - 1);
+
+                unsigned long NF_acc[MAX_DEG], NF_base[MAX_DEG], NF_tmp[MAX_DEG];
+                for (int i = 0; i < d; i++) { NF_acc[i] = 0; NF_base[i] = fprime[i]; }
+                NF_acc[0] = 1;
+
+                int nbits_nf = (int)mpz_sizeinbase(norm_exp2, 2);
+                for (int bit = nbits_nf - 1; bit >= 0; bit--) {
+                    UL_POLY_MUL(NF_tmp, NF_acc, NF_acc, fp, d, cp);
+                    for (int i = 0; i < d; i++) NF_acc[i] = NF_tmp[i];
+                    if (mpz_tstbit(norm_exp2, bit)) {
+                        UL_POLY_MUL(NF_tmp, NF_acc, NF_base, fp, d, cp);
+                        for (int i = 0; i < d; i++) NF_acc[i] = NF_tmp[i];
+                    }
+                }
+                mpz_clear(norm_exp2);
+
+                unsigned long n2 = NF_acc[0]; /* Norm(f'(alpha)) mod cp */
+
+                /* Multiply n2 by product(afb_p[j]^(aex_sum[j]/2)) mod cp */
+                for (int j = 0; j < afb->sz; j++) {
+                    if (aex_sum[j] <= 0) continue;
+                    int half_exp = aex_sum[j] / 2;
+                    unsigned long long base_val = afb->p[j] % cp;
+                    unsigned long long pw = 1;
+                    int e2 = half_exp;
+                    while (e2 > 0) {
+                        if (e2 & 1) pw = pw * base_val % cp;
+                        base_val = base_val * base_val % cp;
+                        e2 >>= 1;
+                    }
+                    n2 = (unsigned long)((unsigned long long)n2 * pw % cp);
+                }
+
+                /* Step 5: Sign correction: if n1 != n2, negate T */
+                if (n1 != n2) {
+                    for (int i = 0; i < d; i++) T[i] = (T[i] == 0) ? 0 : (cp - T[i]);
+                }
+
+                /* Step 6: Evaluate T(m) mod cp and accumulate CRT */
+                unsigned long m_mod_cp = mpz_fdiv_ui(m, cp);
+                unsigned long long T_at_m = 0;
+                for (int i = d - 1; i >= 0; i--)
+                    T_at_m = (T_at_m * m_mod_cp + T[i]) % cp;
+
+                /* CRT: combine T_at_m (mod cp) with crt_val (mod crt_mod) */
+                /* new_val = crt_val + crt_mod * ((T_at_m - crt_val) * crt_mod^{-1} mod cp) */
+                {
+                    mpz_t cp_z, crt_mod_inv, diff, contrib;
+                    mpz_inits(cp_z, crt_mod_inv, diff, contrib, NULL);
+                    mpz_set_ui(cp_z, cp);
+                    mpz_invert(crt_mod_inv, crt_mod, cp_z);
+                    mpz_set_ui(diff, T_at_m);
+                    mpz_sub(diff, diff, crt_val);
+                    mpz_mod(diff, diff, cp_z);
+                    mpz_mul(diff, diff, crt_mod_inv);
+                    mpz_mod(diff, diff, cp_z);
+                    mpz_mul(contrib, crt_mod, diff);
+                    mpz_add(crt_val, crt_val, contrib);
+                    mpz_mul(crt_mod, crt_mod, cp_z);
+                    mpz_clears(cp_z, crt_mod_inv, diff, contrib, NULL);
+                }
+
+                crt_count++;
+                if (mpz_sizeinbase(crt_mod, 2) > (size_t)(N_bits + 64)) break; /* enough precision */
+            }
+            #undef UL_POLY_MUL
+
+            fprintf(stderr, "  CRT: %d primes, mod has %d bits (N has %d bits)\n",
+                    crt_count, (int)mpz_sizeinbase(crt_mod, 2), N_bits);
+
+            if (crt_ok && crt_count > 0) {
+                /* Reduce CRT result mod N */
+                mpz_t Y_crt;
+                mpz_init(Y_crt);
+                mpz_mod(Y_crt, crt_val, N);
+
+                /* Y_crt should equal f'(m)*Y_alg mod N where Y_alg is the algebraic sqrt.
+                 * Compare with X_adj = f'(m)*X mod N.
+                 * If Y_crt^2 = X_adj^2 mod N, then gcd(Y_crt +/- X_adj, N) may yield factor. */
+
+                /* Try gcd(Y_crt - X_adj, N) and gcd(Y_crt + X_adj, N) */
+                mpz_t g_crt;
+                mpz_init(g_crt);
+
+                for (int sign = 0; sign < 2 && !found; sign++) {
+                    if (sign == 0) mpz_sub(g_crt, Y_crt, X_adj);
+                    else mpz_add(g_crt, Y_crt, X_adj);
+                    mpz_mod(g_crt, g_crt, N);
+                    mpz_gcd(g_crt, g_crt, N);
+                    if (mpz_cmp_ui(g_crt, 1) > 0 && mpz_cmp(g_crt, N) < 0) {
+                        mpz_t co; mpz_init(co); mpz_divexact(co, N, g_crt);
+                        if (mpz_cmp(g_crt, co) > 0) mpz_swap(g_crt, co);
+                        gmp_printf("%Zd\n", g_crt);
+                        fprintf(stderr, "NFS factored (CRT sqrt, dep %d, sign %d) in %.3fs (%dd)\n",
+                                di, sign, elapsed(), digits);
+                        mpz_clear(co); found = 1;
+                    }
+                }
+
+                /* Also try without f'(m) adjustment: Y_crt vs X directly */
+                if (!found) {
+                    for (int sign = 0; sign < 2 && !found; sign++) {
+                        if (sign == 0) mpz_sub(g_crt, Y_crt, X);
+                        else mpz_add(g_crt, Y_crt, X);
+                        mpz_mod(g_crt, g_crt, N);
+                        mpz_gcd(g_crt, g_crt, N);
+                        if (mpz_cmp_ui(g_crt, 1) > 0 && mpz_cmp(g_crt, N) < 0) {
+                            mpz_t co; mpz_init(co); mpz_divexact(co, N, g_crt);
+                            if (mpz_cmp(g_crt, co) > 0) mpz_swap(g_crt, co);
+                            gmp_printf("%Zd\n", g_crt);
+                            fprintf(stderr, "NFS factored (CRT sqrt no-adj, dep %d, sign %d) in %.3fs (%dd)\n",
+                                    di, sign, elapsed(), digits);
+                            mpz_clear(co); found = 1;
+                        }
+                    }
+                }
+
+                /* Also try: Y_crt might be f'(m)*Y, so divide by f'(m) */
+                if (!found) {
+                    mpz_t fprime_inv, Y_div;
+                    mpz_inits(fprime_inv, Y_div, NULL);
+                    if (mpz_invert(fprime_inv, fprime_m, N)) {
+                        mpz_mul(Y_div, Y_crt, fprime_inv);
+                        mpz_mod(Y_div, Y_div, N);
+                        for (int sign = 0; sign < 2 && !found; sign++) {
+                            if (sign == 0) mpz_sub(g_crt, Y_div, X);
+                            else mpz_add(g_crt, Y_div, X);
+                            mpz_mod(g_crt, g_crt, N);
+                            mpz_gcd(g_crt, g_crt, N);
+                            if (mpz_cmp_ui(g_crt, 1) > 0 && mpz_cmp(g_crt, N) < 0) {
+                                mpz_t co; mpz_init(co); mpz_divexact(co, N, g_crt);
+                                if (mpz_cmp(g_crt, co) > 0) mpz_swap(g_crt, co);
+                                gmp_printf("%Zd\n", g_crt);
+                                fprintf(stderr, "NFS factored (CRT sqrt /f', dep %d, sign %d) in %.3fs (%dd)\n",
+                                        di, sign, elapsed(), digits);
+                                mpz_clear(co); found = 1;
+                            }
+                        }
+                    }
+                    mpz_clears(fprime_inv, Y_div, NULL);
+                }
+
+                mpz_clears(Y_crt, g_crt, NULL);
+            }
+
+            for (int i = 0; i < d; i++) mpz_clear(fpcoeff_mpz[i]);
+            mpz_clears(fprime_m, X_adj, crt_val, crt_mod, NULL);
+            gmp_randclear(rng);
+
+            if (found) {
+                mpz_clear(X); free(rex_sum); free(aex_sum);
+                continue; /* skip Hensel lift, go to next dep (but found=1 will exit loop) */
+            }
+        }
+
+        if (found) { free(rex_sum); free(aex_sum); break; }
+
         /* === Algebraic square root Y via Hensel lifting === */
         /* Step 1: Compute S(x) = Π(a_i - b_i*x) in Z[x]/(f(x)) exactly */
         /* Make f monic first: divide all coefficients by c_d */
