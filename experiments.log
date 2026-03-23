@@ -163,3 +163,4 @@
 [2026-03-22 23:39:11] size: 90 | approach: yafu_mod VBITS=512 closnuf+2 noopt NB=20 B=120K 90d[4] | time: 286.7 | notes: loaded machine (load ~20), nice -20. PASS.
 [2026-03-23 05:00:00] size: 30-60 | approach: MFBS-SIQS (mfbs_siqs.c) | time: 0.026-48.0s | notes: NEGATIVE RESULT: sieve with small FB + extended TD. 2.2x slower than SPQS2. Sieve must iterate all FB primes.
 [2026-03-23 04:00:00] size: 65-70 | approach: DLP-Opt with LP columns | time: 145.6-259.8s | notes: NEGATIVE RESULT: LP-column DLP not useful at 65-70d (LP space too large for birthday collisions).
+[2026-03-23 05:30:00] size: 60-70 | approach: SPQS-DLP full benchmark (spqs_dlp.c) | time: 21.0-172.7s | notes: Worst of 5 at each size. 60d=21.0s, 65d=72.8s, 70d=172.7s, 75d=FAIL. Competitive with SPQS2 (60d=22.0s, 65d=92.2s, 70d=162.4s). Adaptive threshold + DLP slightly helps at 65d but not transformative.
