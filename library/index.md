@@ -28,6 +28,7 @@
 - **lattice_factor_v2.c** — Lattice-based factoring combining LLL with QS. `gcc -O3 -march=native -o lattice_factor_v2 library/lattice_factor_v2.c -lgmp -lm`
 - **lattice_factor_batch.c** — Schnorr-style LLL on log-prime lattice. NEGATIVE RESULT: 2% smooth rate from random combinations, not better than random search. `gcc -O3 -march=native -o lattice_factor_batch library/lattice_factor_batch.c -lgmp -lm`
 - **lattice_siqs.c** — Clean SIQS for scaling measurement. `gcc -O3 -march=native -o lattice_siqs library/lattice_siqs.c -lgmp -lm`
+- **siqs_hybrid.c** — Novel SIQS with 48KB L1-optimized sieve (AMD EPYC 9R45 L1D=48KB). Working 30-55d+. Features: AVX512BW candidate scanning, SLP matching, Pollard rho DLP splitting. ~10-100x slower than YAFU (scalar sieve bottleneck). `gcc -O3 -march=native -mavx512bw -o siqs_hybrid library/siqs_hybrid.c -lgmp -lm`
 - **special_factor.c** — Pollard p-1, Williams p+1, ECM via GMP-ECM library. Works for numbers with smooth p-1/p+1. No hits above 56d with B1=1e6. `gcc -O3 -march=native -o special_factor library/special_factor.c -lgmp -lecm -lm`
 - **factor_oracle.c** — Multi-strategy oracle: trial div → Fermat → rho → p-1 → p+1 → ECM → fail. `gcc -O3 -march=native -o factor_oracle library/factor_oracle.c -lgmp -lecm -lm`
 
