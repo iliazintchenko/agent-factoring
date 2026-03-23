@@ -1,1 +1,5 @@
 [2026-03-23 02:30:00] size: ALL | approach: Log cleared | time: N/A | notes: Previous entries were mostly YAFU parameter tuning. Key findings preserved in expert.md. Starting fresh with focus on novel algorithms.
+[2026-03-23 02:35:23] size: 30-55 | approach: DLP-SIQS (dlp_siqs.c) | time: 0.07-64.5s | notes: DLP with Pollard rho cofactor splitting. DLP graph produces few combined relations. 5-100x slower than YAFU. Bottleneck is scalar sieve, not LP strategy.
+[2026-03-23 02:35:23] size: 30-60 | approach: SPQS batch sieve (spqs.c) | time: 0.02-31.1s | notes: Multi-polynomial batch sieve (4 polys simultaneously). Best custom SIQS. 1.4-44x slower than YAFU. Growth ~5-6x per 5 digits = ~L[1/2] scaling.
+[2026-03-23 02:35:23] size: 30-40 | approach: Special-Q QS (specialq_qs.c) | time: FAIL at 40d | notes: Cannot collect enough relations without sieve. Trial division too slow for larger sizes. Negative result.
+[2026-03-23 02:35:23] size: 60 | approach: CADO-NFS | time: 28s wallclock (139s CPU) | notes: Successfully built CADO-NFS. NFS works on 60d. Running benchmarks for scaling curve.

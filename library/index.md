@@ -2,7 +2,9 @@
 
 ## Custom Implementations
 
-### SIQS
+### SIQS (Best to Worst)
+- **spqs.c** — **Best custom.** Multi-polynomial batch sieve SIQS. Sieves 4 polynomials simultaneously per block. 1.4-44x slower than YAFU. 30-65d+. `gcc -O3 -march=native -o spqs library/spqs.c -lgmp -lm`
+- **dlp_siqs.c** — SIQS with DLP (Pollard rho splitting), union-find DLP graph. 5-100x slower than YAFU. 30-55d. `gcc -O3 -march=native -mavx512bw -o dlp_siqs library/dlp_siqs.c -lgmp -lm`
 - **siqs2.c** — Working. Gray code, SLP, 32KB block sieve. 30-60d. `gcc -O2 -march=native -o siqs2 library/siqs2.c -lgmp -lm`
 - **siqs3.c** — Working. DLP, inline Block Lanczos. 30-55d. `gcc -O3 -march=native -mavx512bw -o siqs3 library/siqs3.c -lgmp -lm`
 - **siqs4.c** — Working 30-50d, sqrt fails 35d+. Per-block sieve init, DLP. `gcc -O3 -march=native -mavx512bw -o siqs4 library/siqs4.c -lgmp -lm`
