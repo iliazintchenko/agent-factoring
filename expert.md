@@ -205,17 +205,27 @@ Multiple modification variants tested by multiple agents:
 4. **num_avg bug fix**: Fixed unreachable `else if (bits > 320)` after `if (bits > 300)` in adaptive tuning code (SIQS.c:187-190). Swapped conditions so larger check comes first.
 5. **-noopt flag**: YAFU already supports `-noopt` to skip adaptive tf_small_cutoff optimization. For 90d, this saves ~2-5s of suboptimal tuning overhead.
 6. **DO_UPM1** (agent-7): Enabled micro P-1 factoring as prefilter before microECM in DLP cofactoring. P-1 with B1=100-333 can quickly find factors with smooth p-1 before launching ECM curves.
+7. **Combined build A/B test** (agent-4): closnuf+2 + UPM1 + noopt vs original YAFU on 90d[1]: 250.7s vs 247.1s baseline — modifications are 1.5% **slower**. Confirms that source modifications provide no measurable improvement for SIQS.
 7. **monty.h static inline**: Added `static` to all `__inline` functions. Required for PGO builds.
 
 Build yafu_mod3 (recommended): `cd yafu_mod3 && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=256 -j48`
 Build yafu_mod (VBITS=512): `cd yafu_mod && make -f Makefile.gcc yafu NO_ZLIB=1 ECM=1 USE_AVX2=1 SKYLAKEX=1 VBITS=512 -j48`
 
-### closnuf Impact Analysis
+### closnuf Impact Analysis (CONCLUDED)
 The DLP closnuf threshold (SIQS.c:4710-4727) controls which sieve candidates get trial divided:
 - **Lower closnuf** = more candidates pass sieve scan = more trial division = more DLP relations per polynomial
-- **Too low** = excess trial division overhead outweighs extra DLP relations (seen at 89d: baseline +5 is optimal, +1 is too aggressive, 8% slower)
-- **Optimal for 90d**: likely between +1 and +3 (testing in progress under varying load)
-- Key: each 1-point reduction in closnuf roughly doubles the candidate count (uint8 underflow detection), so changes > ±2 points are dramatic
+- **Too low** = excess trial division overhead outweighs extra DLP relations
+- **A/B test results (agent-1, load ~20, simultaneous):**
+  - closnuf +1 vs baseline +3 on 89d[3]: 271s vs 276s (2% better, within noise)
+  - closnuf +1 vs baseline +3 on 90d[1]: 253s vs 249s (2% worse, within noise)
+  - closnuf +2 vs baseline +3 on 90d[1]: 251s vs 250s (identical)
+  - closnuf +2 on 90d[3]: 284s (baseline: 282s — identical)
+- **Conclusion: closnuf changes of ±1-2 points have no measurable effect on 90d.** The default YAFU values are already well-tuned for this range.
+
+### -march=znver4 vs skylake-avx512 (CONCLUDED)
+- A/B test on 90d[1]: znver4 = 249.72s, skylake-avx512 = 250.18s
+- **No difference.** The hot path (AVX512BW sieve intrinsics) generates identical code.
+- **-O3 vs -O2**: also no difference for same reason — GCC can't improve hand-written intrinsics.
 
 ### GNFS Pipeline for 90d (combined findings)
 GGNFS sievers work from `/tmp/agent-factoring-1/yafu_mod/factor/lasieve5_64/gnfs-lasieve4I*e` or `/tmp/agent-factoring-4/yafu/factor/lasieve5_64/bin/`.
@@ -263,6 +273,17 @@ YAFU can save/resume via siqs.dat. Key findings:
 - Only useful if factoring must span multiple invocations
 
 ## Custom SIQS Implementations
+
+### siqs4.c — Custom SIQS with per-block sieve init (agent-10)
+- **Status**: Working for 30-35d, partial for 40d. Fails for 45d+.
+- **Performance**: 30d: 0.2s (all 5 pass), 35d: 4/5 pass, 40d: 1/5 pass
+- **Features**: Per-block sieve initialization (fixes uint8 underflow), AVX512BW sieve scanning, Knuth-Schroeppel multiplier, Gray code self-init, SLP+DLP, merged SLP pairs, GF(2) Gaussian elimination
+- **Key bugs found and fixed (agent-10)**:
+  1. **Mirror position trivial gcd**: Restricting to x≥0 removed all negative Y values, making all Y on same branch of modular sqrt. Fix: include both positive and negative x values.
+  2. **Per-block sieve init**: Using a single init_val causes uint8 underflow for positions near the polynomial vertex. Fix: compute init_val per block based on actual Q(x)/A range.
+  3. **A-factor exponents**: Must include a-factor primes in exponent vector (A*Q factorization, not just Q/A).
+  4. **LP columns**: Including LPs as extra matrix columns creates degenerate structure. Better: merge SLP pairs by XOR-ing exponents.
+- **Remaining issue**: GF(2) Gaussian elimination produces structurally similar null space vectors. Need proper Block Lanczos for 40d+ success.
 
 ### siqs2.c — Working Custom SIQS (agent-6 rewrite)
 - **Status**: Working, 30-50d factoring confirmed, correct results
