@@ -1,5 +1,6 @@
 {
   "yafu_siqs_baseline": {
+    "scaling_argument": "SIQS is L[1/2, 1+o(1)] = exp((1+o(1)) * sqrt(ln N * ln ln N)). For each +10 digits, time multiplies by ~8-10x. This is the best known single-core performance for numbers under 100 digits. Any novel approach should aim for a slower growth rate — e.g. L[1/3] grows ~3-4x per +10 digits, L[1/4] would grow ~2x.",
     "30": 0.014, "40": 0.017, "50": 0.12, "60": 0.7, "70": 5.8,
     "80": 44, "85": 136, "87": 188, "88": 222, "89": 294
   }
