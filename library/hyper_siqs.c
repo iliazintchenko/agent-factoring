@@ -264,9 +264,10 @@ static params_t get_params(int bits) {
     if (bits <= 220) return (params_t){12000, 38, 100, 150, 0.85};
     if (bits <= 235) return (params_t){10000, 46, 200, 180, 0.855};
     if (bits <= 245) return (params_t){10000, 56, 300, 200, 0.86};
-    if (bits <= 252) return (params_t){15000, 68, 200, 250, 0.865};
+    if (bits <= 250) return (params_t){11000, 64, 300, 230, 0.86};
+    if (bits <= 253) return (params_t){15000, 68, 200, 250, 0.865};
     if (bits <= 260) return (params_t){18000, 80, 300, 300, 0.86};
-    if (bits <= 280) return (params_t){55000, 100, 120, 350, 0.875};
+    if (bits <= 280) return (params_t){22000, 96, 200, 350, 0.875};
     return (params_t){75000, 120, 130, 400, 0.88};
 }
 
@@ -417,7 +418,17 @@ static int gf2_solve(gf2_t *m, int ***deps, int **dlen, int max) {
         if (pr != piv) { u64 *t = m->rows[pr]; m->rows[pr] = m->rows[piv]; m->rows[piv] = t; }
         for (int r = 0; r < m->nr; r++) {
             if (r == piv || !((m->rows[r][c/64] >> (c%64)) & 1)) continue;
-            for (int w = 0; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w];
+            {
+                int w = 0;
+#ifdef __AVX512F__
+                for (; w + 8 <= m->wprow; w += 8) {
+                    __m512i a = _mm512_loadu_si512((__m512i*)(m->rows[r] + w));
+                    __m512i b = _mm512_loadu_si512((__m512i*)(m->rows[piv] + w));
+                    _mm512_storeu_si512((__m512i*)(m->rows[r] + w), _mm512_xor_si512(a, b));
+                }
+#endif
+                for (; w < m->wprow; w++) m->rows[r][w] ^= m->rows[piv][w];
+            }
         }
         piv++;
     }
@@ -531,6 +542,9 @@ int main(int argc, char *argv[]) {
 
     unsigned int *soln1 = malloc(fb->size * sizeof(unsigned int));
     unsigned int *soln2 = malloc(fb->size * sizeof(unsigned int));
+    unsigned int *soln1_off = malloc(fb->size * sizeof(unsigned int));
+    unsigned int *soln2_off = malloc(fb->size * sizeof(unsigned int));
+    unsigned int *blksz_mod_p = malloc(fb->size * sizeof(unsigned int));
 
     /* Gray code incremental update: delta[j][i] = 2 * ainv * B_j mod p_i */
     unsigned int **delta = malloc(MAX_A_FACT * sizeof(unsigned int*));
@@ -553,7 +567,7 @@ int main(int argc, char *argv[]) {
     /* ==================== Main Sieve Loop ==================== */
     while (full_rels->count < target) {
         double t = elapsed();
-        if (t > 280) { fprintf(stderr, "TIMEOUT at %.1fs, rels=%d/%d\n", t, full_rels->count, target); break; }
+        if (t > 287) { fprintf(stderr, "TIMEOUT at %.1fs, rels=%d/%d\n", t, full_rels->count, target); break; }
 
         /* ---- Generate new 'a' coefficient ---- */
         {
@@ -708,7 +722,7 @@ int main(int argc, char *argv[]) {
             /* Status update */
             if (total_polys % 10 == 0) {
                 double t2 = elapsed();
-                if (t2 > 280) break;
+                if (t2 > 287) break;
                 if (total_polys <= 50 || total_polys % 100 == 0)
                     fprintf(stderr, "  poly=%d cand=%d rels=%d/%d (F=%d S=%d D=%d T=%d C=%d) t=%.2fs\n",
                             total_polys, total_candidates, full_rels->count, target,
@@ -740,32 +754,70 @@ int main(int argc, char *argv[]) {
                 }
             }
 
+            /* ---- Precompute initial offsets and BLOCK_SZ % p for incremental tracking ---- */
+            {
+                long first_block_start = -M;
+                for (int i = 1; i < large_prime_start; i++) {
+                    if (soln1[i] == 0xFFFFFFFF) continue;
+                    unsigned int p = fb->p[i];
+                    if (p < 5) continue;
+                    long off1 = ((long)soln1[i] - first_block_start) % (long)p;
+                    if (off1 < 0) off1 += p;
+                    soln1_off[i] = (unsigned int)off1;
+                    if (soln2[i] != soln1[i]) {
+                        long off2 = ((long)soln2[i] - first_block_start) % (long)p;
+                        if (off2 < 0) off2 += p;
+                        soln2_off[i] = (unsigned int)off2;
+                    } else {
+                        soln2_off[i] = (unsigned int)off1;
+                    }
+                    blksz_mod_p[i] = (unsigned int)(BLOCK_SZ % (unsigned long)p);
+                }
+            }
+
             /* ---- Sieve each block ---- */
             for (int bl = 0; bl < total_blocks; bl++) {
                 long block_start_x = -M + (long)bl * BLOCK_SZ;
 
                 memset(sieve, 0, BLOCK_SZ);
 
-                /* Small/medium primes: standard sieve */
+                /* Small/medium primes: incremental offset sieve with 2x unrolled two-root loop */
                 for (int i = 1; i < large_prime_start; i++) {
                     unsigned int p = fb->p[i];
                     if (p < 5) continue;  /* Skip tiny primes (contribute little) */
                     unsigned char lp = fb->logp[i];
                     if (soln1[i] == 0xFFFFFFFF) continue;
 
-                    /* Root 1 */
-                    {
-                        long off = ((long)soln1[i] - block_start_x) % (long)p;
-                        if (off < 0) off += p;
-                        for (int j = (int)off; j < BLOCK_SZ; j += p)
+                    int off1 = (int)soln1_off[i];
+                    /* Interleaved two-root sieve with 2x unrolling */
+                    if (soln2[i] != soln1[i]) {
+                        int off2 = (int)soln2_off[i];
+                        /* Ensure off1 <= off2 for ordered traversal */
+                        if (off1 > off2) { int t = off1; off1 = off2; off2 = t; }
+                        /* 2x unrolled: process both roots in a single pass */
+                        int j1 = off1, j2 = off2;
+                        while (j1 < BLOCK_SZ && j2 < BLOCK_SZ) {
+                            sieve[j1] += lp;
+                            sieve[j2] += lp;
+                            j1 += p;
+                            j2 += p;
+                        }
+                        /* Drain remaining hits from whichever root still has positions */
+                        while (j1 < BLOCK_SZ) { sieve[j1] += lp; j1 += p; }
+                        while (j2 < BLOCK_SZ) { sieve[j2] += lp; j2 += p; }
+                    } else {
+                        /* Single root */
+                        for (int j = off1; j < BLOCK_SZ; j += p)
                             sieve[j] += lp;
                     }
-                    /* Root 2 (skip if same as root 1) */
-                    if (soln2[i] != soln1[i]) {
-                        long off = ((long)soln2[i] - block_start_x) % (long)p;
-                        if (off < 0) off += p;
-                        for (int j = (int)off; j < BLOCK_SZ; j += p)
-                            sieve[j] += lp;
+
+                    /* Update offsets for next block by subtracting BLOCK_SZ % p with wraparound */
+                    {
+                        unsigned int bmod = blksz_mod_p[i];
+                        unsigned int o1 = soln1_off[i];
+                        unsigned int o2 = soln2_off[i];
+                        soln1_off[i] = o1 >= bmod ? o1 - bmod : o1 + p - bmod;
+                        soln2_off[i] = o2 >= bmod ? o2 - bmod : o2 + p - bmod;
                     }
                 }
 
