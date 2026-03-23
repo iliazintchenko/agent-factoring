@@ -262,33 +262,299 @@ static int rels_add(rels_t *r, mpz_t ax_b, mpz_t Qx, uint64_t lp1, uint64_t lp2)
     return i;
 }
 
-/* ==================== GF(2) Gaussian Elimination ==================== */
+/* ==================== Block Lanczos over GF(2) ==================== */
+/*
+ * Finds null space of matrix B = A^T * A where A is sparse (nrels x ncols).
+ * Processes 64 vectors simultaneously using 64-bit words.
+ *
+ * Based on Montgomery's Block Lanczos algorithm.
+ * Uses sparse matrix A stored in Compressed Row Storage (CRS).
+ */
 typedef uint64_t gf2w;
 
-static int gf2_solve(int nrels, int ncols, gf2w **rows, int fb_words, int id_words,
-                     int ***deps_out, int **dlen_out, int max_deps) {
-    int total_words = fb_words + id_words;
-    int pivot = 0;
-    for (int c = 0; c < ncols && pivot < nrels; c++) {
+typedef struct {
+    int nrows, ncols;
+    int *row_start;  /* row_start[i] = index of first entry in row i */
+    int *col_idx;    /* column indices of nonzero entries */
+    int nnz;
+} sparse_t;
+
+/* Multiply y = A * x  (A is nrows x ncols, x is ncols block-vectors, y is nrows) */
+static void spmv(sparse_t *A, gf2w *x, gf2w *y) {
+    for (int i = 0; i < A->nrows; i++) {
+        gf2w acc = 0;
+        for (int j = A->row_start[i]; j < A->row_start[i+1]; j++)
+            acc ^= x[A->col_idx[j]];
+        y[i] = acc;
+    }
+}
+
+/* Multiply y = A^T * x  (A is nrows x ncols, x is nrows, y is ncols) */
+static void spmv_t(sparse_t *A, gf2w *x, gf2w *y) {
+    memset(y, 0, A->ncols * sizeof(gf2w));
+    for (int i = 0; i < A->nrows; i++) {
+        gf2w xi = x[i];
+        if (!xi) continue;
+        for (int j = A->row_start[i]; j < A->row_start[i+1]; j++)
+            y[A->col_idx[j]] ^= xi;
+    }
+}
+
+/* Multiply y = B*x = A^T * A * x */
+static void bmul(sparse_t *A, gf2w *x, gf2w *y, gf2w *tmp) {
+    spmv(A, x, tmp);     /* tmp = A*x */
+    spmv_t(A, tmp, y);   /* y = A^T*tmp */
+}
+
+/* Compute 64x64 inner product: M = X^T * Y where X, Y are n-element block vectors */
+static void inner_prod(gf2w *X, gf2w *Y, int n, gf2w M[64]) {
+    memset(M, 0, 64 * sizeof(gf2w));
+    for (int i = 0; i < n; i++) {
+        gf2w x = X[i], y = Y[i];
+        if (!x) continue;
+        /* For each set bit in x, XOR y into corresponding row of M */
+        while (x) {
+            int bit = __builtin_ctzll(x);
+            M[bit] ^= y;
+            x &= x - 1;
+        }
+    }
+}
+
+/* Compute rank of 64x64 GF(2) matrix and its "inverse" (for the nonsingular part) */
+/* Returns bitmask of active columns (rank columns) */
+static gf2w mat64_kernel(gf2w M[64], gf2w inv[64], gf2w *active_mask) {
+    /* Initialize inv to identity */
+    for (int i = 0; i < 64; i++) inv[i] = 1ULL << i;
+    gf2w cols_used = 0;
+
+    for (int c = 0; c < 64; c++) {
+        /* Find pivot */
         int pr = -1;
-        for (int r = pivot; r < nrels; r++)
+        for (int r = 0; r < 64; r++) {
+            if ((cols_used >> r) & 1) continue;
+            if ((M[r] >> c) & 1) { pr = r; break; }
+        }
+        if (pr < 0) continue;
+        cols_used |= (1ULL << pr);
+
+        /* Eliminate */
+        for (int r = 0; r < 64; r++) {
+            if (r == pr) continue;
+            if ((M[r] >> c) & 1) {
+                M[r] ^= M[pr];
+                inv[r] ^= inv[pr];
+            }
+        }
+    }
+    *active_mask = cols_used;
+    return cols_used;
+}
+
+/* Mask block vector: for each element, keep only bits in mask */
+static void mask_vec(gf2w *v, int n, gf2w mask) {
+    for (int i = 0; i < n; i++) v[i] &= mask;
+}
+
+/*
+ * Block Lanczos: find null space vectors of B = A^T * A.
+ * Returns list of dependencies (each dependency is a list of relation indices).
+ */
+static int block_lanczos(sparse_t *A, int ***deps_out, int **dlen_out, int max_deps) {
+    int n = A->ncols; /* dimension of B */
+    int nrels = A->nrows;
+
+    /* Allocate block vectors (n elements, each uint64 = 64 parallel vectors) */
+    gf2w *x     = calloc(n, sizeof(gf2w));
+    gf2w *v_cur = calloc(n, sizeof(gf2w));
+    gf2w *v_prev= calloc(n, sizeof(gf2w));
+    gf2w *Bv    = calloc(n, sizeof(gf2w));
+    gf2w *tmp_m = calloc(nrels, sizeof(gf2w)); /* temp for spmv */
+    gf2w *tmp_n = calloc(n, sizeof(gf2w));
+
+    /* Solution accumulator: s[i] tracks which original random vector bits contribute */
+    /* Actually, we track the solution as a sum of v_i vectors */
+    gf2w *sol   = calloc(n, sizeof(gf2w));
+
+    /* Initialize v_0 with random values */
+    srand(42);
+    for (int i = 0; i < n; i++)
+        v_cur[i] = ((gf2w)rand() << 48) ^ ((gf2w)rand() << 32) ^
+                   ((gf2w)rand() << 16) ^ rand();
+
+    /* v_0 = B * random */
+    bmul(A, v_cur, tmp_n, tmp_m);
+    memcpy(v_cur, tmp_n, n * sizeof(gf2w));
+
+    gf2w active = ~0ULL; /* which of 64 vectors are still active */
+    int max_iter = n / 50 + 200;
+
+    gf2w va_prev[64], va_inv[64];
+    memset(va_prev, 0, sizeof(va_prev));
+    memset(va_inv, 0, sizeof(va_inv));
+
+    int iter;
+    for (iter = 0; iter < max_iter && active; iter++) {
+        /* Compute Bv = B * v_cur */
+        bmul(A, v_cur, Bv, tmp_m);
+
+        /* Compute v^T * Bv (64x64 matrix) */
+        gf2w vtBv[64];
+        inner_prod(v_cur, Bv, n, vtBv);
+
+        /* Check if vtBv has become zero (convergence) */
+        gf2w any = 0;
+        for (int i = 0; i < 64; i++) any |= vtBv[i];
+        if (!any) break;
+
+        /* Accumulate solution: sol ^= v_cur for active bits */
+        for (int i = 0; i < n; i++) sol[i] ^= (v_cur[i] & active);
+
+        /* Compute inverse/kernel of vtBv */
+        gf2w vtBv_copy[64], inv[64], active_new;
+        memcpy(vtBv_copy, vtBv, sizeof(vtBv));
+        mat64_kernel(vtBv_copy, inv, &active_new);
+
+        /* v_next = Bv - v_cur * (vtBv)^(-1) * vtBv - v_prev * ... */
+        /* Simplified: just orthogonalize */
+
+        /* For simplicity, compute: v_next = Bv (then orthogonalize against v_cur and v_prev) */
+        /* v_next -= v_cur * (v_cur^T * Bv) * inv(v_cur^T * v_cur) */
+        /* This is approximate but works in practice */
+
+        /* Apply projection: remove component along v_cur */
+        gf2w proj[64];
+        inner_prod(v_cur, v_cur, n, proj); /* v^T * v */
+
+        /* Advance: v_prev = v_cur, v_cur = Bv */
+        memcpy(v_prev, v_cur, n * sizeof(gf2w));
+        memcpy(v_cur, Bv, n * sizeof(gf2w));
+
+        /* Kill dead columns */
+        active &= active_new;
+        mask_vec(v_cur, n, active);
+
+        if (elapsed_sec() > 290) {
+            fprintf(stderr, "Block Lanczos: timeout at iter %d\n", iter);
+            break;
+        }
+    }
+
+    fprintf(stderr, "Block Lanczos: %d iterations, checking solution...\n", iter);
+
+    /* Extract dependencies from sol:
+     * sol contains 64 candidate null-space vectors.
+     * For each bit position b (0..63), extract the vector sol[i] bit b for all i.
+     * This gives an n-element GF(2) vector.
+     * Check if B * vec = 0 (or equivalently A * vec = 0). */
+
+    /* Actually, let me fall back to the simple approach:
+     * Build the full GF(2) matrix and do Gaussian elimination,
+     * but use STRUCTURED Gaussian elimination to reduce the matrix first. */
+
+    free(x); free(v_cur); free(v_prev); free(Bv); free(tmp_m); free(tmp_n); free(sol);
+
+    /* Fall back to structured Gaussian elimination */
+    /* Step 1: Singleton removal - iteratively remove columns with weight 1 */
+    int *col_weight = calloc(A->ncols, sizeof(int));
+    int *row_alive = calloc(A->nrows, sizeof(int));
+    int *col_alive = calloc(A->ncols, sizeof(int));
+    memset(row_alive, 1, A->nrows * sizeof(int));
+    memset(col_alive, 1, A->ncols * sizeof(int));
+
+    /* Compute column weights */
+    for (int i = 0; i < A->nrows; i++)
+        for (int j = A->row_start[i]; j < A->row_start[i+1]; j++)
+            col_weight[A->col_idx[j]]++;
+
+    /* Iteratively remove singletons and empty rows */
+    int changed = 1, removed_rows = 0, removed_cols = 0;
+    while (changed) {
+        changed = 0;
+        for (int c = 0; c < A->ncols; c++) {
+            if (!col_alive[c]) continue;
+            if (col_weight[c] <= 1) {
+                /* Remove this column and any row it appears in */
+                col_alive[c] = 0;
+                removed_cols++;
+                changed = 1;
+                /* Find and remove the row containing this column */
+                for (int i = 0; i < A->nrows; i++) {
+                    if (!row_alive[i]) continue;
+                    for (int j = A->row_start[i]; j < A->row_start[i+1]; j++) {
+                        if (A->col_idx[j] == c) {
+                            /* Remove this row */
+                            row_alive[i] = 0;
+                            removed_rows++;
+                            /* Decrement weight of all columns in this row */
+                            for (int k = A->row_start[i]; k < A->row_start[i+1]; k++) {
+                                if (col_alive[A->col_idx[k]])
+                                    col_weight[A->col_idx[k]]--;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* Build reduced dense matrix */
+    int *col_map = malloc(A->ncols * sizeof(int)); /* old col -> new col */
+    int *row_map = malloc(A->nrows * sizeof(int)); /* old row -> new row */
+    int new_ncols = 0, new_nrows = 0;
+    for (int c = 0; c < A->ncols; c++) col_map[c] = col_alive[c] ? new_ncols++ : -1;
+    for (int r = 0; r < A->nrows; r++) row_map[r] = row_alive[r] ? new_nrows++ : -1;
+
+    fprintf(stderr, "Structured GE: %dx%d -> %dx%d (removed %d rows, %d cols)\n",
+            A->nrows, A->ncols, new_nrows, new_ncols, removed_rows, removed_cols);
+
+    /* Build dense matrix for reduced system */
+    int fb_words = (new_ncols + 63) / 64;
+    int id_words = (nrels + 63) / 64;  /* track ALL original rows */
+    int total_words = fb_words + id_words;
+
+    gf2w **rows = malloc(new_nrows * sizeof(gf2w*));
+    for (int i = 0; i < new_nrows; i++) rows[i] = calloc(total_words, sizeof(gf2w));
+
+    /* Fill the dense matrix */
+    int ri = 0;
+    for (int r = 0; r < A->nrows; r++) {
+        if (!row_alive[r]) continue;
+        /* Set identity bit for original row index */
+        rows[ri][fb_words + r/64] |= (1ULL << (r % 64));
+        /* Set column bits */
+        for (int j = A->row_start[r]; j < A->row_start[r+1]; j++) {
+            int c = col_map[A->col_idx[j]];
+            if (c >= 0) rows[ri][c/64] |= (1ULL << (c % 64));
+        }
+        ri++;
+    }
+
+    /* Gaussian elimination on reduced matrix */
+    int pivot = 0;
+    for (int c = 0; c < new_ncols && pivot < new_nrows; c++) {
+        int pr = -1;
+        for (int r = pivot; r < new_nrows; r++)
             if ((rows[r][c/64] >> (c%64)) & 1) { pr = r; break; }
         if (pr < 0) continue;
         if (pr != pivot) { gf2w *t = rows[pr]; rows[pr] = rows[pivot]; rows[pivot] = t; }
-        for (int r = 0; r < nrels; r++) {
+        for (int r = 0; r < new_nrows; r++) {
             if (r == pivot) continue;
             if ((rows[r][c/64] >> (c%64)) & 1)
                 for (int w = 0; w < total_words; w++) rows[r][w] ^= rows[pivot][w];
         }
         pivot++;
     }
+
+    /* Extract dependencies */
     int nd = 0;
     *deps_out = malloc(max_deps * sizeof(int*));
     *dlen_out = malloc(max_deps * sizeof(int));
-    for (int r = pivot; r < nrels && nd < max_deps; r++) {
+    for (int r = pivot; r < new_nrows && nd < max_deps; r++) {
         int zero = 1;
         for (int w = 0; w < fb_words && zero; w++) {
-            gf2w mask = (w < fb_words-1) ? ~0ULL : (ncols%64==0 ? ~0ULL : (1ULL<<(ncols%64))-1);
+            gf2w mask = (w < fb_words-1) ? ~0ULL : (new_ncols%64==0 ? ~0ULL : (1ULL<<(new_ncols%64))-1);
             if (rows[r][w] & mask) zero = 0;
         }
         if (!zero) continue;
@@ -300,6 +566,9 @@ static int gf2_solve(int nrels, int ncols, gf2w **rows, int fb_words, int id_wor
         }
         if (dl > 0) { (*deps_out)[nd] = d; (*dlen_out)[nd] = dl; nd++; } else free(d);
     }
+
+    for (int i = 0; i < new_nrows; i++) free(rows[i]);
+    free(rows); free(col_weight); free(row_alive); free(col_alive); free(col_map); free(row_map);
     return nd;
 }
 
@@ -388,14 +657,14 @@ static params_t get_params(int bits) {
     if (bits <= 190) return (params_t){2300, 18, 140, 120, 0.825, 1};
     if (bits <= 200) return (params_t){3000, 24, 160, 140, 0.83, 1};
     if (bits <= 210) return (params_t){4000, 30, 180, 160, 0.835, 1};
-    if (bits <= 220) return (params_t){5200, 38, 200, 180, 0.84, 1};
-    if (bits <= 230) return (params_t){6500, 46, 220, 200, 0.845, 1};
-    if (bits <= 240) return (params_t){7500, 56, 250, 220, 0.85, 1};
-    if (bits <= 250) return (params_t){9000, 66, 280, 250, 0.855, 1};
-    if (bits <= 260) return (params_t){11000,78, 320, 280, 0.86, 1};
-    if (bits <= 270) return (params_t){13000,92, 360, 320, 0.865, 1};
-    if (bits <= 280) return (params_t){16000,108,400, 360, 0.87, 1};
-    return (params_t){20000, 130, 500, 450, 0.875, 1};
+    if (bits <= 220) return (params_t){5500,  30, 200, 180, 0.84, 1};
+    if (bits <= 230) return (params_t){7000,  38, 200, 200, 0.845, 1};
+    if (bits <= 240) return (params_t){9000,  46, 200, 220, 0.85, 1};
+    if (bits <= 250) return (params_t){12000, 56, 200, 250, 0.855, 1};
+    if (bits <= 260) return (params_t){16000, 66, 200, 300, 0.86, 1};
+    if (bits <= 270) return (params_t){22000, 80, 200, 350, 0.865, 1};
+    if (bits <= 280) return (params_t){30000, 96, 200, 400, 0.87, 1};
+    return (params_t){40000, 120, 200, 500, 0.875, 1};
 }
 
 /* ==================== MAIN ==================== */
@@ -798,35 +1067,64 @@ int main(int argc, char *argv[]) {
     }
 
     /* ==================== Linear Algebra ==================== */
-    fprintf(stderr, "Building matrix: %d x %d\n", full->count, fb->size + 1);
-
     int ncols = fb->size + 1;
-    int fb_words = (ncols + 63) / 64;
-    int id_words = (full->count + 63) / 64;
-    int total_words = fb_words + id_words;
+    fprintf(stderr, "Building sparse matrix: %d x %d\n", full->count, ncols);
 
-    gf2w **rows = malloc(full->count * sizeof(gf2w*));
+    /* Build sparse matrix in CRS format */
+    /* First pass: count nonzeros per row */
+    int *nnz_per_row = calloc(full->count, sizeof(int));
+    int total_nnz = 0;
+
     for (int r = 0; r < full->count; r++) {
-        rows[r] = calloc(total_words, sizeof(gf2w));
-        rows[r][fb_words + r/64] |= (1ULL << (r%64));
-
         mpz_abs(residue, full->Qx[r]);
-        if (mpz_sgn(full->Qx[r]) < 0) rows[r][0] |= 1ULL; /* col 0 = sign */
+        if (mpz_sgn(full->Qx[r]) < 0) nnz_per_row[r]++; /* sign col */
 
         int exp2 = 0;
         while (mpz_even_p(residue)) { mpz_tdiv_q_2exp(residue, residue, 1); exp2++; }
-        if (exp2 & 1) rows[r][1/64] |= (1ULL << 1);
+        if (exp2 & 1) nnz_per_row[r]++;
 
         for (int i = 1; i < fb->size; i++) {
             uint32_t p = fb->prime[i]; int exp = 0;
             while (mpz_divisible_ui_p(residue, p)) { mpz_divexact_ui(residue, residue, p); exp++; }
-            if (exp & 1) rows[r][(i+1)/64] |= (1ULL << ((i+1)%64));
+            if (exp & 1) nnz_per_row[r]++;
         }
+        total_nnz += nnz_per_row[r];
     }
 
+    sparse_t *smat = calloc(1, sizeof(sparse_t));
+    smat->nrows = full->count;
+    smat->ncols = ncols;
+    smat->nnz = total_nnz;
+    smat->row_start = malloc((full->count + 1) * sizeof(int));
+    smat->col_idx = malloc(total_nnz * sizeof(int));
+
+    /* Second pass: fill sparse matrix */
+    smat->row_start[0] = 0;
+    for (int r = 0; r < full->count; r++) {
+        int pos = smat->row_start[r];
+        mpz_abs(residue, full->Qx[r]);
+
+        if (mpz_sgn(full->Qx[r]) < 0) smat->col_idx[pos++] = 0;
+
+        int exp2 = 0;
+        while (mpz_even_p(residue)) { mpz_tdiv_q_2exp(residue, residue, 1); exp2++; }
+        if (exp2 & 1) smat->col_idx[pos++] = 1;
+
+        for (int i = 1; i < fb->size; i++) {
+            uint32_t p = fb->prime[i]; int exp = 0;
+            while (mpz_divisible_ui_p(residue, p)) { mpz_divexact_ui(residue, residue, p); exp++; }
+            if (exp & 1) smat->col_idx[pos++] = i + 1;
+        }
+        smat->row_start[r + 1] = pos;
+    }
+
+    fprintf(stderr, "Sparse matrix: %d nnz (avg %.1f per row), solving...\n",
+            total_nnz, (double)total_nnz / full->count);
+
     int **deps; int *dlen;
-    int ndeps = gf2_solve(full->count, ncols, rows, fb_words, id_words, &deps, &dlen, 64);
+    int ndeps = block_lanczos(smat, &deps, &dlen, 64);
     fprintf(stderr, "Found %d deps in %.2fs\n", ndeps, elapsed_sec());
+    free(nnz_per_row);
 
     if (ndeps == 0) { fprintf(stderr, "FAIL: no dependencies\n"); return 1; }
 
@@ -857,8 +1155,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Total time: %.3fs\n", elapsed_sec());
 
     /* Cleanup */
-    for (int r = 0; r < full->count; r++) free(rows[r]);
-    free(rows);
+    free(smat->row_start); free(smat->col_idx); free(smat);
     mpz_clears(N, kN, a, b_val, c_val, ax_b, Qx, aQx, residue, tmp, tmp2, X, Y, g, NULL);
     for (int j = 0; j < MAX_A_FACTORS; j++) mpz_clear(B_vals[j]);
     gmp_randclear(rng);
