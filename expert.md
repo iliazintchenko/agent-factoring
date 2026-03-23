@@ -23,6 +23,7 @@ Schnorr (2021) proposed reducing factoring to finding short vectors in a lattice
 
 The paper claims polynomial time, but analysis of the approach shows the lattice dimension grows roughly as the number of primes in the factor base, which for 90-digit numbers means ~50K dimensions. LLL/BKZ reduction in 50K dimensions is completely infeasible.
 
+<<<<<<< Updated upstream
 **Conclusion**: The lattice dimension is tied to the smoothness bound, which grows sub-exponentially with N. So this doesn't escape the smoothness bottleneck — it just reformulates it as a lattice problem that's equally hard. Any lattice-based approach that depends on a large smooth factor base will have the same problem. Tested by Ducas (CWI Amsterdam) — 0 factoring relations in 1000 trials with Schnorr's claimed parameters.
 
 ## Current implementations
@@ -125,3 +126,69 @@ N^{1/5+o(1)} deterministic factoring — best known deterministic bound. Still e
 3. **Hybrid ECM+QS**: Use ECM as a fast first-pass filter, then QS for remaining composites
 4. **Lattice-enhanced smooth finding**: Use LLL on small lattices to find pairs of numbers whose product is more likely smooth
 5. **Multi-large-prime variation**: 2LP and 3LP can dramatically increase relation yield
+=======
+**Conclusion**: The lattice dimension is tied to the smoothness bound, which grows sub-exponentially with N. So this doesn't escape the smoothness bottleneck — it just reformulates it as a lattice problem that's equally hard. Any lattice-based approach that depends on a large smooth factor base will have the same problem. Tested by Ducas (CWI Amsterdam) who got 0 factoring relations out of 1000 trials at claimed parameters.
+
+## MPQS2 implementation (working baseline, L[1/2])
+
+Implemented a Multiple Polynomial Quadratic Sieve using a = q^2 (Hensel-lifted) polynomials. Key implementation details:
+
+- **Polynomial**: g(x) = (q^2 * x + b)^2 - N where b^2 ≡ N (mod q^2)
+- **Hensel lift**: from sqrt(N) mod q to sqrt(N) mod q^2 using t = -s * (2*r0)^{-1} mod q, b = r0 + t*q
+- **Critical correctness issue**: Since (ax+b)^2 ≡ q^2 * R(x) (mod N), the y-value in the square congruence must include the product of all q values from the dependency. Forgetting this causes LA to always fail (trivial GCDs).
+- **Sieve**: standard log-approximation sieve with FB primes, threshold ≈ 0.55 * log(max |R(x)|)
+- **Large prime variation**: accept residues up to 300 * max_FB_prime, combine pairs with same LP
+
+### Performance (preliminary)
+- 30 digits: 0.054s, 40 digits: 0.7s, 50 digits: ~15s
+- Scaling is L[1/2] as expected: roughly 8-10x per 10 digits
+- Slower than YAFU SIQS (which uses true SIQS with product-of-primes `a`)
+
+### Key parameter choices
+- FB size and sieve half-interval scale with digit count (hand-tuned)
+- q ≈ sqrt(sqrt(2N) / sieve_len) to keep a = q^2 at the right scale
+- Trial division is the bottleneck for large numbers (should switch to batch methods)
+
+## CFRAC with multipliers (tested, L[1/2], weaker than QS)
+
+Implemented continued fraction factoring using convergents of sqrt(kN) for multiple multipliers k. The CF expansion naturally produces small residues P_n^2 ≡ (-1)^n * d_{n+1} (mod N) where d_{n+1} < 2*sqrt(kN).
+
+Results: k=1 gives most smooth relations. Other multipliers add few additional relations because their CF expansions have different smoothness properties. Overall rate of smooth relation finding is slower than MPQS.
+
+**Conclusion**: CFRAC is simpler but not competitive with QS for numbers above 30 digits. The advantage of QS/MPQS is that polynomial switching gives independent chances at smoothness, while CFRAC is limited by the single CF expansion.
+
+## Why factoring is hard: the smoothness bottleneck
+
+All known sub-exponential factoring algorithms (QS, NFS, CFRAC) work by finding smooth numbers — numbers whose prime factors are all below some bound B. The key parameters:
+
+1. **Value size V**: the size of numbers being tested for smoothness
+2. **Smoothness bound B**: the largest prime in the factor base
+3. **Smoothness probability**: ρ(u) where u = ln(V)/ln(B), the Dickman function
+4. **Total work**: (relations needed) / (smoothness probability per trial)
+
+The L-function exponent depends on the balance between B and V:
+- QS: V ≈ √N → L[1/2]
+- NFS: V ≈ N^{2/3} (reduced via algebraic norms) → L[1/3]
+- Hypothetical L[1/4]: would need V ≈ N^{1/4} or equivalent
+
+The quasi-polynomial DLP breakthrough in small-characteristic fields (Barbulescu-Gaudry-Joux-Thomé 2013) shows L[1/3] barriers CAN be broken for related problems. The technique exploits systematic factorization properties of polynomials over finite fields that have no known analog over Z.
+
+## Research directions explored
+
+### Spectral methods on Cayley graphs
+The Cayley graph of (Z/NZ)* with small prime generators encodes the group structure. Eigenvalues reveal the character decomposition, which would give the group structure and hence factorization. **Problem**: The group has phi(N) elements, so computing the spectrum requires exponential time classically. This is exactly what Shor's QFT does quantumly. No known way to extract useful spectral information without quantum superposition.
+
+### Stange's multiplicative relation framework (2022)
+Reduces factoring to index calculus in (Z/NZ)*: finding multiplicative relations prod(p_i^{e_i}) = prod(q_j^{f_j}) mod N reveals lambda(N). Achieves L[1/2] in basic form, L[1/3] with NFS techniques. Conceptually clean but not an improvement.
+
+### Function field analogy
+The quasi-polynomial DLP breakthrough uses descent in function field towers. Over Z (number fields), the analogous descent produces integers with no smoothness guarantee. The "translation problem" from function fields to number fields is a major open problem. TNFS/exTNFS variants are steps in this direction for DLP but haven't broken L[1/3] for factoring.
+
+## Next steps to try
+
+1. **Optimize MPQS2**: batch smoothness detection (product tree + batch GCD), better polynomial selection
+2. **Implement basic NFS**: to achieve L[1/3] scaling and understand the bottlenecks
+3. **Smooth polynomial families**: test whether certain polynomial constructions yield systematically smoother values
+4. **Multi-dimensional lattice sieving**: explore whether high-dimensional NFS with optimized sieving can push below L[1/3]
+5. **Hybrid approaches**: combine ECM curve selection with QS-style relation collection
+>>>>>>> Stashed changes
