@@ -12,6 +12,9 @@
 
 ## Novel/Experimental
 
+- **gnfs_work.c** — Complete GNFS with base-m poly selection, line sieve, dual-side smoothness, GF(2) LA, quadratic characters, Hensel lifting algebraic sqrt. Sieve+LA works; algebraic sqrt produces T_j^2=S_j but Y^2≠X^2 mod N (QC/norm tracking issue). `gcc -O3 -march=native -o gnfs_work library/gnfs_work.c -lgmp -lm`
+- **nfs_hensel_sqrt.c** — Standalone Hensel lifting module for NFS algebraic sqrt. Root lifting + sqrt lifting + Lagrange interpolation.
+- **latsieve_qs.c** — SIQS with ECM cofactor splitting. ECM finds DLP relations but needs proper DLP graph. `gcc -O3 -march=native -o latsieve_qs library/latsieve_qs.c -lgmp -lm -lecm`
 - **dlp_opt.c** — DLP with LP columns in GF(2) matrix + Pollard rho cofactor splitting. NEGATIVE RESULT at 65-70d (LP space too large). `gcc -O3 -march=native -o dlp_opt library/dlp_opt.c -lgmp -lm`
 - **mfbs_siqs.c** — Multi-Factor-Base Sieve. NEGATIVE RESULT (sieve reduction hurts more than extended TD helps). `gcc -O3 -march=native -o mfbs_siqs library/mfbs_siqs.c -lgmp -lm`
 - **ecm_siqs.c** — SIQS with ECM cofactorization. DLP matching was wrong.
