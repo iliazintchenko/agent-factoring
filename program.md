@@ -8,11 +8,9 @@ The ultimate goal is polynomial scaling. But any improvement in the L exponent �
 
 A key observation: Shor's quantum factoring algorithm achieves polynomial time by reducing factoring to period-finding in the multiplicative group mod N. The quantum Fourier transform finds this period efficiently — but *why*? What is it about the algebraic structure of Z_N* that makes factoring reducible to period-finding? Is there a way to exploit that same structure classically? Nobody has proven there isn't.
 
-Think about this deeply. Don't start by writing a sieve. Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Read papers. Propose hypotheses. Test them with small experiments.
+Think about this deeply. Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Read papers. Propose hypotheses. Test them with small experiments.
 
-The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. The YAFU baseline scaling curve is in `algo-scaling.json`. But the benchmark is a validation tool, not the focus — the focus is ideas.
-
-**What is NOT useful:** writing another quadratic sieve or NFS variant — these are known L[1/2] and L[1/3] algorithms. Reimplementing them will not produce a scaling breakthrough. Similarly, tuning or running existing tools (YAFU, CADO-NFS, msieve) is not progress — their source is available to read but **do not compile or run them**. All code you run must be your own, written in library/.
+The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling. 
 
 ENVIRONMENT:
 
@@ -55,5 +53,6 @@ TIPS:
 - Read expert.md first to understand what has already been tried.
 - Understand the current algorithms deeply before trying to improve on them. Why is QS sub-exponential? What makes NFS faster? Where does the complexity actually come from?
 - When timing, always measure the worst case across all 5 semiprimes of a given size — that's the number that goes into algo-scaling.json.
+- Beware that measured times may not accurately reflect scaling due to resource contention, cache effects, memory bandwidth, and other system-level noise — especially when running many experiments in parallel. Look at the overall trend across many sizes, not individual data points.
 - After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
 - Most ideas will fail. Document why they failed — understanding failure modes is as valuable as finding successes.
