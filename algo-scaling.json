@@ -73,6 +73,10 @@
     "59": 12.002,
     "60": 17.472
   },
+  "mpqs": {
+    "scaling_argument": "MPQS implementation (library/mpqs.c). L[1/2] with single-prime A values, 2LP variation.",
+    "30": 0.055, "35": 0.047, "40": 0.288, "45": 0.775, "50": 1.790, "55": 25.314
+  },
   "sss": {
     "scaling_argument": "Smooth Subsum Search (Hittmeir 2023). L[1/2] but with CRT-based structured candidate generation instead of sieving. Constructs x values where pol(x) is guaranteed divisible by several FB primes, then tests smaller cofactor.",
     "30": 0.123,
