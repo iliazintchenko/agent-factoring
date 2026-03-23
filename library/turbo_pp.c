@@ -992,18 +992,33 @@ int main(int argc, char *argv[]) {
                     /* Trial division - divide by 2 first */
                     while (mpz_even_p(residue)) mpz_tdiv_q_2exp(residue, residue, 1);
 
-                    /* Sieve-informed TD: only divide by primes matching sieve roots */
-                    for (int i = 1; i < fb->size; i++) {
-                        uint32_t p = fb->prime[i];
-                        if (soln1[i] == 0xFFFFFFFF) continue;
-                        int64_t xmod = ((x % (int64_t)p) + p) % p;
-                        if (xmod != (int64_t)soln1[i] && xmod != (int64_t)soln2[i]) continue;
-                        while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
-                    }
-                    /* a-factor primes */
-                    for (int i = 0; i < num_a_factors; i++) {
-                        uint32_t p = fb->prime[a_idx[i]];
-                        while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
+                    /* Sieve-informed TD with native 64-bit fast path */
+                    {
+                        int use_native = 0;
+                        uint64_t res64 = 0;
+                        /* a-factor primes first (always divide) */
+                        for (int i = 0; i < num_a_factors; i++) {
+                            uint32_t p = fb->prime[a_idx[i]];
+                            while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
+                        }
+                        for (int i = 1; i < fb->size; i++) {
+                            uint32_t p = fb->prime[i];
+                            if (soln1[i] == 0xFFFFFFFF) continue;
+                            int64_t xmod = ((x % (int64_t)p) + p) % p;
+                            if (xmod != (int64_t)soln1[i] && xmod != (int64_t)soln2[i]) continue;
+                            if (!use_native && mpz_sizeinbase(residue, 2) <= 63) {
+                                res64 = mpz_get_ui(residue);
+                                use_native = 1;
+                            }
+                            if (use_native) {
+                                if (res64 <= 1) break;
+                                while (res64 % p == 0) res64 /= p;
+                            } else {
+                                mpz_divexact_ui(residue, residue, p);
+                                while (mpz_divisible_ui_p(residue, p)) mpz_divexact_ui(residue, residue, p);
+                            }
+                        }
+                        if (use_native) mpz_set_ui(residue, res64);
                     }
 
                     mpz_mul(aQx, Qx, a);
