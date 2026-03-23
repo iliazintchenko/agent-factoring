@@ -293,3 +293,33 @@
 [2026-03-23 23:40:29] size: 71 | approach: srg | time: FAIL | notes: failed to factor 359645347666600...
 [2026-03-23 23:45:24] size: 71 | approach: srg | time: FAIL | notes: failed to factor 531878041890958...
 [2026-03-23 23:50:19] size: 71 | approach: srg | time: FAIL | notes: failed to factor 480888069845012...
+[2026-03-23 23:58:28] size: 30 | approach: mms | time: 0.074s | notes: found factor 853172260176581
+[2026-03-23 23:58:28] size: 30 | approach: mms | time: 0.069s | notes: found factor 285490143297067
+[2026-03-23 23:58:28] size: 30 | approach: mms | time: 0.062s | notes: found factor 742943501885287
+[2026-03-23 23:58:28] size: 30 | approach: mms | time: 0.069s | notes: found factor 163402858332899
+[2026-03-23 23:58:28] size: 30 | approach: mms | time: 0.071s | notes: found factor 709910301438391
+[2026-03-23 23:58:28] size: 31 | approach: mms | time: 0.083s | notes: found factor 6937722596543861
+[2026-03-23 23:58:28] size: 31 | approach: mms | time: 0.083s | notes: found factor 834077816631193
+[2026-03-23 23:58:28] size: 31 | approach: mms | time: 0.095s | notes: found factor 4392642694838527
+[2026-03-23 23:58:28] size: 31 | approach: mms | time: 0.083s | notes: found factor 793089300201113
+[2026-03-23 23:58:29] size: 31 | approach: mms | time: 0.085s | notes: found factor 841510451217089
+[2026-03-23 23:58:29] size: 32 | approach: mms | time: 0.089s | notes: found factor 2545748071309357
+[2026-03-23 23:58:29] size: 32 | approach: mms | time: 0.096s | notes: found factor 8735168619646627
+[2026-03-23 23:58:29] size: 32 | approach: mms | time: 0.097s | notes: found factor 8419580092467013
+[2026-03-23 23:58:29] size: 32 | approach: mms | time: 0.103s | notes: found factor 2895990715237859
+[2026-03-23 23:58:29] size: 32 | approach: mms | time: 0.092s | notes: found factor 9350505294133007
+[2026-03-23 23:58:29] size: 33 | approach: mms | time: 0.152s | notes: found factor 49762701751363481
+[2026-03-23 23:58:29] size: 33 | approach: mms | time: 0.189s | notes: found factor 8736931255878097
+[2026-03-23 23:58:30] size: 33 | approach: mms | time: 0.205s | notes: found factor 8520462067475513
+[2026-03-23 23:58:30] size: 33 | approach: mms | time: 0.178s | notes: found factor 4888264003620161
+[2026-03-23 23:58:30] size: 33 | approach: mms | time: 0.203s | notes: found factor 7234779656144837
+[2026-03-23 23:58:30] size: 34 | approach: mms | time: 0.192s | notes: found factor 82045041604477999
+[2026-03-23 23:58:30] size: 34 | approach: mms | time: 0.236s | notes: found factor 81246557449774337
+[2026-03-23 23:58:31] size: 34 | approach: mms | time: 0.223s | notes: found factor 88166964892820689
+[2026-03-23 23:58:31] size: 34 | approach: mms | time: 0.209s | notes: found factor 97615487733219949
+[2026-03-23 23:58:31] size: 34 | approach: mms | time: 0.223s | notes: found factor 92646457184500561
+[2026-03-23 23:58:31] size: 35 | approach: mms | time: 0.250s | notes: found factor 69842539155469351
+[2026-03-23 23:58:32] size: 35 | approach: mms | time: 0.264s | notes: found factor 92227777863327913
+[2026-03-23 23:58:32] size: 35 | approach: mms | time: 0.278s | notes: found factor 29901438125424293
+[2026-03-23 23:58:32] size: 35 | approach: mms | time: 0.252s | notes: found factor 280071956120256107
+[2026-03-23 23:58:32] size: 35 | approach: mms | time: 0.235s | notes: found factor 37127311920159217

@@ -137,6 +137,44 @@ Uses GMP-ECM library with progressive parameter scheduling. Pipeline:
 
 Novel iteration function: x → x^N mod N (instead of rho's x → x^2+c). Via CRT, decomposes into independent power maps mod p and mod q with different dynamics. **Dead end**: each iteration costs O(log N) multiplications (100x more than rho per step), but cycle length is similar (O(N^{1/4})). Net result is ~100x slower than Pollard's rho for no compensating advantage.
 
+## Active approaches
+
+### Multi-Multiplier Sieve (MMS)
+
+**Core idea**: For each sieve point x, evaluate *multiple* polynomials simultaneously:
+  f_k(x) = (x + ⌊√(kN)⌋)² − kN,  for k = 1, 2, 3, …, K
+
+Since (x + m_k)² ≡ f_k(x) (mod N) for each k, *products* across multipliers give valid congruences of squares:
+  ∏(x + m_k)² ≡ ∏ f_k(x) (mod N)
+
+**Why this differs from known methods**:
+- Not QS/MPQS: those use different polynomials for different x ranges; MMS uses multiple polynomials at the *same* x and combines across them.
+- Not NFS: no number fields involved. Values are still ~√(kN)·M, i.e., L[1/2]-class.
+- The novelty is *cross-multiplier combination*: partial factorizations from different k values for the same x can be combined. If f_1(x) has large cofactor L and f_3(x) also has L as a factor, their product has L² (even power) — a full relation emerges from two partial ones.
+
+**Expected benefits**:
+1. Each prime p with Legendre symbol (kN|p) = 1 for *any* k enters the factor base. More k values → more primes → denser sieving.
+2. Cross-k large-prime collisions add "free" relations via birthday paradox. With K multipliers, O(K²) collision opportunities per x.
+3. The Knuth-Schroeppel multiplier effect is captured automatically — the best k for each prime is used.
+
+**Theoretical expectation**: Still L[1/2] asymptotically (value sizes unchanged), but potentially much better constants. The practical scaling curve may bend differently than single-polynomial methods for 30-70 digit numbers.
+
+**Key implementation detail**: Multipliers MUST be square-free. If k₂ = m² · k₁ for integer m, then f_{k₂}(x) = m² · f_{k₁}(x') for appropriate x'. The factor m² has even exponent, so both relations have identical GF(2) parity vectors. Combined relations from such pairs are trivially zero — useless for linear algebra. Using square-free k values (1, 2, 3, 5, 6, 7, 10, ...) avoids this.
+
+**Implementation**: `library/mms.c`. Sieve + trial division + single-LP matching + GF(2) elimination.
+
+**Scaling results (30-35 digits)**:
+| Digits | Worst-of-5 time |
+|--------|----------------|
+| 30     | 0.074s         |
+| 31     | 0.095s         |
+| 32     | 0.103s         |
+| 33     | 0.205s         |
+| 34     | 0.236s         |
+| 35     | 0.278s         |
+
+Larger sizes in progress.
+
 ## Open directions
 
 - **Algebraic group structure**: Z_N* ≅ Z_{p-1} × Z_{q-1} but we can't see this decomposition. Can random walks, character sums, or higher-dimensional algebraic groups reveal it without smooth numbers?
