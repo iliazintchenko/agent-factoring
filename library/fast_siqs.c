@@ -468,31 +468,94 @@ static int trial_divide_sieve_informed(
         mpz_tdiv_q_2exp(Q, Q, 1);
     }
 
-    /* Trial divide by FB primes whose roots match this x position */
+    /* Trial divide by FB primes.
+     * Optimization: use sieve roots to skip most primes.
+     * For primes where roots are valid, only test if position matches.
+     * For primes dividing a (root=0xFFFFFFFF), always test. */
     int x_pos = block_start + x_in_block;
+
+    /* Try to extract Q into a __int128 for fast TD on small FB primes */
+    int use_fast = (mpz_sizeinbase(Q, 2) <= 127);
+    __int128 Q128 = 0;
+    if (use_fast) {
+        if (mpz_fits_ulong_p(Q)) {
+            Q128 = mpz_get_ui(Q);
+        } else {
+            /* Extract two limbs */
+            mpz_t hi_part;
+            mpz_init(hi_part);
+            mpz_tdiv_q_2exp(hi_part, Q, 64);
+            Q128 = ((__int128)mpz_get_ui(hi_part) << 64) | mpz_getlimbn(Q, 0);
+            mpz_clear(hi_part);
+        }
+    }
 
     for (int i = 1; i < fb_size; i++) {
         unsigned int p = fb->prime[i];
         if (p < 3) continue;
 
-        /* Sieve-informed: check roots first, fall back to mpz if needed */
-        int divides = 0;
+        /* Sieve-informed root check */
         if (root1[i] != 0xFFFFFFFF) {
             unsigned int xmod;
             int xp = x_pos % (int)p;
             xmod = (unsigned int)(xp < 0 ? xp + (int)p : xp);
-            if (xmod == root1[i] % p || xmod == root2[i] % p)
-                divides = 1;
+            if (xmod != root1[i] && xmod != root2[i]) {
+                /* Root doesn't match - but still check mpz as fallback */
+                if (use_fast) {
+                    if (Q128 % p != 0) continue;
+                } else {
+                    if (!mpz_divisible_ui_p(Q, p)) continue;
+                }
+            }
+        } else {
+            /* p divides a - always check */
+            if (use_fast) {
+                if (Q128 % p != 0) continue;
+            } else {
+                if (!mpz_divisible_ui_p(Q, p)) continue;
+            }
         }
-        if (!divides && mpz_divisible_ui_p(Q, p))
-            divides = 1;
 
-        if (!divides) continue;
-
-        do {
-            exponents[i]++;
-            mpz_divexact_ui(Q, Q, p);
-        } while (mpz_divisible_ui_p(Q, p));
+        /* Divide out all powers of p */
+        if (use_fast && Q128 > 0) {
+            while (Q128 % p == 0) {
+                exponents[i]++;
+                Q128 /= p;
+            }
+            /* Sync back to mpz */
+            if (Q128 <= (unsigned long long)(-1)) {
+                mpz_set_ui(Q, (unsigned long long)Q128);
+            } else {
+                mpz_set_ui(Q, (unsigned long long)(Q128 >> 64));
+                mpz_mul_2exp(Q, Q, 64);
+                mpz_add_ui(Q, Q, (unsigned long long)Q128);
+            }
+        } else {
+            do {
+                exponents[i]++;
+                mpz_divexact_ui(Q, Q, p);
+            } while (mpz_divisible_ui_p(Q, p));
+            /* Update fast path state */
+            if (mpz_sizeinbase(Q, 2) <= 127) {
+                use_fast = 1;
+                if (mpz_fits_ulong_p(Q)) Q128 = mpz_get_ui(Q);
+                else {
+                    mpz_t hi; mpz_init(hi); mpz_tdiv_q_2exp(hi, Q, 64);
+                    Q128 = ((__int128)mpz_get_ui(hi) << 64) | mpz_getlimbn(Q, 0);
+                    mpz_clear(hi);
+                }
+            }
+        }
+    }
+    /* Sync Q128 back to Q for final cofactor check */
+    if (use_fast) {
+        if (Q128 <= (unsigned long long)(-1)) {
+            mpz_set_ui(Q, (unsigned long long)Q128);
+        } else {
+            mpz_set_ui(Q, (unsigned long long)(Q128 >> 64));
+            mpz_mul_2exp(Q, Q, 64);
+            mpz_add_ui(Q, Q, (unsigned long long)Q128);
+        }
     }
 
     /* Check if fully factored or has single large prime */
