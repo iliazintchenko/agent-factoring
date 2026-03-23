@@ -207,7 +207,7 @@ static params_t get_params_by_digits(int digits) {
     if (digits <= 64) return (params_t){5400, 3,  80, 120, 0.84, 1, 150};
     if (digits <= 70) return (params_t){8000, 3, 120, 150, 0.85, 1, 200};
     if (digits <= 72) return (params_t){10000,3, 120, 180, 0.855, 1, 200};
-    if (digits <= 73) return (params_t){12000,3, 140, 150, 0.855, 1, 250};
+    if (digits <= 73) return (params_t){12000,3, 140, 300, 0.855, 1, 250};
     if (digits <= 75) return (params_t){15000,3, 100, 200, 0.86, 1, 250};
     if (digits <= 80) return (params_t){50000,4, 100, 250, 0.885, 1, 250};
     if (digits <= 85) return (params_t){55000,3,  80, 300, 0.89, 1, 300};
@@ -628,14 +628,87 @@ int main(int argc, char *argv[]) {
                                         part->count++;
                                     }
                                 }
-                            } else if (P.use_dlp && cof <= lp_bound * lp_bound) {
-                                /* Try DLP: split cofactor into two primes */
+                            } else if (P.use_dlp && cof <= lp_bound * lp_bound * lp_bound) {
+                                /* Try DLP/TLP: split cofactor */
                                 if (!mpz_probab_prime_p(residue, 1)) {
                                     unsigned long f1 = pollard_rho_64(cof);
                                     if (f1 > 1 && f1 < cof) {
                                         unsigned long f2 = cof / f1;
                                         if (f1 > f2) { unsigned long t = f1; f1 = f2; f2 = t; }
-                                        if (f1 <= lp_bound && f2 <= lp_bound) {
+
+                                        /* Check if we need to split further (TLP) */
+                                        if (f1 <= lp_bound && f2 > lp_bound && f2 <= lp_bound * lp_bound) {
+                                            /* f2 might be composite: check primality first */
+                                            mpz_t f2z; mpz_init_set_ui(f2z, f2);
+                                            int f2_prime = mpz_probab_prime_p(f2z, 1);
+                                            mpz_clear(f2z);
+                                            if (f2_prime) { f1 = 0; f2 = 0; }  /* can't split, skip */
+                                            else {
+                                            unsigned long g1 = pollard_rho_64(f2);
+                                            if (g1 > 1 && g1 < f2) {
+                                                unsigned long g2 = f2 / g1;
+                                                /* Now have 3 factors: f1, g1, g2 */
+                                                unsigned long tlp[3] = {f1, g1, g2};
+                                                /* Sort */
+                                                for (int a = 0; a < 2; a++)
+                                                    for (int b = a+1; b < 3; b++)
+                                                        if (tlp[a] > tlp[b]) { unsigned long t = tlp[a]; tlp[a] = tlp[b]; tlp[b] = t; }
+                                                /* All 3 must be <= lp_bound */
+                                                if (tlp[2] <= lp_bound) {
+                                                    /* TLP→SLP pipeline: check each LP against SLP hash */
+                                                    int matches[3];
+                                                    for (int k = 0; k < 3; k++) matches[k] = lp_find(lpt, tlp[k]);
+                                                    int nm = (matches[0]>=0) + (matches[1]>=0) + (matches[2]>=0);
+                                                    if (nm >= 2) {
+                                                        /* 2+ LPs match: combine TLP+SLP+SLP → SLP or full */
+                                                        int used[3] = {0,0,0};
+                                                        int ri = full->count;
+                                                        if (ri < full->alloc) {
+                                                            mpz_set(full->ax_b[ri], ax_b);
+                                                            mpz_set(full->Qx[ri], aQx);
+                                                            for (int k = 0; k < 3 && used[k] == 0; k++) {
+                                                                if (matches[k] >= 0) {
+                                                                    mpz_mul(full->ax_b[ri], full->ax_b[ri], part->ax_b[matches[k]]);
+                                                                    mpz_mod(full->ax_b[ri], full->ax_b[ri], N);
+                                                                    mpz_mul(full->Qx[ri], full->Qx[ri], part->Qx[matches[k]]);
+                                                                    used[k] = 1;
+                                                                }
+                                                            }
+                                                            /* Find the unmatched LP */
+                                                            unsigned long rem_lp = 0;
+                                                            for (int k = 0; k < 3; k++)
+                                                                if (matches[k] < 0) rem_lp = tlp[k];
+                                                            if (nm == 3) {
+                                                                full->lp[ri] = 0; full->count++; dlp_combined++;
+                                                            } else {
+                                                                /* Store as SLP partial */
+                                                                int pi = part->count;
+                                                                if (pi < part->alloc) {
+                                                                    mpz_set(part->ax_b[pi], full->ax_b[ri]);
+                                                                    mpz_set(part->Qx[pi], full->Qx[ri]);
+                                                                    part->lp[pi] = rem_lp;
+                                                                    lp_insert(lpt, rem_lp, pi);
+                                                                    part->count++; dlp_combined++;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        /* <2 matches: store with first LP as SLP */
+                                                        int pi = part->count;
+                                                        if (pi < part->alloc) {
+                                                            mpz_set(part->ax_b[pi], ax_b);
+                                                            mpz_set(part->Qx[pi], aQx);
+                                                            part->lp[pi] = tlp[0];
+                                                            lp_insert(lpt, tlp[0], pi);
+                                                            part->count++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            f1 = 0; f2 = 0;  /* skip DLP handling below */
+                                        }  /* end else (f2 not prime) */
+                                        }  /* end f2 > lp_bound TLP block */
+                                        if (f1 > 0 && f1 <= lp_bound && f2 <= lp_bound) {
                                             /* DLP→SLP pipeline: check if either LP
                                                has an SLP match in the partial hash */
                                             /* DLP→SLP pipeline: match each LP individually */
