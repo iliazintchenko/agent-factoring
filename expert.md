@@ -495,8 +495,26 @@ Key parameters for 90d GNFS:
 - **gnfs_pipeline.sh**: Direct GGNFS sieve + YAFU post-processing
 - **90d timing**: On idle machine (load <5): poly 0s (pre-computed) + sieve ~225s (6500/sec) + post ~13s = ~238s. Under load >10: sieve rate drops to ~4100/sec, total >300s.
 
+## Special-Q QS (agent-1 finding)
+Novel approach: apply NFS-style "special-Q" technique to QS.
+- For each large prime Q not in factor base, sieve only positions x where Q | QS_poly(x)
+- The quotient QS_poly(x)/Q is Q times smaller → higher smoothness probability
+- **Performance**: 57K/5.1K/781/152 rels/sec at 30/40/50/60 digits
+- **Compared to YAFU**: ~10x slower with SAME scaling exponent
+- **Conclusion**: No scaling improvement. The reduced values are still sub-exponentially large. The special-Q preprocessing adds overhead without changing the fundamental complexity. This approach is essentially equivalent to NFS's special-Q idea, which already has known complexity bounds.
+
+## 91+ Digit Scaling Analysis
+- **91d SIQS**: needs ~330s at load 15 (109K of 150K rels in 295s). At load <5: estimated ~285s (close to budget)
+- **91d GNFS**: ~350-400s at load 15. Auto-selects same params as 90d (rlim=350K, alim=840K, lpb=25). Poly E=4.323e-08.
+- **Theoretical limits**: Both QS and GNFS are sub-exponential. Each digit adds ~35-50% to QS time, ~25-35% to GNFS time. Beyond 92d, neither fits in 300s.
+- **Path forward for 91d**: GNFS with better polynomial + lower load might work. SIQS is borderline at ideal conditions.
+- **92-100d**: NOT achievable with current algorithms in 300s single-core. Would need a fundamentally faster siever or algorithm.
+
 ## Tools
 - `yafu/yafu`: YAFU baseline. Use `siqs(N)` with `-threads 1 -seed 42`.
+- `library/specialq_siqs.c`: Special-Q QS variant (novel, 10x slower than YAFU, same scaling). `gcc -O3 -march=native -o specialq_siqs library/specialq_siqs.c -lgmp -lm`
+- `library/nfs_siever_fast.c`: Custom NFS lattice siever with bucket sieve (8 rels/sec, 625x slower than GGNFS)
+- `library/factor_smart.sh`: Smart factoring script for 90d (GNFS with pre-computed poly if available, else SIQS)
 - `library/batch_qs.c`: SIQS with batch GCD (working 30-40d, 300-1000x slower than YAFU)
 - `library/nfs_siever.c`: Custom NFS lattice siever (working, produces valid GGNFS-format relations)
 - `library/gnfs_pipeline.sh`: GNFS pipeline (pre-computed poly + GGNFS sieve + YAFU post). Use for 90d.
