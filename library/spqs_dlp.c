@@ -304,29 +304,29 @@ static int gf2_solve(gf2_t *m, int ***deps, int **dlen, int max) {
 /* ==================== Parameters ==================== */
 typedef struct { int fb_size, nblocks, lp_mult, extra; double thresh; int dlp_mult; } params_t;
 static params_t get_params(int bits) {
-    /* dlp_mult: DLP cofactor bound = lp_bound * dlp_mult. 0 = no DLP
-     * Key: small nblocks (1-4) for fast poly switching with small Q(x) values.
-     * YAFU uses 1-4 blocks; 28+ blocks wastes smoothness on large Q(x). */
+    /* Balanced nblocks: keep enough blocks for consistency at small sizes,
+     * reduce blocks at larger sizes for faster poly switching + smaller Q(x).
+     * dlp_mult: 0 = no DLP. DLP starts at FB >= 400 (140+ bits). */
     if (bits <= 100) return (params_t){100, 1, 30, 40, 0.73, 0};
     if (bits <= 110) return (params_t){150, 1, 30, 40, 0.74, 0};
-    if (bits <= 120) return (params_t){200, 1, 35, 50, 0.76, 0};
-    if (bits <= 130) return (params_t){300, 1, 40, 50, 0.78, 0};
-    if (bits <= 140) return (params_t){400, 1, 40, 60, 0.79, 50};
-    if (bits <= 150) return (params_t){600, 1, 50, 60, 0.80, 80};
-    if (bits <= 160) return (params_t){900, 2, 50, 80, 0.81, 100};
-    if (bits <= 170) return (params_t){1200, 2, 60, 80, 0.82, 150};
-    if (bits <= 180) return (params_t){1800, 2, 60, 80, 0.83, 200};
+    if (bits <= 120) return (params_t){200, 2, 35, 50, 0.76, 0};
+    if (bits <= 130) return (params_t){300, 3, 40, 50, 0.78, 0};
+    if (bits <= 140) return (params_t){400, 4, 40, 60, 0.79, 50};
+    if (bits <= 150) return (params_t){600, 6, 50, 60, 0.80, 80};
+    if (bits <= 160) return (params_t){900, 6, 50, 80, 0.81, 100};
+    if (bits <= 170) return (params_t){1200, 4, 60, 80, 0.82, 150};
+    if (bits <= 180) return (params_t){1800, 3, 60, 80, 0.83, 200};
     if (bits <= 190) return (params_t){2500, 2, 60, 100, 0.84, 300};
     if (bits <= 200) return (params_t){3500, 2, 70, 100, 0.85, 400};
-    if (bits <= 210) return (params_t){5000, 3, 70, 120, 0.86, 500};
-    if (bits <= 220) return (params_t){7000, 4, 80, 120, 0.87, 600};
-    if (bits <= 230) return (params_t){9000, 4, 80, 150, 0.875, 800};
-    if (bits <= 240) return (params_t){12000, 5, 80, 150, 0.88, 1000};
-    if (bits <= 250) return (params_t){16000, 6, 90, 200, 0.885, 1200};
-    if (bits <= 260) return (params_t){22000, 8, 90, 200, 0.89, 1500};
-    if (bits <= 270) return (params_t){30000, 10, 100, 250, 0.895, 2000};
-    if (bits <= 280) return (params_t){40000, 12, 100, 300, 0.90, 2500};
-    if (bits <= 290) return (params_t){55000, 14, 110, 350, 0.905, 3000};
+    if (bits <= 210) return (params_t){5000, 2, 70, 120, 0.86, 500};
+    if (bits <= 220) return (params_t){7000, 3, 80, 120, 0.87, 600};
+    if (bits <= 230) return (params_t){9000, 3, 80, 150, 0.875, 800};
+    if (bits <= 240) return (params_t){12000, 4, 80, 150, 0.88, 1000};
+    if (bits <= 250) return (params_t){16000, 5, 90, 200, 0.885, 1200};
+    if (bits <= 260) return (params_t){22000, 6, 90, 200, 0.89, 1500};
+    if (bits <= 270) return (params_t){30000, 8, 100, 250, 0.895, 2000};
+    if (bits <= 280) return (params_t){40000, 10, 100, 300, 0.90, 2500};
+    if (bits <= 290) return (params_t){55000, 12, 110, 350, 0.905, 3000};
     return (params_t){75000, 160, 120, 400, 0.91, 4000};
 }
 
