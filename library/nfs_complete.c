@@ -465,7 +465,9 @@ int main(int argc, char *argv[]) {
             /* Legendre symbol (val / q) */
             unsigned long long leg = 1, base = val, exp_leg = (q-1)/2;
             while (exp_leg) { if (exp_leg & 1) leg = leg * base % q; base = base * base % q; exp_leg >>= 1; }
-            if (leg != 1 && leg != 0) gf2_set(mat, r, 1 + rfb->sz + afb->sz + j);
+            /* Only set bit for non-residue (leg == q-1). Treat 0 as residue. */
+            if (val != 0 && leg == (unsigned long long)(q - 1))
+                gf2_set(mat, r, 1 + rfb->sz + afb->sz + j);
         }
     }
 
@@ -483,18 +485,54 @@ int main(int argc, char *argv[]) {
     mpz_inits(tmp_z, g, NULL);
     int found = 0;
 
-    for (int di = 0; di < ndeps && !found; di++) {
+    /* Try combined deps: XOR pairs/triples of small deps to create larger ones */
+    /* This ensures S(x) is a non-trivial polynomial with non-zero T_1, T_2 */
+    int max_try = ndeps + 20; /* original deps + combined deps */
+    int **all_deps = malloc(max_try * sizeof(int*));
+    int *all_dlen = malloc(max_try * sizeof(int));
+    int ntry = 0;
+
+    /* Combine deps to create larger ones */
+    /* Try: XOR of all odd-indexed deps, XOR of all even-indexed, XOR of all, etc. */
+    for (int pattern = 1; pattern < 64 && ntry < max_try - ndeps; pattern++) {
+        int *merged = calloc(nrels, sizeof(int));
+        int mlen = 0;
+        for (int i = 0; i < ndeps; i++) {
+            if ((pattern >> (i % 6)) & 1) { /* use some quasi-random pattern */
+                for (int k = 0; k < dlen[i]; k++) merged[deps[i][k]] ^= 1;
+            }
+        }
+        int *d = malloc(nrels * sizeof(int));
+        for (int k = 0; k < nrels; k++) if (merged[k]) d[mlen++] = k;
+        free(merged);
+        if (mlen >= 20) {
+            all_deps[ntry] = d;
+            all_dlen[ntry] = mlen;
+            ntry++;
+        } else {
+            free(d);
+        }
+    }
+    /* Then add original deps */
+    for (int i = 0; i < ndeps; i++) {
+        all_deps[ntry] = deps[i];
+        all_dlen[ntry] = dlen[i];
+        ntry++;
+    }
+    fprintf(stderr, "Trying %d deps (%d combined + %d original)\n", ntry, ntry - ndeps, ndeps);
+
+    for (int di = 0; di < ntry && !found; di++) {
         if (elapsed() > 270) break;
-        /* Skip tiny deps - they give trivial X=Y more often */
-        if (dlen[di] < 10) continue;
-        fprintf(stderr, "Dep %d (sz %d)...\n", di, dlen[di]);
+        int *cur_dep = all_deps[di];
+        int cur_dlen = all_dlen[di];
+        fprintf(stderr, "Dep %d (sz %d)...\n", di, cur_dlen);
 
         /* Verify even exponents */
         int *rex_sum = calloc(rfb->sz, sizeof(int));
         int *aex_sum = calloc(afb->sz, sizeof(int));
         int rs_sum = 0, as_sum = 0;
-        for (int i = 0; i < dlen[di]; i++) {
-            int ri = deps[di][i];
+        for (int i = 0; i < cur_dlen; i++) {
+            int ri = cur_dep[i];
             for (int j = 0; j < rfb->sz; j++) rex_sum[j] += rels->re[ri][j];
             for (int j = 0; j < afb->sz; j++) aex_sum[j] += rels->ae[ri][j];
             rs_sum += rels->rs[ri];
@@ -597,8 +635,8 @@ int main(int argc, char *argv[]) {
         mpz_t factor_p[MAX_DEG];
         for (int i = 0; i < d; i++) mpz_init(factor_p[i]);
 
-        for (int i = 0; i < dlen[di]; i++) {
-            int ri = deps[di][i];
+        for (int i = 0; i < cur_dlen; i++) {
+            int ri = cur_dep[i];
             long av = rels->a[ri];
             unsigned long bv = rels->b[ri];
 
@@ -676,7 +714,7 @@ int main(int argc, char *argv[]) {
         /* Upper bound on T coefficients: sqrt of product of n values ~sa ≈ 30000 */
         /* |T_j| < |S_j|^(1/2) < (sa^n * max_coeff^n)^(1/2) = (30000 * 10^10)^(n/2) */
         /* For n=600 relations: |T_j| < (3e14)^300 ≈ 10^4200 ≈ 2^14000 */
-        int target_bits = dlen[di] * 50 + 1000; /* generous upper bound */
+        int target_bits = cur_dlen * 50 + 1000; /* generous upper bound */
         int lifts = 0;
         int cur_bits = (int)(log2(p));
         while (cur_bits < target_bits) { lifts++; cur_bits *= 2; }
@@ -712,8 +750,8 @@ int main(int argc, char *argv[]) {
             mpz_clear(cd_inv);
         }
 
-        for (int i = 0; i < dlen[di]; i++) {
-            int ri = deps[di][i];
+        for (int i = 0; i < cur_dlen; i++) {
+            int ri = cur_dep[i];
             long av = rels->a[ri];
             unsigned long bv = rels->b[ri];
 
@@ -888,7 +926,50 @@ int main(int argc, char *argv[]) {
             mpz_clears(x2, y2, NULL);
         }
 
-        /* Check gcd */
+        /* Try both Y and -Y (Hensel sqrt sign ambiguity) */
+        /* Also try Y * lc^{n/2} correction for non-monic f */
+        /* Try multiplying Y by lc^(cur_dlen/2) mod N for the leading coeff correction */
+        {
+            mpz_t Y_neg; mpz_init(Y_neg);
+            mpz_sub(Y_neg, N, Y); /* Y_neg = -Y mod N */
+            /* Try with lc^(n/2) correction */
+            mpz_t lc_factor; mpz_init(lc_factor);
+            mpz_powm_ui(lc_factor, coeff[d], cur_dlen/2, N);
+            mpz_t Y_lc, Y_lc_neg; mpz_inits(Y_lc, Y_lc_neg, NULL);
+            mpz_mul(Y_lc, Y, lc_factor); mpz_mod(Y_lc, Y_lc, N);
+            mpz_sub(Y_lc_neg, N, Y_lc);
+
+            /* Try all 4 variants */
+            mpz_t variants[4];
+            for (int v = 0; v < 4; v++) mpz_init(variants[v]);
+            mpz_set(variants[0], Y);
+            mpz_set(variants[1], Y_neg);
+            mpz_set(variants[2], Y_lc);
+            mpz_set(variants[3], Y_lc_neg);
+
+            for (int v = 0; v < 4 && !found; v++) {
+                mpz_sub(g, X, variants[v]); mpz_mod(g, g, N); mpz_gcd(g, g, N);
+                if (di < 3) gmp_fprintf(stderr, "  v%d: gcd(X-Y)=%Zd\n", v, g);
+                if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
+                    mpz_t co; mpz_init(co); mpz_divexact(co, N, g);
+                    if (mpz_cmp(g, co) > 0) mpz_swap(g, co);
+                    gmp_printf("%Zd\n", g);
+                    fprintf(stderr, "NFS factored (dep %d, variant %d) in %.3fs (%dd)\n", di, v, elapsed(), digits);
+                    mpz_clear(co); found = 1;
+                }
+            }
+            for (int v = 0; v < 4; v++) mpz_clear(variants[v]);
+            mpz_clears(Y_neg, lc_factor, Y_lc, Y_lc_neg, NULL);
+        }
+        if (found) {
+            mpz_clear(X); mpz_clear(Y); mpz_clear(cur_pe); mpz_clear(pe_final); mpz_clear(half_pe);
+            for (int i = 0; i < d; i++) { mpz_clear(Sp[i]); mpz_clear(Sp_pe[i]); mpz_clear(Tp[i]); mpz_clear(f_m_pe[i]); mpz_clear(factor_p[i]); mpz_clear(f_m[i]); }
+            for (int i = 0; i <= d; i++) mpz_clear(f_monic[i]);
+            free(rex_sum); free(aex_sum);
+            break;
+        }
+
+        /* Original gcd check (kept for safety) */
         mpz_sub(g, X, Y); mpz_mod(g, g, N); mpz_gcd(g, g, N);
         if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
             mpz_t co; mpz_init(co); mpz_divexact(co, N, g);

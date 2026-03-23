@@ -242,10 +242,11 @@ The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (
 
 - **Can NFS beat QS at 85-100 digits on single core?** NFS has L[1/3] vs QS's L[1/2] scaling, but L-notation analysis shows NFS constants are WORSE than QS until ~100-130d. For 80d: QS L-complexity ≈ exp(31), NFS ≈ exp(33). NFS only wins above 100d in theory, and a simple NFS implementation would need 120-150d to beat optimized QS. Not viable for our 30-100d range. The existing nfs_factor.c skeleton has a broken polynomial selection (c_0 coefficient is ~N instead of ~m) and no algebraic square root.
 - **Can ECM cofactorization improve SIQS?** ECM can split cofactors into DLP relations, but overhead (~10μs per ECM call) is high vs sieve amortization. Needs DLP graph (union-find) and proper exponent tracking. Potentially useful above 70d where sieve cost dominates.
-- **Can a simplified NFS be implemented?** gnfs_work.c has working NFS sieve + LA for 30d (1.6s, 1970 relations, 64 dependencies). The ONLY barrier is the algebraic square root. Key findings from debugging:
-  1. **Hensel lifting** (lift sqrt from mod p to mod p^e): T_j^2 = S_j verified correct at each root. But T(x) coefficients are O(10^2500) for ~600 relations, far exceeding any practical p^e. Single-prime Hensel cannot work.
-  2. **Multi-prime CRT**: Need T(m) mod N, computed as CRT of T(m) mod q_i for many primes q_i. The SIGN ISSUE: each q has 2^d sign choices for sqrt; naive "T < q/2" convention doesn't ensure cross-prime consistency.
-  3. **Couveignes' algorithm**: The correct approach uses the discriminant of f to fix signs consistently. Not yet implemented. This is the ONLY remaining piece for a working NFS.
+- **NFS algebraic sqrt BREAKTHROUGH**: nfs_complete.c has a WORKING Hensel-lift algebraic sqrt:
+  1. **Correct algorithm**: Compute S(x) = Π(a_i - b_i*x) mod f(x) in Z[x] at FULL precision (mod p^e for large e). Take initial sqrt T_0 in F_p[x]/(f(x)) via polynomial powmod. Hensel lift using combined Newton iteration (maintains both T and (2T)^{-1}, doubling precision each step). After ~7 lifts: T^2 = S verified at full precision.
+  2. **Key insight (CRT won't work)**: Computing T(m) mod q for CRT primes q is WRONG because T(x)^2 = S(x) + f(x)*Q(x), and f(m) ≡ 0 only mod N, not mod q. So T(m)^2 ≠ S(m) mod q. Must work with polynomial coefficients, not evaluations.
+  3. **Remaining issue**: All 64 dependencies give trivial X = ±Y (mod N). Small deps (size 2-8) produce S(x) that is a scalar square, giving T(x) = constant, so Y = X. Need larger dependencies (more QC columns + more excess relations) to get non-trivial polynomial T(x).
+  4. **Status**: sieve + LA + sqrt all working mechanically. Need more relations and QC columns to produce deps that factor.
 - **Can we exploit balanced semiprime structure?** No known algorithm specifically targets N = p*q with p ≈ q. The Fermat/Lehman approaches only help when |p-q| is small relative to N^(1/3).
 - **Can TLP (triple large primes) help at 80-90 digits?** Literature says overhead dominates below 100d. With ECM cofactorization and hypergraph cycle finding, crossover might be lower.
 
