@@ -117,11 +117,18 @@ YAFU GNFS with `-xover 85` and default GGNFS sievers:
 - **Pre-computed polynomials**: Stored in `library/gnfs_polys/90d_{0-4}.job` for all 5 90d semiprimes. Saves ~50s of poly select.
 
 ### GNFS Post-Processing Timing (agent-5 finding)
-- YAFU NFS post-processing (filter + Block Lanczos + sqrt): **~28s for 90d**
-- msieve NFS filtering requires ~1.875M rels (vs YAFU's 1.46M) — use YAFU for post-processing
+- YAFU NFS post-processing (filter + Block Lanczos + sqrt): **~28-36s for 90d** (depends on matrix size and load)
+- Matrix size: ~74K-78K dimensions for 1.46-1.50M relations
+- BL rate: ~2200-2800 dims/sec under load=22, ~3500+ on idle
+- msieve NFS filtering requires ~1.875M rels (vs YAFU's 1.46M) — always use YAFU for post-processing
 - YAFU post-processing with `-R -nc` flags resumes and skips sieving
-- **GNFS total budget**: 0s poly (precomputed) + sieve + 28s post = must sieve 1.46M rels in ~267s
-- **Required sieve rate**: 1.46M / 267 = **5470 rels/sec** — achieved on idle machine (6000-6500), NOT on loaded (4200-5200)
+- **GNFS total budget**: 0s poly (precomputed) + sieve + ~33s post = must sieve 1.46M rels in ~262s
+- **Required sieve rate**: 1.46M / 262 = **5573 rels/sec**
+- **Load=22**: sieve rate ~5530/sec, sieve 264s + BL 36s = 300s. RIGHT AT EDGE.
+- **Load<5 (idle)**: sieve rate ~6500/sec, sieve 225s + BL 28s = 253s. WORKS.
+- Starting sieve at Q=250000 (not 210000) gives ~10% higher yield per Q
+- QRANGE=1500 gives fine-grained stopping control (batch every ~4s)
+- Pre-computed polynomials stored in `library/gnfs_polys/90d_{0-4}.job`
 - **CADO-NFS las siever**: 1458 rels/sec single-threaded with lpb=23. Too slow (584s for 852K rels).
 
 ### GGNFS Siever Setup (CRITICAL)
