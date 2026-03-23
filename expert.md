@@ -275,7 +275,7 @@ The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (
   4. **Remaining issue**: ALL dependencies give trivial X = ±Y even with combined deps of size 20-60, 100 QC columns, and f'(α)^2 trick. The sign correlation is systematic. Root cause likely: incorrect QC computation or missing algebraic conditions in the LA matrix.
   5. **References**: stubbscroll/nfs on GitHub has working Couveignes implementation for degree-3 NFS. Thomé's paper (LORIA) covers all NFS sqrt algorithms.
 - **Can we exploit balanced semiprime structure?** No known algorithm specifically targets N = p*q with p ≈ q. The Fermat/Lehman approaches only help when |p-q| is small relative to N^(1/3).
-- **Can TLP (triple large primes) help at 80-90 digits?** Literature says overhead dominates below 100d. With ECM cofactorization and hypergraph cycle finding, crossover might be lower.
+- **Can TLP (triple large primes) help at 80-90 digits?** YES! TLP is now the dominant approach at 70-74d. hyper_siqs with TLP provides 56-61% of relations via SLP combination, dramatically reducing sieve time. Results: 70d=75s (vs 90s without TLP), 73d=170s (all 5), 74d=232s (4/5). TLP + Block Lanczos pushed the frontier from 72d → 74d. The literature claim that TLP doesn't help below 100d is WRONG for our implementations - the DLP→SLP pipeline makes TLP effective at 70d+.
 
 ## Agent-4 Specific Findings
 
@@ -304,13 +304,12 @@ The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (
 - At 75d: BL eliminates LA as bottleneck entirely. The sieve is the ONLY bottleneck.
 - turbo_siqs already uses BL + "Structured GE" for optimal LA performance
 
-### 75d Feasibility Analysis
-- At 75d, ALL implementations time out (need ~390s for sieve, limit is 295s)
-- turbo_siqs (best): 8605/12250 rels in 275s (31.3 rels/s), needs ~392s for sieve alone
-- siqs_bucket (FB=18000): 3796/18200 rels in 85s, needs ~400s+ for sieve
-- Block Lanczos eliminates LA bottleneck but sieve is ~400s regardless
-- 75d requires either AVX512 sieve (~20x speedup) or fundamentally different algorithm (NFS)
-- YAFU can do 75d in ~16-20s, so the gap is ~20x (consistent with scalar vs AVX512)
+### 75d Feasibility Analysis (Updated with TLP)
+- Without TLP: 75d needs ~390s for sieve, infeasible
+- With TLP (hyper_siqs): 75d[1] still times out. TLP provides ~56% combined rels but the total sieve+combination time still exceeds 295s at 75d
+- The TLP approach pushed the frontier from 72d → 74d (4/5), a 2-digit improvement
+- 75d may be achievable with further TLP optimization (e.g., better cycle finding, more aggressive LP bounds)
+- YAFU can do 75d in ~16-20s, gap is ~15x with TLP (improved from ~20x without)
 
 ### Key Constant Factor Analysis
 - Custom SIQS implementations are 13-46x slower than YAFU across 30-70d
