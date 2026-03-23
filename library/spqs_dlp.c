@@ -886,24 +886,136 @@ int main(int argc, char *argv[]) {
     int nrels = full->count;
     if (nrels > target) nrels = target;
     int ncols = fb->size + 1;
-    gf2_t *mat = gf2_create(nrels, ncols);
 
-    for (int r = 0; r < nrels; r++) {
-        mpz_t Qval; mpz_init(Qval); mpz_set(Qval, full->Qx[r]);
-        if (mpz_sgn(Qval) < 0) { gf2_set(mat, r, 0); mpz_neg(Qval, Qval); }
-        int e2 = 0; while (mpz_even_p(Qval)) { mpz_tdiv_q_2exp(Qval, Qval, 1); e2++; }
-        if (e2 & 1) gf2_set(mat, r, 1);
-        for (int i = 1; i < fb->size; i++) {
-            unsigned int p = fb->prime[i]; int e = 0;
-            while (mpz_divisible_ui_p(Qval, p)) { mpz_divexact_ui(Qval, Qval, p); e++; }
-            if (e & 1) gf2_set(mat, r, i+1);
+    /* Step 1: Build sparse GF(2) representation for each relation */
+    /* For each relation, store which columns have odd exponent */
+    int **sparse_cols = malloc(nrels * sizeof(int*));
+    int *sparse_len = malloc(nrels * sizeof(int));
+    {
+        int *cbuf = malloc(ncols * sizeof(int));
+        for (int r = 0; r < nrels; r++) {
+            int cnt = 0;
+            mpz_t Qval; mpz_init(Qval); mpz_set(Qval, full->Qx[r]);
+            if (mpz_sgn(Qval) < 0) { cbuf[cnt++] = 0; mpz_neg(Qval, Qval); }
+            int e2 = 0; while (mpz_even_p(Qval)) { mpz_tdiv_q_2exp(Qval, Qval, 1); e2++; }
+            if (e2 & 1) cbuf[cnt++] = 1;
+            for (int i = 1; i < fb->size; i++) {
+                unsigned int p = fb->prime[i]; int e = 0;
+                while (mpz_divisible_ui_p(Qval, p)) { mpz_divexact_ui(Qval, Qval, p); e++; }
+                if (e & 1) cbuf[cnt++] = i + 1;
+            }
+            mpz_clear(Qval);
+            sparse_cols[r] = malloc(cnt * sizeof(int));
+            memcpy(sparse_cols[r], cbuf, cnt * sizeof(int));
+            sparse_len[r] = cnt;
         }
-        mpz_clear(Qval);
+        free(cbuf);
     }
 
-    int **deps; int *dlen;
-    int ndeps = gf2_solve(mat, &deps, &dlen, 256);
-    fprintf(stderr, "LA: %d deps from %dx%d\n", ndeps, nrels, ncols);
+    /* Step 2: Singleton/doubleton column removal using column-to-row index */
+    int *col_weight = calloc(ncols, sizeof(int));
+    int *row_alive = malloc(nrels * sizeof(int));
+    int *col_alive = malloc(ncols * sizeof(int));
+    for (int i = 0; i < nrels; i++) row_alive[i] = 1;
+    for (int i = 0; i < ncols; i++) col_alive[i] = 1;
+
+    /* Build column -> row lists (CSC-style) */
+    /* First pass: count entries per column */
+    for (int r = 0; r < nrels; r++)
+        for (int j = 0; j < sparse_len[r]; j++)
+            col_weight[sparse_cols[r][j]]++;
+
+    int *col_start = malloc((ncols + 1) * sizeof(int));
+    col_start[0] = 0;
+    for (int c = 0; c < ncols; c++) col_start[c + 1] = col_start[c] + col_weight[c];
+    int total_entries = col_start[ncols];
+    int *col_rows = malloc(total_entries * sizeof(int));
+    int *col_pos = calloc(ncols, sizeof(int)); /* current fill position */
+    for (int r = 0; r < nrels; r++)
+        for (int j = 0; j < sparse_len[r]; j++) {
+            int c = sparse_cols[r][j];
+            col_rows[col_start[c] + col_pos[c]++] = r;
+        }
+    free(col_pos);
+
+    /* Queue-based iterative singleton removal */
+    int *queue = malloc(ncols * sizeof(int));
+    int qhead = 0, qtail = 0;
+    for (int c = 0; c < ncols; c++)
+        if (col_weight[c] <= 1) queue[qtail++] = c;
+
+    while (qhead < qtail) {
+        int c = queue[qhead++];
+        if (!col_alive[c]) continue;
+        if (col_weight[c] > 1) continue;
+        col_alive[c] = 0;
+        /* Find and remove the (at most one) row using this column */
+        for (int k = col_start[c]; k < col_start[c + 1]; k++) {
+            int r = col_rows[k];
+            if (!row_alive[r]) continue;
+            row_alive[r] = 0;
+            /* Decrement weights; enqueue newly singleton columns */
+            for (int j = 0; j < sparse_len[r]; j++) {
+                int cc = sparse_cols[r][j];
+                if (!col_alive[cc]) continue;
+                col_weight[cc]--;
+                if (col_weight[cc] <= 1) queue[qtail++] = cc;
+            }
+        }
+    }
+    free(queue); free(col_rows); free(col_start);
+
+    /* Build mapping from old to new indices */
+    int surv_rows = 0, surv_cols = 0;
+    int *row_map = malloc(nrels * sizeof(int)); /* old -> new row index */
+    int *orig_row = malloc(nrels * sizeof(int)); /* new row -> old row index */
+    int *col_map = malloc(ncols * sizeof(int)); /* old -> new col index */
+    for (int i = 0; i < nrels; i++) {
+        if (row_alive[i]) { row_map[i] = surv_rows; orig_row[surv_rows] = i; surv_rows++; }
+        else row_map[i] = -1;
+    }
+    for (int i = 0; i < ncols; i++) {
+        if (col_alive[i]) { col_map[i] = surv_cols; surv_cols++; }
+        else col_map[i] = -1;
+    }
+
+    fprintf(stderr, "Singleton removal: %dx%d -> %dx%d\n", nrels, ncols, surv_rows, surv_cols);
+
+    /* Step 3: Build dense matrix for surviving rows/columns */
+    gf2_t *mat = gf2_create(surv_rows, surv_cols);
+    for (int r = 0; r < nrels; r++) {
+        if (!row_alive[r]) continue;
+        int nr = row_map[r];
+        for (int j = 0; j < sparse_len[r]; j++) {
+            int c = sparse_cols[r][j];
+            if (col_alive[c])
+                gf2_set(mat, nr, col_map[c]);
+        }
+    }
+
+    /* Step 4: Solve reduced matrix */
+    int **red_deps; int *red_dlen;
+    int ndeps = gf2_solve(mat, &red_deps, &red_dlen, 256);
+
+    /* Step 5: Map dependency indices back to original relation indices */
+    int **deps = malloc(ndeps * sizeof(int*));
+    int *dlen = malloc(ndeps * sizeof(int));
+    for (int d = 0; d < ndeps; d++) {
+        dlen[d] = red_dlen[d];
+        deps[d] = malloc(dlen[d] * sizeof(int));
+        for (int k = 0; k < dlen[d]; k++)
+            deps[d][k] = orig_row[red_deps[d][k]];
+        free(red_deps[d]);
+    }
+    free(red_deps); free(red_dlen);
+
+    fprintf(stderr, "LA: %d deps from %dx%d (reduced from %dx%d)\n", ndeps, surv_rows, surv_cols, nrels, ncols);
+
+    /* Cleanup sparse structures */
+    for (int r = 0; r < nrels; r++) free(sparse_cols[r]);
+    free(sparse_cols); free(sparse_len);
+    free(col_weight); free(row_alive); free(col_alive);
+    free(row_map); free(orig_row); free(col_map);
 
     /* Square root */
     for (int d = 0; d < ndeps; d++) {
