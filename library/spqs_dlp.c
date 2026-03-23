@@ -28,6 +28,7 @@
 #define MAX_A_FACTORS 20
 #define MAX_RELS 500000
 #define MAX_PARTIALS 2000000
+#define BATCH_POLYS 4  /* Number of polynomials to sieve simultaneously */
 
 static struct timespec g_start;
 static double elapsed(void) {
@@ -214,6 +215,48 @@ static uint64_t squfof_factor(uint64_t n) {
     return 0;
 }
 
+/* ==================== Bucket Sieve for Large Primes ==================== */
+typedef struct { uint16_t pos; uint8_t logp; } bucket_hit_t;
+
+static bucket_hit_t **g_buckets[BATCH_POLYS]; /* g_buckets[poly][block] */
+static int **g_bucket_cnt;                     /* g_bucket_cnt[poly][block] -- shared alloc tracking */
+static int g_bucket_alloc_per_block;
+static int g_num_blocks_total;
+static int g_fb_bucket_start; /* first FB index with prime > SIEVE_BLOCK */
+
+static void bucket_init(int nblocks_total, int fb_size) {
+    g_num_blocks_total = nblocks_total;
+    /* Estimate max bucket entries per block per poly */
+    g_bucket_alloc_per_block = 512;
+    for (int bi = 0; bi < BATCH_POLYS; bi++) {
+        g_buckets[bi] = malloc(nblocks_total * sizeof(bucket_hit_t*));
+        for (int b = 0; b < nblocks_total; b++)
+            g_buckets[bi][b] = malloc(g_bucket_alloc_per_block * sizeof(bucket_hit_t));
+    }
+    g_bucket_cnt = malloc(BATCH_POLYS * sizeof(int*));
+    for (int bi = 0; bi < BATCH_POLYS; bi++)
+        g_bucket_cnt[bi] = calloc(nblocks_total, sizeof(int));
+}
+
+static inline void bucket_add_hit(int poly, int block, uint16_t pos, uint8_t logp) {
+    int c = g_bucket_cnt[poly][block];
+    if (c >= g_bucket_alloc_per_block) {
+        g_bucket_alloc_per_block *= 2;
+        for (int bi = 0; bi < BATCH_POLYS; bi++)
+            for (int b = 0; b < g_num_blocks_total; b++)
+                g_buckets[bi][b] = realloc(g_buckets[bi][b],
+                    g_bucket_alloc_per_block * sizeof(bucket_hit_t));
+    }
+    g_buckets[poly][block][c].pos = pos;
+    g_buckets[poly][block][c].logp = logp;
+    g_bucket_cnt[poly][block]++;
+}
+
+static void bucket_clear_all(void) {
+    for (int bi = 0; bi < BATCH_POLYS; bi++)
+        memset(g_bucket_cnt[bi], 0, g_num_blocks_total * sizeof(int));
+}
+
 /* ==================== Large Prime Hash ==================== */
 #define LP_HASH_BITS 20
 #define LP_HASH_SIZE (1 << LP_HASH_BITS)
@@ -307,8 +350,6 @@ static params_t get_params(int bits) {
  * We batch BATCH_POLYS polynomials per sieve pass.
  */
 
-#define BATCH_POLYS 4  /* Number of polynomials to sieve simultaneously */
-
 int main(int argc, char *argv[]) {
     if (argc < 2) { fprintf(stderr, "Usage: %s <N>\n", argv[0]); return 1; }
     clock_gettime(CLOCK_MONOTONIC, &g_start);
@@ -354,8 +395,18 @@ int main(int argc, char *argv[]) {
         if (threshold < 20) threshold = 20;
     }
 
-    fprintf(stderr, "SPQS-DLP: %dd (%db), k=%d, FB=%d, M=%d, thresh=%d, LP=%lu, DLP=%lu, target=%d\n",
-            digits, bits, mult, fb->size, M, threshold, lp_bound, (unsigned long)dlp_bound, target);
+    /* Determine bucket sieve threshold */
+    g_fb_bucket_start = fb->size;
+    for (int i = 0; i < fb->size; i++) {
+        if (fb->prime[i] > SIEVE_BLOCK) { g_fb_bucket_start = i; break; }
+    }
+
+    /* Initialize bucket sieve */
+    int nblocks_total = 2 * P.nblocks;
+    bucket_init(nblocks_total, fb->size);
+
+    fprintf(stderr, "SPQS-DLP: %dd (%db), k=%d, FB=%d (bucket@%d), M=%d, thresh=%d, LP=%lu, DLP=%lu, target=%d\n",
+            digits, bits, mult, fb->size, g_fb_bucket_start, M, threshold, lp_bound, (unsigned long)dlp_bound, target);
 
     /* Allocate BATCH_POLYS sieve arrays */
     unsigned char *sieves[BATCH_POLYS];
@@ -527,16 +578,45 @@ int main(int argc, char *argv[]) {
             if (batch == 0) continue;
             total_polys++;
 
+            /* Fill buckets for large primes across all blocks */
+            if (g_fb_bucket_start < fb->size) {
+                bucket_clear_all();
+                int total_sieve = 2 * P.nblocks * SIEVE_BLOCK;
+                for (int bi = 0; bi < batch; bi++) {
+                    for (int i = g_fb_bucket_start; i < fb->size; i++) {
+                        if (soln1[bi][i] == 0xFFFFFFFF) continue;
+                        unsigned int p = fb->prime[i];
+                        unsigned char lp = fb->logp[i];
+                        /* Root 1 */
+                        long s1 = ((long)soln1[bi][i] + P.nblocks * SIEVE_BLOCK);
+                        for (long pos = s1 % (long)p; pos < total_sieve; pos += p) {
+                            int blk = (int)(pos / SIEVE_BLOCK);
+                            bucket_add_hit(bi, blk, (uint16_t)(pos % SIEVE_BLOCK), lp);
+                        }
+                        /* Root 2 */
+                        if (soln1[bi][i] != soln2[bi][i]) {
+                            long s2 = ((long)soln2[bi][i] + P.nblocks * SIEVE_BLOCK);
+                            for (long pos = s2 % (long)p; pos < total_sieve; pos += p) {
+                                int blk = (int)(pos / SIEVE_BLOCK);
+                                bucket_add_hit(bi, blk, (uint16_t)(pos % SIEVE_BLOCK), lp);
+                            }
+                        }
+                    }
+                }
+            }
+
             /* Sieve all BATCH polynomials over each block */
             for (int block = -P.nblocks; block < P.nblocks; block++) {
                 int block_start = block * SIEVE_BLOCK;
+                int block_idx = block + P.nblocks; /* 0-based block index */
 
                 /* Initialize all sieve arrays */
                 for (int bi = 0; bi < batch; bi++)
                     memset(sieves[bi], 0, SIEVE_BLOCK);
 
-                /* Sieve with FB primes - process each prime ONCE but update all polynomials */
-                for (int i = 1; i < fb->size; i++) {
+                /* Sieve with small/medium FB primes only (p <= SIEVE_BLOCK) */
+                int fb_end = (g_fb_bucket_start < fb->size) ? g_fb_bucket_start : fb->size;
+                for (int i = 1; i < fb_end; i++) {
                     unsigned int p = fb->prime[i];
                     if (p < 5) continue;
                     unsigned char lp = fb->logp[i];
@@ -546,15 +626,48 @@ int main(int argc, char *argv[]) {
 
                         long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
                         if (off1 < 0) off1 += p;
-                        for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
-                            sieves[bi][j] += lp;
+                        /* Unrolled inner loop for small primes */
+                        if (p < 64) {
+                            int j = (int)off1;
+                            for (; j + 3*(int)p < SIEVE_BLOCK; j += 4*(int)p) {
+                                sieves[bi][j] += lp;
+                                sieves[bi][j + p] += lp;
+                                sieves[bi][j + 2*p] += lp;
+                                sieves[bi][j + 3*p] += lp;
+                            }
+                            for (; j < SIEVE_BLOCK; j += p) sieves[bi][j] += lp;
+                        } else {
+                            for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
+                                sieves[bi][j] += lp;
+                        }
 
                         if (soln1[bi][i] != soln2[bi][i]) {
                             long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
                             if (off2 < 0) off2 += p;
-                            for (int j = (int)off2; j < SIEVE_BLOCK; j += p)
-                                sieves[bi][j] += lp;
+                            if (p < 64) {
+                                int j = (int)off2;
+                                for (; j + 3*(int)p < SIEVE_BLOCK; j += 4*(int)p) {
+                                    sieves[bi][j] += lp;
+                                    sieves[bi][j + p] += lp;
+                                    sieves[bi][j + 2*p] += lp;
+                                    sieves[bi][j + 3*p] += lp;
+                                }
+                                for (; j < SIEVE_BLOCK; j += p) sieves[bi][j] += lp;
+                            } else {
+                                for (int j = (int)off2; j < SIEVE_BLOCK; j += p)
+                                    sieves[bi][j] += lp;
+                            }
                         }
+                    }
+                }
+
+                /* Apply bucket sieve hits for large primes */
+                if (g_fb_bucket_start < fb->size) {
+                    for (int bi = 0; bi < batch; bi++) {
+                        int cnt = g_bucket_cnt[bi][block_idx];
+                        bucket_hit_t *hits = g_buckets[bi][block_idx];
+                        for (int j = 0; j < cnt; j++)
+                            sieves[bi][hits[j].pos] += hits[j].logp;
                     }
                 }
 
