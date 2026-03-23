@@ -464,7 +464,7 @@ int main(int argc, char *argv[]) {
 
     /* Threshold: lower when DLP is enabled to catch more LP candidates */
     double log2_Qmax = kN_bits / 2.0 + 0.5 + log2((double)M);
-    int dlp_bonus = P.dlp ? (int)(log2((double)lp_bound) * 0.35) : 0;
+    int dlp_bonus = 0; /* disabled: DLP/TLP combination has correctness issues */
     int threshold = (int)(log2_Qmax * P.thresh_adj) - 3 - dlp_bonus;
     if (threshold < 20) threshold = 20;
 
@@ -754,20 +754,8 @@ int main(int argc, char *argv[]) {
                         } else if (P.dlp && cof <= dlp_max) {
                             /* Extended SLP: if cofactor is prime but > lp_bound,
                              * still store in SLP hash for matching (like YAFU) */
-                            if (is_prime64(cof)) {
-                                /* Large SLP: prime cofactor > lp_bound but < dlp_max */
-                                handled = 1;
-                                int match = lp_find(slp, cof);
-                                if (match >= 0) {
-                                    mpz_mul(tmp, ax_b, part->ax_b[match]); mpz_mod(tmp, tmp, N);
-                                    mpz_mul(tmp2, aQx, part->Qx[match]);
-                                    rels_add(full, tmp, tmp2, 0, 0);
-                                    combined_slp++;
-                                } else {
-                                    int pi = rels_add(part, ax_b, aQx, cof, 0);
-                                    if (pi >= 0) lp_insert(slp, cof, pi);
-                                }
-                            } else {
+                            /* Extended SLP disabled (causes correctness issues with LA) */
+                            {
                                 /* Composite cofactor: factor completely */
                                 uint64_t primes[10]; int nprimes = factor64(cof, primes);
                                 for (int a2=0;a2<nprimes-1;a2++) for (int b2=a2+1;b2<nprimes;b2++)
