@@ -56,5 +56,12 @@
 - **Features**: Base-m degree-4 poly, fast modular poly GCD root finding, dual-side line sieve, trial division smoothness
 - **Key insight**: Line sieve NFS can't compete. Needs lattice sieve or GGNFS sievers.
 
+### siqs_avx.c — Custom SIQS with AVX512BW scanning + DLP (WIP)
+- **Compile**: `gcc -O3 -march=native -mavx512bw -mcmodel=medium -o siqs_avx library/siqs_avx.c -lgmp -lm`
+- **Usage**: `timeout 295 ./siqs_avx <N>`
+- **Performance**: 33d: 1.6s sieve (sieve works, square root step not implemented)
+- **Features**: AVX512BW candidate scanning, DLP with Pollard rho cofactoring, Knuth-Schroeppel multiplier, Gray code self-init, sparse relation storage
+- **Status**: WIP. Sieve finds relations correctly. Square root step needs implementation. Polynomial initialization has edge-case bugs for large numbers.
+
 ### cqs/ — Additional SIQS variant
 - `cqs/siqs_gmp.c`: Another SIQS implementation using GMP
