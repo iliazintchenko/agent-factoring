@@ -1,9 +1,4 @@
 {
-  "yafu_siqs_baseline": {
-    "scaling_argument": "SIQS is L[1/2, 1+o(1)]. For each +10 digits, time multiplies by ~8-10x.",
-    "30": 0.014, "40": 0.017, "50": 0.12, "60": 0.7, "70": 5.8,
-    "80": 44, "85": 136, "87": 188, "88": 222, "89": 294
-  },
   "sss": {
     "scaling_argument": "Smooth Subsum Search (Hittmeir 2023). CRT-based structured candidate generation. L[1/2] but with better scaling constants — ~8.4x per +10 digits vs MPQS's ~40.7x in the 50-60 digit range.",
     "30": 0.063, "35": 0.303, "40": 1.33, "45": 4.72, "55": 55.396, "60": 269.394
