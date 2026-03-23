@@ -252,3 +252,4 @@
 [2026-03-23 09:00:00] size: 73 | approach: turbo_pp LP_mult=250 on 73d[4] | time: TIMEOUT | notes: Higher LP_mult (250 vs 200) got 3167 SLP vs 2918 SLP but still 72% in 275s (8146/11280). Extra LP matches don't compensate for the harder number. 73d[4] confirmed to need ~380s regardless of LP tuning.
 [2026-03-23 09:00:00] size: 65 | approach: siqs_ub (batch 8 + Gray code) | time: 87.9s worst | notes: Outclassed by turbo_pp (59.7s) and siqs_bucket (70.7s). Batch=8 doesn't help vs 48KB blocks and DLP pipeline.
 [2026-03-23 09:00:00] size: 70-72 | approach: HyperSIQS tuned + structured GE | time: 70d=74.9s, 72d=164.4s | notes: BEST at 70d (was turbo_siqs 97.6s). FB=10000, LP=200-300, structured GE. 72d all 5 pass.
+[2026-03-23 10:00:00] size: 73 | approach: HyperSIQS | time: 167.9s (worst of 5) | notes: All 5 73d factored (78-168s). 75d fails (timeout). Extends reliable max to 73d.
