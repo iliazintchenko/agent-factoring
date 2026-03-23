@@ -296,3 +296,5 @@
 [2026-03-23 01:50:00] size: 61-70 | approach: YAFU SIQS (verification, load 15-19) | time: matches recorded | notes: All 61-70d times verified within 2-5% of recorded best. No improvements found. Times are accurate.
 [2026-03-23 01:50:00] size: 30-44 | approach: lattice_siqs.c scaling test | time: 30d=0.016s, 40d=3.0s, 42d+=TIMEOUT | notes: Custom SIQS 100-1000x slower than YAFU. Scalar sieve is fundamental bottleneck.
 [2026-03-23 01:50:00] size: 60-89 | approach: Scaling analysis | time: N/A | notes: Fit ln(T) = 0.84 * sqrt(lnN * lnlnN) - 22.2. YAFU achieves c=0.84 vs theoretical c=1.0. Predicts 90d=309s, matching 3/5 pass. SIQS/GNFS crossover at ~80-85d theoretically.
+[2026-03-23 01:47:00] size: 90 | approach: GNFS pipeline (gnfs_90d.sh) 90d[1] at load=16 | time: TIMEOUT | notes: Collected 1.1M/1.46M rels in 245s at 4491/sec. Needs 325s total sieve. Budget 260s (295-35 post). GNFS requires load < 10 for 90d.
+[2026-03-23 01:46:00] size: 65 | approach: NB sweep (8/10/12) on hardest 65d | time: 2.17/2.28/2.35 | notes: Default NB=8 is optimal for 65d. Confirms NB tuning only helps 73+d.
