@@ -31,8 +31,17 @@
 - **special_factor.c** — Pollard p-1, Williams p+1, ECM via GMP-ECM library. Works for numbers with smooth p-1/p+1. No hits above 56d with B1=1e6. `gcc -O3 -march=native -o special_factor library/special_factor.c -lgmp -lecm -lm`
 - **factor_oracle.c** — Multi-strategy oracle: trial div → Fermat → rho → p-1 → p+1 → ECM → fail. `gcc -O3 -march=native -o factor_oracle library/factor_oracle.c -lgmp -lecm -lm`
 
+### Batch Smoothness
+- **batch_qs.c** — SIQS with batch GCD pre-filter. Working 30-40d. `gcc -O3 -march=native -mavx512bw -o batch_qs library/batch_qs.c -lgmp -lm`
+
+### GNFS Pipeline
+- **gnfs_factor.sh** — End-to-end GNFS pipeline (YAFU poly select + GGNFS sieve + YAFU post-processing)
+- **gnfs_pipeline.sh** — Direct GGNFS sieve + YAFU post-processing with monitoring
+- **gnfs_polys/** — Pre-computed GNFS polynomials for 90d semiprimes (90d_{0-4}.job)
+
 ### Other
 - **pollard_rho.c** — Brent variant. Not competitive above 30d.
+- **lattice_factor.c** — Fermat/Lehman/lattice. Not competitive for random balanced semiprimes.
 - **block_lanczos.h** — Block Lanczos linear algebra (header-only).
 
 ## GNFS Pipeline

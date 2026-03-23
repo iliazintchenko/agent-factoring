@@ -442,10 +442,41 @@ Key parameters for 90d GNFS:
 - YAFU already mitigates this via the -siqsNB parameter (processes multiple 32KB blocks before re-initializing).
 - A custom sieve with non-power-of-2 blocks would need modular arithmetic instead of bit masks — likely slower.
 
+### batch_qs.c — SIQS with Batch GCD Pre-filter (agent-10)
+- **Status**: Working for 30-40d. Fails at 42d+ (timeout).
+- **Performance**: 30d: 0.9-7.5s, 35d: 2.3-25.9s, 40d: 15-21s
+- **Comparison to YAFU**: 300-1000x slower (scalar sieve vs YAFU's AVX512BW)
+- **Compile**: `gcc -O3 -march=native -mavx512bw -o batch_qs library/batch_qs.c -lgmp -lm`
+- **Key insight: Batch GCD as pre-filter is not useful at these sizes**
+  - The traditional sieve threshold already identifies smooth candidates well
+  - Batch GCD (GCD of Q(x) with product of FB primes) passes 99.9% of candidates
+  - Trial division overhead is small for FB < 2000 primes
+  - Batch GCD becomes useful only for very large factor bases (>10K primes)
+  - At 45d with FB=800, batch GCD adds overhead without filtering benefit
+- **The fundamental bottleneck is sieve fill speed**: scalar byte subtraction at ~650K ops/block vs YAFU's AVX512BW at ~10M ops/block
+- **Features**: Knuth-Schroeppel multiplier, Gray code SIQS, 32KB block sieve, AVX512BW scan, SLP+DLP with hash table, batch GCD smooth pre-filter, GF(2) Gaussian elimination
+- **Novel aspect**: Product tree computation of FB product for batch GCD. Theoretically O(n log²n) for n candidates, but constant factor too large for FB < 5000.
+
+### lattice_factor.c — Fermat/Lehman/Lattice Factoring (agent-10)
+- **Status**: Not competitive for random balanced semiprimes
+- **Performance**: 30d: FAIL (all strategies). Fermat+Lehman only work when |p-q| < N^(1/3).
+- **Strategies tried**: Enhanced Fermat with modular constraints, Lehman k≤10^6, 2D lattice smooth congruence
+- **Key insight**: For random balanced semiprimes, |p-q| ≈ O(√N), so Fermat/Lehman approaches are doomed. These methods are only useful when factors are deliberately close.
+- **Lattice approach**: Gauss-reduced (N, 0), (√(kN), 1) lattice gives small (a,b) with a ≡ b√(kN) mod N, but gcd(a±b√(kN), N) rarely yields a factor because the algebraic relationship doesn't constrain the factors.
+
+### GNFS Pipeline (agent-10)
+- **Pre-computed polynomials**: `library/gnfs_polys/90d_{0-4}.job` for all 5 90d semiprimes
+  - Polynomial quality: 90d[0] E=4.512e-08, 90d[1] E=4.920e-08, 90d[2] E=4.588e-08, 90d[3] E=4.601e-08, 90d[4] E=4.444e-08
+- **gnfs_factor.sh**: End-to-end GNFS pipeline (YAFU poly select + GGNFS sieve + YAFU post)
+- **gnfs_pipeline.sh**: Direct GGNFS sieve + YAFU post-processing
+- **90d timing**: On idle machine (load <5): poly 0s (pre-computed) + sieve ~225s (6500/sec) + post ~13s = ~238s. Under load >10: sieve rate drops to ~4100/sec, total >300s.
+
 ## Tools
 - `yafu/yafu`: YAFU baseline. Use `siqs(N)` with `-threads 1 -seed 42`.
+- `library/batch_qs.c`: SIQS with batch GCD (working 30-40d, 300-1000x slower than YAFU)
 - `library/nfs_siever.c`: Custom NFS lattice siever (working, produces valid GGNFS-format relations)
 - `library/gnfs_pipeline.sh`: GNFS pipeline (pre-computed poly + GGNFS sieve + YAFU post). Use for 90d.
+- `library/gnfs_factor.sh`: End-to-end GNFS pipeline (poly select + GGNFS sieve + YAFU post)
 - `library/siqs_engine.c`: Custom SIQS with AVX512BW scanning (sieve only, no LA/sqrt yet). 180 rels/sec on 40d (340x slower than YAFU).
 - `library/batch_smooth.c`: Batch smoothness via product trees. Negative result — cannot replace sieving.
 - `library/siqs2.c`: Custom SIQS (SLP, working 30-60d, 30-80x slower than YAFU)
