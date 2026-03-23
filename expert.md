@@ -148,6 +148,7 @@ Each digit adds ~15-20% to sieve time, consistent with L[1/2, 1+o(1)] scaling.
 ### Working implementations (best to worst)
 - **siqs_bucket.c**: **Best at 65d** (70.7s). Gray code + DLP→SLP pipeline + bucket sieve. 50d=0.86s (7x YAFU), 60d=8.9s (13x YAFU). `gcc -O3 -march=native -o siqs_bucket library/siqs_bucket.c -lgmp -lm`
 - **hyper_siqs.c**: **Best at 60d** (single number). TLP SIQS with bucket sieve, Gray code, Pollard rho cofactor splitting. 9s on one 60d number. But at 70d (218s), LA dominates due to huge 22000x22000 matrix. `gcc -O3 -march=native -o hyper_siqs library/hyper_siqs.c -lgmp -lm`
+- **hybrid_siqs.c**: SPQS multi-poly batch (4 polys) combined with bucket sieve for large primes. Slower at small sizes (overhead) but competitive at 65d (86.2s). `gcc -O3 -march=native -o hybrid_siqs library/hybrid_siqs.c -lgmp -lm`
 - **spqs2.c**: **Best at 70d** (165s). SPQS with bucket sieve. `gcc -O3 -march=native -o spqs2 library/spqs2.c -lgmp -lm`
 - **spqs_dlp.c**: SPQS + DLP (SQUFOF) + adaptive threshold. **Best at 55d** (3.5s). `gcc -O3 -march=native -o spqs_dlp library/spqs_dlp.c -lgmp -lm`
 - **fast_siqs.c**: Bucket sieve SIQS with __int128 TD, sieve-informed TD, Gray code, SLP. 18s at 60d. `gcc -O3 -march=native -o fast_siqs library/fast_siqs.c -lgmp -lm`
@@ -203,8 +204,35 @@ The 15-25x gap is NOT closeable with pure C without SIMD. The sieve inner loop (
 
 ## Open Questions
 
-- **Can NFS beat QS at 85-100 digits on single core?** NFS has L[1/3] vs QS's L[1/2] scaling. But NFS implementation complexity is enormous (polynomial selection, lattice sieve, filtering, algebraic square root). The crossover depends on constant factors.
+- **Can NFS beat QS at 85-100 digits on single core?** NFS has L[1/3] vs QS's L[1/2] scaling, but L-notation analysis shows NFS constants are WORSE than QS until ~100-130d. For 80d: QS L-complexity ≈ exp(31), NFS ≈ exp(33). NFS only wins above 100d in theory, and a simple NFS implementation would need 120-150d to beat optimized QS. Not viable for our 30-100d range. The existing nfs_factor.c skeleton has a broken polynomial selection (c_0 coefficient is ~N instead of ~m) and no algebraic square root.
 - **Can ECM cofactorization improve SIQS?** ECM can split cofactors into DLP relations, but overhead (~10μs per ECM call) is high vs sieve amortization. Needs DLP graph (union-find) and proper exponent tracking. Potentially useful above 70d where sieve cost dominates.
 - **Can a simplified NFS be implemented?** The main barrier is the algebraic square root (Couveignes' algorithm). Line sieving + GF(2) LA + base-m polynomial selection are all implementable. CRT-based algebraic sqrt requires: root finding mod large primes (Cantor-Zassenhaus), square root mod each prime (Tonelli-Shanks), polynomial interpolation, CRT accumulation.
 - **Can we exploit balanced semiprime structure?** No known algorithm specifically targets N = p*q with p ≈ q. The Fermat/Lehman approaches only help when |p-q| is small relative to N^(1/3).
 - **Can TLP (triple large primes) help at 80-90 digits?** Literature says overhead dominates below 100d. With ECM cofactorization and hypergraph cycle finding, crossover might be lower.
+
+## Agent-4 Specific Findings
+
+### Bucket Sieve Implementation
+- Bucket sieve for large primes (p >= BLOCK_SIZE) is CRITICAL at 60d+ where >60% of FB primes exceed 32768
+- **KEY BUG**: Bucket overflow handling must create new slices when buckets fill (>75% of BUCKET_ALLOC). Without this, sieve hits are silently dropped, causing 2.3x fewer relations per polynomial
+- The YAFU-style bucket format (32-bit entries: 16-bit FB index + 16-bit sieve offset) is efficient and SIMD-friendly
+
+### DLP (Double Large Prime) at 65-70d
+- DLP with LP-column approach (adding columns to GF(2) matrix for each unique LP) is NOT viable at 65-70d
+- Root cause: LP space (~10^9) is vastly larger than DLP relation count (~500). Birthday paradox requires ~37K DLP relations for 50% collision but we only get ~50 per 1000 polys
+- Extending SLP matching to DLP LP range also hurts (lower match rate with larger LP space)
+- DLP→SLP pipeline (matching DLP cofactors against SLP hash) is the only effective DLP strategy, contributing 24% of relations at 65d
+
+### Multi-Factor-Base Sieve (Novel, NEGATIVE)
+- Concept: sieve with small FB (cheap), trial-divide candidates with extended FB (free for confirmed candidates)
+- Result: 2.2x SLOWER than standard SIQS. The sieve must iterate over all FB primes to be effective
+- The reduced sieve sensitivity from fewer sieve primes loses more smooth candidates than extended TD recovers
+- This is fundamentally because the sieve is an ADDITIVE accumulator - every omitted prime reduces the score, and lowering the threshold only partially compensates
+
+### Key Constant Factor Analysis
+- Custom SIQS implementations are 13-46x slower than YAFU across 30-70d
+- ~60% of the gap is from the scalar sieve inner loop (vs YAFU's AVX512BW)
+- ~20% from trial division efficiency
+- ~10% from polynomial overhead
+- ~10% from parameter tuning
+- No algorithmic improvement can overcome the AVX512 advantage; need SIMD for competitive performance
