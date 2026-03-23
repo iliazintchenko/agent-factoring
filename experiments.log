@@ -295,3 +295,4 @@
 [2026-03-23 10:15:00] size: 74 | approach: hyper_siqs2 (compiled from library/hyper_siqs2.c) | time: 180.2s worst | notes: ALL 5 74d semiprimes factored! (122, 73, 112, 180, 142s). NEW FRONTIER.
 [2026-03-23 10:15:00] size: 75 | approach: hyper_siqs2 | time: 211.0s worst | notes: ALL 5 75d semiprimes factored! (94, 211, 192, 151, 151s). NEW FRONTIER - first time 75d all-pass in the project!
 [2026-03-23 12:30:00] size: 76 | approach: hyper_siqs ALL 5 PASS | time: 281.3s worst | notes: 76d BREAKTHROUGH: ALL 5 factored with hyper_siqs: 247s, 251s, 259s, 261s, 281s. hyper_siqs2 fails 3/5 at 76d. The original hyper_siqs TLP is more robust. New ceiling: 76d!
+[2026-03-23 14:00:00] size: 76-77 | approach: hyper_siqs2_optimized | time: FAIL | notes: hyper_siqs2 (optimized for 70-74d) fails at 76d+ due to different parameter tuning. Original hyper_siqs with LP_mult=300 is better at 76d (280s). The frontier implementations need different params per size range.
