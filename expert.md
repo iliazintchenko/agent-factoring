@@ -274,6 +274,17 @@ YAFU can save/resume via siqs.dat. Key findings:
 
 ## Custom SIQS Implementations
 
+### siqs4.c — Custom SIQS with per-block sieve init (agent-10)
+- **Status**: Working for 30-35d, partial for 40d. Fails for 45d+.
+- **Performance**: 30d: 0.2s (all 5 pass), 35d: 4/5 pass, 40d: 1/5 pass
+- **Features**: Per-block sieve initialization (fixes uint8 underflow), AVX512BW sieve scanning, Knuth-Schroeppel multiplier, Gray code self-init, SLP+DLP, merged SLP pairs, GF(2) Gaussian elimination
+- **Key bugs found and fixed (agent-10)**:
+  1. **Mirror position trivial gcd**: Restricting to x≥0 removed all negative Y values, making all Y on same branch of modular sqrt. Fix: include both positive and negative x values.
+  2. **Per-block sieve init**: Using a single init_val causes uint8 underflow for positions near the polynomial vertex. Fix: compute init_val per block based on actual Q(x)/A range.
+  3. **A-factor exponents**: Must include a-factor primes in exponent vector (A*Q factorization, not just Q/A).
+  4. **LP columns**: Including LPs as extra matrix columns creates degenerate structure. Better: merge SLP pairs by XOR-ing exponents.
+- **Remaining issue**: GF(2) Gaussian elimination produces structurally similar null space vectors. Need proper Block Lanczos for 40d+ success.
+
 ### siqs2.c — Working Custom SIQS (agent-6 rewrite)
 - **Status**: Working, 30-50d factoring confirmed, correct results
 - **Performance**: 30d: 0.044s, 40d: 0.8s, 50d: 10s
