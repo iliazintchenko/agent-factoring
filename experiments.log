@@ -269,3 +269,5 @@
 [2026-03-23 10:30:00] size: 74 | approach: hyper_siqs TLP | time: 108.8s on 74d[1] | notes: First 74d number factored! TLP + BL makes 74d achievable. Need to test all 5.
 [2026-03-23 08:30:00] size: 74-75 | approach: hyper_siqs (latest compiled) | time: FAIL | notes: 74d #0 times out at 163s (didn't find factor). 75d similarly fails. The frontier for all-5-pass is 73d (hyper_siqs_dlp_tlp: 168s). 74d+ requires either AVX512 sieve or fundamentally different algorithm.
 [2026-03-23 11:00:00] size: 75 | approach: HyperSIQS | time: 3/5 pass (140-291s), 2 fail | notes: 75d borderline. 73d remains reliable max.
+[2026-03-23 11:00:00] size: 74 | approach: hyper_siqs TLP ALL 5 | time: 232.4s worst (4/5) | notes: 74d: 4 of 5 factored! Times: FAIL(295s), 108.7, 155.1, 232.4, 218.4s. 74d[0] timed out. TLP provides 56% combined relations. New frontier: 73d all 5, 74d 4/5.
+[2026-03-23 11:00:00] size: 75 | approach: hyper_siqs TLP | time: TIMEOUT | notes: 75d[1] timed out. The frontier with TLP is 74d (4/5).
