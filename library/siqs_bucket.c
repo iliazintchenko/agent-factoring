@@ -506,13 +506,21 @@ int main(int argc, char *argv[]) {
 
                         long off1 = ((long)soln1[bi][i] - block_start) % (long)p;
                         if (off1 < 0) off1 += p;
-                        for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
-                            sieves[bi][j] += lp;
-
                         if (soln1[bi][i] != soln2[bi][i]) {
+                            /* Interleaved two-root sieve */
                             long off2 = ((long)soln2[bi][i] - block_start) % (long)p;
                             if (off2 < 0) off2 += p;
-                            for (int j = (int)off2; j < SIEVE_BLOCK; j += p)
+                            int j1 = (int)off1, j2 = (int)off2;
+                            unsigned char *sv = sieves[bi];
+                            /* Interleave both roots for better ILP */
+                            while (j1 < SIEVE_BLOCK && j2 < SIEVE_BLOCK) {
+                                sv[j1] += lp; sv[j2] += lp;
+                                j1 += p; j2 += p;
+                            }
+                            while (j1 < SIEVE_BLOCK) { sv[j1] += lp; j1 += p; }
+                            while (j2 < SIEVE_BLOCK) { sv[j2] += lp; j2 += p; }
+                        } else {
+                            for (int j = (int)off1; j < SIEVE_BLOCK; j += p)
                                 sieves[bi][j] += lp;
                         }
                     }
