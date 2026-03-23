@@ -319,9 +319,9 @@ static params_t get_params(int bits) {
     if (bits <= 190) return (params_t){2500, 2, 60, 100, 0.84, 300};
     if (bits <= 200) return (params_t){3500, 2, 70, 100, 0.85, 400};
     if (bits <= 210) return (params_t){5000, 2, 70, 120, 0.86, 500};
-    if (bits <= 220) return (params_t){7000, 3, 80, 120, 0.87, 600};
-    if (bits <= 230) return (params_t){9000, 3, 80, 150, 0.875, 800};
-    if (bits <= 240) return (params_t){12000, 4, 80, 150, 0.88, 1000};
+    if (bits <= 220) return (params_t){7000, 8, 80, 120, 0.87, 600};
+    if (bits <= 230) return (params_t){9000, 12, 80, 150, 0.88, 800};
+    if (bits <= 240) return (params_t){12000, 16, 80, 150, 0.885, 1000};
     if (bits <= 250) return (params_t){16000, 5, 90, 200, 0.885, 1200};
     if (bits <= 260) return (params_t){22000, 6, 90, 200, 0.89, 1500};
     if (bits <= 270) return (params_t){30000, 8, 100, 250, 0.895, 2000};
