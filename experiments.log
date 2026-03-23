@@ -1,77 +1,77 @@
 
-[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.011 | notes: factored 202930257038936... = 237853791679697... * 853172260176581...
-[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.039 | notes: factored 277919530678208... = 285490143297067... * 973482052545047...
-[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.020 | notes: factored 161156277905775... = 216915926307757... * 742943501885287...
-[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.007 | notes: factored 156130224139567... = 163402858332899... * 955492613363501...
 [2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.005 | notes: factored 104911238164405... = 147780977331697... * 709910301438391...
-[2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.043 | notes: factored 355565094289532... = 512509817654951... * 693772259654386...
+[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.007 | notes: factored 156130224139567... = 163402858332899... * 955492613363501...
+[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.011 | notes: factored 202930257038936... = 237853791679697... * 853172260176581...
+[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.020 | notes: factored 161156277905775... = 216915926307757... * 742943501885287...
+[2026-03-23 21:29:03] size: 30 | approach: ecm_baseline | time: 0.039 | notes: factored 277919530678208... = 285490143297067... * 973482052545047...
+[2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.004 | notes: factored 533500316084911... = 841510451217089... * 633979429861272...
+[2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.005 | notes: factored 726689633377618... = 793089300201113... * 916277187440737...
 [2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.007 | notes: factored 429293116277272... = 834077816631193... * 514691924083499...
 [2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.013 | notes: factored 393104011369235... = 894914607625937... * 439264269483852...
-[2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.005 | notes: factored 726689633377618... = 793089300201113... * 916277187440737...
-[2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.004 | notes: factored 533500316084911... = 841510451217089... * 633979429861272...
-[2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.044 | notes: factored 188739956202009... = 254574807130935... * 741392906584566...
+[2026-03-23 21:29:03] size: 31 | approach: ecm_baseline | time: 0.043 | notes: factored 355565094289532... = 512509817654951... * 693772259654386...
 [2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.005 | notes: factored 290429520223975... = 332483015348734... * 873516861964662...
+[2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.031 | notes: factored 180359471813987... = 192887406766300... * 935050529413300...
+[2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.044 | notes: factored 188739956202009... = 254574807130935... * 741392906584566...
 [2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.046 | notes: factored 228667597911772... = 271590263885440... * 841958009246701...
 [2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.102 | notes: factored 234349011471735... = 289599071523785... * 809218794240808...
-[2026-03-23 21:29:03] size: 32 | approach: ecm_baseline | time: 0.031 | notes: factored 180359471813987... = 192887406766300... * 935050529413300...
+[2026-03-23 21:29:03] size: 33 | approach: ecm_baseline | time: 0.007 | notes: factored 477714866436573... = 488826400362016... * 977268957001477...
 [2026-03-23 21:29:03] size: 33 | approach: ecm_baseline | time: 0.024 | notes: factored 211311848629410... = 424639019169856... * 497627017513634...
 [2026-03-23 21:29:03] size: 33 | approach: ecm_baseline | time: 0.030 | notes: factored 303401051059863... = 873693125587809... * 347262719797341...
 [2026-03-23 21:29:03] size: 33 | approach: ecm_baseline | time: 0.043 | notes: factored 414021266036281... = 852046206747551... * 485914100382761...
-[2026-03-23 21:29:03] size: 33 | approach: ecm_baseline | time: 0.007 | notes: factored 477714866436573... = 488826400362016... * 977268957001477...
 [2026-03-23 21:29:03] size: 33 | approach: ecm_baseline | time: 0.067 | notes: factored 720437394186577... = 723477965614483... * 995797285373682...
 [2026-03-23 21:29:03] size: 34 | approach: ecm_baseline | time: 0.073 | notes: factored 162381213391336... = 197917156498185... * 820450416044779...
 [2026-03-23 21:29:04] size: 34 | approach: ecm_baseline | time: 0.007 | notes: factored 209742946853845... = 258156103393680... * 812465574497743...
-[2026-03-23 21:29:04] size: 34 | approach: ecm_baseline | time: 0.050 | notes: factored 120853437593450... = 137073378606561... * 881669648928206...
-[2026-03-23 21:29:04] size: 34 | approach: ecm_baseline | time: 0.036 | notes: factored 161893910942650... = 165848590937844... * 976154877332199...
 [2026-03-23 21:29:04] size: 34 | approach: ecm_baseline | time: 0.007 | notes: factored 295410170550307... = 318857492804084... * 926464571845005...
-[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.118 | notes: factored 395285563179904... = 698425391554693... * 565966770337486...
-[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.038 | notes: factored 835438611457033... = 922277778633279... * 905842719852870...
-[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.020 | notes: factored 211034113370899... = 299014381254242... * 705765764461554...
-[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.199 | notes: factored 215931250208940... = 770984904023112... * 280071956120256...
+[2026-03-23 21:29:04] size: 34 | approach: ecm_baseline | time: 0.036 | notes: factored 161893910942650... = 165848590937844... * 976154877332199...
+[2026-03-23 21:29:04] size: 34 | approach: ecm_baseline | time: 0.050 | notes: factored 120853437593450... = 137073378606561... * 881669648928206...
 [2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.020 | notes: factored 101710879449745... = 371273119201592... * 273951638805605...
+[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.020 | notes: factored 211034113370899... = 299014381254242... * 705765764461554...
+[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.038 | notes: factored 835438611457033... = 922277778633279... * 905842719852870...
+[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.118 | notes: factored 395285563179904... = 698425391554693... * 565966770337486...
+[2026-03-23 21:29:04] size: 35 | approach: ecm_baseline | time: 0.199 | notes: factored 215931250208940... = 770984904023112... * 280071956120256...
 [2026-03-23 21:29:04] size: 36 | approach: ecm_baseline | time: 0.144 | notes: factored 116852638493505... = 124427679318959... * 939120934611052...
 [2026-03-23 21:29:04] size: 36 | approach: ecm_baseline | time: 0.167 | notes: factored 234823434420457... = 282354060658473... * 831663032834837...
+[2026-03-23 21:29:05] size: 36 | approach: ecm_baseline | time: 0.109 | notes: factored 311600836119810... = 341557716280196... * 912293358537943...
 [2026-03-23 21:29:05] size: 36 | approach: ecm_baseline | time: 0.209 | notes: factored 274961060582595... = 308335176111167... * 891760272215780...
 [2026-03-23 21:29:05] size: 36 | approach: ecm_baseline | time: 0.212 | notes: factored 115431364254145... = 136048381418674... * 848458195903984...
-[2026-03-23 21:29:05] size: 36 | approach: ecm_baseline | time: 0.109 | notes: factored 311600836119810... = 341557716280196... * 912293358537943...
-[2026-03-23 21:29:05] size: 37 | approach: ecm_baseline | time: 0.306 | notes: factored 218272072598950... = 247512976258061... * 881861128652003...
 [2026-03-23 21:29:05] size: 37 | approach: ecm_baseline | time: 0.122 | notes: factored 562543064640554... = 588689639046004... * 955585128952122...
 [2026-03-23 21:29:05] size: 37 | approach: ecm_baseline | time: 0.226 | notes: factored 284331611007301... = 284946505447766... * 997842070603746...
-[2026-03-23 21:29:06] size: 37 | approach: ecm_baseline | time: 0.371 | notes: factored 713136873417021... = 745861649733741... * 956124870707051...
+[2026-03-23 21:29:05] size: 37 | approach: ecm_baseline | time: 0.306 | notes: factored 218272072598950... = 247512976258061... * 881861128652003...
 [2026-03-23 21:29:06] size: 37 | approach: ecm_baseline | time: 0.011 | notes: factored 523951330216841... = 714657417109919... * 733150342629486...
-[2026-03-23 21:29:06] size: 38 | approach: ecm_baseline | time: 0.228 | notes: factored 324335189276353... = 351031545330432... * 923948840469737...
+[2026-03-23 21:29:06] size: 37 | approach: ecm_baseline | time: 0.371 | notes: factored 713136873417021... = 745861649733741... * 956124870707051...
 [2026-03-23 21:29:06] size: 38 | approach: ecm_baseline | time: 0.078 | notes: factored 248974543021883... = 285781322384749... * 871206490838081...
-[2026-03-23 21:29:06] size: 38 | approach: ecm_baseline | time: 0.135 | notes: factored 194725240321265... = 229766327142543... * 847492505725005...
 [2026-03-23 21:29:06] size: 38 | approach: ecm_baseline | time: 0.135 | notes: factored 188411662171736... = 198196894491358... * 950628730360616...
+[2026-03-23 21:29:06] size: 38 | approach: ecm_baseline | time: 0.135 | notes: factored 194725240321265... = 229766327142543... * 847492505725005...
+[2026-03-23 21:29:06] size: 38 | approach: ecm_baseline | time: 0.228 | notes: factored 324335189276353... = 351031545330432... * 923948840469737...
 [2026-03-23 21:29:07] size: 38 | approach: ecm_baseline | time: 0.286 | notes: factored 135393788277382... = 141907082721542... * 954101695847414...
 [2026-03-23 21:29:07] size: 39 | approach: ecm_baseline | time: 0.231 | notes: factored 352306395906435... = 380577644681529... * 925714898995836...
-[2026-03-23 21:29:08] size: 39 | approach: ecm_baseline | time: 0.571 | notes: factored 144603360782519... = 377095611725841... * 383466039609207...
 [2026-03-23 21:29:08] size: 39 | approach: ecm_baseline | time: 0.021 | notes: factored 920909037968012... = 927709260431230... * 992669877564812...
-[2026-03-23 21:29:08] size: 39 | approach: ecm_baseline | time: 0.436 | notes: factored 200465006235614... = 564201694898540... * 355307344958726...
 [2026-03-23 21:29:08] size: 39 | approach: ecm_baseline | time: 0.301 | notes: factored 358204855037157... = 433448846309263... * 826406294738596...
-[2026-03-23 21:29:09] size: 40 | approach: ecm_baseline | time: 0.333 | notes: factored 162829711243072... = 225830275045728... * 721026935870760...
-[2026-03-23 21:29:09] size: 40 | approach: ecm_baseline | time: 0.664 | notes: factored 119237240021855... = 151440217298102... * 787355183115876...
+[2026-03-23 21:29:08] size: 39 | approach: ecm_baseline | time: 0.436 | notes: factored 200465006235614... = 564201694898540... * 355307344958726...
+[2026-03-23 21:29:08] size: 39 | approach: ecm_baseline | time: 0.571 | notes: factored 144603360782519... = 377095611725841... * 383466039609207...
 [2026-03-23 21:29:09] size: 40 | approach: ecm_baseline | time: 0.041 | notes: factored 250771218950326... = 267808058136995... * 936384142787990...
 [2026-03-23 21:29:09] size: 40 | approach: ecm_baseline | time: 0.130 | notes: factored 259683863728955... = 310968342762427... * 835081350796367...
+[2026-03-23 21:29:09] size: 40 | approach: ecm_baseline | time: 0.333 | notes: factored 162829711243072... = 225830275045728... * 721026935870760...
+[2026-03-23 21:29:09] size: 40 | approach: ecm_baseline | time: 0.664 | notes: factored 119237240021855... = 151440217298102... * 787355183115876...
 [2026-03-23 21:29:11] size: 40 | approach: ecm_baseline | time: 1.610 | notes: factored 192552508057229... = 208041796725206... * 925547226990952...
-[2026-03-23 21:29:12] size: 41 | approach: ecm_baseline | time: 0.522 | notes: factored 794903137212484... = 972816354188456... * 817115310397520...
-[2026-03-23 21:29:12] size: 41 | approach: ecm_baseline | time: 0.394 | notes: factored 226852378814232... = 478641192849898... * 473950805327726...
 [2026-03-23 21:29:12] size: 41 | approach: ecm_baseline | time: 0.064 | notes: factored 309695864083905... = 527226212161110... * 587406044958304...
 [2026-03-23 21:29:12] size: 41 | approach: ecm_baseline | time: 0.148 | notes: factored 114802868236110... = 497262298040695... * 230869842110400...
+[2026-03-23 21:29:12] size: 41 | approach: ecm_baseline | time: 0.394 | notes: factored 226852378814232... = 478641192849898... * 473950805327726...
+[2026-03-23 21:29:12] size: 41 | approach: ecm_baseline | time: 0.522 | notes: factored 794903137212484... = 972816354188456... * 817115310397520...
 [2026-03-23 21:29:13] size: 41 | approach: ecm_baseline | time: 1.256 | notes: factored 654156129625304... = 713196418501060... * 917217350866900...
-[2026-03-23 21:29:15] size: 42 | approach: ecm_baseline | time: 1.077 | notes: factored 279713453341478... = 281458292402321... * 993800718941516...
 [2026-03-23 21:29:15] size: 42 | approach: ecm_baseline | time: 0.812 | notes: factored 271319311427826... = 312903253237424... * 867102878032255...
-[2026-03-23 21:29:17] size: 42 | approach: ecm_baseline | time: 1.308 | notes: factored 122855583347580... = 147654092019125... * 832049973472240...
+[2026-03-23 21:29:15] size: 42 | approach: ecm_baseline | time: 1.077 | notes: factored 279713453341478... = 281458292402321... * 993800718941516...
 [2026-03-23 21:29:17] size: 42 | approach: ecm_baseline | time: 0.594 | notes: factored 115829382807307... = 207501258670461... * 558210507008341...
+[2026-03-23 21:29:17] size: 42 | approach: ecm_baseline | time: 1.308 | notes: factored 122855583347580... = 147654092019125... * 832049973472240...
 [2026-03-23 21:29:18] size: 42 | approach: ecm_baseline | time: 0.557 | notes: factored 113311220046085... = 184183033605295... * 615209869378693...
 [2026-03-23 21:29:18] size: 43 | approach: ecm_baseline | time: 0.503 | notes: factored 288684935804513... = 424959156035574... * 679323957854310...
-[2026-03-23 21:29:20] size: 43 | approach: ecm_baseline | time: 1.505 | notes: factored 150110475129996... = 685508883579763... * 218976702892764...
-[2026-03-23 21:29:20] size: 43 | approach: ecm_baseline | time: 0.209 | notes: factored 186677193232697... = 480031815015378... * 388885043435542...
 [2026-03-23 21:29:20] size: 43 | approach: ecm_baseline | time: 0.172 | notes: factored 581713803709988... = 621734610734660... * 935630401889028...
+[2026-03-23 21:29:20] size: 43 | approach: ecm_baseline | time: 0.209 | notes: factored 186677193232697... = 480031815015378... * 388885043435542...
 [2026-03-23 21:29:20] size: 43 | approach: ecm_baseline | time: 0.222 | notes: factored 187768187305468... = 738969104334604... * 254094773657069...
-[2026-03-23 21:29:21] size: 44 | approach: ecm_baseline | time: 0.387 | notes: factored 308879399494130... = 343196255261655... * 900008070480368...
+[2026-03-23 21:29:20] size: 43 | approach: ecm_baseline | time: 1.505 | notes: factored 150110475129996... = 685508883579763... * 218976702892764...
 [2026-03-23 21:29:21] size: 44 | approach: ecm_baseline | time: 0.047 | notes: factored 318985528144739... = 321216316765875... * 993055182739169...
 [2026-03-23 21:29:21] size: 44 | approach: ecm_baseline | time: 0.344 | notes: factored 239065760002870... = 297257002515928... * 804239287819839...
+[2026-03-23 21:29:21] size: 44 | approach: ecm_baseline | time: 0.387 | notes: factored 308879399494130... = 343196255261655... * 900008070480368...
 [2026-03-23 21:29:22] size: 44 | approach: ecm_baseline | time: 0.807 | notes: factored 157240116696244... = 164959848542674... * 953202358545856...
 [2026-03-23 21:29:24] size: 44 | approach: ecm_baseline | time: 1.541 | notes: factored 193084526907694... = 198856239153979... * 970975453066795...
 [2026-03-23 21:29:24] size: 45 | approach: ecm_baseline | time: 0.145 | notes: factored 317641484699873... = 565777138201736... * 561425097008097...
@@ -100,8 +100,8 @@
 [2026-03-23 21:30:11] size: 49 | approach: ecm_baseline | time: 0.783 | notes: factored 505972736536408... = 556530801993010... * 909154955528880...
 [2026-03-23 21:30:13] size: 49 | approach: ecm_baseline | time: 1.368 | notes: factored 465126520676997... = 525590354464691... * 884960153332198...
 [2026-03-23 21:30:17] size: 50 | approach: ecm_baseline | time: 4.584 | notes: factored 167240975592477... = 205942262489198... * 812077004355767...
-[2026-03-23 21:30:18] size: 50 | approach: ecm_baseline | time: 0.750 | notes: factored 327712942422436... = 346994879723721... * 944431637387163...
 [2026-03-23 21:30:18] size: 50 | approach: ecm_baseline | time: 0.314 | notes: factored 314570914894092... = 331878444852614... * 947849791913394...
+[2026-03-23 21:30:18] size: 50 | approach: ecm_baseline | time: 0.750 | notes: factored 327712942422436... = 346994879723721... * 944431637387163...
 [2026-03-23 21:30:32] size: 50 | approach: ecm_baseline | time: 13.568 | notes: factored 204345087116198... = 213049143413492... * 959145311932090...
 [2026-03-23 21:30:39] size: 50 | approach: ecm_baseline | time: 6.643 | notes: factored 142637259511075... = 143795321103809... * 991946458453275...
 [2026-03-23 21:30:40] size: 51 | approach: ecm_baseline | time: 1.297 | notes: factored 205311634537553... = 412735740956876... * 497440890535826...
@@ -129,20 +129,20 @@
 [2026-03-23 21:33:15] size: 55 | approach: ecm_baseline | time: 1.077 | notes: factored 165812664674396... = 218709495227837... * 758141133752164...
 [2026-03-23 21:33:18] size: 55 | approach: ecm_baseline | time: 3.154 | notes: factored 254345850051516... = 363122801990237... * 700440315665869...
 [2026-03-23 21:34:01] size: 55 | approach: ecm_baseline | time: 43.501 | notes: factored 346208360654040... = 451605564466253... * 766616684768309...
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.077s | notes: found factor 237853791679697
+[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.009s | notes: found factor 955492613363501
 [2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.009s | notes: found factor 973482052545047
 [2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.014s | notes: found factor 742943501885287
-[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.009s | notes: found factor 955492613363501
 [2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.044s | notes: found factor 147780977331697
+[2026-03-23 21:34:26] size: 30 | approach: ecm | time: 0.077s | notes: found factor 237853791679697
+[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.023s | notes: found factor 37127311920159217
 [2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.031s | notes: found factor 69842539155469351
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.230s | notes: found factor 905842719852870697
 [2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.032s | notes: found factor 705765764461554899
 [2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.081s | notes: found factor 77098490402311201
-[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.023s | notes: found factor 37127311920159217
-[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.500s | notes: found factor 72102693587076008849
-[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.231s | notes: found factor 15144021729810256727
+[2026-03-23 21:34:26] size: 35 | approach: ecm | time: 0.230s | notes: found factor 905842719852870697
 [2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.149s | notes: found factor 93638414278799019499
+[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.231s | notes: found factor 15144021729810256727
 [2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.254s | notes: found factor 31096834276242774623
+[2026-03-23 21:34:27] size: 40 | approach: ecm | time: 0.500s | notes: found factor 72102693587076008849
 [2026-03-23 21:34:28] size: 40 | approach: ecm | time: 0.167s | notes: found factor 92554722699095299933
 [2026-03-23 21:34:28] size: 45 | approach: ecm | time: 0.039s | notes: found factor 5657771382017363579353
 [2026-03-23 21:34:28] size: 45 | approach: ecm | time: 0.657s | notes: found factor 666364299882261015982622872417393367680304549
@@ -151,8 +151,8 @@
 [2026-03-23 21:34:33] size: 45 | approach: ecm | time: 0.921s | notes: found factor 94847479583200705450003
 [2026-03-23 21:34:36] size: 55 | approach: ecm | time: 9.392s | notes: found factor 613004874865992749646301531
 [2026-03-23 21:34:37] size: 50 | approach: ecm | time: 4.362s | notes: found factor 8120770043557672253141101
-[2026-03-23 21:34:38] size: 50 | approach: ecm | time: 0.919s | notes: found factor 3469948797237213917621473
 [2026-03-23 21:34:38] size: 50 | approach: ecm | time: 0.476s | notes: found factor 3318784448526149968726087
+[2026-03-23 21:34:38] size: 50 | approach: ecm | time: 0.919s | notes: found factor 3469948797237213917621473
 [2026-03-23 21:34:40] size: 50 | approach: ecm | time: 1.718s | notes: found factor 2130491434134923133190229
 [2026-03-23 21:34:41] size: 50 | approach: ecm | time: 0.898s | notes: found factor 9919464584532754681498727
 [2026-03-23 21:34:42] size: 55 | approach: ecm | time: 6.391s | notes: found factor 9644833914128665350302021761
@@ -164,16 +164,16 @@
 [2026-03-23 21:39:33] size: 60 | approach: ecm | time: 103.937s | notes: found factor 160593629707405643958487297489
 [2026-03-23 21:39:53] size: 60 | approach: ecm | time: 19.506s | notes: found factor 127259672474532960959076409103
 [2026-03-23 21:43:24] size: 60 | approach: ecm | time: 211.271s | notes: found factor 910921035116519704149620627527
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.099s | notes: found factor 237853791679697
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.091s | notes: found factor 285490143297067
-[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.076s | notes: found factor 742943501885287
 [2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.072s | notes: found factor 163402858332899
+[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.076s | notes: found factor 742943501885287
+[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.091s | notes: found factor 285490143297067
+[2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.099s | notes: found factor 237853791679697
 [2026-03-23 21:45:29] size: 30 | approach: siqs | time: 0.110s | notes: found factor 709910301438391
-[2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.272s | notes: found factor 69842539155469351
 [2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.245s | notes: found factor 905842719852870697
+[2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.272s | notes: found factor 69842539155469351
 [2026-03-23 21:45:30] size: 35 | approach: siqs | time: 0.352s | notes: found factor 29901438125424293
-[2026-03-23 21:45:31] size: 35 | approach: siqs | time: 0.428s | notes: found factor 280071956120256107
 [2026-03-23 21:45:31] size: 35 | approach: siqs | time: 0.304s | notes: found factor 37127311920159217
+[2026-03-23 21:45:31] size: 35 | approach: siqs | time: 0.428s | notes: found factor 280071956120256107
 [2026-03-23 21:45:32] size: 40 | approach: siqs | time: 1.285s | notes: found factor 72102693587076008849
 [2026-03-23 21:45:33] size: 40 | approach: siqs | time: 1.244s | notes: found factor 78735518311587647563
 [2026-03-23 21:45:34] size: 40 | approach: siqs | time: 1.045s | notes: found factor 26780805813699501731
@@ -194,66 +194,106 @@
 [2026-03-23 21:46:11] size: 55 | approach: ecm | time: 14.553s | notes: found factor 451605564466253080023546841
 [2026-03-23 21:46:12] size: 50 | approach: siqs | time: 4.695s | notes: found factor 9591453119320901101941821
 [2026-03-23 21:46:17] size: 50 | approach: siqs | time: 5.176s | notes: found factor 9919464584532754681498727
+[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 44.617466557s | notes: factor=99120337580715523453789130329
+[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 49.376124020s | notes: factor=89751595122523791156893059429
+[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 57.597856291s | notes: factor=92109139809267151159177297811
+[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 88.513624436s | notes: factor=17126378949394488899993742571
+[2026-03-23 21:46:18] size: 58 | approach: siqs | time: 94.440349228s | notes: factor=92603323431341555808646960469
 [2026-03-23 21:47:29] size: 55 | approach: siqs | time: 40.675s | notes: found factor 9644833914128665350302021761
 [2026-03-23 21:47:42] size: 55 | approach: siqs | time: FAIL | notes: no factor for 16581266467439621867...
+[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 27.760592342s | notes: factor=606955932467073740617044093847
+[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 31.758412314s | notes: factor=48651413660930190627280465967
+[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 54.081447211s | notes: factor=272969733351344406449575166309
+[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 66.027754313s | notes: factor=877707626344573692830834139331
+[2026-03-23 21:47:57] size: 59 | approach: siqs | time: 99.159488227s | notes: factor=908950661703940505579875926287
 [2026-03-23 21:48:13] size: 60 | approach: siqs | time: FAIL | notes: no factor for 28677507619682817975...
 [2026-03-23 21:48:19] size: 65 | approach: ecm | time: FAIL | notes: no factor for 12240309739634277554...
 [2026-03-23 21:48:58] size: 60 | approach: ecm | time: 166.863s | notes: found factor 323012268366406069604976245747
+[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 120.878552283s | notes: factor=160593629707405643958487297489
+[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 60.716475148s | notes: factor=887814811639065808131138077543
+[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 63.698024730s | notes: factor=914330678589129528640370829611
+[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 64.597998030s | notes: factor=233727393239440919182445071663
+[2026-03-23 21:49:58] size: 60 | approach: siqs | time: 79.360203359s | notes: factor=910921035116519704149620627527
 [2026-03-23 21:50:25] size: 65 | approach: siqs | time: FAIL | notes: no factor for 12240309739634277554...
+[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 105.398257238s | notes: factor=755690653702078362063393888071
+[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 106.353295044s | notes: factor=535690706361980841500632680397
+[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 129.512717084s | notes: factor=5010677374193137000624241480693
+[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 60.205647730s | notes: factor=5307517619194052011227801015079
+[2026-03-23 21:52:08] size: 61 | approach: siqs | time: 74.083610982s | notes: factor=5002501016451585602436632793127
 [2026-03-23 21:53:14] size: 70 | approach: ecm | time: FAIL | notes: no factor for 10385907786029689599...
+[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 103.672290100s | notes: factor=9135405927976685192456442959287
+[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 69.498401734s | notes: factor=8710261781514903350498287202657
+[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 73.946389244s | notes: factor=9431214334580625146789563751717
+[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 77.884790366s | notes: factor=7463009256578807282887282575487
+[2026-03-23 21:53:51] size: 62 | approach: siqs | time: 99.307662270s | notes: factor=1697197652288598174769165251137
 [2026-03-23 21:53:53] size: 60 | approach: ecm | time: FAIL | notes: no factor for 15652951678703778102...
 [2026-03-23 21:55:20] size: 70 | approach: siqs | time: FAIL | notes: no factor for 10385907786029689599...
+[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 100.607428397s | notes: factor=7260919637965039885738437972131
+[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 111.618868218s | notes: factor=66597860456099474600441836998629
+[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 130.323916732s | notes: factor=8546881023841366050029628289477
+[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 189.639040610s | notes: factor=5919401604084975603551252896417
+[2026-03-23 21:57:01] size: 63 | approach: siqs | time: 65.270518762s | notes: factor=59670596733612213052471486376989
 [2026-03-23 21:57:33] size: 55 | approach: mpqs_v2 | time: FAIL | notes: no factor for 59959888854811800282...
 [2026-03-23 21:58:03] size: 60 | approach: mpqs_v2 | time: FAIL | notes: no factor for 28677507619682817975...
 [2026-03-23 21:58:48] size: 65 | approach: ecm | time: FAIL | notes: no factor for 12240309739634277554...
+[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 109.748540665s | notes: factor=81431071304514002581096604687599
+[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 115.582221276s | notes: factor=77139634158739047262994116776877
+[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 121.955469752s | notes: factor=73586903179221471484270676125813
+[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 149.804909065s | notes: factor=84114142109053389083561778055237
+[2026-03-23 21:59:31] size: 64 | approach: siqs | time: 92.489740454s | notes: factor=95374566566521794976740296046643
 [2026-03-23 21:59:34] size: 65 | approach: mpqs_v2 | time: FAIL | notes: no factor for 12240309739634277554...
 [2026-03-23 22:00:15] size: 75 | approach: siqs | time: FAIL | notes: no factor for 31498349190037640964...
-[2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.058s | notes: found factor 853172260176581
-[2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.064s | notes: found factor 973482052545047
 [2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.042s | notes: found factor 742943501885287
 [2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.055s | notes: found factor 163402858332899
+[2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.058s | notes: found factor 853172260176581
+[2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.064s | notes: found factor 973482052545047
 [2026-03-23 22:01:59] size: 30 | approach: sss | time: 0.107s | notes: found factor 709910301438391
-[2026-03-23 22:01:59] size: 31 | approach: sss | time: 0.078s | notes: found factor 512509817654951
 [2026-03-23 22:01:59] size: 31 | approach: sss | time: 0.062s | notes: found factor 5146919240834993
-[2026-03-23 22:02:00] size: 31 | approach: sss | time: 0.093s | notes: found factor 4392642694838527
-[2026-03-23 22:02:00] size: 31 | approach: sss | time: 0.092s | notes: found factor 793089300201113
+[2026-03-23 22:01:59] size: 31 | approach: sss | time: 0.078s | notes: found factor 512509817654951
 [2026-03-23 22:02:00] size: 31 | approach: sss | time: 0.078s | notes: found factor 841510451217089
+[2026-03-23 22:02:00] size: 31 | approach: sss | time: 0.092s | notes: found factor 793089300201113
+[2026-03-23 22:02:00] size: 31 | approach: sss | time: 0.093s | notes: found factor 4392642694838527
 [2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.053s | notes: found factor 7413929065845661
 [2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.058s | notes: found factor 8735168619646627
-[2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.107s | notes: found factor 8419580092467013
-[2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.095s | notes: found factor 2895990715237859
 [2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.089s | notes: found factor 9350505294133007
+[2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.095s | notes: found factor 2895990715237859
+[2026-03-23 22:02:00] size: 32 | approach: sss | time: 0.107s | notes: found factor 8419580092467013
 [2026-03-23 22:02:00] size: 33 | approach: sss | time: 0.060s | notes: found factor 49762701751363481
-[2026-03-23 22:02:00] size: 33 | approach: sss | time: 0.159s | notes: found factor 34726271979734171
 [2026-03-23 22:02:00] size: 33 | approach: sss | time: 0.102s | notes: found factor 48591410038276199
+[2026-03-23 22:02:00] size: 33 | approach: sss | time: 0.159s | notes: found factor 34726271979734171
 [2026-03-23 22:02:01] size: 33 | approach: sss | time: 0.076s | notes: found factor 4888264003620161
 [2026-03-23 22:02:01] size: 33 | approach: sss | time: 0.097s | notes: found factor 99579728537368267
-[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.162s | notes: found factor 19791715649818547
-[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.130s | notes: found factor 25815610339368071
-[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.128s | notes: found factor 88166964892820689
-[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.137s | notes: found factor 97615487733219949
 [2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.108s | notes: found factor 92646457184500561
+[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.128s | notes: found factor 88166964892820689
+[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.130s | notes: found factor 25815610339368071
+[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.137s | notes: found factor 97615487733219949
+[2026-03-23 22:02:01] size: 34 | approach: sss | time: 0.162s | notes: found factor 19791715649818547
 [2026-03-23 22:02:01] size: 35 | approach: sss | time: 0.124s | notes: found factor 565966770337486151
 [2026-03-23 22:02:02] size: 35 | approach: sss | time: 0.103s | notes: found factor 905842719852870697
+[2026-03-23 22:02:02] size: 35 | approach: sss | time: 0.162s | notes: found factor 273951638805605597
 [2026-03-23 22:02:02] size: 35 | approach: sss | time: 0.172s | notes: found factor 705765764461554899
 [2026-03-23 22:02:02] size: 35 | approach: sss | time: 0.261s | notes: found factor 280071956120256107
-[2026-03-23 22:02:02] size: 35 | approach: sss | time: 0.162s | notes: found factor 273951638805605597
 [2026-03-23 22:02:44] size: 55 | approach: mpqs_c | time: FAIL | notes: no factor for 59959888854811800282...
 [2026-03-23 22:03:14] size: 60 | approach: mpqs_c | time: FAIL | notes: no factor for 28677507619682817975...
 [2026-03-23 22:03:43] size: 70 | approach: ecm | time: FAIL | notes: no factor for 10385907786029689599...
+[2026-03-23 22:04:26] size: 65 | approach: siqs | time: 151.056764833s | notes: factor=34882065070015038892437762171661
+[2026-03-23 22:04:26] size: 65 | approach: siqs | time: 182.692891541s | notes: factor=24046545492603698687823074104337
+[2026-03-23 22:04:26] size: 65 | approach: siqs | time: 190.679389970s | notes: factor=18525345375040314252309807387983
+[2026-03-23 22:04:26] size: 65 | approach: siqs | time: 200.910812464s | notes: factor=52978147223722642199500166962889
+[2026-03-23 22:04:26] size: 65 | approach: siqs | time: FAIL | notes: TIMEOUT 295
 [2026-03-23 22:04:29] size: 70 | approach: mpqs_v2 | time: FAIL | notes: no factor for 10385907786029689599...
 [2026-03-23 22:04:42] size: 65 | approach: mpqs_c | time: FAIL | notes: no factor for 12240309739634277554...
 [2026-03-23 22:05:10] size: 80 | approach: siqs | time: FAIL | notes: no factor for 11531008305274903446...
 [2026-03-23 22:08:38] size: 75 | approach: ecm | time: FAIL | notes: no factor for 31498349190037640964...
-[2026-03-23 22:08:57] size: 30 | approach: sss_v2 | time: 0.063s | notes: found factor 853172260176581
-[2026-03-23 22:08:57] size: 30 | approach: sss_v2 | time: 0.063s | notes: found factor 285490143297067
 [2026-03-23 22:08:57] size: 30 | approach: sss_v2 | time: 0.042s | notes: found factor 742943501885287
+[2026-03-23 22:08:57] size: 30 | approach: sss_v2 | time: 0.063s | notes: found factor 285490143297067
+[2026-03-23 22:08:57] size: 30 | approach: sss_v2 | time: 0.063s | notes: found factor 853172260176581
 [2026-03-23 22:08:57] size: 30 | approach: sss_v2 | time: FAIL | notes: no factor for 15613022413956759178...
-[2026-03-23 22:08:57] size: 35 | approach: sss_v2 | time: 0.136s | notes: found factor 565966770337486151
 [2026-03-23 22:08:57] size: 35 | approach: sss_v2 | time: 0.100s | notes: found factor 92227777863327913
+[2026-03-23 22:08:57] size: 35 | approach: sss_v2 | time: 0.136s | notes: found factor 565966770337486151
 [2026-03-23 22:08:57] size: 35 | approach: sss_v2 | time: 0.179s | notes: found factor 29901438125424293
-[2026-03-23 22:08:58] size: 35 | approach: sss_v2 | time: 0.303s | notes: found factor 280071956120256107
 [2026-03-23 22:08:58] size: 35 | approach: sss_v2 | time: 0.173s | notes: found factor 273951638805605597
+[2026-03-23 22:08:58] size: 35 | approach: sss_v2 | time: 0.303s | notes: found factor 280071956120256107
 [2026-03-23 22:08:59] size: 40 | approach: sss_v2 | time: 0.890s | notes: found factor 22583027504572801031
 [2026-03-23 22:09:00] size: 40 | approach: sss_v2 | time: 0.910s | notes: found factor 78735518311587647563
 [2026-03-23 22:09:01] size: 40 | approach: sss_v2 | time: 1.101s | notes: found factor 93638414278799019499
@@ -278,6 +318,395 @@
 [2026-03-23 22:17:32] size: 70 | approach: mpqs_c | time: FAIL | notes: no factor for 10385907786029689599...
 [2026-03-23 22:18:56] size: 60 | approach: sss_v2 | time: 162.762s | notes: found factor 669709761519831182722747407587
 [2026-03-23 22:19:14] size: 85 | approach: mpqs_v2 | time: FAIL | notes: no factor for 29192727551723085158...
+[2026-03-23 22:19:53] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 104911238164405044544216979527
+[2026-03-23 22:19:53] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 156130224139567591781954119399
+[2026-03-23 22:19:53] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 161156277905775838690472271259
+[2026-03-23 22:19:53] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 202930257038936745993812575957
+[2026-03-23 22:19:53] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 277919530678208374875120477149
+[2026-03-23 22:19:53] size: 30 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:53] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3555650942895327385912435305811
+[2026-03-23 22:19:53] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3931040113692358909143032074799
+[2026-03-23 22:19:53] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 4292931162772728374195649736649
+[2026-03-23 22:19:53] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 7266896333776188665922391212827
+[2026-03-23 22:19:54] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5335003160849119127538707989169
+[2026-03-23 22:19:54] size: 31 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:54] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18035947181398758811544946774007
+[2026-03-23 22:19:54] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18873995620200974328492747149977
+[2026-03-23 22:19:54] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22866759791177209541904942110317
+[2026-03-23 22:19:54] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 23434901147173557048761158738579
+[2026-03-23 22:19:54] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 29042952022397551875622855728569
+[2026-03-23 22:19:54] size: 32 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:54] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 211311848629410689292149095650841
+[2026-03-23 22:19:54] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 303401051059863240448003241352587
+[2026-03-23 22:19:54] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 414021266036281218809974163215087
+[2026-03-23 22:19:54] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 477714866436573956604974444841793
+[2026-03-23 22:19:54] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 720437394186577403013742959687479
+[2026-03-23 22:19:54] size: 33 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:54] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1208534375934503420038093870473551
+[2026-03-23 22:19:54] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1618939109426501886621894107330653
+[2026-03-23 22:19:54] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1623812133913361003954727003647453
+[2026-03-23 22:19:54] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2097429468538456349121166132993927
+[2026-03-23 22:19:54] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2954101705503078534048011352625303
+[2026-03-23 22:19:55] size: 34 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:55] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 10171087944974513002392528346337549
+[2026-03-23 22:19:55] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 21103411337089959227239810887761407
+[2026-03-23 22:19:55] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 21593125020894089296137964834754507
+[2026-03-23 22:19:55] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 39528556317990406135112411867458001
+[2026-03-23 22:19:55] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 83543861145703336289573094899865361
+[2026-03-23 22:19:55] size: 35 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:55] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 115431364254145363939951251680895853
+[2026-03-23 22:19:55] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 116852638493505963581368248639925481
+[2026-03-23 22:19:55] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 234823434420457811384765937198720187
+[2026-03-23 22:19:55] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 274961060582595440490127831403949437
+[2026-03-23 22:19:55] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 311600836119810705325676876929553293
+[2026-03-23 22:19:55] size: 36 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:55] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2182720725989508167897802067451436887
+[2026-03-23 22:19:55] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5625430646405544543706563193831794359
+[2026-03-23 22:19:56] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2843316110073013352474822610468814321
+[2026-03-23 22:19:56] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5239513302168412825605911177840157461
+[2026-03-23 22:19:56] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 7131368734170210825301920876201852901
+[2026-03-23 22:19:56] size: 37 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:56] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 13539378827738299064142317481745079267
+[2026-03-23 22:19:56] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18841166217173694796083822991662369491
+[2026-03-23 22:19:56] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19472524032126580814147381541414830117
+[2026-03-23 22:19:56] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 24897454302188383785219135037529610499
+[2026-03-23 22:19:56] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 32433518927635311210401983299981909323
+[2026-03-23 22:19:56] size: 38 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:56] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 144603360782519997624975184231150666951
+[2026-03-23 22:19:56] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 352306395906435203576794993717966667273
+[2026-03-23 22:19:57] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 200465006235614226048406112357760553991
+[2026-03-23 22:19:57] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 358204855037157832458044391716461051573
+[2026-03-23 22:19:57] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 920909037968012952868389097822785963439
+[2026-03-23 22:19:57] size: 39 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:57] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1192372400218556710547861469915025906301
+[2026-03-23 22:19:57] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1628297112430722424000068609040072323319
+[2026-03-23 22:19:57] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2507712189503263216933634578427653252769
+[2026-03-23 22:19:58] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1925525080572299454993851690286442060403
+[2026-03-23 22:19:58] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2507712189503263216933634578427653252769
+[2026-03-23 22:19:58] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2596838637289558998004763099407731486149
+[2026-03-23 22:19:58] size: 40 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:58] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22685237881423293513578977373860914892243
+[2026-03-23 22:19:58] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 79490313721248448169161488028383076854191
+[2026-03-23 22:19:59] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 11480286823611049327534028622854045459129
+[2026-03-23 22:19:59] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 30969586408390553592276322518525206792023
+[2026-03-23 22:19:59] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 65415612962530433114896191169211099189747
+[2026-03-23 22:19:59] size: 41 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:19:59] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 122855583347580826474550085014890155608911
+[2026-03-23 22:19:59] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 271319311427826375476616190354347999810481
+[2026-03-23 22:19:59] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 279713453341478747850375106452515629559861
+[2026-03-23 22:20:00] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 113311220046085042925589424977481453271599
+[2026-03-23 22:20:00] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 115829382807307317536906389981208570826919
+[2026-03-23 22:20:00] size: 42 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:01] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1501104751299969500639303581699545354565453
+[2026-03-23 22:20:01] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2886849358045135616832821700422968357806701
+[2026-03-23 22:20:02] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1866771932326978332604393403851441501326791
+[2026-03-23 22:20:02] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5817138037099889814918826748696182175397799
+[2026-03-23 22:20:03] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1877681873054687290981695307169639486601203
+[2026-03-23 22:20:03] size: 43 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:04] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 30887939949413099244938528820261005038318411
+[2026-03-23 22:20:04] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 31898552814473920191034036490332117975437703
+[2026-03-23 22:20:05] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 15724011669624484288793399647627065094584659
+[2026-03-23 22:20:05] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 23906576000287086967246580896888612291655521
+[2026-03-23 22:20:06] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19308452690769413938464952958419189160708789
+[2026-03-23 22:20:06] size: 44 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:07] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 317641484699873493640328540834515234511960921
+[2026-03-23 22:20:07] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 666364299882261015982622872417393367680304549
+[2026-03-23 22:20:08] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 227607173877559459566217448362864192810512187
+[2026-03-23 22:20:08] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 430202298236405121914267850673191865785188027
+[2026-03-23 22:20:09] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 218187074912226648829683780908091892113723209
+[2026-03-23 22:20:09] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 430202298236405121914267850673191865785188027
+[2026-03-23 22:20:09] size: 45 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:10] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1480612726959564939309895998304919510741305181
+[2026-03-23 22:20:11] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1834797213325201514403246496183612690455705469
+[2026-03-23 22:20:12] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1297260499013917017664790220081172054041701027
+[2026-03-23 22:20:13] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1280066173742266840131702833784225798191909603
+[2026-03-23 22:20:13] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2821457049646560553430084268822185147537933587
+[2026-03-23 22:20:14] size: 46 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:14] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22662729899266246772657066917411473218291496223
+[2026-03-23 22:20:15] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 58662719048217854322737787195396920246601564199
+[2026-03-23 22:20:16] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 23433552537539625853205616459439011466813520807
+[2026-03-23 22:20:17] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18653807346238413047074754523406207815360227167
+[2026-03-23 22:20:18] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 58356631835448609235603411853748379832130324859
+[2026-03-23 22:20:18] size: 47 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:19] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 361711103018849118540171493233175423534758920209
+[2026-03-23 22:20:20] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 130359058136334199366048893047002821039495287299
+[2026-03-23 22:20:20] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 170417567495791693621179910385188641958649462947
+[2026-03-23 22:20:21] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 141570765601505145580528693759569393195102738463
+[2026-03-23 22:20:22] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 146162095461155723113633217085973382421166758421
+[2026-03-23 22:20:22] size: 48 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:24] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2312876101034080107432772216227585851290214912933
+[2026-03-23 22:20:25] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2557113809633343749000519774796553072562612559293
+[2026-03-23 22:20:27] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3684787107811775001245207477959896571754129401597
+[2026-03-23 22:20:28] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5059727365364080139045434459598642243596039711543
+[2026-03-23 22:20:29] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 4651265206769974025441956252301231895594591719393
+[2026-03-23 22:20:29] size: 49 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:31] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 16724097559247740010562767812730135893362075952213
+[2026-03-23 22:20:33] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 32771294242243621200349932640949184311334645230813
+[2026-03-23 22:20:35] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 20434508711619868601554181751353752568766483667009
+[2026-03-23 22:20:35] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 31457091489409200601913212372822488907032986058863
+[2026-03-23 22:20:36] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 14263725951107574285597628397529986685588922693519
+[2026-03-23 22:20:36] size: 50 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:38] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 205311634537553041052684021761603182998202491760001
+[2026-03-23 22:20:39] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 409566272027056289278342588214583329935692201616693
+[2026-03-23 22:20:40] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 656193955969800356495331258542931363360863009885419
+[2026-03-23 22:20:42] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 147986027525987434189390102451670433818922580897983
+[2026-03-23 22:20:43] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 161460791673026212690935899093655625066448183159131
+[2026-03-23 22:20:43] size: 51 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:45] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3238292475907606979326711055391886131237311032100479
+[2026-03-23 22:20:47] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2499707051337237347557889811859561720643580408572747
+[2026-03-23 22:20:49] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2249232443788473447447220905144323748202762856193377
+[2026-03-23 22:20:51] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1019543632258690753271287514893530572155397399037607
+[2026-03-23 22:20:52] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1518284835524580469718223851400933811867632026081797
+[2026-03-23 22:20:52] size: 52 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:54] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19406026353901707360789600485672663303231306274331129
+[2026-03-23 22:20:56] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 161156277905775838690472271259
+[2026-03-23 22:20:56] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 202930257038936745993812575957
+[2026-03-23 22:20:56] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 277919530678208374875120477149
+[2026-03-23 22:20:56] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 21403237846986700524397720499671074766052891576815547
+[2026-03-23 22:20:57] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 104911238164405044544216979527
+[2026-03-23 22:20:57] size: 30 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 156130224139567591781954119399
+[2026-03-23 22:20:57] size: 30 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:57] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3555650942895327385912435305811
+[2026-03-23 22:20:57] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3931040113692358909143032074799
+[2026-03-23 22:20:57] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 4292931162772728374195649736649
+[2026-03-23 22:20:57] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5335003160849119127538707989169
+[2026-03-23 22:20:57] size: 31 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 7266896333776188665922391212827
+[2026-03-23 22:20:57] size: 31 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:57] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18035947181398758811544946774007
+[2026-03-23 22:20:57] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18873995620200974328492747149977
+[2026-03-23 22:20:57] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22866759791177209541904942110317
+[2026-03-23 22:20:57] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 23434901147173557048761158738579
+[2026-03-23 22:20:57] size: 32 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 29042952022397551875622855728569
+[2026-03-23 22:20:57] size: 32 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:58] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 211311848629410689292149095650841
+[2026-03-23 22:20:58] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 303401051059863240448003241352587
+[2026-03-23 22:20:58] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 414021266036281218809974163215087
+[2026-03-23 22:20:58] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 477714866436573956604974444841793
+[2026-03-23 22:20:58] size: 33 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 720437394186577403013742959687479
+[2026-03-23 22:20:58] size: 33 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:58] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1208534375934503420038093870473551
+[2026-03-23 22:20:58] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1618939109426501886621894107330653
+[2026-03-23 22:20:58] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1623812133913361003954727003647453
+[2026-03-23 22:20:58] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2097429468538456349121166132993927
+[2026-03-23 22:20:58] size: 34 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2954101705503078534048011352625303
+[2026-03-23 22:20:58] size: 34 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:58] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 10171087944974513002392528346337549
+[2026-03-23 22:20:58] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 21103411337089959227239810887761407
+[2026-03-23 22:20:58] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 21593125020894089296137964834754507
+[2026-03-23 22:20:58] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 39528556317990406135112411867458001
+[2026-03-23 22:20:58] size: 35 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 83543861145703336289573094899865361
+[2026-03-23 22:20:58] size: 35 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:58] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 11179202786025341338383468450146043320193226428219971
+[2026-03-23 22:20:59] size: 35 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:59] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 115431364254145363939951251680895853
+[2026-03-23 22:20:59] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 116852638493505963581368248639925481
+[2026-03-23 22:20:59] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 234823434420457811384765937198720187
+[2026-03-23 22:20:59] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 274961060582595440490127831403949437
+[2026-03-23 22:20:59] size: 36 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 311600836119810705325676876929553293
+[2026-03-23 22:20:59] size: 36 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:20:59] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2182720725989508167897802067451436887
+[2026-03-23 22:20:59] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2843316110073013352474822610468814321
+[2026-03-23 22:20:59] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5239513302168412825605911177840157461
+[2026-03-23 22:20:59] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5625430646405544543706563193831794359
+[2026-03-23 22:20:59] size: 37 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 7131368734170210825301920876201852901
+[2026-03-23 22:20:59] size: 37 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:00] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 13539378827738299064142317481745079267
+[2026-03-23 22:21:00] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18841166217173694796083822991662369491
+[2026-03-23 22:21:00] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19472524032126580814147381541414830117
+[2026-03-23 22:21:00] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 24897454302188383785219135037529610499
+[2026-03-23 22:21:00] size: 38 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 32433518927635311210401983299981909323
+[2026-03-23 22:21:00] size: 38 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:00] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 144603360782519997624975184231150666951
+[2026-03-23 22:21:00] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 200465006235614226048406112357760553991
+[2026-03-23 22:21:00] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 352306395906435203576794993717966667273
+[2026-03-23 22:21:00] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 358204855037157832458044391716461051573
+[2026-03-23 22:21:00] size: 39 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 920909037968012952868389097822785963439
+[2026-03-23 22:21:00] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 17855578368018440085147524314989590235696876472543267
+[2026-03-23 22:21:01] size: 39 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:01] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1192372400218556710547861469915025906301
+[2026-03-23 22:21:01] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1628297112430722424000068609040072323319
+[2026-03-23 22:21:01] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2507712189503263216933634578427653252769
+[2026-03-23 22:21:01] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2596838637289558998004763099407731486149
+[2026-03-23 22:21:01] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 38960998364909786449393687572094010710219913992376473
+[2026-03-23 22:21:01] size: 53 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:02] size: 40 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1925525080572299454993851690286442060403
+[2026-03-23 22:21:02] size: 40 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:02] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 11480286823611049327534028622854045459129
+[2026-03-23 22:21:02] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22685237881423293513578977373860914892243
+[2026-03-23 22:21:02] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 30969586408390553592276322518525206792023
+[2026-03-23 22:21:02] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 79490313721248448169161488028383076854191
+[2026-03-23 22:21:03] size: 41 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 65415612962530433114896191169211099189747
+[2026-03-23 22:21:03] size: 41 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:03] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 115829382807307317536906389981208570826919
+[2026-03-23 22:21:03] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 122855583347580826474550085014890155608911
+[2026-03-23 22:21:03] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 271319311427826375476616190354347999810481
+[2026-03-23 22:21:03] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 279713453341478747850375106452515629559861
+[2026-03-23 22:21:04] size: 42 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 113311220046085042925589424977481453271599
+[2026-03-23 22:21:04] size: 42 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:04] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2886849358045135616832821700422968357806701
+[2026-03-23 22:21:05] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1501104751299969500639303581699545354565453
+[2026-03-23 22:21:06] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1866771932326978332604393403851441501326791
+[2026-03-23 22:21:06] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5817138037099889814918826748696182175397799
+[2026-03-23 22:21:07] size: 43 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1877681873054687290981695307169639486601203
+[2026-03-23 22:21:07] size: 43 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:08] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 30887939949413099244938528820261005038318411
+[2026-03-23 22:21:08] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 31898552814473920191034036490332117975437703
+[2026-03-23 22:21:09] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 15724011669624484288793399647627065094584659
+[2026-03-23 22:21:09] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 23906576000287086967246580896888612291655521
+[2026-03-23 22:21:10] size: 44 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19308452690769413938464952958419189160708789
+[2026-03-23 22:21:10] size: 44 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:11] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 317641484699873493640328540834515234511960921
+[2026-03-23 22:21:11] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 666364299882261015982622872417393367680304549
+[2026-03-23 22:21:12] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 227607173877559459566217448362864192810512187
+[2026-03-23 22:21:13] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 218187074912226648829683780908091892113723209
+[2026-03-23 22:21:13] size: 45 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 430202298236405121914267850673191865785188027
+[2026-03-23 22:21:13] size: 45 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:14] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1480612726959564939309895998304919510741305181
+[2026-03-23 22:21:15] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1834797213325201514403246496183612690455705469
+[2026-03-23 22:21:16] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1297260499013917017664790220081172054041701027
+[2026-03-23 22:21:17] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1280066173742266840131702833784225798191909603
+[2026-03-23 22:21:18] size: 46 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2821457049646560553430084268822185147537933587
+[2026-03-23 22:21:18] size: 46 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:19] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22662729899266246772657066917411473218291496223
+[2026-03-23 22:21:19] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 58662719048217854322737787195396920246601564199
+[2026-03-23 22:21:20] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 23433552537539625853205616459439011466813520807
+[2026-03-23 22:21:22] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18653807346238413047074754523406207815360227167
+[2026-03-23 22:21:22] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 58356631835448609235603411853748379832130324859
+[2026-03-23 22:21:22] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 206320957004026546561364959188784000770597124826951773
+[2026-03-23 22:21:23] size: 47 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 58356631835448609235603411853748379832130324859
+[2026-03-23 22:21:23] size: 47 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:24] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 170417567495791693621179910385188641958649462947
+[2026-03-23 22:21:24] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 361711103018849118540171493233175423534758920209
+[2026-03-23 22:21:25] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 130359058136334199366048893047002821039495287299
+[2026-03-23 22:21:26] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 141570765601505145580528693759569393195102738463
+[2026-03-23 22:21:26] size: 48 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 146162095461155723113633217085973382421166758421
+[2026-03-23 22:21:26] size: 48 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:28] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2312876101034080107432772216227585851290214912933
+[2026-03-23 22:21:29] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2557113809633343749000519774796553072562612559293
+[2026-03-23 22:21:31] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3684787107811775001245207477959896571754129401597
+[2026-03-23 22:21:33] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5059727365364080139045434459598642243596039711543
+[2026-03-23 22:21:34] size: 49 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 4651265206769974025441956252301231895594591719393
+[2026-03-23 22:21:34] size: 49 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:36] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 16724097559247740010562767812730135893362075952213
+[2026-03-23 22:21:37] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 32771294242243621200349932640949184311334645230813
+[2026-03-23 22:21:39] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 31457091489409200601913212372822488907032986058863
+[2026-03-23 22:21:40] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 20434508711619868601554181751353752568766483667009
+[2026-03-23 22:21:41] size: 50 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 14263725951107574285597628397529986685588922693519
+[2026-03-23 22:21:41] size: 50 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:43] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 205311634537553041052684021761603182998202491760001
+[2026-03-23 22:21:44] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 409566272027056289278342588214583329935692201616693
+[2026-03-23 22:21:44] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 295773137841430022692235606227652421580100648828968771
+[2026-03-23 22:21:45] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 656193955969800356495331258542931363360863009885419
+[2026-03-23 22:21:47] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 147986027525987434189390102451670433818922580897983
+[2026-03-23 22:21:47] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 143699863455909265203271535827061519005447040889017261
+[2026-03-23 22:21:49] size: 51 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 161460791673026212690935899093655625066448183159131
+[2026-03-23 22:21:49] size: 51 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:21:50] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3238292475907606979326711055391886131237311032100479
+[2026-03-23 22:21:53] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2499707051337237347557889811859561720643580408572747
+[2026-03-23 22:21:55] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2249232443788473447447220905144323748202762856193377
+[2026-03-23 22:21:57] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1019543632258690753271287514893530572155397399037607
+[2026-03-23 22:21:58] size: 52 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1518284835524580469718223851400933811867632026081797
+[2026-03-23 22:21:58] size: 52 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:22:00] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19406026353901707360789600485672663303231306274331129
+[2026-03-23 22:22:00] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 214010871882808039592909945929015913271039525333585913
+[2026-03-23 22:22:01] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 214010871882808039592909945929015913271039525333585913
+[2026-03-23 22:22:02] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 21403237846986700524397720499671074766052891576815547
+[2026-03-23 22:22:04] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 11179202786025341338383468450146043320193226428219971
+[2026-03-23 22:22:06] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 17855578368018440085147524314989590235696876472543267
+[2026-03-23 22:22:06] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 118572869474525873792851623354907274200263899054805383
+[2026-03-23 22:22:06] size: 54 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:22:07] size: 53 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 38960998364909786449393687572094010710219913992376473
+[2026-03-23 22:22:07] size: 53 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:22:25] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5995988885481180028286409961472871854230945568736495401
+[2026-03-23 22:22:26] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5995988885481180028286409961472871854230945568736495401
 [2026-03-23 22:22:27] size: 75 | approach: mpqs_c | time: FAIL | notes: no factor for 31498349190037640964...
+[2026-03-23 22:22:29] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 206320957004026546561364959188784000770597124826951773
+[2026-03-23 22:22:52] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 295773137841430022692235606227652421580100648828968771
+[2026-03-23 22:22:52] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 8285071303192820569328068185755134342820456315234259547
+[2026-03-23 22:22:53] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 8285071303192820569328068185755134342820456315234259547
+[2026-03-23 22:22:54] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 143699863455909265203271535827061519005447040889017261
+[2026-03-23 22:23:06] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1658126646743962186754606476829310017796009881438548609
+[2026-03-23 22:23:08] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 214010871882808039592909945929015913271039525333585913
+[2026-03-23 22:23:09] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 214010871882808039592909945929015913271039525333585913
+[2026-03-23 22:23:14] size: 54 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 118572869474525873792851623354907274200263899054805383
+[2026-03-23 22:23:14] size: 54 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:23:25] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2543458500515166346136808356170778359091602798833701201
 [2026-03-23 22:23:26] size: 60 | approach: sss_v2 | time: 269.394s | notes: found factor 160593629707405643958487297489
+[2026-03-23 22:23:33] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5995988885481180028286409961472871854230945568736495401
+[2026-03-23 22:23:34] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 5995988885481180028286409961472871854230945568736495401
+[2026-03-23 22:23:45] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3462083606540400217535263981737722893594655519690029003
+[2026-03-23 22:23:46] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3462083606540400217535263981737722893594655519690029003
+[2026-03-23 22:23:46] size: 55 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:23:50] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 15390172934730741058753501525931415414922297231683584201
+[2026-03-23 22:23:52] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18543816582070613603335824222035311643569358215837980527
+[2026-03-23 22:23:56] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22423813349599506982745394677482610331721288417603775339
+[2026-03-23 22:23:58] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 25890038406674045757464792578951888329596674492869273577
+[2026-03-23 22:23:59] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 25890038406674045757464792578951888329596674492869273577
+[2026-03-23 22:24:00] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 8285071303192820569328068185755134342820456315234259547
+[2026-03-23 22:24:01] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 8285071303192820569328068185755134342820456315234259547
+[2026-03-23 22:24:02] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 13765267062270843778825514839063616526722228101670737433
+[2026-03-23 22:24:03] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 13765267062270843778825514839063616526722228101670737433
+[2026-03-23 22:24:03] size: 56 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:24:07] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 148867841457663755776942236342240982528361287683523714339
+[2026-03-23 22:24:14] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1658126646743962186754606476829310017796009881438548609
+[2026-03-23 22:24:15] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1658126646743962186754606476829310017796009881438548609
+[2026-03-23 22:24:33] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2543458500515166346136808356170778359091602798833701201
+[2026-03-23 22:24:43] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 272708625575090533922068768753332473101825672436419917857
+[2026-03-23 22:24:44] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 272708625575090533922068768753332473101825672436419917857
+[2026-03-23 22:24:53] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3462083606540400217535263981737722893594655519690029003
+[2026-03-23 22:24:54] size: 55 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 3462083606540400217535263981737722893594655519690029003
+[2026-03-23 22:24:54] size: 55 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:24:58] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 15390172934730741058753501525931415414922297231683584201
+[2026-03-23 22:25:00] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 18543816582070613603335824222035311643569358215837980527
+[2026-03-23 22:25:04] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 22423813349599506982745394677482610331721288417603775339
+[2026-03-23 22:25:06] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 25890038406674045757464792578951888329596674492869273577
+[2026-03-23 22:25:07] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 25890038406674045757464792578951888329596674492869273577
+[2026-03-23 22:25:10] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 13765267062270843778825514839063616526722228101670737433
+[2026-03-23 22:25:11] size: 56 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 13765267062270843778825514839063616526722228101670737433
+[2026-03-23 22:25:11] size: 56 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:25:15] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 148867841457663755776942236342240982528361287683523714339
 [2026-03-23 22:25:31] size: 60 | approach: sss_v2 | time: 125.441s | notes: found factor 127259672474532960959076409103
+[2026-03-23 22:25:32] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 522242712379562808416045090391110365674008091637937627813
+[2026-03-23 22:25:33] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 522242712379562808416045090391110365674008091637937627813
+[2026-03-23 22:25:35] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 146488812771444780104350575625177865013026860893397190161
+[2026-03-23 22:25:36] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 146488812771444780104350575625177865013026860893397190161
+[2026-03-23 22:25:51] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 272708625575090533922068768753332473101825672436419917857
+[2026-03-23 22:25:54] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 298178703025095599802558691913519117402659532511048829399
+[2026-03-23 22:25:55] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 298178703025095599802558691913519117402659532511048829399
+[2026-03-23 22:25:55] size: 57 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:26:35] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2657002738837247181702734241122787237064531791156278459323
+[2026-03-23 22:26:38] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 522242712379562808416045090391110365674008091637937627813
+[2026-03-23 22:26:39] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 522242712379562808416045090391110365674008091637937627813
+[2026-03-23 22:26:42] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 146488812771444780104350575625177865013026860893397190161
+[2026-03-23 22:27:00] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 298178703025095599802558691913519117402659532511048829399
+[2026-03-23 22:27:01] size: 57 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 298178703025095599802558691913519117402659532511048829399
+[2026-03-23 22:27:01] size: 57 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:27:34] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1784666278932240519112698004043594014724615583540600060551
+[2026-03-23 22:27:40] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2657002738837247181702734241122787237064531791156278459323
+[2026-03-23 22:27:41] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2657002738837247181702734241122787237064531791156278459323
+[2026-03-23 22:28:00] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2992945279297619567738295126419319660549301895555476647649
+[2026-03-23 22:28:01] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2992945279297619567738295126419319660549301895555476647649
+[2026-03-23 22:28:39] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1784666278932240519112698004043594014724615583540600060551
+[2026-03-23 22:28:40] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1784666278932240519112698004043594014724615583540600060551
+[2026-03-23 22:28:59] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1695027216922792223578282868188999276352690984685204641399
+[2026-03-23 22:29:00] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1695027216922792223578282868188999276352690984685204641399
+[2026-03-23 22:29:05] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2992945279297619567738295126419319660549301895555476647649
+[2026-03-23 22:29:06] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 2992945279297619567738295126419319660549301895555476647649
+[2026-03-23 22:29:32] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1129647003750892423466575712460641982608981307628771746583
+[2026-03-23 22:29:33] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1129647003750892423466575712460641982608981307628771746583
+[2026-03-23 22:29:33] size: 58 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:29:51] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 35516301568521674092813578257515579473569034266630439748711
+[2026-03-23 22:29:52] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 35516301568521674092813578257515579473569034266630439748711
+[2026-03-23 22:30:03] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1695027216922792223578282868188999276352690984685204641399
+[2026-03-23 22:30:04] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1695027216922792223578282868188999276352690984685204641399
+[2026-03-23 22:30:05] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1695027216922792223578282868188999276352690984685204641399
+[2026-03-23 22:30:22] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19951328139008929098037427176820950973643745299411249500179
+[2026-03-23 22:30:23] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 19951328139008929098037427176820950973643745299411249500179
+[2026-03-23 22:30:36] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1129647003750892423466575712460641982608981307628771746583
+[2026-03-23 22:30:37] size: 58 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 1129647003750892423466575712460641982608981307628771746583
+[2026-03-23 22:30:37] size: 58 | approach: mpqs | time: s | notes: factor=
+[2026-03-23 22:30:55] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 35516301568521674092813578257515579473569034266630439748711
+[2026-03-23 22:31:01] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 10967158735656528062049607855696715807085012509879781302069
+[2026-03-23 22:31:02] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 10967158735656528062049607855696715807085012509879781302069
+[2026-03-23 22:31:15] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 26893320926133974754375883785980228957959893129709155774937
+[2026-03-23 22:31:16] size: 59 | approach: mpqs | time: FAIL | notes: timeout or no factor found for 26893320926133974754375883785980228957959893129709155774937

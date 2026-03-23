@@ -1,6 +1,6 @@
 {
   "yafu_siqs_baseline": {
-    "scaling_argument": "SIQS is L[1/2, 1+o(1)] = exp((1+o(1)) * sqrt(ln N * ln ln N)). For each +10 digits, time multiplies by ~8-10x.",
+    "scaling_argument": "SIQS is L[1/2, 1+o(1)]. For each +10 digits, time multiplies by ~8-10x.",
     "30": 0.014,
     "40": 0.017,
     "50": 0.12,
@@ -74,24 +74,27 @@
     "35": 0.261
   },
   "sss_v2": {
-    "scaling_argument": "Smooth Subsum Search v2 (optimized C++ with sorted-array collision counting). Scales significantly better than MPQS beyond 50 digits: 50->60 ratio is 8.4x for SSS vs ~39x for MPQS.",
     "30": 0.063,
     "35": 0.303,
-    "40": 0.783,
+    "40": 1.33,
     "45": 4.72,
-    "50": 17.441,
-    "55": 55.011,
-    "60": 147.145
+    "55": 55.396,
+    "60": 269.394
   },
   "mpqs": {
-    "scaling_argument": "MPQS (library/mpqs.c). Single-prime A, 2LP variation. NOTE: bench.py needs fixed output parsing for this binary — output is 'factor cofactor' not 'FACTOR: factor'.",
-    "30": 0.055,
-    "35": 0.047,
-    "40": 0.288,
-    "45": 0.775,
-    "50": 1.790,
-    "55": 25.314,
-    "60": 72.919,
-    "65": 90.704
+    "30": 0.058,
+    "35": 0.05,
+    "40": 0.303,
+    "45": 0.824,
+    "50": 1.878,
+    "52": 2.831,
+    "54": 22.424,
+    "56": 3.912,
+    "58": 60.895
+  },
+  "siqs_factor": {
+    "50": 1.443,
+    "60": 12.268,
+    "65": 119.454
   }
 }

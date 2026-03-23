@@ -58,6 +58,38 @@ The Cayley graph of (Z/NZ)* with small prime generators encodes the group struct
 - **ECM for balanced semiprimes**: Complexity depends on smallest factor. For balanced semiprimes, factors are ~N^(1/2), so ECM is L[1/2] in N and not competitive above ~55 digits. Our scaling data confirms this: ECM at 55 digits takes 43s.
 - **GNFS for small numbers (< 60 digits)**: NFS algebraic norms are dominated by polynomial coefficients (~N^{1/d}). For degree-3 on a 30-digit number, norms are ~70 bits vs factor base of 400, making algebraic smoothness probability essentially zero. NFS only helps for numbers > ~70-80 digits where the algebraic norm advantage outweighs the overhead.
 
+## NFS implementation status
+
+The NFS code (`library/nfs.c`) successfully:
+- Selects a degree-3 polynomial via base-m method
+- Builds rational and algebraic factor bases
+- Line-sieves over (a,b) pairs
+- Collects smooth relations
+- Finds dependencies via GF(2) linear algebra
+
+**Blocker: algebraic square root.** The current approach computes P^((N^d-1)/2) in the polynomial ring Z[α]/(f(α)) mod N, hoping the Euler criterion gives a nontrivial square root of unity. This FAILS because f(x) is reducible modulo all algebraic factor base primes (by construction of the AFB). So the ring Z[α]/(f(α)) mod p is NOT F_{p^d} but a product of smaller fields. The Euler criterion approach assumes irreducibility.
+
+**Correct approaches for NFS algebraic square root:**
+1. **Couveignes' method**: For each small prime ℓ, factor f mod ℓ, compute sqrt(P) in each component using polynomial Tonelli-Shanks, CRT to get sqrt(P) mod ℓ. Then integer CRT across many ℓ values to recover sqrt(P) as a polynomial. Finally evaluate at m mod N.
+2. **Montgomery's method**: Similar but with different CRT strategy.
+3. **Nguyen's method**: Single large prime, more efficient but harder to implement.
+
+All require significant implementation effort. The Couveignes approach is most straightforward but needs polynomial factoring mod ℓ, Tonelli-Shanks in extension fields, and multi-level CRT. Estimated ~500-1000 lines of code.
+
+## Large prime combination bug
+
+When combining two 1LP partial relations in SIQS/MPQS, the standard approach is:
+- Relation 1: (a₁x₁+b₁)² ≡ a₁·Q₁ (mod N), where a₁·Q₁ = F₁·lp
+- Relation 2: (a₂x₂+b₂)² ≡ a₂·Q₂ (mod N), where a₂·Q₂ = F₂·lp
+
+Combined: X² = F₁·F₂·lp² and Y² = F₁·F₂ (from FB exponents)
+
+The lp² factor must be included in Y. Either:
+- Track lp and multiply Y by lp when computing the square root
+- Or don't divide X by lp (as some implementations do)
+
+Failing to handle this causes all null vectors to produce X ≡ ±Y trivially. Verified empirically: 67 null vectors all gave X ≡ -Y mod N.
+
 ## Open directions
 
 These are starting points, not an exhaustive list.

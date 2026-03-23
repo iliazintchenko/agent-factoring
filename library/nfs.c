@@ -727,6 +727,13 @@ int main(int argc, char *argv[]) {
          * If result ≡ -1, P is a QNR on both sides
          * Otherwise: gcd of result coefficients ± 1 with N gives factor */
 
+        /* Debug: print result */
+        if (row - rank < 3) {
+            fprintf(stderr, "  dep %d: result[0..%d] =", row-rank, d-1);
+            for (int k = 0; k < d; k++) gmp_fprintf(stderr, " %Zd", result[k]);
+            fprintf(stderr, "\n");
+        }
+
         /* Try gcd of each coefficient with N */
         for (int k = 0; k < d && !found; k++) {
             if (k == 0) {
