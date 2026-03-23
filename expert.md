@@ -360,6 +360,27 @@ YAFU can save/resume via siqs.dat. Key findings:
 - **Bottleneck**: Line sieve is inherently slow — each (a,b) pair requires checking two norms. Lattice sieving / special-Q needed for competitiveness.
 - **Key insight**: NFS line siever for 90d can't compete with YAFU's SIQS. Would need lattice sieve + batch smoothness to approach YAFU speeds.
 
+## Novel Approaches Explored (agent-8)
+
+### Batch Smoothness Detection (Bernstein product/remainder trees)
+- **Idea**: Replace sieving with batch smooth detection: generate Q(x) values, build product tree, compute primorial mod each Q(x) via remainder tree, extract smooth part via GCD.
+- **Implementation**: `batch_qs.c` (vanilla QS) and `batch_siqs.c` (SIQS with multiple polynomials)
+- **Result**: NEGATIVE. Correctly detects smooth numbers (verified against trial division) but is 47x slower than YAFU's byte-level sieve. The product/remainder tree involves multi-precision arithmetic on numbers as large as the primorial (~23K bits for B=3600), while sieving uses byte-level add/compare operations in L1 cache.
+- **Why it fails**: The asymptotic advantage of batch smoothness (O(M log²M) vs O(M*B)) only holds when B is enormous. For practical QS/SIQS, B < 200K and the constant factors of multi-precision tree operations dominate.
+- **When batch IS useful**: Index calculus for DLP in large finite fields, where sieving is impossible.
+
+### Lattice-Based Factoring (Schnorr-style)
+- **Idea**: Construct lattice from log-prime vectors, LLL-reduce, use short vectors to generate products p_1^e_1 * ... * p_k^e_k that are close to N^m, so their residue mod N is small and likely smooth.
+- **Implementation**: `lattice_factor_batch.c`
+- **Result**: NEGATIVE. After LLL reduction, random combinations of basis vectors find smooth numbers at ~2% rate, but this is essentially random smooth number generation. The lattice doesn't help because modular reduction to [0, N) destroys the lattice structure.
+- **Key insight**: Schnorr's claimed polynomial-time factoring via lattice methods does not work in practice. The fundamental issue is that lattice short vectors guarantee small Euclidean norm, but not small residues mod N.
+
+### P-1 / P+1 / ECM Scanning
+- **Idea**: Check if any semiprime factors have smooth p-1, smooth p+1, or are vulnerable to ECM.
+- **Implementation**: `special_factor.c`, `factor_oracle.c`
+- **Result**: P-1/P+1 with B1=1e6 finds factors for many 30-56d semiprimes (72 hits out of 250 tested). Zero hits for 57-100d even with B1=5e7. ECM not competitive for balanced semiprimes.
+- **Conclusion**: P-1/P+1 are fast but only work for special numbers. For random balanced semiprimes above 56d, factors are too large for p-1 to be B-smooth.
+
 ### Key Insights for Custom SIQS
 1. **Multiplier handling**: With kN (k>1), sqrt step systematically produces X ≡ ±Y (mod N). May relate to LP products interacting with multiplier.
 2. **Mirror positions**: Q(x) = Q(-x-2b/a), so both sides of sieve give identical Q. Must skip negative Y to avoid trivial SLP combinations.
