@@ -70,6 +70,7 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **CRT-structured candidate generation**: Use CRT to force Q(x) = (x+m)² - N to be divisible by several chosen primes simultaneously. Testing shows higher raw smoothness rate (0.59% vs 0.24% for sequential at B=50000, 30 digits), but this is illusory: the CRT forces x to be of size ∏primes, making Q(x) much larger. The cofactor Q(x)/∏primes ≈ 2√N regardless — same as standard QS. No asymptotic improvement.
 - **Galois action on NFS relations**: For Galois polynomials, the d automorphisms permute roots but the algebraic norm (= product of all conjugates) is Galois-invariant by definition. Applying automorphisms gives the SAME norm, not new relations. The Galois structure provides d representations of one relation, not d independent relations. At best a constant factor of d improvement in candidate coverage, which doesn't change the L-exponent.
 - **Multiplicative lattice relations (MLR)**: Find exponents e_i such that p_1^{e_1} * ... * p_k^{e_k} mod N is small, using LLL on the log-embedding lattice. Even when the residue P(e) mod N is small (achievable via lattice reduction), this doesn't help: P(e) mod p is never zero (since p doesn't divide any p_i), and small P(e) mod N doesn't imply small P(e) mod p due to CRT entanglement. Computing gcd(P(e1)/P(e2) - r1/r2, N) always gives N because the ratio is computed mod N, erasing the p-vs-q distinction. This confirms Schnorr's lattice approach is fundamentally limited — not just practically but theoretically.
+- **Best-of-K polynomial selection** (surface_factor.c): For each sieve position, evaluate K different polynomials Q_k(x) and pick the one with smallest |Q_k(x)|. Tested with K=10 on 30-digit N, B=50000, 500K candidates: smoothness rate improved 1.92x but at 10x computational cost → net 5.3x WORSE per smooth value. Theory: the smoothness improvement from minimum of K values scales as K^{u/ln(B)} ≈ K^{0.5} (where u = ln(Q)/ln(B)), which is always SUBLINEAR in K. Best-of-K cherry-picking never beats standard sequential evaluation for any K, B, or N.
 
 ## Key insight: smoothness detection cost
 
@@ -107,21 +108,28 @@ High variance at 38+ digits due to MPQS extraction degeneracy requiring multipli
 
 ### ECM baseline (ecm_baseline.c)
 GMP-ECM with auto-scaled B1 (Suyama parametrization, sigma = 6 + curve_index).
-First semiprime per size, single run:
 
-| Digits | Time (s) | B1 used |
-|--------|----------|---------|
-| 30 | 0.03 | 48k |
-| 34 | 0.05 | 119k |
-| 38 | 0.14 | 304k |
-| 42 | 4.61 | 690k |
-| 46 | 2.74 | 1.5M |
-| 50 | 1.53 | 3.2M |
-| 54 | 16.6 | 6.8M |
-| 58 | 27.8 | 14M |
-| 60 | 46.1 | 21M |
+**Worst-of-5 measurements:**
 
-Note: ECM times are highly variable (factor of 10x between lucky/unlucky curves). These are single-run measurements, not worst-of-5. For reliable scaling analysis, need many runs per size. ECM is L_p[1/2] = L_N[1/2] for balanced semiprimes (since p ~ √N, ln(p) ~ ln(N)/2).
+| Digits | Worst-of-5 (s) |
+|--------|----------------|
+| 30 | 0.07 |
+| 32 | 0.05 |
+| 34 | 0.10 |
+| 36 | 0.12 |
+| 38 | 0.47 |
+| 40 | 0.41 |
+| 42 | 2.21 |
+| 44 | 1.69 |
+| 46 | 2.33 |
+| 48 | 6.67 |
+| 50 | 13.97 |
+| 52 | 14.20 |
+| 54 | 12.68 |
+| 56 | 32.75 |
+| 60 | 8.20 |
+
+ECM is highly variable (factor of 10x between lucky/unlucky runs). Non-monotonic timing (60-digit faster than 56-digit) is due to favorable p-1 structure in specific test numbers. ECM is L_p[1/2] = L_N[1/2] for balanced semiprimes (since p ~ √N, ln(p) ~ ln(N)/2).
 
 ### Known bugs / lessons
 - **LP matching must divide by cofactor**: When combining two single-LP relations sharing cofactor c, the combined sqrt_val must be sv1·sv2·c⁻¹ (mod N), not just sv1·sv2. Otherwise x = y for all dependencies.
