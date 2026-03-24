@@ -70,6 +70,27 @@ Cosset (2009): genus-2 hyperelliptic curve method on Kummer surfaces effectively
 - **Tower NFS (Barbulescu-Kim 2016)**: Sub-L[1/3] for DLP in GF(p^n) only. No factoring analog.
 - **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Exponential.
 
+## Implementations and scaling results
+
+See `library/index.md` for compile instructions. See `algo-scaling.json` for detailed per-size data.
+
+**Best approach by digit range** (worst-of-5 times):
+| Range | Best approach | Time range |
+|-------|--------------|------------|
+| 30-42d | BSRF-v3 (sieve) | 0.02-0.16s |
+| 30-42d | MMS (multi-multiplier sieve) | 0.07-2.9s |
+| 43-52d | MMS or SRG | 3.7-68.8s or 2.9-26s |
+| 53-55d | SRG (ECM-based) | 10.6-75.5s |
+| 56-62d | SRG or hybrid (ECM) | 11.7-165s |
+| 63-65d | SRG or hybrid | 22-277s |
+| 66d+ | No approach within 295s timeout |
+
+**Novel approaches developed**:
+- **MMCFRAC**: Multi-multiplier continued fraction. Combines CFRAC with MMS-style cross-multiplier LP merging. 30d=2.2s, 35d=28s, 40d=191s. Bottleneck: trial division O(fb) per CF step.
+- **CAD**: Sieve + aggressive cofactor splitting. 30d=10s. Outperformed by standard sieve (MMS, BSRF).
+- **IFM**: Iterated Frobenius map x→x^N mod N. Dead end — 100x per-step overhead vs rho.
+- **BatchQS**: Batch GCD smoothness detection. WIP — low yield from product tree approach.
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
