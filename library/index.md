@@ -8,6 +8,7 @@
 ## Implementations
 
 - **nfs_poly.c** — LLL-improved NFS polynomial selection. Achieves 64.5% more smooth values than standard base-m method by finding polynomials with 2-7x smaller max coefficient. Uses GMP.
+- **siqs.c** — Self-Initializing Quadratic Sieve. Factors 30-46 digit semiprimes (100% success). Log-based sieving, bit-packed Gaussian elimination mod 2, square root extraction. Uses GMP.
 
 ## Utilities
 
