@@ -490,8 +490,8 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
             for (int d = 0; d < ndeps && !success; d++)
                 success = try_extract(&full, deps[d], dsizes[d], kN, &fb, result);
 
-            /* If single deps failed, try XOR combinations of pairs */
-            if (!success && ndeps >= 2) {
+            /* Skip XOR pairs — for degenerate cases, ECM is faster */
+            if (0 && !success && ndeps >= 2) {
                 /* Combine pairs of dependencies via symmetric difference */
                 for (int i = 0; i < ndeps - 1 && !success; i++) {
                     for (int j = i + 1; j < ndeps && !success; j++) {
@@ -548,14 +548,16 @@ static int factor_ecm(const mpz_t N, mpz_t result, double deadline) {
         ecm_params p;
         ecm_init(p);
         mpz_set_ui(p->sigma, 42 + curve);
+        /* Use B2 = 100*B1 for stage 2 */
+        mpz_set_d(p->B2, B1 * 100);
         int ret = ecm_factor(result, N, B1, p);
         ecm_clear(p);
         if (ret > 0 && mpz_cmp(result, N) != 0 && mpz_cmp_ui(result, 1) > 0) {
             return 1;
         }
-        /* Ramp up B1 aggressively */
-        if (curve % 20 == 19) B1 *= 1.5;
-        if (B1 > optimal_B1 * 5) B1 = optimal_B1 * 5; /* cap */
+        /* Ramp up B1 */
+        if (curve % 10 == 9) B1 *= 1.3;
+        if (B1 > optimal_B1 * 3) B1 = optimal_B1 * 3;
     }
     return 0;
 }
@@ -579,9 +581,9 @@ int main(int argc, char **argv) {
             printf("FACTOR:%d\n", sp[i]); free(sp); mpz_clears(N, factor, NULL); return 0; }
       free(sp); }
 
-    /* Try MPQS with multipliers */
-    int multipliers[] = {1, 3, 5, 7, 11, 13};
-    int nmult = sizeof(multipliers) / sizeof(multipliers[0]);
+    /* Try MPQS with 2 multipliers, then fall back to ECM quickly */
+    int multipliers[] = {1, 3};
+    int nmult = 2;
     mpz_t kN;
     mpz_init(kN);
 
