@@ -169,12 +169,14 @@ static int build_factor_base(void) {
 }
 
 /* ── Trial-divide val by factor base, fill exponent vector (mod 2).
-      Returns 1 if val is B-smooth or has one large prime ≤ B^2.
-      Sets *lp to the large prime (0 if fully smooth). ── */
-static int trial_div(mpz_t val, u64 *vec, u64 *lp, int k_idx) {
+      Returns: 0 = not smooth enough
+               1 = fully smooth (lp=0)
+               1 = one large prime ≤ B^2 (lp = the prime)
+               2 = two large primes (lp1, lp2, each ≤ B^2) ── */
+static int trial_div(mpz_t val, u64 *vec, u64 *lp1, u64 *lp2, int k_idx) {
     mpz_t rem;
     mpz_init_set(rem, val);
-    *lp = 0;
+    *lp1 = *lp2 = 0;
     memset(vec, 0, g_vec_words * sizeof(u64));
 
     int neg = mpz_sgn(rem) < 0;
@@ -193,18 +195,56 @@ static int trial_div(mpz_t val, u64 *vec, u64 *lp, int k_idx) {
         }
     }
 
-    int ok = 0;
     if (mpz_cmp_ui(rem, 1) == 0) {
-        ok = 1;
-    } else if (mpz_sizeinbase(rem, 2) <= 52) {
+        mpz_clear(rem);
+        return 1;  /* fully smooth */
+    }
+
+    u64 LP_BOUND = (u64)g_B * (u64)g_B;
+
+    if (mpz_sizeinbase(rem, 2) <= 52) {
         u64 r = mpz_get_ui(rem);
-        if (r <= (u64)g_B * (u64)g_B) {
-            *lp = r;
-            ok = 1;
+        if (r <= LP_BOUND) {
+            *lp1 = r;
+            mpz_clear(rem);
+            return 1;  /* single large prime */
         }
     }
+
+    /* Check for 2-LP: rem = lp1 * lp2 where B < lp1 <= lp2 <= B^2
+       rem must fit in ~104 bits (2 * 52-bit primes) */
+    if (mpz_sizeinbase(rem, 2) <= 104) {
+        /* Quick check: if rem > B^4, can't be product of two primes ≤ B^2 */
+        /* Try small trial division of rem to split it */
+        u64 small_bound = (g_B < 100000) ? g_B : 100000;
+        for (u64 p = g_fb[g_fb_size - 1].p + 2; p <= small_bound; p += 2) {
+            if (mpz_fdiv_ui(rem, (unsigned long)p) == 0) {
+                mpz_fdiv_q_ui(rem, rem, (unsigned long)p);
+                /* Check remaining factor */
+                while (mpz_fdiv_ui(rem, (unsigned long)p) == 0)
+                    mpz_fdiv_q_ui(rem, rem, (unsigned long)p);
+                if (mpz_cmp_ui(rem, 1) == 0) {
+                    /* rem was a prime power of p — treat as 1-LP */
+                    *lp1 = p;
+                    mpz_clear(rem);
+                    return 1;
+                }
+                if (mpz_sizeinbase(rem, 2) <= 52) {
+                    u64 r2 = mpz_get_ui(rem);
+                    if (r2 <= LP_BOUND) {
+                        *lp1 = p;
+                        *lp2 = r2;
+                        mpz_clear(rem);
+                        return 2;  /* two large primes */
+                    }
+                }
+                break;  /* remaining too large */
+            }
+        }
+    }
+
     mpz_clear(rem);
-    return ok;
+    return 0;
 }
 
 /* ── Store a relation ── */
@@ -517,16 +557,18 @@ static int factor(void) {
 
                     mpz_abs(absval, val);
                     u64 vec_buf[(MAX_FB + 64) / 64];
-                    u64 lp = 0;
+                    u64 lp1 = 0, lp2 = 0;
 
-                    if (trial_div(val, vec_buf, &lp, ki)) {
+                    int td = trial_div(val, vec_buf, &lp1, &lp2, ki);
+                    if (td > 0) {
                         mpz_mod(xv, xv, g_N);
 
-                        if (lp == 0) {
+                        if (lp1 == 0) {
+                            /* Fully smooth */
                             store_rel(vec_buf, xv, absval, 1);
                             full_rels++;
                         } else if (g_nparts < MAX_PART) {
-                            /* Store partial separately */
+                            /* Store partial (1-LP or 2-LP) */
                             partial_t *pp = &g_parts[g_nparts];
                             memcpy(pp->vec, vec_buf, g_vec_words * sizeof(u64));
                             mpz_init_set(pp->x_val, xv);
@@ -535,23 +577,47 @@ static int factor(void) {
                             g_nparts++;
                             partials++;
 
-                            u32 h = (u32)(lp * 2654435761ULL) & LP_HASH_MASK;
-                            int match = -1;
-                            for (lp_node_t *nd = g_lp_ht[h]; nd; nd = nd->next) {
-                                if (nd->lp == lp) { match = nd->idx; break; }
-                            }
-
-                            if (match >= 0) {
-                                combine_parts(match, my_idx);
-                                combined++;
-                            }
-
-                            if (g_lp_next < MAX_PART * 2) {
-                                lp_node_t *nd = &g_lp_pool[g_lp_next++];
-                                nd->lp = lp;
-                                nd->idx = my_idx;
-                                nd->next = g_lp_ht[h];
-                                g_lp_ht[h] = nd;
+                            if (td == 1) {
+                                /* Single LP — match by exact LP value */
+                                u32 h = (u32)(lp1 * 2654435761ULL) & LP_HASH_MASK;
+                                int match = -1;
+                                for (lp_node_t *nd = g_lp_ht[h]; nd; nd = nd->next) {
+                                    if (nd->lp == lp1) { match = nd->idx; break; }
+                                }
+                                if (match >= 0) {
+                                    combine_parts(match, my_idx);
+                                    combined++;
+                                }
+                                if (g_lp_next < MAX_PART * 2) {
+                                    lp_node_t *nd = &g_lp_pool[g_lp_next++];
+                                    nd->lp = lp1;
+                                    nd->idx = my_idx;
+                                    nd->next = g_lp_ht[h];
+                                    g_lp_ht[h] = nd;
+                                }
+                            } else {
+                                /* 2-LP: store under both large primes */
+                                for (int li = 0; li < 2; li++) {
+                                    u64 lp = (li == 0) ? lp1 : lp2;
+                                    u32 h = (u32)(lp * 2654435761ULL) & LP_HASH_MASK;
+                                    int match = -1;
+                                    for (lp_node_t *nd = g_lp_ht[h]; nd; nd = nd->next) {
+                                        if (nd->lp == lp) { match = nd->idx; break; }
+                                    }
+                                    /* 2LP+1LP sharing one LP → combined has 1 remaining LP
+                                       That's still a partial, but track it anyway */
+                                    if (match >= 0) {
+                                        combine_parts(match, my_idx);
+                                        combined++;
+                                    }
+                                    if (g_lp_next < MAX_PART * 2) {
+                                        lp_node_t *nd = &g_lp_pool[g_lp_next++];
+                                        nd->lp = lp;
+                                        nd->idx = my_idx;
+                                        nd->next = g_lp_ht[h];
+                                        g_lp_ht[h] = nd;
+                                    }
+                                }
                             }
                         }
                     }
