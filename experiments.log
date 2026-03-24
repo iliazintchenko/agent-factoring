@@ -5,3 +5,9 @@
 [2026-03-24 06:25:00] task: Jacobi symbol autocorrelation/DFT for semiprime detection | result: indistinguishable from prime for M<<p, only loophole is Pollard p-1 | conclusion: dead end
 [2026-03-24 06:25:00] task: Groebner bases over Z/NZ — S-pair non-invertible coefficients | result: per-inversion failure rate ~2/sqrt(N) regardless of system size | conclusion: dead end
 [2026-03-24 06:25:00] task: Batched Pollard p-1 — aggregate product of (a_i^k-1) | result: zero batch-only finds (all bases succeed/fail identically by FLT) | conclusion: dead end
+[2026-03-24 06:38:00] task: CF-base recursive descent — express integers in base r from CF convergents | result: digit products ~√N, identical to CFRAC. No Frobenius analog over Z | conclusion: dead end
+[2026-03-24 06:38:00] task: Isogeny walks over Z/NZ — kernel polynomial splitting and walk divergence | result: 0/140 factored, reduces to Berlekamp over Z/NZ (p-1 condition) | conclusion: dead end
+[2026-03-24 06:38:00] task: Non-abelian HSP embeddings for factoring | result: faithful embeddings need exponential dimension, hiding function computation IS factoring | conclusion: dead end
+[2026-03-24 06:38:00] task: Subfield lifting via Z/NZ[x]/(f(x)) tower extensions | result: 0 balanced semiprimes factored across 7 strategies, CRT decomposition is the secret | conclusion: dead end
+[2026-03-24 06:38:00] task: Schnorr lattice tower and BKZ for sub-√N candidates | result: SVP hardness blocks geometric advantage, BKZ → L[1,c] worse than NFS | conclusion: dead end
+[2026-03-24 06:38:00] task: Brandt matrices — quaternion spectral structure mod N (final) | result: norm degenerates to a²+b² since j²=-N≡0, ideal class enumeration requires knowing p | conclusion: dead end
