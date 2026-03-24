@@ -23,8 +23,8 @@
 #include <gmp.h>
 #include <ecm.h>
 
-#define SIEVE_SIZE 131072
-#define HALF_M     (SIEVE_SIZE / 2)
+static int SIEVE_SIZE = 131072;
+static int HALF_M     = 65536;
 
 static mpz_t N_g, temp_g;
 
@@ -450,6 +450,18 @@ static int factor_bsrf(void) {
 
     int fb_count = build_factor_base(smooth_bound);
     fprintf(stderr, "Factor base: %d primes\n", fb_count);
+
+    /* Adaptive sieve size: larger for bigger numbers to find more smooths per poly */
+    if (n_digits >= 60) {
+        SIEVE_SIZE = 1024 * 1024;   /* 1M for 60+ digits */
+    } else if (n_digits >= 55) {
+        SIEVE_SIZE = 512 * 1024;    /* 512K for 55-59 digits */
+    } else if (n_digits >= 45) {
+        SIEVE_SIZE = 256 * 1024;    /* 256K for 45-54 digits */
+    } else {
+        SIEVE_SIZE = 131072;        /* 128K for smaller */
+    }
+    HALF_M = SIEVE_SIZE / 2;
 
     /* q² ≈ sqrt(2N)/M  =>  q ≈ N^{1/4} / sqrt(M/2) */
     double N_d     = mpz_get_d(N_g);
