@@ -21,10 +21,10 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 
 /* ── Limits ── */
-#define MAX_FB    4096
+#define MAX_FB    8192
 #define MAX_K     12
-#define MAX_REL   (MAX_FB + 512)
-#define MAX_PART  65536
+#define MAX_REL   (MAX_FB + 1024)
+#define MAX_PART  524288
 
 /* ── Factor base ── */
 typedef struct {
@@ -486,7 +486,7 @@ static int factor(void) {
 
     int full_rels = 0, partials = 0, combined = 0;
 
-    for (long bx = 0; bx < (1L << 28) && (full_rels + combined) < target; bx += BLOCK) {
+    for (long bx = 0; bx < (1L << 32) && (full_rels + combined) < target; bx += BLOCK) {
         int blen = BLOCK;
 
         /* Compute threshold for this block position */
