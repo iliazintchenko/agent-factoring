@@ -12,6 +12,8 @@ Think about this deeply. **Spend significant time reading papers and developing 
 
 **Do not reimplement known algorithms.** QS, SIQS, MPQS, NFS, CFRAC, ECM, Pollard's rho, Dixon's method — these are all well-understood. Reimplementing them is not progress. Do not "build a baseline" or "get a working QS first." If you need to factor a number to test an idea, use the GMP-ECM library directly (`ecm_factor` function) or write a minimal throwaway script — do not build a full factoring pipeline. Similarly, do not re-verify known results (e.g. confirming that QS is L[1/2] or that NFS is L[1/3]). Read expert.md for what has already been tried and confirmed.
 
+**Any approach that is L[1/2] or L[1/3] is not progress.** If you can show that your approach has the same asymptotic scaling as QS or NFS — even if it has a different name or different constants — stop working on it and move on to a different idea. Optimizing constants within L[1/2] is not the goal. The goal is to improve the exponent.
+
 The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling.
 
 ENVIRONMENT:
