@@ -82,13 +82,19 @@ The function field sieve breaks L[1/3] for DLP because of TWO properties absent 
 - **Spectral methods on Cayley graphs**: Exponential classically — exactly what Shor's QFT solves.
 - **Deuring correspondence / isogeny graphs**: Three channels analyzed (supersingularity detection, spectral decomposition, random walk mixing). All blocked — require knowing p, exponential graph size, or O(N^{1/4}) birthday bound.
 - **Hecke operators on modular forms**: Computing T_N requires knowing divisors of N. Circular.
-- **Quaternion norms for smoothness**: Quadratic per variable. But Deuring correspondence, Brandt matrices, Pizer's Ramanujan graphs remain unexplored as non-smoothness channels.
-- **Character sum / autocorrelation**: Detecting period p requires Ω(√N) samples.
+- **Quaternion norms for smoothness**: Quadratic per variable.
+- **Brandt matrices mod N**: For primes m < N, the quaternion norm form a²+b²+Nc²+Nd² forces c=d=0, making representation counts N-independent. The Brandt matrix is identical for all N — no factoring information leaks through spectral structure.
+- **Character sum / autocorrelation**: Detecting period p requires Ω(√N) samples. Jacobi symbol autocorrelation tested extensively: semiprime vs prime statistics indistinguishable for M << p. The only "loophole" (small divisors of p-1) is exactly Pollard's p-1 method.
 - **Polynomial splitting mod N**: Probability O(1/√N) per trial for monic polynomials.
 - **Berlekamp over Z/NZ**: Degenerates to p-1 condition for balanced semiprimes — requires ord(r) | (q-1) in F_p, probability ≈ log(p)/p ≈ 0.
 - **Approximate DL relations**: P(gcd reveals factor) ≈ 2/p. Exponential.
 - **Bilinear smoothness decomposition**: Can't split norms without number fields.
 - **Galois action on NFS relations**: Norm is Galois-invariant. Same relation, not new ones.
+- **Sum-product phenomena over Z/NZ**: Zero divisors are too sparse (only ~2√N out of N). Detection requires k ~ √N samples — exponential in factor bit-length. E*(A)/E+(A) ratio indistinguishable from prime for N > 10^6.
+- **Tensor decomposition of Z/NZ**: CRT gives hidden rank-2 structure, but mod-N wrapping destroys it. Signal-to-noise ratio ~1/√N. Catch-22: samples ≤ √N avoid wrapping but give rank-1 (trivial); samples > √N wrap and give full rank.
+- **p-adic/Newton lifting over Z/NZ**: Three approaches tested (inversion failure, convergence divergence, resultants). All fail: (1) inversion failure probability ~1/p per step (exponential), (2) Newton iteration over finite fields is chaotic, not convergent — orbits don't reach roots for p > ~1000, (3) resultant approach reduces to Pollard p-1.
+- **Groebner bases over Z/NZ**: Per-inversion failure rate is ~2/√N regardless of system size k. Buchberger coefficients behave as pseudorandom elements. Need ~√N operations to expect one non-invertible coefficient — no better than random GCD.
+- **Batched Pollard p-1**: Batch product P=∏(a_i^k-1) mod N gives zero additional factoring power. By Fermat's little theorem, if (p-1)|k then ALL bases satisfy a^k≡1 mod p simultaneously; if not, none do. No intermediate case. Correlated bases (consecutive) also provide no advantage.
 
 ## Key insight: smoothness detection cost
 
@@ -111,4 +117,4 @@ These are starting points, not an exhaustive list.
 - **Function field analogies**: Can the quasi-polynomial DLP breakthrough technique be adapted? Key obstacle: no Frobenius over Z.
 - **Batch GCD + non-sequential candidates**: What candidate generation strategy (not sieving) would best exploit Bernstein's batch smoothness?
 - **Correlated norms across number fields**: If smoothness of one norm CORRELATES with another (via Galois structure or isogenies), simultaneous smoothness probability would increase. No known construction achieves this.
-- **Quaternion non-smoothness channels**: Deuring correspondence, Brandt matrices, Pizer's Ramanujan graphs — unexplored for factoring.
+- **Quaternion non-smoothness channels**: Brandt matrices now explored — N-independent for small primes. Pizer's Ramanujan graphs remain unexplored but the endomorphism ring computation is circular (requires knowing p).
