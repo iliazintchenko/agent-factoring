@@ -214,6 +214,8 @@ Since (x + m_k)² ≡ f_k(x) (mod N) for each k, *products* across multipliers g
 
 **Theoretical expectation**: Still L[1/2] asymptotically (value sizes unchanged), but potentially much better constants. The practical scaling curve may bend differently than single-polynomial methods for 30-70 digit numbers.
 
+**Key finding on multiplier selection**: Smallest square-free multipliers (1,2,3,5) outperform KS-scored larger multipliers (22,43,30,42) by 10-20%. Reason: KS scoring optimizes for factor base density but ignores that larger k gives larger polynomial values f_k(x) ≈ 2x√(kN). The value size increase outweighs the FB density gain.
+
 **Key implementation detail**: Multipliers MUST be square-free. If k₂ = m² · k₁ for integer m, then f_{k₂}(x) = m² · f_{k₁}(x') for appropriate x'. The factor m² has even exponent, so both relations have identical GF(2) parity vectors. Combined relations from such pairs are trivially zero — useless for linear algebra. Using square-free k values (1, 2, 3, 5, 6, 7, 10, ...) avoids this.
 
 **Implementation**: `library/mms.c`. Sieve + trial division + single-LP matching + GF(2) elimination.
