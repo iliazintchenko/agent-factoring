@@ -110,6 +110,22 @@ Implemented Bernstein product-tree batch GCD for finding shared factors among co
 
 Status: infrastructure built, needs testing at scale to measure whether the extra relations from shared-factor matching actually improve throughput.
 
+### Cofactor distribution study (cofactor_study.c)
+Measured cofactor sizes and batch GCD collision rates across digit ranges (with optimal factor base sizes):
+
+| Digits | FB size | Full smooth | 1LP    | 2LP     | Batch GCD collision |
+|--------|---------|-------------|--------|---------|---------------------|
+| 40     | 1854    | 0.004%      | 0.25%  | 21.5%   | 11.3%               |
+| 50     | 4096*   | 0.001%      | 0.04%  | 3.8%    | 4.0%                |
+| 60     | 4096*   | 0.0001%     | 0.003% | 0.57%   | 0.93%               |
+
+*FB capped at 4096, suboptimal for 50-60 digit.
+
+**Key finding**: Batch GCD collision rate drops from 11.3% → 4.0% → 0.93% as N grows. This confirms batch GCD matching gives constant-factor improvement in the 2LP regime but cannot improve the L-exponent. The 2LP pool is 5000x larger than the fully smooth pool, confirming that aggressive large prime handling is essential for practical performance, but this is already well-known.
+
+### CCD factoring (ccd_factor.c)
+QS-style sieve with batch cofactor matching. Critical lesson: partial relation matching must mark partners as "used" to prevent duplicate combined relations. Duplicates cause ALL GF(2) null vectors to be trivially degenerate (X ≡ ±Y mod N always).
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
