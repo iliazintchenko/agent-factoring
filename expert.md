@@ -53,6 +53,7 @@ NFS achieves L[1/3] by splitting the norm across TWO polynomials (algebraic + ra
 - **Group-order methods (p-1, p+1, Gaussian/Eisenstein integers)**: All give fixed group orders (p±1 variants). For balanced semiprimes where p±1 are not smooth, these are ineffective. ECM randomizes the group order but is still L[1/2].
 - **Character sum / autocorrelation approaches**: Detecting the period p in χ_N(n) requires Ω(√N) samples (information-theoretic lower bound). Same complexity as trial division.
 - **Birthday-paradox collision methods (Pollard rho variants)**: O(N^{1/4}) for balanced semiprimes regardless of the map used. Not sub-exponential.
+- **Bilinear smoothness decomposition**: Tried to split smoothness testing into two independent N^{1/3}-sized tests: find a,b ~ N^{1/3} with a*b mod N smooth. But a*b ~ N^{2/3} (no modular reduction since a*b < N), so the "third part" is N^{2/3}, not N^{1/3}. Can't achieve NFS-like norm splitting without actual number field structure.
 - **Extended matrix with ECM-descended cofactors (CDS)**: Using ECM to split sieve cofactors into medium primes, then adding each medium prime as a column in an extended GF(2) matrix. **Fails** because the number of unique medium primes grows faster than the number of relations — each ECM descent produces new, previously-unseen primes, rapidly expanding the column count. With B=2201 on 30-digit N: 1764 relations but 2487 unique medium primes = 2798 columns. The matrix is always underdetermined. The correct approach for cofactor descent is LP-matching (combine partials sharing a medium prime), not extended matrix.
 
 ## Research survey
@@ -202,9 +203,11 @@ Since (x + m_k)² ≡ f_k(x) (mod N) for each k, *products* across multipliers g
 
 Comparison with SRG (ECM-based): MMS is faster at 30-42 digits (e.g., 30d: 0.07s vs 0.83s), but slower at 50+ digits (50d: 20s vs 2.9s). The SRG approach benefits from ECM's subexponential scaling, while MMS is a pure sieve method with L[1/2] scaling.
 
-55-digit test: ~132s on a single core (within timeout). Beyond 55 digits, the sieve needs impractically long intervals with current parameters.
+55-digit test: ~75s (truncated FB) to ~132s (full FB). Beyond 55 digits impractical with current parameters.
 
-**Scaling analysis**: Both L[1/2] and L[1/3] models fit the 30-53 digit data comparably (SSE 0.477 vs 0.440). The effective L[1/2] constant c ≈ 0.93 (fitted with offset). Growth rate averages ~1.3x per digit, roughly doubling every 3 digits. Over this digit range, L[1/2] and L[1/3] are hard to distinguish — would need 70+ digit data to differentiate.
+**Scaling analysis**: L[1/2] and L[1/3] fits comparably (SSE 0.477 vs 0.440 over 30-53d). Growth ~1.3x per digit.
+
+**Key finding**: MMS is competitive only at 30-35 digits. BSRF-v3 (uses SIQS-style smaller polynomials) is 3-20x faster across all sizes. The multi-multiplier LP matching provides ~60% more relations (constant factor), but doesn't shrink the polynomial values — the fundamental bottleneck. Lesson: improving the L-constant requires smaller polynomial values, not just more relations from the same-sized values.
 
 ## Open directions
 
