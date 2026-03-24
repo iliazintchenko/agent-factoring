@@ -163,17 +163,24 @@ Since (x + m_k)² ≡ f_k(x) (mod N) for each k, *products* across multipliers g
 
 **Implementation**: `library/mms.c`. Sieve + trial division + single-LP matching + GF(2) elimination.
 
-**Scaling results (30-35 digits)**:
-| Digits | Worst-of-5 time |
-|--------|----------------|
-| 30     | 0.074s         |
-| 31     | 0.095s         |
-| 32     | 0.103s         |
-| 33     | 0.205s         |
-| 34     | 0.236s         |
-| 35     | 0.278s         |
+**Scaling results (worst-of-5 per size)**:
+| Digits | Time   | Digits | Time    |
+|--------|--------|--------|---------|
+| 30     | 0.07s  | 41     | 1.97s   |
+| 31     | 0.10s  | 42     | 2.86s   |
+| 32     | 0.11s  | 43     | 3.66s   |
+| 33     | 0.21s  | 44     | 5.06s   |
+| 34     | 0.24s  | 45     | 6.79s   |
+| 35     | 0.28s  | 46     | 10.0s   |
+| 36     | 0.40s  | 47     | 14.3s   |
+| 37     | 0.69s  | 48     | 16.9s   |
+| 38     | 0.76s  | 49     | 19.1s   |
+| 39     | 1.15s  | 50     | 20.0s   |
+| 40     | 1.41s  | 51     | 30.6s   |
 
-Larger sizes in progress.
+Comparison with SRG (ECM-based): MMS is faster at 30-42 digits (e.g., 30d: 0.07s vs 0.83s), but slower at 50+ digits (50d: 20s vs 2.9s). The SRG approach benefits from ECM's subexponential scaling, while MMS is a pure sieve method with L[1/2] scaling.
+
+55-digit test: ~132s on a single core (within timeout). Beyond 55 digits, the sieve needs impractically long intervals with current parameters.
 
 ## Open directions
 
