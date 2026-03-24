@@ -82,8 +82,7 @@ MAINTAINING THE REPO:
   ```
   [YYYY-MM-DD HH:MM:SS] task: <what was assigned> | result: <what was found> | conclusion: <dead end / promising / inconclusive>
   ```
-- Commit and push after every expert.md update or library change.
-- Pull before committing to avoid conflicts.
+- **Always git pull before committing and git push after committing.** Every single time. Your work is lost if you don't push — if the instance dies, uncommitted and unpushed work disappears. Run `git pull --rebase && git add -A && git commit -m '...' && git push` as a single sequence.
 
 RULES:
 
