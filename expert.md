@@ -35,7 +35,7 @@ Quadratic extensions Z[√d]: norm is a² - d·b², degree 2 in two variables. S
 
 Quaternion algebras: norm is a² + b² + c² + d², degree 4 overall but still **degree 2 in each variable**. Values are ~max(a,b,c,d)² — four variables don't reduce the norm size. More variables don't help because the norm is quadratic per variable.
 
-**Key constraint**: to improve the L-exponent via algebraic norms, you'd need a norm form that grows **subquadratically** in each variable. No standard algebraic structure has this property. NFS sidesteps this by using two *different* norm maps (rational and algebraic) and requiring simultaneous smoothness — a fundamentally different trick that doesn't generalize to L[1/4].
+**Key constraint**: to improve the L-exponent via algebraic norms, you'd need a norm form that grows **subquadratically** in each variable. No standard algebraic structure has this property. NFS sidesteps this by using two *different* norm maps (rational and algebraic) and requiring simultaneous smoothness — but this trick achieves L[1/3] and no known way to extend it further.
 
 ## What would be needed to beat L[1/3]
 
@@ -60,7 +60,7 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **Group-order methods for balanced semiprimes**: p±1 methods fail when p±1 aren't smooth. ECM randomizes but stays L[1/2].
 - **Multi-multiplier sieve (MMS)**: Cross-multiplier LP matching gives ~60% more relations (constant factor) but doesn't shrink polynomial values.
 - **Quaternion / higher-dimensional norms**: Norm is still quadratic per variable — more variables don't reduce value sizes.
-- **BatchQS**: Bernstein product-tree batch GCD misses ~80% of smooth candidates vs standard sieve.
+- **BatchQS (naive implementation)**: Bernstein product-tree batch GCD misses ~80% of smooth candidates vs standard sieve. The technique itself is sound but the implementation used insufficient primorial powers.
 
 ## Key insight: smoothness detection cost
 
@@ -73,7 +73,7 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 - **Stange (2022)**: Index calculus in (Z/NZ)*. Same L[1/2] or L[1/3].
 - **Tower NFS (Barbulescu-Kim 2016)**: Sub-L[1/3] for DLP in GF(p^n) only. No factoring analog.
 - **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Exponential.
-- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces — 2 ECM curves simultaneously, group order ~p² with Hasse interval ~p^{3/2}. Still L_p(1/2) but potentially better constants. Untested.
+- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces — 2 ECM curves simultaneously. Still L_p(1/2); only useful if constant improvement hints at a different scaling regime.
 
 ## Open directions
 
@@ -83,5 +83,4 @@ These are starting points, not an exhaustive list.
 - **Novel norm structures**: NFS beats L[1/2] by splitting the norm across two maps, not by having a better single norm. What algebraic structure would enable a third splitting or a fundamentally different norm reduction to beat L[1/3]?
 - **Function field analogies**: Can the quasi-polynomial DLP breakthrough technique be adapted? Key obstacle: no Frobenius over Z.
 - **Batch GCD + non-sequential candidates**: Bernstein's batch smoothness works on arbitrary candidate sets. What candidate generation strategy (not sieving) would best exploit this?
-- **Recursive cofactor descent**: When Q(x) = smooth_part · cofactor, recursively factor the cofactor with a smaller polynomial. Could reduce effective value sizes geometrically.
-- **Genus-2 HECM**: Implement and benchmark Cosset's approach.
+- **Recursive cofactor descent**: CDS (extended matrix) failed because unique medium primes grow faster than relations. But LP-matching based descent is unexplored — could the collision rate be improved with structured cofactor generation?
