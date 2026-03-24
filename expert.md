@@ -69,6 +69,7 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **Polynomial splitting mod composite N** (poly_split.c): For monic f(x) of degree d, compute gcd(x^{(N-1)/2} - 1, f(x)) mod N. If f splits differently mod p vs mod q, intermediate GCD steps encounter non-invertible leading coefficients, revealing a factor. HOWEVER: for monic polynomials, the probability of hitting a non-invertible coefficient is O(1/√N) per trial — essentially zero for large N. This is because all intermediate coefficients are sums/products of N-bit numbers mod N, which are essentially random. 500 trials on 30-digit N found zero factors. Dead end.
 - **CRT-structured candidate generation**: Use CRT to force Q(x) = (x+m)² - N to be divisible by several chosen primes simultaneously. Testing shows higher raw smoothness rate (0.59% vs 0.24% for sequential at B=50000, 30 digits), but this is illusory: the CRT forces x to be of size ∏primes, making Q(x) much larger. The cofactor Q(x)/∏primes ≈ 2√N regardless — same as standard QS. No asymptotic improvement.
 - **Galois action on NFS relations**: For Galois polynomials, the d automorphisms permute roots but the algebraic norm (= product of all conjugates) is Galois-invariant by definition. Applying automorphisms gives the SAME norm, not new relations. The Galois structure provides d representations of one relation, not d independent relations. At best a constant factor of d improvement in candidate coverage, which doesn't change the L-exponent.
+- **Multiplicative lattice relations (MLR)**: Find exponents e_i such that p_1^{e_1} * ... * p_k^{e_k} mod N is small, using LLL on the log-embedding lattice. Even when the residue P(e) mod N is small (achievable via lattice reduction), this doesn't help: P(e) mod p is never zero (since p doesn't divide any p_i), and small P(e) mod N doesn't imply small P(e) mod p due to CRT entanglement. Computing gcd(P(e1)/P(e2) - r1/r2, N) always gives N because the ratio is computed mod N, erasing the p-vs-q distinction. This confirms Schnorr's lattice approach is fundamentally limited — not just practically but theoretically.
 
 ## Key insight: smoothness detection cost
 
@@ -103,6 +104,24 @@ Working MPQS implementation with:
 | 50 | ~106 | ~100 |
 
 High variance at 38+ digits due to MPQS extraction degeneracy requiring multiplier retries. Scaling is roughly L[1/2] as expected for QS variants. ECM fallback handles cases where all multipliers fail extraction.
+
+### ECM baseline (ecm_baseline.c)
+GMP-ECM with auto-scaled B1 (Suyama parametrization, sigma = 6 + curve_index).
+First semiprime per size, single run:
+
+| Digits | Time (s) | B1 used |
+|--------|----------|---------|
+| 30 | 0.03 | 48k |
+| 34 | 0.05 | 119k |
+| 38 | 0.14 | 304k |
+| 42 | 4.61 | 690k |
+| 46 | 2.74 | 1.5M |
+| 50 | 1.53 | 3.2M |
+| 54 | 16.6 | 6.8M |
+| 58 | 27.8 | 14M |
+| 60 | 46.1 | 21M |
+
+Note: ECM times are highly variable (factor of 10x between lucky/unlucky curves). These are single-run measurements, not worst-of-5. For reliable scaling analysis, need many runs per size. ECM is L_p[1/2] = L_N[1/2] for balanced semiprimes (since p ~ √N, ln(p) ~ ln(N)/2).
 
 ### Known bugs / lessons
 - **LP matching must divide by cofactor**: When combining two single-LP relations sharing cofactor c, the combined sqrt_val must be sv1·sv2·c⁻¹ (mod N), not just sv1·sv2. Otherwise x = y for all dependencies.

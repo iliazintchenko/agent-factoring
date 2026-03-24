@@ -350,3 +350,19 @@
 [2026-03-24 03:06:56] size: 50 | approach: LGSH-v4-full | time: 93.082s | notes: found factor 2059422624891984908427913
 [2026-03-24 03:08:43] size: 50 | approach: LGSH-v4-full | time: 106.153s | notes: found factor 9444316373871639557235581
 [2026-03-24 03:10:28] size: 50 | approach: LGSH-v4-full | time: 105.891s | notes: found factor 9478497919133942265053849
+[2026-03-24 03:13:53] size: 30 | approach: ecm_baseline_first | time: 0.03s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 32 | approach: ecm_baseline_first | time: 0.11s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 34 | approach: ecm_baseline_first | time: 0.05s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 36 | approach: ecm_baseline_first | time: 0.23s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 38 | approach: ecm_baseline_first | time: 0.14s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 40 | approach: ecm_baseline_first | time: 0.84s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 42 | approach: ecm_baseline_first | time: 4.61s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 44 | approach: ecm_baseline_first | time: 3.79s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 46 | approach: ecm_baseline_first | time: 2.74s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 48 | approach: ecm_baseline_first | time: 5.78s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 50 | approach: ecm_baseline_first | time: 1.53s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 52 | approach: ecm_baseline_first | time: 50.23s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 54 | approach: ecm_baseline_first | time: 16.55s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 56 | approach: ecm_baseline_first | time: 40.01s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 58 | approach: ecm_baseline_first | time: 27.83s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:13:53] size: 60 | approach: ecm_baseline_first | time: 46.06s | notes: GMP-ECM with auto B1, first semiprime only
