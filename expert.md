@@ -125,6 +125,10 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 - **Regev (2023)**: Quantum O~(n^{3/2}) gates. No classical dequantization.
 - **Tower NFS (Barbulescu-Kim 2016)**: Sub-L[1/3] for DLP in GF(p^n) only. No factoring analog.
 - **Harvey & Hittmeir (2020-2022)**: Best deterministic factoring N^{1/5+o(1)}. Exponential.
+- **Regev (2023)**: Improved Shor's circuit to O(n^{3/2}) gates (from O(n²)). Follow-ups by Ragavan-Vaikuntanathan, Pilatte, Ekerå-Gärtner. Hhan (EUROCRYPT 2025) proved matching lower bound in generic ring model.
+- **Schnorr lattice (2021 claim)**: Refuted experimentally by Ducas (CWI), 0/1000 relations. Never published at peer-reviewed venue.
+- **No classical dequantization of Shor**: Unlike quantum ML algorithms, factoring's HSP structure resists classical simulation. The gap O(√N) vs O(polylog N) is robust.
+- **GNFS L[1/3, 1.923] unchanged since 1990s**: RSA-250 (Feb 2020) remains factoring record. All progress is in practical constants (better sieving, batch smoothness).
 
 ## Open directions
 
@@ -144,3 +148,8 @@ These are starting points, not an exhaustive list.
 - **Higher-order residues (GF(3), GF(5))**: Cube sieve shrinks factor base by ~1/(k-1), making smooth values exponentially rarer (6.68% → 0.04%). Information per relation: 2·log₂(k)/(k(k-1)) peaks at k=2. GF(2) is optimal.
 - **Lattice reduction on O_K (number field ring of integers)**: Short vectors have norms ~N^{1/2} (exponential) vs sieve norms L[2/3,c] (subexponential). Rank-d lattice yields only d=(ln N)^{1/3} vectors vs ~L[1/3] needed. The rank-2 sublattice (a-bθ) wins because it trades dimension for parametric family.
 - **Arithmetic circuit complexity / power sums**: S_k=p^k+q^k requires s=p+q (fundamental theorem of symmetric polynomials). Computations mod N produce entangled CRT pairs. Factoring is number-theoretic, not algebraic — circuits can't see prime structure.
+- **Higher residue symbols (cubic, quartic)**: l-th power residue in Z[ζ_l] mod N — splitting pattern reveals info iff l | (p-1) XOR l | (q-1). But this is just testing division of group orders, same as ECM/p-1.
+- **Classical period-finding dequantization**: O(√r) lower bound tight (Shoup 1997). Classical DFT needs O(r) evaluations. Partial DFT at L=√r: zero signal. Tang-style dequantization inapplicable. Tensor network: volume-law entanglement forces exponential bond dimension. Gap is genuinely exponential.
+- **p-adic valuation structure**: 1+N base gives trivial GCDs (trial division at k=p). LTE shows v_p and v_q depend on k identically — no asymmetry. Random bases recover Pollard p-1. CRT opacity: computing v_p from x mod N requires knowing p.
+- **Carry propagation in p×q=N**: Branching factor exactly 2.0 per bit level. Total: 1.25×2^{n/2} paths = brute force. Mod 2, reduces to MQ problem (NP-hard). Carry entropy increases with bit position, no useful pruning.
+- **Algebraic variety methods (xy=N hyperbola)**: Cornacchia/Gauss lattice for x²+y²≡0 mod N works when both p,q≡1 mod 4 but is equivalent to existing methods. No geometric shortcut beyond known algorithms.

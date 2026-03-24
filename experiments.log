@@ -33,3 +33,9 @@
 [2026-03-24 07:13:00] task: Higher-order residues GF(3)/GF(5) for factoring | result: factor base shrinks by 1/(k-1), info/relation peaks at k=2. GF(2) optimal | conclusion: dead end
 [2026-03-24 07:13:00] task: Lattice reduction on O_K (NFS ring of integers) | result: norms ~N^{1/2} (exponential), only (ln N)^{1/3} vectors. Rank-2 wins | conclusion: dead end
 [2026-03-24 07:13:00] task: Arithmetic circuit complexity / symmetric polynomial approach | result: S_k needs s=p+q (FTSP). CRT entanglement intrinsic. Not algebraic problem | conclusion: dead end
+[2026-03-24 07:20:00] task: Classical period-finding dequantization survey | result: O(√r) tight, partial DFT zero signal, tensor networks need exp bond dim | conclusion: dead end
+[2026-03-24 07:20:00] task: p-adic valuation / LTE-based factoring | result: 1+N trivial, LTE symmetric, CRT opacity fundamental | conclusion: dead end
+[2026-03-24 07:20:00] task: Carry propagation bit-by-bit factoring | result: branching=2.0, 1.25×2^{n/2} paths, MQ-hard mod 2 | conclusion: dead end
+[2026-03-24 07:20:00] task: 2020-2026 literature survey | result: no classical progress. Regev quantum improvement, Schnorr refuted | conclusion: confirmed no classical sub-L[1/3]
+[2026-03-24 07:20:00] task: Higher residue symbols (cubic/quartic) | result: reduces to ECM/p-1 group order divisibility testing | conclusion: dead end
+[2026-03-24 07:20:00] task: Sum of squares / algebraic variety xy=N | result: equivalent to existing methods when applicable | conclusion: dead end
