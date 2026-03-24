@@ -1086,3 +1086,7 @@
 [2026-03-24 04:45:19] size: 58 | approach: ecm-optimized | time: 12.900s | notes: found factor 17126378949394488899993742571
 [2026-03-24 05:45:00] size: 30-62 | approach: ecm_factor (optimized, 1 sample) | time: various | notes: Optimized ECM timing: 30→0.00s, 35→0.04s, 40→0.41s, 45→1.73s, 50→2.04s, 55→26.6s, 58→4.23s, 60→62.2s, 62→22.5s. Non-monotonic due to p-1 structure variation.
 [2026-03-24 04:46:00] size: 58 | approach: ecm-optimized | time: 40.162s | notes: found factor 12586372445066434246481998027
+[2026-03-24 04:39:38] size: 66 | approach: ECM-extended | time: 172.286s | notes: worst of 5, times: 172.286 131.404 169.630 33.647 131.857
+[2026-03-24 04:41:07] size: 55 | approach: LGSH-v3-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
+[2026-03-24 04:41:22] size: 54 | approach: LGSH-v4-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
+[2026-03-24 04:39:38] size: 66 | approach: ECM-extended | time: 172.286s | notes: worst of 5
