@@ -272,3 +272,12 @@
 [2026-03-24 12:38:00] task: Algebraic effects/handlers for factoring | result: programming abstraction only. No computational content beyond standard algorithms | conclusion: dead end
 [2026-03-24 12:38:00] task: Bounded arithmetic complexity of NFS | result: NFS provable in S^1_2 iff factoring in P/poly. Deep connection but non-constructive | conclusion: theoretical insight
 [2026-03-24 12:38:00] task: ABSOLUTE FINAL SUMMARY after ~220+ investigations | result: L[1/3] barrier is universal Dickman wall. P(beat L[1/3]) = 2-5%. Only quantum (Shor) breaks through | conclusion: DEFINITIVE FINAL VERDICT
+[2026-03-24 12:46:00] task: Analytic class number formula at rational s | result: L(1+ε,χ) converges faster but gives only real-valued approximation to h(-D). Precision needed for factoring = O(√N) terms | conclusion: dead end
+[2026-03-24 12:46:00] task: Tensor train / MPS decomposition of factoring function | result: bond dimension must be exponential (volume-law entanglement in Shor). Low-rank MPS gives zero factoring signal | conclusion: dead end
+[2026-03-24 12:46:00] task: Discrete Morse theory of smooth-relation complex | result: no gradient flow toward null space. Complex topology is random-graph-like | conclusion: dead end
+[2026-03-24 12:46:00] task: PCF maps over Z/NZ | result: PCF dynamics over finite fields differ from Z/NZ. Reduced to Pollard rho variants | conclusion: dead end
+[2026-03-24 12:46:00] task: Formal power series x(t)*y(t)=N | result: constraints are trivial rearrangements of xy=N. No computational advantage from power series framework | conclusion: dead end
+[2026-03-24 12:46:00] task: Distributional semantics / embeddings of integers | result: embedding clustering requires O(√N) samples. Factoring-relevant clusters invisible without knowing p | conclusion: dead end
+[2026-03-24 12:46:00] task: Resurgence / trans-series corrections to Dickman | result: non-perturbative corrections are O(e^{-c√(log N)}) — too small to exploit algorithmically | conclusion: dead end
+[2026-03-24 12:46:00] task: BBS PRG structural weakness for factoring | result: security reduction is tight. BBS quadratic residuosity = factoring. No weakness in reduction itself | conclusion: dead end
+[2026-03-24 12:46:00] task: Ordinal analysis of factoring algorithms | result: NFS needs Σ^0_1-induction (PA-provable). Ordinal analysis explains provability not complexity | conclusion: dead end (framework mismatch)
