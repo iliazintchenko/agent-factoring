@@ -1,6 +1,13 @@
 # Library Index
 
-No implementations yet. The PI agent will populate this as investigators produce useful code.
+## Research Documents
+
+- **factoring_theory_summary.txt** — Comprehensive theoretical summary of the factoring landscape, synthesizing ~75 investigated approaches. Covers: three classical families, why L[1/3] is the barrier (α=1/(k+1), archimedean vs non-archimedean), what doesn't work and why, what would be needed.
+- **open_problems.txt** — 15 specific open mathematical problems whose resolution would advance factoring research. Covers: algebraic/structural, complexity theory, quantum-classical interface, effective algebraic NT, linear algebra.
+
+## Implementations
+
+- **nfs_poly.c** — LLL-improved NFS polynomial selection. Achieves 64.5% more smooth values than standard base-m method by finding polynomials with 2-7x smaller max coefficient. Uses GMP.
 
 ## Utilities
 
