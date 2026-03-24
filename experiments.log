@@ -857,3 +857,14 @@
 [2026-03-24 04:22:22] size: 65 | approach: ECM-extended | time: 142.849s | notes: worst of 5, times: 76.205 57.213 136.515 142.849 88.985
 [2026-03-24 04:24:07] size: 65 | approach: ECM-extended | time: 142.586s | notes: worst of 5, times: 79.748 56.839 136.798 142.586 88.934
 [2026-03-24 04:20:37] size: 64 | approach: ECM-extended | time: 249.457s | notes: worst of 5
+[2026-03-24 03:44:34] size: 60 | approach: hsd-v1 | time: FAIL | notes: no factor for 28677507619682817975...
+[2026-03-24 03:46:48] size: 38 | approach: siqs_fast | time: 280.223s | notes: found factor 1419070827215424463
+[2026-03-24 03:51:29] size: 40 | approach: siqs_fast | time: 280.871s | notes: found factor 22583027504572801031
+[2026-03-24 03:56:09] size: 40 | approach: siqs_fast | time: 280.437s | notes: found factor 15144021729810256727
+[2026-03-24 04:00:50] size: 40 | approach: siqs_fast | time: 280.874s | notes: found factor 26780805813699501731
+[2026-03-24 04:05:30] size: 40 | approach: siqs_fast | time: 280.160s | notes: found factor 31096834276242774623
+[2026-03-24 04:10:11] size: 40 | approach: siqs_fast | time: 280.873s | notes: found factor 20804179672520600591
+[2026-03-24 04:14:52] size: 42 | approach: siqs_fast | time: 280.615s | notes: found factor 281458292402321571151
+[2026-03-24 04:19:32] size: 42 | approach: siqs_fast | time: 280.632s | notes: found factor 312903253237424504801
+[2026-03-24 04:24:13] size: 42 | approach: siqs_fast | time: 280.487s | notes: found factor 147654092019125183017
+[2026-03-24 04:15:00] size: 30 | approach: nfs_sieve (d=5 line sieve) | time: FAIL | notes: Only 5 doubly-smooth relations from (a,b) grid A=200,B=50K — not enough for FB of 324. NFS per-candidate yield advantage (2.63x for d=5) is exactly offset by smaller search space (A_MAX constrained by algebraic norm growth as a^5). NFS crossover with QS occurs around 70-80 digits. For 30-digit, QS wins.
