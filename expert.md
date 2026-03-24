@@ -105,6 +105,7 @@ Working MPQS implementation with:
 | 46 | 24.7 | 15.5 |
 | 50 | 42.1 | 33.0 |
 | 54 | 80.5 | 73.1 |
+| 58 | 244.1 | 133.1 |
 
 Scaling: roughly consistent with L[1/2]. Key optimizations: smaller FB (exp(0.50*Lexp)) reduces matrix solver time significantly. ECM fallback handles 50+ digit extraction failures. MPQS extraction degeneracy (all dependencies give trivial x≡±y mod N) affects ~25% of 50-digit semiprimes, requiring ECM fallback.
 

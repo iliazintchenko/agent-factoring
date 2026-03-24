@@ -584,3 +584,7 @@
 [2026-03-24 03:36:07] size: 30 | approach: approx_dl | time: FAIL | notes: 5M steps, 325 hits (tol=10K) but P(factor|hit)~2/p~0. Dead end.
 [2026-03-24 03:35:39] size: 58 | approach: LGSH-v4-full | time: 125.464s | notes: found factor 89751595122523791156893059429
 [2026-03-24 03:36:33] size: 58 | approach: LGSH-v5 | time: 117.047s | notes: found factor 28846244187484255242635303993
+[2026-03-24 03:38:05] size: 58 | approach: LGSH-v5 | time: 92.324s | notes: found factor 92603323431341555808646960469
+[2026-03-24 03:42:09] size: 58 | approach: LGSH-v5 | time: 244.118s | notes: found factor 30195067453845270578085979081
+[2026-03-24 03:43:49] size: 58 | approach: LGSH-v5 | time: 99.540s | notes: found factor 98971722039510325085965724069
+[2026-03-24 03:45:42] size: 58 | approach: LGSH-v5 | time: 112.714s | notes: found factor 89751595122523791156893059429
