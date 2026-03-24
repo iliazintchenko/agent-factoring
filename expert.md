@@ -59,7 +59,7 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **Cubic/higher-degree CF**: Residues grow (Thue), worse than QS.
 - **Group-order methods for balanced semiprimes**: p±1 methods fail when p±1 aren't smooth. ECM randomizes but stays L[1/2].
 - **Multi-multiplier sieve (MMS)**: Cross-multiplier LP matching gives ~60% more relations (constant factor) but doesn't shrink polynomial values.
-- **Quaternion / higher-dimensional norms**: Norm is still quadratic per variable — more variables don't reduce value sizes.
+- **Quaternion norms for smoothness testing**: Norm is still quadratic per variable — more variables don't reduce value sizes. However, quaternion algebras have other relevant structure (Deuring correspondence with supersingular elliptic curves, Brandt matrices encoding Hecke operators, Pizer's Ramanujan graphs) that could theoretically leak factoring information through non-smoothness-based channels. Unexplored.
 - **BatchQS (naive implementation)**: Bernstein product-tree batch GCD misses ~80% of smooth candidates vs standard sieve. The technique itself is sound but the implementation used insufficient primorial powers.
 
 ## Key insight: smoothness detection cost
