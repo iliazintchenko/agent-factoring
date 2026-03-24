@@ -206,6 +206,10 @@ int main(int argc, char *argv[]) {
     if (B > 2000000) B = 2000000;
     unsigned long LP_bound = B * 30;
 
+    /* Pre-filter constants */
+    #define MAX_LP_BITS 1  /* Allow at most 1 large prime per relation */
+    double max_smooth_bits = (MAX_LP_BITS + 1) * log2((double)B) + 5;
+
     /* How many multipliers to use */
     int K = 10; /* Start with 10 multipliers */
     if (ndigits > 40) K = 20;
@@ -273,6 +277,15 @@ int main(int argc, char *argv[]) {
         /* Advance each CF by one step, check for smooth residues */
         for (int ki = 0; ki < K && nrels < max_rels; ki++) {
             cfrac_step(&cfs[ki], residue);
+
+            /* Pre-filter: skip residues too large for smooth + LP.
+             * Q_n is typically much smaller than 2√(kN) — it's the CF denominator.
+             * Only trial divide if Q_n could plausibly be B-smooth times at most LP. */
+            {
+                unsigned long res_bits = mpz_sizeinbase(residue, 2);
+                unsigned long max_bits = (unsigned long)(log2((double)B) * 4 + log2((double)LP_bound));
+                if (res_bits > max_bits) continue;
+            }
 
             /* Trial divide residue over factor base */
             unsigned char *exp = calloc(fb_size, 1);
