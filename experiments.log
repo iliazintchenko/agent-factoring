@@ -26,3 +26,7 @@
 [2026-03-24 06:59:00] task: Factorization patterns of N±k for small k | result: O(k·ln B) bits about p, need O(log N). Gap exponential | conclusion: dead end
 [2026-03-24 06:59:00] task: Information-theoretic oracle classification for factoring | result: 1 bit/relation bottleneck from GF(2) framework. No known sub-exp function gives super-constant bits | conclusion: key insight — need new algebraic framework
 [2026-03-24 06:59:00] task: Isogeny walks (completed from round 2) | result: reduces to polynomial GCD, graph structure irrelevant | conclusion: dead end
+[2026-03-24 07:06:00] task: T_6/XTR compression for factoring | result: ρ(2u)/ρ(u) collapses, 34-89x slower ops, 0% smoothness at B=1000 for 30-bit primes | conclusion: dead end
+[2026-03-24 07:06:00] task: Exterior algebra / Smith normal form / minors over Z/NZ | result: at most n² independent probes, bare entries dominate minors | conclusion: dead end
+[2026-03-24 07:06:00] task: RMT analysis of QS matrices — spectral, rank, null space weight | result: non-randomness = column-sum heterogeneity only, LA not bottleneck | conclusion: dead end (no exploitable structure)
+[2026-03-24 07:06:00] task: Lattice reduction in Schnorr lattice — tower and BKZ experiments | result: LLL gives α≈0.5-0.9, BKZ same scaling. Tower equivalent to larger lattice | conclusion: dead end (confirmed)
