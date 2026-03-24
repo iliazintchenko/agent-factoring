@@ -32,6 +32,7 @@ typedef struct {
     int logp;
     int nroots[MAX_K];
     u32 roots[MAX_K][2];
+    u32 m_mod[MAX_K];  /* precomputed: m_k mod p */
 } fb_t;
 
 /* ── Relation: stores exponent vector mod 2 and the LHS value ── */
@@ -415,7 +416,7 @@ static void sieve_block(int ki, long base_x, int len, int negative) {
         fb_t *f = &g_fb[i];
         u32 p = f->p;
         if (f->nroots[ki] == 0) continue;
-        long m_mod = (long)mpz_fdiv_ui(g_m[ki], p);
+        long m_mod = (long)f->m_mod[ki];
 
         for (int ri = 0; ri < f->nroots[ki]; ri++) {
             long r = f->roots[ki][ri];
@@ -474,6 +475,11 @@ static int factor(void) {
     g_fb_size = build_factor_base();
     g_vec_words = (g_fb_size + 1 + 63) / 64;
     fprintf(stderr, "FB: %d primes up to %u\n", g_fb_size, g_fb[g_fb_size - 1].p);
+
+    /* Precompute m_k mod p for all factor base primes */
+    for (int i = 0; i < g_fb_size; i++)
+        for (int k = 0; k < g_K; k++)
+            g_fb[i].m_mod[k] = (u32)mpz_fdiv_ui(g_m[k], g_fb[i].p);
 
     int target = g_fb_size + 32;
     if (target > MAX_REL) target = MAX_REL;
