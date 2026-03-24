@@ -548,8 +548,7 @@ static int factor_ecm(const mpz_t N, mpz_t result, double deadline) {
         ecm_params p;
         ecm_init(p);
         mpz_set_ui(p->sigma, 42 + curve);
-        /* Use B2 = 100*B1 for stage 2 */
-        mpz_set_d(p->B2, B1 * 100);
+        /* Let GMP-ECM choose B2 automatically */
         int ret = ecm_factor(result, N, B1, p);
         ecm_clear(p);
         if (ret > 0 && mpz_cmp(result, N) != 0 && mpz_cmp_ui(result, 1) > 0) {
