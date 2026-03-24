@@ -153,20 +153,21 @@ static void choose_params(int digits, int *B, long *M, unsigned long *lp_bound) 
     double ln_ln_N = log(ln_N);
     double sqr = sqrt(ln_N * ln_ln_N);
 
-    /* B = L[1/2, 0.45]: conservative to keep FB small and trial div fast */
-    *B = (int)(exp(0.45 * sqr));
-    if (*B < 200) *B = 200;
+    /* B = L[1/2, 0.5]: factor base size */
+    *B = (int)(exp(0.50 * sqr));
+    if (*B < 300) *B = 300;
     if (*B > 8000000) *B = 8000000;
 
-    /* M = L[1/2, 1.0]: generous sieve range for enough smooth values */
-    double M_d = exp(1.0 * sqr);
-    *M = (long)M_d;
-    if (*M < 10000) *M = 10000;
-    /* Cap memory at ~2GB for sieve array (float = 4 bytes) */
-    if (*M > 250000000L) *M = 250000000L;
+    /* M = B * 1200: empirically calibrated to get ~3x more relations than needed.
+     * For single-polynomial QS, the effective sieve range where Q(x) is small
+     * enough for smoothness is limited, so M scales linearly with B. */
+    *M = (long)(*B) * 1200L;
+    if (*M < 20000) *M = 20000;
+    /* Cap memory at ~4GB for sieve array (float = 4 bytes) */
+    if (*M > 500000000L) *M = 500000000L;
 
-    *lp_bound = (unsigned long)(*B) * 60;
-    if (*lp_bound < 10000) *lp_bound = 10000;
+    *lp_bound = (unsigned long)(*B) * 80;
+    if (*lp_bound < 20000) *lp_bound = 20000;
 }
 
 /* ========== Main ========== */
