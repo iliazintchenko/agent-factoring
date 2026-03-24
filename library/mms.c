@@ -21,7 +21,7 @@ typedef unsigned int u32;
 typedef unsigned long long u64;
 
 /* ── Limits ── */
-#define MAX_FB    8192
+#define MAX_FB    16384
 #define MAX_K     12
 #define MAX_REL   (MAX_FB + 1024)
 #define MAX_PART  524288
@@ -211,37 +211,7 @@ static int trial_div(mpz_t val, u64 *vec, u64 *lp1, u64 *lp2, int k_idx) {
         }
     }
 
-    /* Check for 2-LP: rem = lp1 * lp2 where B < lp1 <= lp2 <= B^2
-       rem must fit in ~104 bits (2 * 52-bit primes) */
-    if (mpz_sizeinbase(rem, 2) <= 104) {
-        /* Quick check: if rem > B^4, can't be product of two primes ≤ B^2 */
-        /* Try small trial division of rem to split it */
-        u64 small_bound = (g_B < 100000) ? g_B : 100000;
-        for (u64 p = g_fb[g_fb_size - 1].p + 2; p <= small_bound; p += 2) {
-            if (mpz_fdiv_ui(rem, (unsigned long)p) == 0) {
-                mpz_fdiv_q_ui(rem, rem, (unsigned long)p);
-                /* Check remaining factor */
-                while (mpz_fdiv_ui(rem, (unsigned long)p) == 0)
-                    mpz_fdiv_q_ui(rem, rem, (unsigned long)p);
-                if (mpz_cmp_ui(rem, 1) == 0) {
-                    /* rem was a prime power of p — treat as 1-LP */
-                    *lp1 = p;
-                    mpz_clear(rem);
-                    return 1;
-                }
-                if (mpz_sizeinbase(rem, 2) <= 52) {
-                    u64 r2 = mpz_get_ui(rem);
-                    if (r2 <= LP_BOUND) {
-                        *lp1 = p;
-                        *lp2 = r2;
-                        mpz_clear(rem);
-                        return 2;  /* two large primes */
-                    }
-                }
-                break;  /* remaining too large */
-            }
-        }
-    }
+    /* 2-LP disabled for now: combining 2-LP+1-LP leaves unsquared LP */
 
     mpz_clear(rem);
     return 0;
@@ -577,47 +547,22 @@ static int factor(void) {
                             g_nparts++;
                             partials++;
 
-                            if (td == 1) {
-                                /* Single LP — match by exact LP value */
-                                u32 h = (u32)(lp1 * 2654435761ULL) & LP_HASH_MASK;
-                                int match = -1;
-                                for (lp_node_t *nd = g_lp_ht[h]; nd; nd = nd->next) {
-                                    if (nd->lp == lp1) { match = nd->idx; break; }
-                                }
-                                if (match >= 0) {
-                                    combine_parts(match, my_idx);
-                                    combined++;
-                                }
-                                if (g_lp_next < MAX_PART * 2) {
-                                    lp_node_t *nd = &g_lp_pool[g_lp_next++];
-                                    nd->lp = lp1;
-                                    nd->idx = my_idx;
-                                    nd->next = g_lp_ht[h];
-                                    g_lp_ht[h] = nd;
-                                }
-                            } else {
-                                /* 2-LP: store under both large primes */
-                                for (int li = 0; li < 2; li++) {
-                                    u64 lp = (li == 0) ? lp1 : lp2;
-                                    u32 h = (u32)(lp * 2654435761ULL) & LP_HASH_MASK;
-                                    int match = -1;
-                                    for (lp_node_t *nd = g_lp_ht[h]; nd; nd = nd->next) {
-                                        if (nd->lp == lp) { match = nd->idx; break; }
-                                    }
-                                    /* 2LP+1LP sharing one LP → combined has 1 remaining LP
-                                       That's still a partial, but track it anyway */
-                                    if (match >= 0) {
-                                        combine_parts(match, my_idx);
-                                        combined++;
-                                    }
-                                    if (g_lp_next < MAX_PART * 2) {
-                                        lp_node_t *nd = &g_lp_pool[g_lp_next++];
-                                        nd->lp = lp;
-                                        nd->idx = my_idx;
-                                        nd->next = g_lp_ht[h];
-                                        g_lp_ht[h] = nd;
-                                    }
-                                }
+                            /* Match single large prime */
+                            u32 h = (u32)(lp1 * 2654435761ULL) & LP_HASH_MASK;
+                            int match = -1;
+                            for (lp_node_t *nd = g_lp_ht[h]; nd; nd = nd->next) {
+                                if (nd->lp == lp1) { match = nd->idx; break; }
+                            }
+                            if (match >= 0) {
+                                combine_parts(match, my_idx);
+                                combined++;
+                            }
+                            if (g_lp_next < MAX_PART * 2) {
+                                lp_node_t *nd = &g_lp_pool[g_lp_next++];
+                                nd->lp = lp1;
+                                nd->idx = my_idx;
+                                nd->next = g_lp_ht[h];
+                                g_lp_ht[h] = nd;
                             }
                         }
                     }
