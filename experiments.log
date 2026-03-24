@@ -140,3 +140,7 @@
 [2026-03-24 10:15:00] task: Sumsets approach (subsets mod p collision) | result: reformulation of birthday-paradox/Pollard rho. O(N^{1/4}), cannot reach subexp | conclusion: dead end
 [2026-03-24 10:15:00] task: CF of a/N for factoring info | result: convergent denominators coprime to N. Cross-value combinations 30-47x better than random but scales poorly | conclusion: dead end (weak signal)
 [2026-03-24 10:15:00] task: Recent number theory results (2010-2026) for factoring | result: none directly applicable. Gorodetsky smooth estimates give modest NFS constant improvement | conclusion: dead end
+[2026-03-24 10:23:00] task: Smooth number sieve improvements from recent analytic NT | result: 10-30% practical speedups possible via AP equidistribution for special-q optimization. No asymptotic change | conclusion: practical improvement only
+[2026-03-24 10:23:00] task: Coding theory over number fields (Goppa codes mod N) | result: CRT decomposition splits any code C_p × C_q. Reduces to known methods. Function field sieve IS the coding-theory algorithm | conclusion: dead end
+[2026-03-24 10:23:00] task: Tropical geometry for factoring | result: tropicalization erases arithmetic content (log(x)+log(y)=log(N) is trivial). Valuations not values | conclusion: dead end
+[2026-03-24 10:23:00] task: Homomorphic encryption techniques for factoring | result: circular dependency (need p to encrypt p). No new algebraic structure beyond NFS/ECM | conclusion: dead end
