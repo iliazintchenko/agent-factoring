@@ -500,7 +500,16 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
 
 /* ===== ECM fallback ===== */
 static int factor_ecm(const mpz_t N, mpz_t result, double deadline) {
-    double B1 = 1e6;
+    /* Optimal B1 for balanced semiprimes: exp(sqrt(0.5 * ln(N) * ln(ln(N)))) */
+    int n_bits = mpz_sizeinbase(N, 2);
+    double ln_N = n_bits * 0.693;
+    double optimal_B1 = exp(sqrt(0.5 * ln_N * log(ln_N)));
+    double B1 = optimal_B1 / 10; /* start below optimal and ramp up */
+    if (B1 < 1e5) B1 = 1e5;
+    if (B1 > 1e9) B1 = 1e9;
+
+    fprintf(stderr, "  ECM: B1=%.0f (optimal=%.0f)\n", B1, optimal_B1);
+
     for (int curve = 0; curve < 100000 && wall_time() < deadline; curve++) {
         ecm_params p;
         ecm_init(p);
@@ -510,8 +519,9 @@ static int factor_ecm(const mpz_t N, mpz_t result, double deadline) {
         if (ret > 0 && mpz_cmp(result, N) != 0 && mpz_cmp_ui(result, 1) > 0) {
             return 1;
         }
-        /* Increase B1 gradually */
-        if (curve % 100 == 99) B1 *= 2;
+        /* Ramp up B1 aggressively */
+        if (curve % 20 == 19) B1 *= 1.5;
+        if (B1 > optimal_B1 * 5) B1 = optimal_B1 * 5; /* cap */
     }
     return 0;
 }

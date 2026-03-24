@@ -582,3 +582,5 @@
 [2026-03-24 03:36:07] size: 60 | approach: ecm_robust_worst5 | time: 15.398s | notes: ECM robust escalating B1, worst-of-5
 [2026-03-24 03:36:07] size: 62 | approach: ecm_robust_worst5 | time: FAIL | notes: at least one semiprime exceeded 295s timeout
 [2026-03-24 03:36:07] size: 30 | approach: approx_dl | time: FAIL | notes: 5M steps, 325 hits (tol=10K) but P(factor|hit)~2/p~0. Dead end.
+[2026-03-24 03:35:39] size: 58 | approach: LGSH-v4-full | time: 125.464s | notes: found factor 89751595122523791156893059429
+[2026-03-24 03:36:33] size: 58 | approach: LGSH-v5 | time: 117.047s | notes: found factor 28846244187484255242635303993
