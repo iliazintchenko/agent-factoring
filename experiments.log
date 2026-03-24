@@ -794,3 +794,6 @@
 [2026-03-24 03:55:28] size: 50 | approach: siqs_bench | time: FAIL | notes: no factor for 16724097559247740010...
 [2026-03-24 03:56:22] size: 30-42 | approach: siqs_bench | time: see notes | notes: SIQS worst-of-5: 30d=0.46s, 34d=0.53s, 38d=1.65s, 42d=4.03s. FAIL at 46d.
 [2026-03-24 03:56:04] size: 62 | approach: ECM-extended | time: 178.284s | notes: worst of 5, times: 178.284 42.813 127.593 56.497 24.298
+[2026-03-24 04:03:00] size: 62 | approach: ecm_robust | time: FAIL | notes: 4/5 semiprimes exceeded 295s. ECM limit ~60 digits for balanced semiprimes.
+[2026-03-24 04:03:00] size: 64 | approach: ecm_robust | time: FAIL | notes: exceeded 295s timeout
+[2026-03-24 04:03:00] size: N/A | approach: cm_ecm_analysis | time: N/A | notes: CM curves give zero ECM advantage: u_CM = u_standard always. Near-square group orders canceled by doubled prime powers.
