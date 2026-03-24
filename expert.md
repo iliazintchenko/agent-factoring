@@ -35,7 +35,7 @@ Quadratic extensions Z[√d]: norm is a² - d·b², degree 2 in two variables. S
 
 Quaternion algebras: norm is a² + b² + c² + d², degree 4 overall but still **degree 2 in each variable**. Values are ~max(a,b,c,d)² — four variables don't reduce the norm size. More variables don't help because the norm is quadratic per variable.
 
-**Key constraint**: to improve the L-exponent via algebraic norms, you'd need a norm form that grows **subquadratically** in each variable. No standard algebraic structure has this property. NFS sidesteps this by using two *different* norm maps (rational and algebraic) and requiring simultaneous smoothness — but this trick achieves L[1/3] and no known way to extend it further.
+**Key constraint**: NFS achieves L[1/3] not by having a better norm, but by splitting the problem across two different norm maps (rational and algebraic) and requiring simultaneous smoothness. Adding more number fields (multi-image NFS) only improves L[1/3] constants, not the exponent. To beat L[1/3], you'd need either a fundamentally different splitting mechanism or an approach that avoids smoothness-based norms entirely.
 
 ## What would be needed to beat L[1/3]
 
