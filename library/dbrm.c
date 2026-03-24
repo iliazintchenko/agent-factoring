@@ -158,11 +158,10 @@ static void choose_params(int digits, int *B, long *M, unsigned long *lp_bound) 
     if (*B < 300) *B = 300;
     if (*B > 8000000) *B = 8000000;
 
-    /* M = B * 1200: empirically calibrated to get ~3x more relations than needed.
-     * For single-polynomial QS, the effective sieve range where Q(x) is small
-     * enough for smoothness is limited, so M scales linearly with B. */
-    *M = (long)(*B) * 1200L;
-    if (*M < 20000) *M = 20000;
+    /* M = B * 3000: generous sieve range to handle worst-case N at each size.
+     * Single-polynomial sieve needs large M because Q(x) grows rapidly. */
+    *M = (long)(*B) * 3000L;
+    if (*M < 50000) *M = 50000;
     /* Cap memory at ~4GB for sieve array (float = 4 bytes) */
     if (*M > 500000000L) *M = 500000000L;
 
