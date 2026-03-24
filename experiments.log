@@ -555,3 +555,28 @@
 [2026-03-24 00:28:09] size: 55 | approach: srg | time: 3.948 | notes: factored 165812664674396... = 218709495227837... * 758141133752164...
 [2026-03-24 00:28:18] size: 55 | approach: srg | time: 8.897 | notes: factored 254345850051516... = 363122801990237... * 700440315665869...
 [2026-03-24 00:28:21] size: 55 | approach: srg | time: 3.488 | notes: factored 346208360654040... = 766616684768309... * 451605564466253...
+[2026-03-24 00:42:08] size: 30 | approach: mms-ks | time: 0.095s | notes: found factor 237853791679697
+[2026-03-24 00:42:08] size: 30 | approach: mms-ks | time: 0.072s | notes: found factor 285490143297067
+[2026-03-24 00:42:08] size: 30 | approach: mms-ks | time: 0.090s | notes: found factor 742943501885287
+[2026-03-24 00:42:08] size: 30 | approach: mms-ks | time: 0.075s | notes: found factor 163402858332899
+[2026-03-24 00:42:08] size: 30 | approach: mms-ks | time: 0.069s | notes: found factor 709910301438391
+[2026-03-24 00:42:09] size: 35 | approach: mms-ks | time: 0.317s | notes: found factor 565966770337486151
+[2026-03-24 00:42:09] size: 35 | approach: mms-ks | time: 0.295s | notes: found factor 92227777863327913
+[2026-03-24 00:42:09] size: 35 | approach: mms-ks | time: 0.286s | notes: found factor 705765764461554899
+[2026-03-24 00:42:10] size: 35 | approach: mms-ks | time: 0.257s | notes: found factor 280071956120256107
+[2026-03-24 00:42:10] size: 35 | approach: mms-ks | time: 0.285s | notes: found factor 37127311920159217
+[2026-03-24 00:42:11] size: 40 | approach: mms-ks | time: 1.508s | notes: found factor 22583027504572801031
+[2026-03-24 00:42:13] size: 40 | approach: mms-ks | time: 1.364s | notes: found factor 78735518311587647563
+[2026-03-24 00:42:14] size: 40 | approach: mms-ks | time: 1.444s | notes: found factor 93638414278799019499
+[2026-03-24 00:42:16] size: 40 | approach: mms-ks | time: 1.396s | notes: found factor 31096834276242774623
+[2026-03-24 00:42:17] size: 40 | approach: mms-ks | time: 1.454s | notes: found factor 20804179672520600591
+[2026-03-24 00:42:25] size: 45 | approach: mms-ks | time: 7.997s | notes: found factor 5657771382017363579353
+[2026-03-24 00:42:33] size: 45 | approach: mms-ks | time: 8.017s | notes: found factor 79144523907419878777921
+[2026-03-24 00:42:40] size: 45 | approach: mms-ks | time: 6.488s | notes: found factor 64517937880947436101641
+[2026-03-24 00:42:47] size: 45 | approach: mms-ks | time: 7.816s | notes: found factor 6255792773131068668983
+[2026-03-24 00:42:55] size: 45 | approach: mms-ks | time: 7.346s | notes: found factor 94847479583200705450003
+[2026-03-24 00:43:24] size: 50 | approach: mms-ks | time: 29.462s | notes: found factor 2059422624891984908427913
+[2026-03-24 00:43:56] size: 50 | approach: mms-ks | time: 31.856s | notes: found factor 9444316373871639557235581
+[2026-03-24 00:44:26] size: 50 | approach: mms-ks | time: 30.296s | notes: found factor 3318784448526149968726087
+[2026-03-24 00:44:58] size: 50 | approach: mms-ks | time: 32.000s | notes: found factor 9591453119320901101941821
+[2026-03-24 00:45:28] size: 50 | approach: mms-ks | time: 30.015s | notes: found factor 9919464584532754681498727
