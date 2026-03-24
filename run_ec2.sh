@@ -3,27 +3,24 @@
 #   Instance ID: i-097c43774a5e86e69
 #   IP: 44.200.192.220
 #
-# Launch (or reattach):  ./run_ec2.sh --host ec2-user@44.200.192.220 --agents 3
+# Launch (or reattach):  ./run_ec2.sh --host ec2-user@44.200.192.220
 # Detach:                Ctrl-b d
 # Reattach:              ssh -t ec2-user@44.200.192.220 'tmux attach -t factoring'
-# Switch agent windows:  Ctrl-b n (next) / Ctrl-b p (prev) / Ctrl-b <number>
 # Kill:                  ssh ec2-user@44.200.192.220 'pkill -9 -u ec2-user'
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 HOST=""
-NUM_AGENTS=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --host) HOST="$2"; shift 2 ;;
-    --agents) NUM_AGENTS="$2"; shift 2 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
 
-if [ -z "$HOST" ] || [ -z "$NUM_AGENTS" ]; then
-  echo "Usage: $0 --host <user@host> --agents <n>"
+if [ -z "$HOST" ]; then
+  echo "Usage: $0 --host <user@host>"
   exit 1
 fi
 
@@ -57,17 +54,20 @@ if ssh "$HOST" "tmux has-session -t factoring 2>/dev/null"; then
   exec ssh -t "$HOST" 'tmux attach -t factoring'
 fi
 
-# Provision and launch agents on remote
-ssh "$HOST" "bash -s $(printf '%q %q %q %q' "$NUM_AGENTS" "$REPO_URL" "$GIT_USER_NAME" "$GIT_USER_EMAIL")" <<'REMOTE'
+# Provision and launch on remote
+ssh "$HOST" "bash -s $(printf '%q %q %q' "$REPO_URL" "$GIT_USER_NAME" "$GIT_USER_EMAIL")" <<'REMOTE'
 set -e
-NUM_AGENTS="$1"; REPO_URL="$2"; GIT_USER_NAME="$3"; GIT_USER_EMAIL="$4"
+REPO_URL="$1"; GIT_USER_NAME="$2"; GIT_USER_EMAIL="$3"
 
 source ~/.env
 export CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN"
 export PATH="$HOME/.local/bin:$PATH"
 
+git config --global user.name "$GIT_USER_NAME"
+git config --global user.email "$GIT_USER_EMAIL"
+
 # Install system dependencies (dnf is idempotent, always run to ensure nothing is missing)
-sudo dnf install -y gcc gcc-c++ gmp-devel cmake make git hwloc-devel python3-flask python3-requests autoconf automake libtool tmux jq
+sudo dnf install -y gcc gcc-c++ gmp-devel cmake make git hwloc-devel autoconf automake libtool tmux jq
 
 # Build gmp-ecm from source if not installed (not in Amazon Linux default repos)
 if ! pkg-config --exists ecm 2>/dev/null && [ ! -f /usr/local/lib/libecm.a ]; then
@@ -99,41 +99,19 @@ export CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN"
 export PATH="$HOME/.local/bin:$PATH"
 BASHRC
 
-# Clone repos — each agent gets its own directory
-for i in $(seq 1 "$NUM_AGENTS"); do
-  REPO_DIR="/tmp/agent-factoring-$i"
-  if [ -d "$REPO_DIR/.git" ]; then
-    git -C "$REPO_DIR" pull
-  else
-    git clone "$REPO_URL" "$REPO_DIR"
-  fi
-  [ -n "$GIT_USER_NAME" ] && git -C "$REPO_DIR" config user.name "$GIT_USER_NAME"
-  [ -n "$GIT_USER_EMAIL" ] && git -C "$REPO_DIR" config user.email "$GIT_USER_EMAIL"
-done
+# Clean up any previous runs
+rm -rf /tmp/agent-factoring /tmp/inv-*
 
-# Launch agents in background, fully detached from this SSH session
-for i in $(seq 1 "$NUM_AGENTS"); do
-  REPO_DIR="/tmp/agent-factoring-$i"
-  LOG="$REPO_DIR/agent.log"
-  nohup bash -c "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json" > "$LOG" 2>&1 &
-done
+# Clone repo
+REPO_DIR="/tmp/agent-factoring"
+git clone "$REPO_URL" "$REPO_DIR"
+git -C "$REPO_DIR" config user.name "$GIT_USER_NAME"
+git -C "$REPO_DIR" config user.email "$GIT_USER_EMAIL"
 
-# Write a monitor script that tails all agent logs with prefixed output
-cat > /tmp/monitor-agents.sh <<'MONITOR'
-#!/bin/bash
-for log in /tmp/agent-factoring-*/agent.log; do
-  agent=$(echo "$log" | grep -o 'agent-factoring-[0-9]*' | grep -o '[0-9]*')
-  (tail -f "$log" | jq --unbuffered -r '
-    select(.type=="assistant" and .message.content)
-    | .message.content[]
-    | select(.type=="text")
-    | "[agent-'"$agent"'] " + .text
-  ' 2>/dev/null) &
-done
-wait
-MONITOR
-chmod +x /tmp/monitor-agents.sh
-tmux new-session -s factoring -d /tmp/monitor-agents.sh
+# Launch single PI agent in tmux
+LOG="$REPO_DIR/pi.log"
+tmux new-session -s factoring -d \
+  "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json 2>&1 | tee $LOG"
 REMOTE
 
 ssh -t "$HOST" 'tmux attach -t factoring'
