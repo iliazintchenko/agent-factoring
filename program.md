@@ -8,44 +8,96 @@ The ultimate goal is polynomial scaling. But any improvement in the L exponent �
 
 A key observation: Shor's quantum factoring algorithm achieves polynomial time by reducing factoring to period-finding in the multiplicative group mod N. The quantum Fourier transform finds this period efficiently — but *why*? What is it about the algebraic structure of Z_N* that makes factoring reducible to period-finding? Is there a way to exploit that same structure classically? Nobody has proven there isn't.
 
-Think about this deeply. **Spend significant time reading papers and developing theory in expert.md before writing any C code.** Start by understanding *why* factoring is hard, what structure exists in the problem, and what approaches from algebra, number theory, or other fields might exploit that structure. Propose hypotheses. Test them with small experiments.
-
-**Do not reimplement known algorithms.** QS, SIQS, MPQS, NFS, CFRAC, ECM, Pollard's rho, Dixon's method — these are all well-understood. Reimplementing them is not progress. Do not "build a baseline" or "get a working QS first." If you need to factor a number to test an idea, use the GMP-ECM library directly (`ecm_factor` function) or write a minimal throwaway script — do not build a full factoring pipeline. Similarly, do not re-verify known results (e.g. confirming that QS is L[1/2] or that NFS is L[1/3]). Read expert.md for what has already been tried and confirmed.
-
 **Any approach that is L[1/2] or L[1/3] is not progress.** If you can show that your approach has the same asymptotic scaling as QS or NFS — even if it has a different name or different constants — stop working on it and move on to a different idea. Optimizing constants within L[1/2] is not the goal. The goal is to improve the exponent.
 
-The semiprimes in `semiprimes.json` (30–100 digits, 5 per size) are your testbed for validating ideas and measuring scaling.
+HOW YOU WORK:
 
-ENVIRONMENT:
+You manage this research project by launching investigator subprocesses — separate Claude Code instances that each explore a specific question. You do not write factoring code yourself. Instead, you:
 
-- expert.md: the core knowledge base. Contains everything you know about factoring semiprimes — theoretical insights, hypotheses, experimental results, failure modes, and so on. This is the most important file in the project. It should be a live reflection of your current understanding — not a polished report you write at the end. Update it after every significant experiment or discovery. Write down what you tried, what happened, and what it suggests, even if you're not sure yet. Partial insights are valuable. If you've run 3+ experiments without updating expert.md, you're falling behind. And updates are not append-only: as your understanding evolves, restructure, revise, or remove things that turned out to be wrong. The document should always reflect your current best view, not a chronological log.
-- library/: your codebase. All code lives here — factoring implementations, analysis tools, utilities, everything. `library/index.md` has a full overview. Write code directly in the library as reusable, well-structured C/C++ source files. Every technique described in `expert.md` should have a corresponding implementation here. Like `expert.md`, the library is a living thing — update, improve, or remove code as your understanding evolves.
-- experiments.log: append-only log of every experiment you run. Format per line:
+1. **Think** about what directions to explore, informed by expert.md (what's been tried) and the current theoretical landscape
+2. **Launch investigators** to test specific hypotheses or explore specific questions
+3. **Monitor** their progress by reading their logs
+4. **Harvest** useful findings when they finish, updating expert.md and library/
+5. **Repeat** — always keeping 10 investigators running
+
+LAUNCHING INVESTIGATORS:
+
+For each investigator, create a working directory, copy in whatever files they need, and launch:
+
+```bash
+mkdir -p /tmp/inv-N
+cp semiprimes.json /tmp/inv-N/   # plus any other files they need
+cd /tmp/inv-N && nohup claude -p '<task description>' \
+  --dangerously-skip-permissions --output-format stream-json 2>&1 \
+  | jq -r 'select(.type=="assistant" and .message.content) | .message.content[] | select(.type=="text") | .text' \
+  > log.txt &
+echo $! > pid.txt
+```
+
+The task description should be specific enough that the investigator knows exactly what to do, but open enough that they can discover unexpected things. Include:
+- What question to investigate
+- What tools are available (GMP, GMP-ECM, etc.)
+- What concrete first step to take
+- What to write to `findings.txt` when done
+- A time expectation ("this should take about 10-15 minutes")
+
+Example good tasks:
+- "Investigate whether the Deuring correspondence between supersingular elliptic curves and maximal orders in quaternion algebras ramified at p can leak information about p when working over Z/NZ. Start by implementing point-counting on random curves over Z/NZ for 20-digit semiprimes. Use GMP. Write findings to findings.txt."
+- "Test whether the distribution of element orders in Z_N* for N=pq differs detectably from the distribution for N=p'q' where p'q'≈pq. Sample 10000 random elements, compute order mod small primes (2,3,5,7,11), compare distributions for 5 different 30-digit semiprimes. Use GMP. Write findings to findings.txt."
+- "Read the paper at <url> on recursive descent in function fields. Summarize: what is the key algebraic structure that enables sub-L[1/3] DLP? Why doesn't it work over Z? Is there any analog? Write to findings.txt."
+
+Example bad tasks:
+- "Explore novel factoring approaches" (too vague, will build QS)
+- "Implement a quadratic sieve" (known algorithm, L[1/2])
+- "Factor these semiprimes as fast as possible" (optimizing constants)
+
+MONITORING INVESTIGATORS:
+
+Every few minutes, check on all running investigators:
+
+```bash
+tail -30 /tmp/inv-N/log.txt
+```
+
+Kill an investigator if you see:
+- Building a full QS/SIQS/MPQS/NFS pipeline
+- Spending more than a few minutes on parameter tuning or benchmark loops
+- Reimplementing known algorithms under different names
+- Going in circles debugging the same issue
+
+When an investigator finishes (process exits) or you kill it:
+1. Read `findings.txt` and/or the end of `log.txt`
+2. Extract any useful insights — theoretical conclusions, dead ends proved, experimental observations
+3. Update expert.md with the findings (insights only, not implementation details)
+4. If they produced useful code, copy it to library/ in the main repo
+5. Log what was investigated and what was found in experiments.log
+6. Delete the working directory: `rm -rf /tmp/inv-N`
+7. Launch a new investigator in that slot
+
+MAINTAINING THE REPO:
+
+- **expert.md** should contain only theoretical insights, proved dead ends, and open directions. No implementation details, no timing tables, no parameter values, no build commands. If you find yourself writing about a .c file or a benchmark result, stop — that doesn't belong here.
+- **library/** should contain only code that implements genuinely novel approaches. Remove any L[1/2] or L[1/3] implementations that accumulate.
+- **experiments.log** tracks what you investigated and what you found. Format:
   ```
-  [YYYY-MM-DD HH:MM:SS] size: <digits> | approach: <short description> | time: <seconds or FAIL> | notes: <what was learned>
+  [YYYY-MM-DD HH:MM:SS] task: <what was assigned> | result: <what was found> | conclusion: <dead end / promising / inconclusive>
   ```
-- semiprimes.json: the frozen test suite. Contains balanced semiprimes from 30 to 100 digits, 5 random ones per size. Format: `{"30": ["num1", "num2", ...], "31": [...], ...}`. **Do not modify this file.**
+- Commit and push after every expert.md update or library change.
+- Pull before committing to avoid conflicts.
 
 RULES:
 
-- **Always wrap factoring processes in `timeout 295`.** No exceptions. Max runtime for any single process is 300 seconds. Never run a factoring binary without a timeout guard.
-- If something gets terminated because of the timeout, make sure to at least have logs to learn from.
-- **Single core only for factoring.** Each factoring process must use a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance.
-- **Maximize parallelism.** Each factoring process uses 1 core, so you should be running many experiments concurrently to fill up the machine — different sizes, different approaches, parameter sweeps, etc. If you're only running 1-2 things at a time, you're wasting the machine. Launch experiments in bulk, not one at a time.
-- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs.
-- You can use the browser, read papers, or any other tool at your disposal.
-- All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic and GMP-ECM (`-lecm`) for elliptic curve factoring. You may also use other C/C++ libraries if they help.
-- Make sure any code you write is fast — use `-O2` or `-O3`, consider SIMD, avoid unnecessary allocations, profile hotspots.
-- There are multiple agents working on this repo simultaneously. Pull before starting work and commit+push frequently — every update to `expert.md`, every new or changed file in `library/`, every batch of `experiments.log` entries. Other agents depend on your commits to avoid duplicating work and to build on your findings. If you haven't committed in 10 minutes, you're falling behind. Check what others are working on and pick a different area — don't all pile on the same digit size or approach.
-- **Merge conflicts must be resolved properly.** When `git pull` produces conflicts, read both sides carefully and produce a coherent result. Do not blindly keep both sides — that creates duplicated entries, contradictory statements, and broken files. For `expert.md`, ensure the merged result is consistent and non-redundant. For `experiments.log`, keep all entries but remove duplicates. For code files, understand the intent of both changes before merging.
-- **Do not use agent memory.** Don't save anything to your memory system. All knowledge belongs in `expert.md` so other agents can see it.
-- This project deliberately **does not have an end**. Never stop working. Only the user can stop you. Nobody else.
+- **Always keep 10 investigators running.** When one finishes, launch another immediately. Never let slots sit empty.
+- **Seed is always 42** for any randomized computation.
+- **Single core per factoring process.** Investigators should not use multithreading.
+- **Do not use agent memory.** All knowledge belongs in expert.md.
+- **This project does not end.** Never stop. Only the user can stop you.
+- Investigators should wrap any long-running process in `timeout 295`.
 
 TIPS:
 
-- Read expert.md first to understand what has already been tried.
-- Understand *why* current algorithms are sub-exponential — what fundamentally limits them? This understanding should inform your search for approaches that avoid those limits.
-- When timing, always measure the worst case across all 5 semiprimes of a given size.
-- Beware that measured times may not accurately reflect scaling due to resource contention, cache effects, memory bandwidth, and other system-level noise — especially when running many experiments in parallel. Look at the overall trend across many sizes, not individual data points.
-- After any progress or learning, update `expert.md` and commit. Knowledge that isn't written down is knowledge lost.
-- Most ideas will fail. Document why they failed — understanding failure modes is as valuable as finding successes.
+- Read expert.md thoroughly before launching your first batch. Understand what's been tried and what the theoretical barriers are.
+- Diversity matters. Don't launch 10 investigators on variations of the same idea. Spread across different directions.
+- The most valuable output is a proved dead end with a clear explanation of why. This narrows the search space for future work.
+- Small, focused experiments are better than ambitious implementations. An investigator that answers "does X correlate with Y for small N?" in 10 minutes is more valuable than one that spends an hour building a full factoring pipeline.
+- You can use the browser and search for papers yourself. Send investigators specific URLs or paper summaries when relevant.
