@@ -167,7 +167,7 @@ After ~250 investigations, the remaining open space is extremely narrow. These a
 
 ## Explored directions (comprehensive dead-end catalog)
 
-See above sections for details. Summary of ~290 investigated approaches across categories:
+See above sections for details. Summary of ~300 investigated approaches across categories:
 
 **Smoothness-based (all L[1/2] or L[1/3], no improvement):** Schnorr lattice, LLL polynomial selection, multi-image NFS, 3-field NFS, MMS, MLD, Best-of-K, CRT candidates, batch GCD, MLR, K-large-prime, CF-base descent, multi-d CF, sparse polynomial NFS, group algebra Z[C_k], lattice tower/BKZ, lattice on O_K, batch GCD + non-sequential, higher-order residues GF(k), smooth bit-patterns.
 
