@@ -922,3 +922,11 @@
 [2026-03-24 04:31:00] size: 60 | approach: ecm-comprehensive | time: 53.525s | notes: found factor 323012268366406069604976245747
 [2026-03-24 04:31:17] size: 60 | approach: ecm-comprehensive | time: 16.945s | notes: found factor 233727393239440919182445071663
 [2026-03-24 04:30:00] size: 30 | approach: candidate_strategies | time: 7.5s | notes: Compared 5 strategies at B=5000, 50K trials. Near-zero best (0.022%), Sequential 2nd (0.018%), Random worst (0.008%). Multi-k comparable (0.016%). Confirms smallest |x²-N| gives best smoothness — standard QS knowledge.
+[2026-03-24 04:19:08] size: 60 | approach: cm_ecm_bench | time: FAIL | notes: no factor for 28677507619682817975...
+[2026-03-24 04:20:54] size: 62 | approach: cm_ecm_bench | time: FAIL | notes: no factor for 17330246125701865118...
+[2026-03-24 04:33:10] size: 60 | approach: cm_ecm_first | time: 107.4s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 62 | approach: cm_ecm_first | time: 106.2s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 64 | approach: cm_ecm_first | time: 247.4s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 66 | approach: cm_ecm_first | time: 67.0s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 68 | approach: cm_ecm_first | time: 47.0s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 70 | approach: cm_ecm_first | time: 295s | notes: first semiprime only. Status: FAIL
