@@ -1027,3 +1027,11 @@
 [2026-03-24 04:39:23] size: 60 | approach: best-combined | time: 41.309s | notes: found factor 160593629707405643958487297489
 [2026-03-24 04:39:33] size: 65 | approach: ecm-comprehensive | time: 144.637s | notes: found factor 24046545492603698687823074104337
 [2026-03-24 04:40:26] size: 65 | approach: ecm-comprehensive | time: 53.163s | notes: found factor 52978147223722642199500166962889
+[2026-03-24 04:41:35] size: 60 | approach: best-combined | time: FAIL | notes: no factor for 11635742269067009078...
+[2026-03-24 05:30:00] size: 40 | approach: best-combined (ECM+LGSH+HSD) | time: 0.679s | notes: combined approach, ECM-first
+[2026-03-24 05:30:00] size: 45 | approach: best-combined (ECM+LGSH+HSD) | time: 4.691s | notes: combined approach
+[2026-03-24 05:30:00] size: 50 | approach: best-combined (ECM+LGSH+HSD) | time: 18.963s | notes: combined approach  
+[2026-03-24 05:30:00] size: 55 | approach: best-combined (ECM+LGSH+HSD) | time: 36.721s | notes: combined approach
+[2026-03-24 05:30:00] size: 60 | approach: best-combined (ECM+LGSH+HSD) | time: FAIL | notes: all 3 methods timeout on some 60-digit semiprimes
+[2026-03-24 05:30:00] size: 62 | approach: ecm_factor (optimized) | time: 35.91s | notes: Optimized ECM with B1 level skipping. 62-digit in 36s.
+[2026-03-24 05:30:00] size: 64 | approach: ecm_factor (optimized) | time: FAIL | notes: 64-digit needs ~3300 curves at B1=43M, only ~295 possible in 295s timeout
