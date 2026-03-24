@@ -979,3 +979,4 @@
 [2026-03-24 04:37:21] size: 55 | approach: lgsh-comprehensive | time: FAIL | notes: no factor for 59959888854811800282...
 [2026-03-24 04:37:23] size: 55 | approach: best-combined | time: 3.111s | notes: found factor 363122801990237104785674219
 [2026-03-24 04:37:29] size: 55 | approach: best-combined | time: 6.799s | notes: found factor 451605564466253080023546841
+[2026-03-24 05:15:00] size: 62 | approach: ecm_factor (5 parallel) | time: ~200s | notes: 3/5 factored within 295s timeout. ECM with simple sigma=42+i parameterization handles 62-digit semiprimes for most cases.
