@@ -185,3 +185,9 @@
 [2026-03-24 11:18:00] task: Near-ring endomorphisms / Witt-Frobenius | result: p-th power is approximate ring endo with error O(p). Witt formalism makes precise. But composite N: no single polynomial works. CRT decomposition required | conclusion: KEY insight — Witt-Frobenius is the closest thing to Z-Frobenius, but it loses precision
 [2026-03-24 11:18:00] task: Quantum annealing / QUBO for factoring | result: gap closes exponentially. D-Wave best: 23-bit. Scaling 2^{-0.6l}. QUBO destroys number-theoretic structure. Worse than NFS | conclusion: dead end
 [2026-03-24 11:18:00] task: DEFINITIVE top 5 theoretical insights | result: L[1/3] structural, archimedean gap, GF(2) bottleneck, CRT opacity, Z-rigidity | conclusion: DEFINITIVE synthesis
+[2026-03-24 11:26:00] task: Operads / higher category theory for factoring | result: factorization space is discrete finite set. All higher homotopy trivial. Category theory preserves complexity | conclusion: dead end
+[2026-03-24 11:26:00] task: Extremal graph theory / Szemeredi regularity of multiplication table | result: regularity partition = CRT = SVD. Exact isomorphism but finding partition = factoring | conclusion: dead end (elegant equivalence)
+[2026-03-24 11:26:00] task: Sidon sets / B_h sequences in Z/NZ | result: purely additive property, CRT preserves everything. Wrong algebraic layer | conclusion: dead end
+[2026-03-24 11:26:00] task: Coppersmith + failed ECM negative information | result: each failure gives ~2^{-40} bits. Hasse barrier self-defeating. Boneh-Durfee orthogonal | conclusion: dead end
+[2026-03-24 11:26:00] task: Neural network smooth number pre-filter | result: 73% accuracy but feature extraction needs partial trial division. NN needs the answer to predict it | conclusion: dead end
+[2026-03-24 11:26:00] task: HoTT / type theory for factoring | result: factoring lives at truncation level 0. Univalence, HITs cant help. Church-Turing unchanged | conclusion: dead end
