@@ -166,3 +166,8 @@
 [2026-03-24 10:54:00] task: Blockchain/PoW ideas for factoring | result: PoW is structureless/stateless. Blockchain solves coordination not algorithmic problem. NFS LA inherently sequential | conclusion: dead end
 [2026-03-24 10:54:00] task: CFRAC implementation | result: (still running inv-8)
 [2026-03-24 10:54:00] task: Game theory of factoring | result: RSR neutralizes strategy. One-sided complexity question | conclusion: theoretical only
+[2026-03-24 11:02:00] task: Automata theory / transducer inversion for factoring | result: inverse transducer has exponential intermediate nondeterminism. State minimization PSPACE-complete. Krohn-Rhodes shows depth asymmetry | conclusion: dead end (elegant reformulation)
+[2026-03-24 11:02:00] task: Partition theory / Young tableaux for factoring | result: no partition quantity both poly-computable and factor-sensitive. σ(N) recurrence goes wrong direction | conclusion: dead end
+[2026-03-24 11:02:00] task: Unconditional factoring hardness for specific integer classes | result: special forms (Mersenne, Fermat, Cunningham) are EASIER via SNFS. Hardest = random balanced semiprimes. Best proven lower bound = trivial Ω(n) | conclusion: dead end
+[2026-03-24 11:02:00] task: Symmetric group representation theory S_n | result: Young symmetrizers nilpotent mod N. Schur functions symmetric in p,q → computable from s,N alone. Breaking symmetry = sqrt(s²-4N) = factoring | conclusion: dead end
+[2026-03-24 11:02:00] task: Probabilistic NT (Erdos-Kac, Dickman) | result: omega(N)=2 known already. Dickman fully exploited since 1980s. Rating 2/10 | conclusion: dead end
