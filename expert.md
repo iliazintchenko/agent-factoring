@@ -226,7 +226,9 @@ Tested combined ECM→LGSH→HSD pipeline:
 | 62     | 36s (optimized)  | ECM with B1 skip |
 | 64     | FAIL             | ECM needs ~3300 curves at B1=43M, timeout at 295s |
 
-**Gap at 60-70 digits**: ECM runs out of curves in time limit. MPQS degeneracy affects 25% of cases. NFS not competitive without lattice sieve. This 60-70 digit range is the hardest for current implementations.
+**ECM-recycle handles 64 digits**: The ecm_recycle implementation (optimal B1 for balanced semiprimes) factored a 64-digit semiprime in 202s (B1=43M, curve 10). This is the first single-core 64-digit factoring within the 295s timeout.
+
+**Gap at 66-70+ digits**: ECM needs ~5000-10000 curves at B1=43-61M for 33+ digit factors. At ~2s/curve, this is 10000-20000s — far beyond 295s. NFS not competitive without lattice sieve. This range requires either batched ECM or a working NFS/SIQS.
 
 ## Open directions
 
