@@ -178,6 +178,26 @@ Compared doubly-smooth yield of QS vs NFS (degree 3, 4, 5) for 40-digit N with B
 
 **KEY RESULT**: NFS degree 5 produces 2.63x more doubly-smooth relations per candidate than QS at 40 digits, even with brute-force (a,b) enumeration (no lattice sieving). This is because the norms are substantially smaller: 27+50 = 77 total bits vs 82 bits for QS. The double-smoothness penalty is more than offset by smaller norms at higher degree. This advantage should GROW with N (since NFS is L[1/3] vs QS's L[1/2]). The practical challenge is implementing efficient line sieving or special-q sieving for the algebraic side. The 50+ digit experiments timed out with brute-force evaluation, confirming that some form of sieving is necessary.
 
+### Hybrid QS-NFS (hybrid_qs_nfs.c)
+QS-style 1D sieving on NFS polynomials with b=1,2,3,... For 30-digit N with degree 4: 54 doubly-smooth relations found in 120s (need 710). Rate ~10/s. The approach WORKS but the search space (b=1..5000 × a=-50000..50000) is exhausted before collecting enough relations.
+
+**Analysis**: The NFS per-candidate advantage (2.63x at d=5) is offset by the SMALLER search space: algebraic norms grow as a^d, limiting A_MAX. For 30-digit, the two effects roughly cancel. For larger N, the NFS advantage grows (L[1/3] vs L[1/2] asymptotically).
+
+**QS-NFS crossover**: Theoretical crossover at ~9 digits (from L-function analysis) but practical crossover at ~70-100 digits due to NFS overhead (double-smoothness, algebraic square root, polynomial selection).
+
+### Candidate generation strategies (candidate_strategies.c)
+Compared 5 strategies for 30-digit N, B=5000, 50K candidates:
+
+| Strategy    | Smooth rate | Notes |
+|-------------|------------|-------|
+| Near-zero   | 0.022%    | Best: smallest |x²-N| |
+| Sequential  | 0.018%    | Standard QS baseline |
+| Multi-k     | 0.016%    | Knuth multipliers, comparable |
+| Random      | 0.008%    | Worst: large random offsets |
+| CRT-skip    | 0%/34     | Too few candidates (CRT forces large x) |
+
+Confirms: candidates closest to √N (smallest values) are best. This is the foundation of QS. No candidate generation strategy can beat sequential-near-√N for QS-type polynomials.
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
