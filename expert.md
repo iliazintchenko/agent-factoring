@@ -82,7 +82,14 @@ The function field sieve breaks L[1/3] for DLP because it exploits TWO propertie
 - **Schoof-like torsion factoring**: Compute x^N mod (x³+ax+b, N) for random curves E. Tested: works on small N (3, 19 digits) but FAILS on all 30-40 digit semiprimes. Since x³+ax+b is MONIC, no inversions during polynomial reduction — factors found only from final coefficient GCDs with probability ~1/p per curve. Total work O(√N) — same as trial division. NOT polynomial time despite initial appearance.
 - **Division polynomial factoring**: Evaluate ψ_ℓ(P) for random points P on random curves, checking gcd(ψ_ℓ(P), N) for small primes ℓ. This is ECM with single-prime stage 1: tests if ℓ | #E(F_p) one prime at a time, vs ECM's simultaneous B1! test. Strictly worse than ECM because: ECM tests all primes up to B1 in one O(B1 log N) exponentiation, while divpoly tests each ℓ separately in O(ℓ²) per prime. Works on 3-digit N, fails on 30-digit.
 - **Hecke operators on modular forms**: For Eisenstein series E_k, T_N(E_k) = σ_{k-1}(N) · E_k where σ_{k-1}(N) = (1+p^{k-1})(1+q^{k-1}). Knowing σ_1(N) = 1+p+q+N gives p+q and factors N. But computing T_N REQUIRES knowing divisors of N (for the Fourier coefficient recurrence), making it circular. Li (2025, ePrint 2025/1681) explicitly notes this: "Eisenstein series trivialize the Hecke problem into a factoring problem." Hecke operators REDUCE TO factoring, they don't solve it.
+- **CM-ECM (near-perfect-square group orders)**: For CM disc D with |D|=O(1), #E ≈ (√p±1)², so smoothness depends on √p-sized factors (u halves). BUT finding curves with t ≈ ±2√p requires O(√p) trials (Sato-Tate). The √p penalty exceeds the smoothness advantage: √p × ρ(u/2) >> ρ(u). Still L_p[1/2].
 - **QC columns for extraction degeneracy**: QC bits are REDUNDANT — perfect squares automatically satisfy QC conditions. Tested on 49-digit semiprimes: all 128 deps + XOR pairs degenerate. Entire null space maps to x ≡ ±y (mod N). Fix: Block Lanczos or ECM fallback.
+- **Polynomial splitting mod composite N** (poly_split.c): For monic f(x) of degree d, compute gcd(x^{(N-1)/2} - 1, f(x)) mod N. If f splits differently mod p vs mod q, intermediate GCD steps encounter non-invertible leading coefficients. HOWEVER: for monic polynomials, probability of non-invertible coefficient is O(1/√N) per trial. 500 trials on 30-digit N found zero factors. Dead end.
+- **CRT-structured candidate generation**: Force Q(x) to be divisible by chosen primes via CRT. Higher raw smoothness rate (0.59% vs 0.24% at B=50000) is illusory: CRT forces x to be large, so cofactor Q(x)/∏primes ≈ 2√N regardless. No asymptotic improvement.
+- **Best-of-K polynomial selection** (surface_factor.c): Pick the smallest |Q_k(x)| from K polynomials per position. K=10 gives 1.92x rate improvement but 10x cost → 5.3x worse net. Improvement scales as K^{u/ln(B)} ≈ K^{0.5}, always sublinear. Never beats sequential.
+- **CM curve ECM** (cm_ecm.c): For CM disc D, #E ≈ (√p ± 1)² — near-perfect square. Appears to improve smoothness since √p is smaller than p. BUT: ECM needs B1-**powersmooth** orders, and the squared exponents require primes ≤ √B1 instead of ≤ B1. This gives u_CM = ln(√p)/ln(√B1) = ln(p)/ln(B1) = u_standard. **Exactly zero advantage.** The near-square structure is perfectly canceled by the doubled prime power requirement.
+- **Approximate DL relations** (approx_dl.c): Find e where 2^e mod N is close to a small prime. P(gcd reveals factor) ≈ 2/p ≈ 10^{-15} per hit. Exponential.
+- **Galois action on NFS relations**: Algebraic norm is Galois-invariant (product of all conjugates). Automorphisms give same norm, not new relations. At best constant factor d improvement.
 
 ## Key insight: smoothness detection cost
 
@@ -90,12 +97,17 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 
 ## Research survey
 
-- **No classical sub-L[1/3] algorithm exists** for general integer factoring.
+- **No classical sub-L[1/3] algorithm exists** for general integer factoring (confirmed by comprehensive 2020-2025 literature survey).
+- **van Leeuwen (2020)**: Rigorous proof that randomized NFS runs in L[1/3] (previously only heuristic).
+- **Harvey & Hittmeir (2020-2022)**: Best deterministic factoring improved from N^{1/4} to N^{1/5+o(1)}. Still exponential.
+- **Boudot et al. (2022)**: Comprehensive survey confirming NFS at L[1/3, (64/9)^{1/3}] still SOTA. RSA-250 factored.
+- **Bouillaguet et al. (2023)**: Alternative NFS sieving strategies give ~5% speedup. Constant factor only.
+- **Henry Cohn (MIT)**: Argues no known barrier prevents progress below L[1/3], noting historical 1→1/2→1/3 progression. Conjectures L[ε] for all ε > 0 may be achievable. No concrete algorithm proposed.
+- **Factoring via multiplicative relations mod n (2022)**: L[1/2] without NFS, L[1/3] with it. No improvement.
+- **Integer factoring via CF and quadratic forms (2024)**: L[1/2] class. Worse than NFS.
+- **Tower NFS**: Applied ONLY to DLP in GF(p^n) with composite n. NOT applicable to integer factoring. No analog exists.
 - **Regev (2023)**: Quantum O~(n^{3/2}) gates. No classical dequantization.
-- **Stange (2022)**: Index calculus in (Z/NZ)*. Same L[1/2] or L[1/3].
-- **Tower NFS (Barbulescu-Kim 2016)**: Sub-L[1/3] for DLP in GF(p^n) only. No factoring analog.
-- **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Exponential.
-- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces — 2 ECM curves simultaneously. Still L_p(1/2); only useful if constant improvement hints at a different scaling regime.
+- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces. Still L_p(1/2).
 
 ## Implementation status
 

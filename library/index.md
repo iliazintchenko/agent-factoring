@@ -14,7 +14,16 @@
 - **ccd_factor.c** — Cofactor Collision Descent: QS-style sieve + batch cofactor matching + GF(2) linear algebra. Uses aggressive large prime collection and proper dedup matching. Compile: `gcc -O3 -o ccd_factor ccd_factor.c -lgmp -lecm -lm`
 - **ecm_factor.c** — Minimal ECM wrapper using GMP-ECM with escalating bounds. Utility for testing/verification. Compile: `gcc -O3 -o ecm_factor ecm_factor.c -lgmp -lecm -lm`
 
+## Experimental (dead ends — documented in expert.md)
+
+- **mld.c** — Multiplicative Lattice Descent: tested LP expansion with alpha=3. Result: 2.16x worse than standard QS.
+- **corr_smooth.c** — Smoothness correlation measurement across polynomial pairs. Result: no significant correlation.
+- **spectral_walk.c** — Multi-base p-1, multi-polynomial rho, ECM accumulation. All fail for balanced semiprimes.
+- **schoof_factor2.c** — Schoof-like torsion factoring via x^N mod (x³+ax+b, N). Result: O(√N) per curve, same as trial division.
+- **divpoly_factor.c** — Division polynomial evaluation for factoring. Result: ECM with single-prime stage 1, strictly worse.
+- **batch_gcd.c/h** — Bernstein product-tree batch GCD infrastructure. Used by siqs.c.
+
 ## Archived/Debug
 
 - **factor_core.h** — Common utilities header (partially used).
-- **verify_mpqs.c** — MPQS relation verification tool.
+- **run_bench.sh** — Shell script for benchmarking across semiprime sizes.
