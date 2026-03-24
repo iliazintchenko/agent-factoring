@@ -138,6 +138,13 @@ Fitting log(time) vs digits suggests L[1/2] scaling as expected for QS variants.
 - **Integer overflow in parameter selection**: `(int)pow(L, 1.1)` overflows when L > 2³¹. Use `exp(1.1 * log(L))` with cap checks.
 - **Degenerate extraction**: Some N values cause ALL dependencies to give trivial factors (x≡±y mod N). Knuth multiplier k·N fixes this by changing the algebraic structure.
 
+### MPQS extraction degeneracy: root cause analysis
+Single-prime MPQS (A = q² for prime q) has a fundamental character diversity problem. For each polynomial, sv = (Ax+B)·q⁻¹ mod N. The Jacobi symbol (q⁻¹ / p) is fixed for all relations from the same q, and consecutive q values (which are close to √(√(2N)/M)) tend to share the same (q/p) character. This means the quadratic character vector lies in the row space of the exponent matrix with high probability, making ALL GF(2) null-space vectors produce trivial x ≡ ±y (mod N).
+
+**Fix**: Multi-prime A (proper SIQS): A = q₁·q₂·...·qₖ where qᵢ are factor base primes. Different subsets give different A values with guaranteed diverse characters. Block Lanczos (instead of Gaussian elimination) also helps by sampling the null space more uniformly.
+
+**Current workaround**: ECM fallback with optimal B1 for balanced semiprimes.
+
 ### Batch GCD cofactor matching (siqs.c, experimental)
 Implemented Bernstein product-tree batch GCD for finding shared factors among cofactors. The idea: instead of exact LP matching (same cofactor), find ANY common prime between cofactors of different partial relations. In O(n log²n) vs O(n²) for pairwise GCD. Allows much larger cofactors (up to B² instead of B) since we can decompose them after the batch GCD.
 
