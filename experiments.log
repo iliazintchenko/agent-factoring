@@ -30,3 +30,6 @@
 [2026-03-24 07:06:00] task: Exterior algebra / Smith normal form / minors over Z/NZ | result: at most n² independent probes, bare entries dominate minors | conclusion: dead end
 [2026-03-24 07:06:00] task: RMT analysis of QS matrices — spectral, rank, null space weight | result: non-randomness = column-sum heterogeneity only, LA not bottleneck | conclusion: dead end (no exploitable structure)
 [2026-03-24 07:06:00] task: Lattice reduction in Schnorr lattice — tower and BKZ experiments | result: LLL gives α≈0.5-0.9, BKZ same scaling. Tower equivalent to larger lattice | conclusion: dead end (confirmed)
+[2026-03-24 07:13:00] task: Higher-order residues GF(3)/GF(5) for factoring | result: factor base shrinks by 1/(k-1), info/relation peaks at k=2. GF(2) optimal | conclusion: dead end
+[2026-03-24 07:13:00] task: Lattice reduction on O_K (NFS ring of integers) | result: norms ~N^{1/2} (exponential), only (ln N)^{1/3} vectors. Rank-2 wins | conclusion: dead end
+[2026-03-24 07:13:00] task: Arithmetic circuit complexity / symmetric polynomial approach | result: S_k needs s=p+q (FTSP). CRT entanglement intrinsic. Not algebraic problem | conclusion: dead end
