@@ -871,6 +871,7 @@
 [2026-03-24 04:22:22] size: 65 | approach: ECM-extended | time: 142.849s | notes: worst of 5, times: 76.205 57.213 136.515 142.849 88.985
 [2026-03-24 04:24:07] size: 65 | approach: ECM-extended | time: 142.586s | notes: worst of 5, times: 79.748 56.839 136.798 142.586 88.934
 [2026-03-24 04:20:37] size: 64 | approach: ECM-extended | time: 249.457s | notes: worst of 5
+<<<<<<< Updated upstream
 [2026-03-24 03:44:34] size: 60 | approach: hsd-v1 | time: FAIL | notes: no factor for 28677507619682817975...
 [2026-03-24 03:46:48] size: 38 | approach: siqs_fast | time: 280.223s | notes: found factor 1419070827215424463
 [2026-03-24 03:51:29] size: 40 | approach: siqs_fast | time: 280.871s | notes: found factor 22583027504572801031
@@ -980,3 +981,45 @@
 [2026-03-24 04:37:23] size: 55 | approach: best-combined | time: 3.111s | notes: found factor 363122801990237104785674219
 [2026-03-24 04:37:29] size: 55 | approach: best-combined | time: 6.799s | notes: found factor 451605564466253080023546841
 [2026-03-24 05:15:00] size: 62 | approach: ecm_factor (5 parallel) | time: ~200s | notes: 3/5 factored within 295s timeout. ECM with simple sigma=42+i parameterization handles 62-digit semiprimes for most cases.
+=======
+[2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.107s | notes: found factor 237853791679697
+[2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.040s | notes: found factor 973482052545047
+[2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.074s | notes: found factor 216915926307757
+[2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.039s | notes: found factor 955492613363501
+[2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.074s | notes: found factor 709910301438391
+[2026-03-24 04:29:03] size: 34 | approach: ECM-optimal | time: 0.274s | notes: found factor 82045041604477999
+[2026-03-24 04:29:03] size: 34 | approach: ECM-optimal | time: 0.073s | notes: found factor 25815610339368071
+[2026-03-24 04:29:03] size: 34 | approach: ECM-optimal | time: 0.020s | notes: found factor 13707337860656159
+[2026-03-24 04:29:03] size: 34 | approach: ECM-optimal | time: 0.208s | notes: found factor 97615487733219949
+[2026-03-24 04:29:03] size: 34 | approach: ECM-optimal | time: 0.041s | notes: found factor 31885749280408423
+[2026-03-24 04:29:04] size: 38 | approach: ECM-optimal | time: 1.014s | notes: found factor 3510315453304323199
+[2026-03-24 04:29:05] size: 38 | approach: ECM-optimal | time: 0.653s | notes: found factor 2857813223847491747
+[2026-03-24 04:29:05] size: 38 | approach: ECM-optimal | time: 0.402s | notes: found factor 8474925057250052257
+[2026-03-24 04:29:05] size: 38 | approach: ECM-optimal | time: 0.085s | notes: found factor 1981968944913582883
+[2026-03-24 04:29:05] size: 38 | approach: ECM-optimal | time: 0.085s | notes: found factor 9541016958474145709
+[2026-03-24 04:29:07] size: 42 | approach: ECM-optimal | time: 2.180s | notes: found factor 993800718941516497211
+[2026-03-24 04:29:09] size: 42 | approach: ECM-optimal | time: 1.603s | notes: found factor 312903253237424504801
+[2026-03-24 04:29:10] size: 42 | approach: ECM-optimal | time: 0.915s | notes: found factor 832049973472240230583
+[2026-03-24 04:29:13] size: 42 | approach: ECM-optimal | time: 3.133s | notes: found factor 207501258670461422731
+[2026-03-24 04:29:14] size: 42 | approach: ECM-optimal | time: 1.039s | notes: found factor 615209869378693267477
+[2026-03-24 04:29:16] size: 46 | approach: ECM-optimal | time: 1.536s | notes: found factor 99758926037608506463313
+[2026-03-24 04:29:17] size: 46 | approach: ECM-optimal | time: 1.867s | notes: found factor 21583085895882087740731
+[2026-03-24 04:29:21] size: 46 | approach: ECM-optimal | time: 3.544s | notes: found factor 70666773741297185724887
+[2026-03-24 04:29:27] size: 46 | approach: ECM-optimal | time: 6.313s | notes: found factor 86004699159995084660651
+[2026-03-24 04:29:28] size: 46 | approach: ECM-optimal | time: 0.315s | notes: found factor 87668541485909225928839
+[2026-03-24 04:29:28] size: 50 | approach: ECM-optimal | time: 0.688s | notes: found factor 8120770043557672253141101
+[2026-03-24 04:29:32] size: 50 | approach: ECM-optimal | time: 3.363s | notes: found factor 3469948797237213917621473
+[2026-03-24 04:29:33] size: 50 | approach: ECM-optimal | time: 1.140s | notes: found factor 3318784448526149968726087
+[2026-03-24 04:29:50] size: 50 | approach: ECM-optimal | time: 17.020s | notes: found factor 9591453119320901101941821
+[2026-03-24 04:29:52] size: 50 | approach: ECM-optimal | time: 2.258s | notes: found factor 1437953211038098705171097
+[2026-03-24 04:29:55] size: 54 | approach: ECM-optimal | time: 2.544s | notes: found factor 818957046363012197558331607
+[2026-03-24 04:30:38] size: 54 | approach: ECM-optimal | time: 43.782s | notes: found factor 936923754496815584590109357
+[2026-03-24 04:30:46] size: 54 | approach: ECM-optimal | time: 7.463s | notes: found factor 974145362450408019560643707
+[2026-03-24 04:30:48] size: 54 | approach: ECM-optimal | time: 2.497s | notes: found factor 222731417295594470332550983
+[2026-03-24 04:31:20] size: 54 | approach: ECM-optimal | time: 31.160s | notes: found factor 210660520322958242851495331
+[2026-03-24 04:33:03] size: 58 | approach: ECM-optimal | time: 103.002s | notes: found factor 28846244187484255242635303993
+[2026-03-24 04:33:32] size: 58 | approach: ECM-optimal | time: 29.854s | notes: found factor 19272162302635252599922921579
+[2026-03-24 04:33:49] size: 58 | approach: ECM-optimal | time: 16.727s | notes: found factor 99120337580715523453789130329
+[2026-03-24 04:33:52] size: 58 | approach: ECM-optimal | time: 3.159s | notes: found factor 98971722039510325085965724069
+[2026-03-24 04:34:16] size: 58 | approach: ECM-optimal | time: 23.708s | notes: found factor 89751595122523791156893059429
+>>>>>>> Stashed changes

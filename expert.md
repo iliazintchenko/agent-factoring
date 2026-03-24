@@ -145,6 +145,21 @@ Single-prime MPQS (A = q² for prime q) has a fundamental character diversity pr
 
 **Current workaround**: ECM fallback with optimal B1 for balanced semiprimes.
 
+### ECM with optimal B1 for balanced semiprimes (ecm_recycle.c)
+**KEY FINDING**: Pure ECM with B1 = exp(√(0.5·ln(N)·ln(ln(N))))/5 dramatically outperforms MPQS for balanced semiprimes:
+
+| Digits | ECM-optimal worst | LGSH-v5 worst | Speedup |
+|--------|-------------------|---------------|---------|
+| 30 | 0.1s | 0.2s | 2x |
+| 38 | 1.0s | 3.6s | 3.6x |
+| 42 | 3.1s | 10.1s | 3.3x |
+| 46 | 6.3s | 24.7s | 3.9x |
+| 50 | 17.0s | 42.1s | 2.5x |
+| 54 | 43.8s | 80.5s | 1.8x |
+| 58 | 103.0s | 244.1s | 2.4x |
+
+The key insight: for balanced semiprimes (p ≈ q ≈ √N), the optimal ECM B1 is proportional to L_p[1/2] ≈ L_N[1/4]. Starting B1 near optimal/5 and ramping up by 1.3x every 10 curves gives excellent performance. Most 50-digit semiprimes are factored on curve 0-2 (B1 already sufficient).
+
 ### Batch GCD cofactor matching (siqs.c, experimental)
 Implemented Bernstein product-tree batch GCD for finding shared factors among cofactors. The idea: instead of exact LP matching (same cofactor), find ANY common prime between cofactors of different partial relations. In O(n log²n) vs O(n²) for pairwise GCD. Allows much larger cofactors (up to B² instead of B) since we can decompose them after the batch GCD.
 
