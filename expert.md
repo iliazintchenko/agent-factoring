@@ -159,6 +159,15 @@ Measured cofactor sizes and batch GCD collision rates across digit ranges (with 
 ### CCD factoring (ccd_factor.c)
 QS-style sieve with batch cofactor matching. Critical lesson: partial relation matching must mark partners as "used" to prevent duplicate combined relations. Duplicates cause ALL GF(2) null vectors to be trivially degenerate (X ≡ ±Y mod N always).
 
+### SIQS fast (siqs_fast.c)
+Self-initializing QS with proper SIQS polynomial generation (A = product of FB primes, small fixed sieve per polynomial). No sieve range cap — handles arbitrarily large numbers through more polynomials.
+
+### Simplified NFS attempt (snfs_lite.c)
+Attempted base-m NFS for medium numbers (30-60 digits). Result: brute-force evaluation without lattice sieving is impractical. Algebraic norms at search boundary ≈ √N (same as QS), negating NFS advantage. **Confirmed**: NFS not competitive below ~100 digits without full lattice sieve.
+
+### LGSH parameter analysis
+LGSH caps M (sieve range) at 10M. For 50-digit N, theoretical M ≈ 60 billion — so M cap is 6000x too small. This is the primary cause of the 45→50 digit scaling cliff. Fix: SIQS-style multi-polynomial approach which doesn't need large M (LGSH v5 now addresses this with ECM fallback).
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
