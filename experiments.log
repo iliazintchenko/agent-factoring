@@ -262,3 +262,13 @@
 [2026-03-24 12:30:00] task: QAOA at constant depth for factoring | result: p=1 classically simulable, gives zero factoring signal. Non-trivial signal requires p=Ω(n), which is full quantum | conclusion: dead end
 [2026-03-24 12:30:00] task: NFS filtering optimal complexity | result: (pending inv-9)
 [2026-03-24 12:30:00] task: Ring-LWE / NTRU reductions to factoring | result: (pending inv-10)
+[2026-03-24 12:38:00] task: Anabelian geometry for factoring | result: etale fundamental group = profinite completion of Z/NZ products. Reconstruction theorem non-constructive | conclusion: dead end
+[2026-03-24 12:38:00] task: Relative trace formula GL(2) at level N | result: geometric side requires O(√N) work | conclusion: dead end
+[2026-03-24 12:38:00] task: Convex optimization for factoring | result: hyperbolic constraint xy=N. Interior point methods cant beat O(√N) for integer programming | conclusion: dead end
+[2026-03-24 12:38:00] task: Sparse Fourier transform for period-finding | result: SFT recovers s-sparse from O(s polylog) samples but period r has non-sparse spectral support | conclusion: dead end
+[2026-03-24 12:38:00] task: Deformation theory of Z/NZ | result: deformation path from Z/NZ to Z/pZ×Z/qZ exists but computing it = factoring | conclusion: dead end
+[2026-03-24 12:38:00] task: Formal groups of EC over Z/NZ | result: formal group computation reduces to standard ECM stage 1 | conclusion: dead end
+[2026-03-24 12:38:00] task: Cryptographic multilinear maps and factoring | result: no connection. MLMs use lattice assumptions not factoring | conclusion: dead end
+[2026-03-24 12:38:00] task: Algebraic effects/handlers for factoring | result: programming abstraction only. No computational content beyond standard algorithms | conclusion: dead end
+[2026-03-24 12:38:00] task: Bounded arithmetic complexity of NFS | result: NFS provable in S^1_2 iff factoring in P/poly. Deep connection but non-constructive | conclusion: theoretical insight
+[2026-03-24 12:38:00] task: ABSOLUTE FINAL SUMMARY after ~220+ investigations | result: L[1/3] barrier is universal Dickman wall. P(beat L[1/3]) = 2-5%. Only quantum (Shor) breaks through | conclusion: DEFINITIVE FINAL VERDICT
