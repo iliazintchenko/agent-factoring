@@ -211,8 +211,6 @@ static int trial_div(mpz_t val, u64 *vec, u64 *lp1, u64 *lp2, int k_idx) {
         }
     }
 
-    /* 2-LP disabled for now: combining 2-LP+1-LP leaves unsquared LP */
-
     mpz_clear(rem);
     return 0;
 }
