@@ -154,6 +154,7 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 - **Schnorr lattice (2021 claim)**: Refuted experimentally by Ducas (CWI), 0/1000 relations. Never published at peer-reviewed venue.
 - **No classical dequantization of Shor**: Unlike quantum ML algorithms, factoring's HSP structure resists classical simulation. The gap O(√N) vs O(polylog N) is robust.
 - **GNFS L[1/3, 1.923] unchanged since 1990s**: RSA-250 (Feb 2020) remains factoring record. All progress is in practical constants (better sieving, batch smoothness).
+- **NFS L[1/3] is HEURISTIC, not proven**: Best rigorous bound is L[1/2] (Lenstra-Pomerance 1992). Lee-Venkatesan (2017) proved L[1/3] only for randomized variant finding square congruences. Key unproven assumptions: smoothness heuristic ("norms behave like random integers"), independence of smoothness events, monogenic field, square root step.
 
 ## Open directions (genuinely unexplored)
 

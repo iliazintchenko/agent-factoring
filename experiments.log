@@ -126,3 +126,6 @@
 [2026-03-24 09:51:00] task: Algebraic tori factoring pipeline | result: (still running inv-4)
 [2026-03-24 09:51:00] task: Pollard rho benchmark | result: (still running inv-7)
 [2026-03-24 09:51:00] task: Best practical factoring pipeline | result: (still running inv-8)
+[2026-03-24 09:59:00] task: NFS discriminant optimization experiments | result: (pending full read)
+[2026-03-24 09:59:00] task: Class field theory for factoring | result: circularity kills it. h(-N) computation O(√N). No correlation found. Jacobi gives product, not separation | conclusion: dead end
+[2026-03-24 09:59:00] task: NFS heuristic assumptions and formalization status | result: L[1/3] NOT proven! Best rigorous = L[1/2]. 8 unproven assumptions. No formal verification exists | conclusion: KEY insight — rigor gap
