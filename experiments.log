@@ -281,3 +281,5 @@
 [2026-03-24 02:43:06] size: 39 | approach: ccd_v1 | time: 0.858s | notes: found factor 3770956117258414859
 [2026-03-24 02:47:52] size: 39 | approach: ccd_v1 | time: 286.399s | notes: found factor 9277092604312308143
 [2026-03-24 02:47:53] size: 39 | approach: ccd_v1 | time: 1.303s | notes: found factor 5642016948985409609
+[2026-03-24 02:48:42] size: 43 | approach: baseline-qs | time: 87.783s | notes: worst of 5, times: 54.528 51.508 68.588 87.783 55.005
+[2026-03-24 02:50:50] size: 48 | approach: LGSH-v3-extended | time: 43.186s | notes: worst of 5, times: 4.656 5.552 5.405 43.186 5.132
