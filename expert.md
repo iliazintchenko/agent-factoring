@@ -53,6 +53,7 @@ NFS achieves L[1/3] by splitting the norm across TWO polynomials (algebraic + ra
 - **Group-order methods (p-1, p+1, Gaussian/Eisenstein integers)**: All give fixed group orders (p±1 variants). For balanced semiprimes where p±1 are not smooth, these are ineffective. ECM randomizes the group order but is still L[1/2].
 - **Character sum / autocorrelation approaches**: Detecting the period p in χ_N(n) requires Ω(√N) samples (information-theoretic lower bound). Same complexity as trial division.
 - **Birthday-paradox collision methods (Pollard rho variants)**: O(N^{1/4}) for balanced semiprimes regardless of the map used. Not sub-exponential.
+- **Extended matrix with ECM-descended cofactors (CDS)**: Using ECM to split sieve cofactors into medium primes, then adding each medium prime as a column in an extended GF(2) matrix. **Fails** because the number of unique medium primes grows faster than the number of relations — each ECM descent produces new, previously-unseen primes, rapidly expanding the column count. With B=2201 on 30-digit N: 1764 relations but 2487 unique medium primes = 2798 columns. The matrix is always underdetermined. The correct approach for cofactor descent is LP-matching (combine partials sharing a medium prime), not extended matrix.
 
 ## Research survey
 
