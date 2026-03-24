@@ -55,9 +55,9 @@ The function field sieve breaks L[1/3] for DLP because of TWO properties absent 
 - OR smooth numbers of size < N^{1/3} that relate to N's factorization
 - OR a completely non-smoothness-based sub-exponential approach (none known)
 
-## Dead ends (tested or analyzed)
+## Explored directions and conclusions
 
-**Smoothness-based dead ends:**
+**Smoothness-based approaches explored:**
 - **Schnorr lattice factoring**: Lattice dimension grows with smoothness bound. Ducas (CWI): 0 relations in 1000 trials.
 - **LLL polynomial selection**: Degree-2 already optimal (shortest vector). Degree-3+ needs NFS.
 - **Multi-image NFS**: Improves L[1/3] constants only, not the exponent.
@@ -69,7 +69,7 @@ The function field sieve breaks L[1/3] for DLP because of TWO properties absent 
 - **Batch GCD collision rate**: Drops from 11.3% (40d) to 0.93% (60d). Constant-factor improvement only.
 - **Multiplicative lattice relations (MLR)**: LLL finds small P(e) mod N, but CRT entanglement means small mod N ≠ small mod p. Confirms Schnorr is theoretically limited.
 
-**Group-order dead ends:**
+**Group-order approaches explored:**
 - **ECM for balanced semiprimes**: L[1/2] in N. Not competitive above ~55 digits.
 - **p-1/p+1 for balanced semiprimes**: Fail when p±1 aren't smooth.
 - **CM-ECM**: Near-square group orders (#E ≈ (√p±1)²) but finding such curves costs O(√p). The penalty exactly cancels the smoothness advantage.
@@ -78,7 +78,7 @@ The function field sieve breaks L[1/3] for DLP because of TWO properties absent 
 - **Division polynomial factoring**: ECM with single-prime stage 1. Strictly worse than ECM.
 - **Schoof-like torsion factoring**: Monic polynomial → no inversions → O(√N) per curve.
 
-**Algebraic structure dead ends:**
+**Algebraic structure approaches explored:**
 - **Spectral methods on Cayley graphs**: Exponential classically — exactly what Shor's QFT solves.
 - **Deuring correspondence / isogeny graphs**: Three channels analyzed (supersingularity detection, spectral decomposition, random walk mixing). All blocked — require knowing p, exponential graph size, or O(N^{1/4}) birthday bound.
 - **Hecke operators on modular forms**: Computing T_N requires knowing divisors of N. Circular.
