@@ -201,19 +201,21 @@ int main(int argc, char *argv[]) {
     /* Parameters */
     double logN = ndigits * log(10);
     double loglogN = log(logN);
-    unsigned long B = (unsigned long)exp(0.55 * sqrt(logN * loglogN));
+    /* Optimal B for multi-multiplier CFRAC */
+    unsigned long B = (unsigned long)exp(0.48 * sqrt(logN * loglogN));
     if (B < 300) B = 300;
-    if (B > 2000000) B = 2000000;
-    unsigned long LP_bound = B * 30;
+    if (B > 1000000) B = 1000000;
+    unsigned long LP_bound = B * 50;
 
     /* Pre-filter constants */
     #define MAX_LP_BITS 1  /* Allow at most 1 large prime per relation */
     double max_smooth_bits = (MAX_LP_BITS + 1) * log2((double)B) + 5;
 
     /* How many multipliers to use */
-    int K = 10; /* Start with 10 multipliers */
-    if (ndigits > 40) K = 20;
-    if (ndigits > 50) K = 30;
+    int K = 15; /* More multipliers = more cross-LP collisions */
+    if (ndigits > 35) K = 25;
+    if (ndigits > 40) K = 35;
+    if (ndigits > 45) K = 45;
     if (K > (int)N_SQFREE) K = N_SQFREE;
 
     fprintf(stderr, "MMCFRAC: %d digits, B=%lu, LP=%lu, K=%d multipliers\n",
@@ -278,9 +280,7 @@ int main(int argc, char *argv[]) {
         for (int ki = 0; ki < K && nrels < max_rels; ki++) {
             cfrac_step(&cfs[ki], residue);
 
-            /* Pre-filter: skip residues too large for smooth + LP.
-             * Q_n is typically much smaller than 2√(kN) — it's the CF denominator.
-             * Only trial divide if Q_n could plausibly be B-smooth times at most LP. */
+            /* Pre-filter 1: skip residues too large */
             {
                 unsigned long res_bits = mpz_sizeinbase(residue, 2);
                 unsigned long max_bits = (unsigned long)(log2((double)B) * 4 + log2((double)LP_bound));
