@@ -483,6 +483,45 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
     match_lp(&partial, &full, kN);
     fprintf(stderr, "  k=%d: %d full (need %d)\n", k, full.count, target);
 
+    /* Deduplicate: remove relations with identical sqrt_val (hash-based) */
+    {
+        /* Hash by sqrt_val mod a large prime */
+        unsigned long hash_size = full.count * 3;
+        if (hash_size < 1024) hash_size = 1024;
+        int *hash_table = (int*)malloc(hash_size * sizeof(int));
+        memset(hash_table, -1, hash_size * sizeof(int));
+        int unique = 0;
+        for (int i = 0; i < full.count; i++) {
+            unsigned long h = mpz_fdiv_ui(full.data[i].sqrt_val, hash_size);
+            int dup = 0;
+            /* Linear probing */
+            for (int probe = 0; probe < 100; probe++) {
+                int slot = (h + probe) % hash_size;
+                if (hash_table[slot] == -1) {
+                    hash_table[slot] = unique;
+                    break;
+                }
+                int j = hash_table[slot];
+                if (mpz_cmp(full.data[i].sqrt_val, full.data[j].sqrt_val) == 0) {
+                    dup = 1; break;
+                }
+            }
+            if (!dup) {
+                if (unique < i) {
+                    rel_t tmp_r = full.data[unique];
+                    full.data[unique] = full.data[i];
+                    full.data[i] = tmp_r;
+                }
+                unique++;
+            }
+        }
+        free(hash_table);
+        if (unique < full.count) {
+            fprintf(stderr, "  Dedup: %d → %d unique\n", full.count, unique);
+            full.count = unique;
+        }
+    }
+
     int success = 0;
     if (full.count > target) {
         int **deps; int *dsizes; int ndeps;
