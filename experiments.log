@@ -504,3 +504,4 @@
 [2026-03-24 03:27:51] size: 54 | approach: LGSH-v5 | time: 73.662s | notes: found factor 936923754496815584590109357
 [2026-03-24 02:52:39] size: 39 | approach: ccd_v1 | time: 285.869s | notes: found factor 4334488463092636909
 [2026-03-24 03:28:07] size: 38 | approach: siqs_fast | time: 280.155s | notes: found factor 3510315453304323199
+[2026-03-24 03:30:00] size: 30-60 | approach: order_probe (strong_test+p1) | time: FAIL | notes: confirmed group-order methods fail for balanced semiprimes. Strong pseudoprime test: N-1 is unrelated to φ(N), squaring chain usually doesn't reach 1. p-1 with B=100000: p-1 not smooth for random balanced semiprimes.
