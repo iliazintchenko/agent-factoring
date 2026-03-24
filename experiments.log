@@ -730,3 +730,29 @@
 [2026-03-24 00:46:22] size: 62 | approach: bsrf-v4 | time: FAIL | notes: no factor for 17330246125701865118...
 [2026-03-24 00:46:26] size: 67 | approach: bsrf-v4 | time: FAIL | notes: no factor for 33109722616274469120...
 [2026-03-24 00:48:25] size: 65 | approach: ecm-baseline | time: 167.711s | notes: found factor 34882065070015038892437762171661
+[2026-03-24 00:50:45] size: 65 | approach: ecm-baseline | time: 139.892s | notes: found factor 77673940530171589396008112845769
+[2026-03-24 00:51:10] size: 56 | approach: bsrf-v4 | time: 9.902s | notes: found factor 2084529907224965327995401461
+[2026-03-24 00:51:18] size: 56 | approach: bsrf-v4 | time: 8.642s | notes: found factor 2619642279271363362833363051
+[2026-03-24 00:51:29] size: 56 | approach: bsrf-v4 | time: 10.710s | notes: found factor 2731014286536400400755034377
+[2026-03-24 00:51:39] size: 56 | approach: bsrf-v4 | time: 9.960s | notes: found factor 3133919947636714377324251347
+[2026-03-24 00:51:49] size: 56 | approach: bsrf-v4 | time: 10.164s | notes: found factor 1812692971414181860801305169
+[2026-03-24 00:51:52] size: 65 | approach: ecm-baseline | time: 67.014s | notes: found factor 24046545492603698687823074104337
+[2026-03-24 00:52:04] size: 57 | approach: bsrf-v4 | time: 14.755s | notes: found factor 4561245599374620210470661251
+[2026-03-24 00:52:24] size: 57 | approach: bsrf-v4 | time: 19.615s | notes: found factor 8088542170426729881777048173
+[2026-03-24 00:52:48] size: 57 | approach: bsrf-v4 | time: 23.936s | notes: found factor 5255893546759994614176361127
+[2026-03-24 00:53:00] size: 57 | approach: bsrf-v4 | time: 12.901s | notes: found factor 5761896353180878733239029497
+[2026-03-24 00:53:16] size: 57 | approach: bsrf-v4 | time: 15.944s | notes: found factor 3488128112046766079111453917
+[2026-03-24 00:53:47] size: 58 | approach: bsrf-v4 | time: 30.990s | notes: found factor 28846244187484255242635303993
+[2026-03-24 00:54:00] size: 65 | approach: ecm-baseline | time: 128.577s | notes: found factor 52978147223722642199500166962889
+[2026-03-24 00:54:23] size: 58 | approach: bsrf-v4 | time: 35.551s | notes: found factor 19272162302635252599922921579
+[2026-03-24 00:54:49] size: 58 | approach: bsrf-v4 | time: 26.367s | notes: found factor 30195067453845270578085979081
+[2026-03-24 00:55:22] size: 58 | approach: bsrf-v4 | time: 32.590s | notes: found factor 17126378949394488899993742571
+[2026-03-24 00:55:32] size: 66 | approach: ecm-baseline | time: 91.474s | notes: found factor 187074094267241996683354163400617
+[2026-03-24 00:55:46] size: 58 | approach: bsrf-v4 | time: 24.379s | notes: found factor 12586372445066434246481998027
+[2026-03-24 00:56:28] size: 59 | approach: bsrf-v4 | time: 42.132s | notes: found factor 48651413660930190627280465967
+[2026-03-24 00:57:13] size: 59 | approach: bsrf-v4 | time: 44.712s | notes: found factor 73089891300619781979847569431
+[2026-03-24 00:57:57] size: 59 | approach: bsrf-v4 | time: 43.801s | notes: found factor 12495230081720858250831839399
+[2026-03-24 00:57:58] size: 66 | approach: ecm-baseline | time: 146.376s | notes: found factor 231316157318579909742226288352273
+[2026-03-24 00:58:33] size: 59 | approach: bsrf-v4 | time: 36.134s | notes: found factor 44308523053430882607459859471
+[2026-03-24 01:02:53] size: 66 | approach: ecm-baseline | time: FAIL | notes: no factor for 16671137877416899735...
+[2026-03-24 01:03:28] size: 59 | approach: bsrf-v4 | time: FAIL | notes: no factor for 48066858703765039376...
