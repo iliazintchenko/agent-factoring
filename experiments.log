@@ -11,3 +11,13 @@
 [2026-03-24 06:38:00] task: Subfield lifting via Z/NZ[x]/(f(x)) tower extensions | result: 0 balanced semiprimes factored across 7 strategies, CRT decomposition is the secret | conclusion: dead end
 [2026-03-24 06:38:00] task: Schnorr lattice tower and BKZ for sub-√N candidates | result: SVP hardness blocks geometric advantage, BKZ → L[1,c] worse than NFS | conclusion: dead end
 [2026-03-24 06:38:00] task: Brandt matrices — quaternion spectral structure mod N (final) | result: norm degenerates to a²+b² since j²=-N≡0, ideal class enumeration requires knowing p | conclusion: dead end
+[2026-03-24 06:52:00] task: Three number field NFS — can 3-way smoothness beat L[1/3]? | result: all-3-smooth 42% worse, any-2-of-3 cancels. α=1/3 fundamental | conclusion: dead end
+[2026-03-24 06:52:00] task: Batch GCD + non-sequential candidates (random, MPQS, lattice) | result: sequential sieving wins — smallest candidates, locality advantage | conclusion: dead end (for single-N)
+[2026-03-24 06:52:00] task: RS decoding over Z/NZ for factoring | result: per-operation failure rate = random baseline 2/√N | conclusion: dead end
+[2026-03-24 06:52:00] task: Virtual Frobenius x→x^N, AKS-style polynomial ring variants | result: 100% success but O(√N) iterations, worse than Pollard rho | conclusion: dead end
+[2026-03-24 06:52:00] task: L-functions / class numbers h(-N) | result: O(√N) terms needed, h(-N)≠h(-p)h(-q), class group ≡ factoring | conclusion: dead end
+[2026-03-24 06:52:00] task: Isogeny walks over Z/NZ (kernel polynomial splitting) | result: reduces to Berlekamp/polynomial GCD over Z/NZ, 0/140 factored | conclusion: dead end
+[2026-03-24 06:52:00] task: Algebraic tori T_n for n∈{3,4,5,6,8,10,12} | result: independent smoothness channels (Φ_n(p)), 2/30 unique wins | conclusion: real but limited channel, no asymptotic improvement
+[2026-03-24 06:52:00] task: Genus-2 hyperelliptic curve Jacobians (HECM) | result: smoothness advantage for u<5 but 4-5x cost neutralizes. No asymptotic gain | conclusion: inconclusive (narrow competitive range)
+[2026-03-24 06:52:00] task: Non-abelian HSP embeddings for factoring | result: faithful embeddings need exponential dimension | conclusion: dead end
+[2026-03-24 06:52:00] task: Subfield lifting Z/NZ[x]/(f(x)) tower extensions | result: 0 balanced factored, CRT decomposition IS the secret | conclusion: dead end
