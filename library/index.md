@@ -11,6 +11,9 @@
 
 - **bench.py** — Benchmark a binary across semiprimes. Usage: `python3 bench.py <binary> <approach_name> [sizes...]`. Records results to `experiments.log`.
 
+- **ccd_factor.c** — Cofactor Collision Descent: QS-style sieve + batch cofactor matching + GF(2) linear algebra. Uses aggressive large prime collection and proper dedup matching. Compile: `gcc -O3 -o ccd_factor ccd_factor.c -lgmp -lecm -lm`
+- **ecm_factor.c** — Minimal ECM wrapper using GMP-ECM with escalating bounds. Utility for testing/verification. Compile: `gcc -O3 -o ecm_factor ecm_factor.c -lgmp -lecm -lm`
+
 ## Archived/Debug
 
 - **factor_core.h** — Common utilities header (partially used).
