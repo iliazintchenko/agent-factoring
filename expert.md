@@ -61,6 +61,7 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **Multi-multiplier sieve (MMS)**: Cross-multiplier LP matching gives ~60% more relations (constant factor) but doesn't shrink polynomial values.
 - **Quaternion norms for smoothness testing**: Norm is still quadratic per variable — more variables don't reduce value sizes. However, quaternion algebras have other relevant structure (Deuring correspondence with supersingular elliptic curves, Brandt matrices encoding Hecke operators, Pizer's Ramanujan graphs) that could theoretically leak factoring information through non-smoothness-based channels. Unexplored.
 - **BatchQS (naive implementation)**: Bernstein product-tree batch GCD misses ~80% of smooth candidates vs standard sieve. The technique itself is sound but the implementation used insufficient primorial powers.
+- **Berlekamp polynomial splitting over Z/NZ**: Compute x^N mod (f(x), N) for random degree-2 polynomials f. The gcd(x^N - x, f) over Z/NZ should split f differently mod p vs q, revealing a factor. FAILS for balanced semiprimes because: over F_p with root r of f, x^N maps r → r^q, and gcd(x^N-x, f) is non-trivial only when r^{q-1} ≡ 1 (mod p), which requires ord(r) | (q-1). For random r ∈ F_p*, this has probability gcd(q-1, p-1)/(p-1) ≈ log(p)/p ≈ 0. This is essentially the Pollard p-1 condition — the approach degenerates to p-1 factoring for balanced semiprimes.
 - **Multiplicative Lattice Descent (MLD)**: Extending the LP bound from B to B^α (α>2) increases partial relation rate but the cofactor factor base grows as B^(α-1)/log(B). Tested for 30-digit N with α=3: MLD needs 2.16x MORE sieve work than standard QS because the matrix size explosion (100k × 100k) outweighs the partial relation gain (143x). The cofactor-to-matrix tradeoff is inherently bounded: any LP expansion that multiplies the relation rate by R also multiplies the matrix dimension by ≥ R, so the L-exponent cannot improve. This is the fundamental reason LP variations (single, double, triple) improve constants but not the exponent.
 - **Class group 2-Sylow exploration**: For disc -4N, the class group has ambiguous forms including (p,0,q). Finding this via repeated squaring g^(2^k) gives order-2 elements, but most are "trivial" (a=2 type, from the discriminant factor 4). Needs BSGS or Shanks-style search to find the factoring form — O(N^{1/4}) time, same as Pollard rho. Not better than QS.
 - **Multi-base GCD accumulation**: Running Pollard p-1 with many random bases and B1 up to 50000 doesn't factor balanced semiprimes (p-1 not smooth). Multi-curve ECM accumulation with B1=1000 also fails for 30-digit semiprimes. Confirmed: group-order methods fundamentally fail for balanced random semiprimes.
@@ -91,17 +92,17 @@ Working MPQS implementation with:
 - Knuth multiplier fallback (tries k=1,3,5,7,11,... until extraction succeeds)
 - GF(2) Gaussian elimination with up to 128 dependencies
 
-**Measured scaling (LGSH-v3, worst-of-5):**
-| Digits | Time (s) |
-|--------|----------|
-| 30 | 0.20 |
-| 34 | 0.21 |
-| 38 | 0.59 |
-| 42 | 1.26 |
-| 44 | 4.17 |
-| 46 | ~4s |
+**Measured scaling (LGSH-v4, worst-of-5, includes multiplier + ECM fallback):**
+| Digits | Worst (s) | Avg (s) |
+|--------|-----------|---------|
+| 30 | 0.21 | 0.17 |
+| 34 | 0.25 | 0.21 |
+| 38 | 3.4 | 1.2 |
+| 42 | 9.8 | 3.4 |
+| 46 | 38 | 32 |
+| 50 | ~106 | ~100 |
 
-Fitting log(time) vs digits suggests L[1/2] scaling as expected for QS variants.
+High variance at 38+ digits due to MPQS extraction degeneracy requiring multiplier retries. Scaling is roughly L[1/2] as expected for QS variants. ECM fallback handles cases where all multipliers fail extraction.
 
 ### Known bugs / lessons
 - **LP matching must divide by cofactor**: When combining two single-LP relations sharing cofactor c, the combined sqrt_val must be sv1·sv2·c⁻¹ (mod N), not just sv1·sv2. Otherwise x = y for all dependencies.
