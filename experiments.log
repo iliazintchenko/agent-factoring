@@ -8,9 +8,6 @@
 [2026-03-24 04:30:00] size: 51 | approach: QS-v1 | time: 22.693s | notes: QS-v1 51-digit, fails at 52+
 [2026-03-24 04:30:00] size: 30 | approach: CCF-batch-gcd | time: FAIL | notes: batch smooth detection too slow, only 5/655 smooth from 2.6M candidates
 [2026-03-24 04:30:00] size: 30 | approach: CCF-v3-tuned | time: FAIL | notes: better params (B=11051), 217 smooth + 191 LP = 408/675. batch GCD found 6623 shared cofactors but couldn't convert to relations
-[2026-03-24 04:30:00] size: 30 | approach: QS-v1 | time: 0.055s | notes: working QS with multi-polynomial + LP matching
-[2026-03-24 04:30:00] size: 40 | approach: QS-v1 | time: 0.853s | notes: QS-v1 40-digit
-[2026-03-24 04:30:00] size: 50 | approach: QS-v1 | time: 11.514s | notes: QS-v1 50-digit
 [2026-03-24 04:30:00] size: 51 | approach: QS-v1 | time: 22.693s | notes: QS-v1 fails at 52+
 [2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.132s | notes: found factor 853172260176581
 [2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.141s | notes: found factor 973482052545047
@@ -871,7 +868,6 @@
 [2026-03-24 04:22:22] size: 65 | approach: ECM-extended | time: 142.849s | notes: worst of 5, times: 76.205 57.213 136.515 142.849 88.985
 [2026-03-24 04:24:07] size: 65 | approach: ECM-extended | time: 142.586s | notes: worst of 5, times: 79.748 56.839 136.798 142.586 88.934
 [2026-03-24 04:20:37] size: 64 | approach: ECM-extended | time: 249.457s | notes: worst of 5
-<<<<<<< Updated upstream
 [2026-03-24 03:44:34] size: 60 | approach: hsd-v1 | time: FAIL | notes: no factor for 28677507619682817975...
 [2026-03-24 03:46:48] size: 38 | approach: siqs_fast | time: 280.223s | notes: found factor 1419070827215424463
 [2026-03-24 03:51:29] size: 40 | approach: siqs_fast | time: 280.871s | notes: found factor 22583027504572801031
@@ -981,7 +977,6 @@
 [2026-03-24 04:37:23] size: 55 | approach: best-combined | time: 3.111s | notes: found factor 363122801990237104785674219
 [2026-03-24 04:37:29] size: 55 | approach: best-combined | time: 6.799s | notes: found factor 451605564466253080023546841
 [2026-03-24 05:15:00] size: 62 | approach: ecm_factor (5 parallel) | time: ~200s | notes: 3/5 factored within 295s timeout. ECM with simple sigma=42+i parameterization handles 62-digit semiprimes for most cases.
-=======
 [2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.107s | notes: found factor 237853791679697
 [2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.040s | notes: found factor 973482052545047
 [2026-03-24 04:29:02] size: 30 | approach: ECM-optimal | time: 0.074s | notes: found factor 216915926307757
@@ -1022,7 +1017,79 @@
 [2026-03-24 04:33:49] size: 58 | approach: ECM-optimal | time: 16.727s | notes: found factor 99120337580715523453789130329
 [2026-03-24 04:33:52] size: 58 | approach: ECM-optimal | time: 3.159s | notes: found factor 98971722039510325085965724069
 [2026-03-24 04:34:16] size: 58 | approach: ECM-optimal | time: 23.708s | notes: found factor 89751595122523791156893059429
->>>>>>> Stashed changes
 [2026-03-24 04:39:29] size: 62 | approach: ECM-optimal | time: 12.523s | notes: found factor 8710261781514903350498287202657
 [2026-03-24 04:44:20] size: 62 | approach: ECM-optimal | time: FAIL | notes: no factor for 13466664873324827837...
 [2026-03-24 04:49:15] size: 66 | approach: ECM-optimal | time: FAIL | notes: no factor for 10352646757700826401...
+[2026-03-24 04:38:15] size: 44 | approach: siqs_fast | time: 280.680s | notes: found factor 3431962552616557921391
+[2026-03-24 04:38:23] size: 60 | approach: best-combined | time: 53.327s | notes: found factor 323012268366406069604976245747
+[2026-03-24 04:38:38] size: 58 | approach: lgsh-comprehensive | time: FAIL | notes: no factor for 26570027388372471817...
+[2026-03-24 04:38:42] size: 60 | approach: best-combined | time: 19.128s | notes: found factor 233727393239440919182445071663
+[2026-03-24 04:39:23] size: 60 | approach: best-combined | time: 41.309s | notes: found factor 160593629707405643958487297489
+[2026-03-24 04:39:33] size: 65 | approach: ecm-comprehensive | time: 144.637s | notes: found factor 24046545492603698687823074104337
+[2026-03-24 04:40:26] size: 65 | approach: ecm-comprehensive | time: 53.163s | notes: found factor 52978147223722642199500166962889
+[2026-03-24 04:41:35] size: 60 | approach: best-combined | time: FAIL | notes: no factor for 11635742269067009078...
+[2026-03-24 05:30:00] size: 40 | approach: best-combined (ECM+LGSH+HSD) | time: 0.679s | notes: combined approach, ECM-first
+[2026-03-24 05:30:00] size: 45 | approach: best-combined (ECM+LGSH+HSD) | time: 4.691s | notes: combined approach
+[2026-03-24 05:30:00] size: 50 | approach: best-combined (ECM+LGSH+HSD) | time: 18.963s | notes: combined approach  
+[2026-03-24 05:30:00] size: 55 | approach: best-combined (ECM+LGSH+HSD) | time: 36.721s | notes: combined approach
+[2026-03-24 05:30:00] size: 60 | approach: best-combined (ECM+LGSH+HSD) | time: FAIL | notes: all 3 methods timeout on some 60-digit semiprimes
+[2026-03-24 05:30:00] size: 62 | approach: ecm_factor (optimized) | time: 35.91s | notes: Optimized ECM with B1 level skipping. 62-digit in 36s.
+[2026-03-24 05:30:00] size: 64 | approach: ecm_factor (optimized) | time: FAIL | notes: 64-digit needs ~3300 curves at B1=43M, only ~295 possible in 295s timeout
+[2026-03-24 04:19:08] size: 60 | approach: cm_ecm_bench | time: FAIL | notes: no factor for 28677507619682817975...
+[2026-03-24 04:20:54] size: 62 | approach: cm_ecm_bench | time: FAIL | notes: no factor for 17330246125701865118...
+[2026-03-24 04:33:10] size: 60 | approach: cm_ecm_first | time: 107.4s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 62 | approach: cm_ecm_first | time: 106.2s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 64 | approach: cm_ecm_first | time: 247.4s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 66 | approach: cm_ecm_first | time: 67.0s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 68 | approach: cm_ecm_first | time: 47.0s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 70 | approach: cm_ecm_first | time: 295s | notes: first semiprime only. Status: FAIL
+[2026-03-24 04:35:24] size: 62 | approach: cm_ecm_w5 | time: FAIL | notes: no factor for 17330246125701865118...
+[2026-03-24 04:35:25] size: 60 | approach: cm_ecm_w5 | time: FAIL | notes: no factor for 28677507619682817975...
+[2026-03-24 04:45:34] size: 60 | approach: cm_ecm_worst5 | time: 107.8s | notes: all 5 factored. Individual: 107.8, 3.2, 23.0, 77.6, 54.1
+[2026-03-24 04:45:34] size: 62 | approach: cm_ecm_worst5 | time: 111.4s | notes: all 5 factored. Individual: 111.4, 95.3, 16.3, 63.8, 64.3
+[2026-03-24 04:42:49] size: 30 | approach: ecm-optimized | time: 0.008s | notes: found factor 237853791679697
+[2026-03-24 04:42:49] size: 30 | approach: ecm-optimized | time: 0.017s | notes: found factor 285490143297067
+[2026-03-24 04:42:49] size: 30 | approach: ecm-optimized | time: 0.025s | notes: found factor 216915926307757
+[2026-03-24 04:42:49] size: 30 | approach: ecm-optimized | time: 0.022s | notes: found factor 163402858332899
+[2026-03-24 04:42:49] size: 30 | approach: ecm-optimized | time: 0.012s | notes: found factor 147780977331697
+[2026-03-24 04:42:49] size: 34 | approach: ecm-optimized | time: 0.012s | notes: found factor 19791715649818547
+[2026-03-24 04:42:49] size: 34 | approach: ecm-optimized | time: 0.006s | notes: found factor 25815610339368071
+[2026-03-24 04:42:49] size: 34 | approach: ecm-optimized | time: 0.050s | notes: found factor 13707337860656159
+[2026-03-24 04:42:49] size: 34 | approach: ecm-optimized | time: 0.069s | notes: found factor 16584859093784497
+[2026-03-24 04:42:49] size: 34 | approach: ecm-optimized | time: 0.017s | notes: found factor 31885749280408423
+[2026-03-24 04:42:49] size: 38 | approach: ecm-optimized | time: 0.111s | notes: found factor 3510315453304323199
+[2026-03-24 04:42:50] size: 38 | approach: ecm-optimized | time: 0.211s | notes: found factor 2857813223847491747
+[2026-03-24 04:42:50] size: 38 | approach: ecm-optimized | time: 0.120s | notes: found factor 2297663271425438981
+[2026-03-24 04:42:50] size: 38 | approach: ecm-optimized | time: 0.391s | notes: found factor 1981968944913582883
+[2026-03-24 04:42:50] size: 38 | approach: ecm-optimized | time: 0.106s | notes: found factor 1419070827215424463
+[2026-03-24 04:42:52] size: 42 | approach: ecm-optimized | time: 1.290s | notes: found factor 281458292402321571151
+[2026-03-24 04:42:52] size: 42 | approach: ecm-optimized | time: 0.147s | notes: found factor 312903253237424504801
+[2026-03-24 04:42:53] size: 42 | approach: ecm-optimized | time: 1.481s | notes: found factor 147654092019125183017
+[2026-03-24 04:42:54] size: 42 | approach: ecm-optimized | time: 0.483s | notes: found factor 207501258670461422731
+[2026-03-24 04:42:54] size: 42 | approach: ecm-optimized | time: 0.640s | notes: found factor 184183033605295054387
+[2026-03-24 04:42:55] size: 44 | approach: siqs_fast | time: 280.201s | notes: found factor 3212163167658753397391
+[2026-03-24 04:42:56] size: 46 | approach: ecm-optimized | time: 1.646s | notes: found factor 14841907243481981500237
+[2026-03-24 04:42:59] size: 46 | approach: ecm-optimized | time: 3.059s | notes: found factor 21583085895882087740731
+[2026-03-24 04:43:00] size: 46 | approach: ecm-optimized | time: 0.670s | notes: found factor 18357432076396134323221
+[2026-03-24 04:43:01] size: 46 | approach: ecm-optimized | time: 0.847s | notes: found factor 14883677127466624330153
+[2026-03-24 04:43:01] size: 46 | approach: ecm-optimized | time: 0.103s | notes: found factor 32183232455168051482133
+[2026-03-24 04:43:03] size: 50 | approach: ecm-optimized | time: 2.059s | notes: found factor 2059422624891984908427913
+[2026-03-24 04:43:05] size: 50 | approach: ecm-optimized | time: 1.806s | notes: found factor 3469948797237213917621473
+[2026-03-24 04:43:06] size: 50 | approach: ecm-optimized | time: 1.430s | notes: found factor 3318784448526149968726087
+[2026-03-24 04:43:11] size: 50 | approach: ecm-optimized | time: 5.292s | notes: found factor 2130491434134923133190229
+[2026-03-24 04:43:17] size: 50 | approach: ecm-optimized | time: 5.576s | notes: found factor 1437953211038098705171097
+[2026-03-24 04:43:21] size: 54 | approach: ecm-optimized | time: 3.672s | notes: found factor 251931353323471365990991339
+[2026-03-24 04:43:40] size: 54 | approach: ecm-optimized | time: 18.985s | notes: found factor 315685386801061511673565103
+[2026-03-24 04:44:22] size: 54 | approach: ecm-optimized | time: 42.695s | notes: found factor 147513778738770894300716023
+[2026-03-24 04:44:29] size: 54 | approach: ecm-optimized | time: 6.640s | notes: found factor 222731417295594470332550983
+[2026-03-24 04:44:31] size: 54 | approach: ecm-optimized | time: 1.794s | notes: found factor 210660520322958242851495331
+[2026-03-24 04:44:35] size: 58 | approach: ecm-optimized | time: 4.227s | notes: found factor 28846244187484255242635303993
+[2026-03-24 04:44:35] size: 58 | approach: ecm-optimized | time: 0.591s | notes: found factor 19272162302635252599922921579
+[2026-03-24 04:45:06] size: 58 | approach: ecm-optimized | time: 31.011s | notes: found factor 30195067453845270578085979081
+[2026-03-24 04:45:19] size: 58 | approach: ecm-optimized | time: 12.900s | notes: found factor 17126378949394488899993742571
+[2026-03-24 05:45:00] size: 30-62 | approach: ecm_factor (optimized, 1 sample) | time: various | notes: Optimized ECM timing: 30→0.00s, 35→0.04s, 40→0.41s, 45→1.73s, 50→2.04s, 55→26.6s, 58→4.23s, 60→62.2s, 62→22.5s. Non-monotonic due to p-1 structure variation.
+[2026-03-24 04:46:00] size: 58 | approach: ecm-optimized | time: 40.162s | notes: found factor 12586372445066434246481998027
+[2026-03-24 04:39:38] size: 66 | approach: ECM-extended | time: 172.286s | notes: worst of 5, times: 172.286 131.404 169.630 33.647 131.857
+[2026-03-24 04:41:07] size: 55 | approach: LGSH-v3-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
+[2026-03-24 04:41:22] size: 54 | approach: LGSH-v4-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
+[2026-03-24 04:39:38] size: 66 | approach: ECM-extended | time: 172.286s | notes: worst of 5

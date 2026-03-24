@@ -213,6 +213,21 @@ Compared 5 strategies for 30-digit N, B=5000, 50K candidates:
 
 Confirms: candidates closest to √N (smallest values) are best. This is the foundation of QS. No candidate generation strategy can beat sequential-near-√N for QS-type polynomials.
 
+### Combined approach performance (best_factor.sh)
+Tested combined ECM→LGSH→HSD pipeline:
+
+| Digits | Time (worst-of-5) | Method |
+|--------|-------------------|--------|
+| 30     | 0.02s            | ECM    |
+| 40     | 0.68s            | ECM    |
+| 50     | 19.0s            | ECM    |
+| 55     | 36.7s            | ECM    |
+| 60     | FAIL             | ECM timeout |
+| 62     | 36s (optimized)  | ECM with B1 skip |
+| 64     | FAIL             | ECM needs ~3300 curves at B1=43M, timeout at 295s |
+
+**Gap at 60-70 digits**: ECM runs out of curves in time limit. MPQS degeneracy affects 25% of cases. NFS not competitive without lattice sieve. This 60-70 digit range is the hardest for current implementations.
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
