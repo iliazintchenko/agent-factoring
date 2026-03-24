@@ -39,3 +39,6 @@
 [2026-03-24 07:20:00] task: 2020-2026 literature survey | result: no classical progress. Regev quantum improvement, Schnorr refuted | conclusion: confirmed no classical sub-L[1/3]
 [2026-03-24 07:20:00] task: Higher residue symbols (cubic/quartic) | result: reduces to ECM/p-1 group order divisibility testing | conclusion: dead end
 [2026-03-24 07:20:00] task: Sum of squares / algebraic variety xy=N | result: equivalent to existing methods when applicable | conclusion: dead end
+[2026-03-24 07:26:00] task: Higher residue symbols (cubic/quartic) over composite Z/NZ | result: 0/500+ factored, composite scrambles characters | conclusion: dead end
+[2026-03-24 07:26:00] task: Interactive proofs / sum-check protocol for factoring | result: IP amplifies verification not search, no prover = no info | conclusion: dead end
+[2026-03-24 07:26:00] task: Modular forms / theta series / tau function for factoring | result: r4(N)=8(1+p)(1+q) elegant but O(N). All approaches O(N) minimum | conclusion: dead end (beautiful restatements)
