@@ -205,3 +205,11 @@
 [2026-03-24 11:42:00] task: Continuous dynamics / ODE for factoring | result: constructing vector field with equilibrium at (p,q) IS factoring. Classical ODE cant replicate quantum parallelism | conclusion: dead end
 [2026-03-24 11:42:00] task: Higher-dim Pollard rho (inv-3 from earlier) | result: (completed)
 [2026-03-24 11:42:00] task: ECM implementation (inv-6 from earlier) | result: 71/105 factored through 50 digits. B1=10^7 wall at ~56d (28-digit factors) | conclusion: practical baseline
+[2026-03-24 11:50:00] task: Pareto optimization of NFS parameters | result: degree transition zone 85-100d has non-obvious Pareto structure. Standard heuristics may be suboptimal for specific hardware | conclusion: practical insight
+[2026-03-24 11:50:00] task: Compressive multiplexing (many polynomials, one evaluation) | result: cant extract k bits from one integer. Wrong bottleneck (eval<1% of sieve time) | conclusion: dead end
+[2026-03-24 11:50:00] task: Compressed NFS representations (Bloom, sketching) | result: GF(2) LA is all-or-nothing. Probabilistic helps only at margins (~13x on 2% of memory) | conclusion: dead end (exact arithmetic needed)
+[2026-03-24 11:50:00] task: BSGS for factoring directly | result: divisibility not a homomorphism. Shanks class group = N^{1/4}. Sub-N^{1/4} needs different paradigm | conclusion: dead end
+[2026-03-24 11:50:00] task: Parametric families N(t)=f(t)*g(t) | result: advantage vanishes when t~factor size, polys unknown, or degree grows with N | conclusion: dead end (for general factoring)
+[2026-03-24 11:50:00] task: ATP (Z3, Lean) for factoring lemma discovery | result: (captured in inv-7)
+[2026-03-24 11:50:00] task: Security reduction structure for factoring | result: φ(N) equivalence is tautology not advice. NFS ignores this hint. Shor follows it. Gap = where innovation happens | conclusion: theoretical insight
+[2026-03-24 11:50:00] task: AI/LLM contributions to factoring | result: ML helps with NFS parameter tuning (constant factors). Murmurations real but no factoring advance. Consensus: quantum not ML is the threat | conclusion: dead end (for asymptotic improvement)
