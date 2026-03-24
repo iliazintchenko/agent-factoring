@@ -111,7 +111,7 @@ git -C "$REPO_DIR" config user.email "$GIT_USER_EMAIL"
 # Launch single PI agent in tmux
 LOG="$REPO_DIR/pi.log"
 tmux new-session -s factoring -d \
-  "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json 2>&1 | tee $LOG"
+  "cd $REPO_DIR && claude -p 'Read program.md and go.' --dangerously-skip-permissions --verbose --output-format stream-json 2>&1 | tee $LOG | jq --unbuffered -r 'select(.type==\"assistant\" and .message.content) | .message.content[] | select(.type==\"text\") | .text'"
 REMOTE
 
 ssh -t "$HOST" 'tmux attach -t factoring'
