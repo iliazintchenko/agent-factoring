@@ -281,3 +281,13 @@
 [2026-03-24 12:46:00] task: Resurgence / trans-series corrections to Dickman | result: non-perturbative corrections are O(e^{-c√(log N)}) — too small to exploit algorithmically | conclusion: dead end
 [2026-03-24 12:46:00] task: BBS PRG structural weakness for factoring | result: security reduction is tight. BBS quadratic residuosity = factoring. No weakness in reduction itself | conclusion: dead end
 [2026-03-24 12:46:00] task: Ordinal analysis of factoring algorithms | result: NFS needs Σ^0_1-induction (PA-provable). Ordinal analysis explains provability not complexity | conclusion: dead end (framework mismatch)
+[2026-03-24 12:54:00] task: Shimura varieties for factoring | result: higher-dim moduli carry same CRT-decomposed info. Computational cost grows with dimension | conclusion: dead end
+[2026-03-24 12:54:00] task: Derived algebraic geometry invariants | result: derived invariants of Spec(Z/NZ) = classical invariants (semi-local ring). No new computable info | conclusion: dead end
+[2026-03-24 12:54:00] task: Cohen-Lenstra / Bhargava-Shankar predictions for ECM curves | result: predictions enable slightly better curve selection. ~5-10% constant improvement | conclusion: minor practical improvement
+[2026-03-24 12:54:00] task: Computational topology of factor base lattice | result: topological transitions dont correlate with factoring success in exploitable way | conclusion: dead end
+[2026-03-24 12:54:00] task: Decoupling inequalities for sieve sums | result: decoupling bounds too weak to improve on direct sieve estimates | conclusion: dead end
+[2026-03-24 12:54:00] task: Diophantine approximation with moving targets | result: shared convergents across family = MPQS polynomial selection. Already known | conclusion: dead end (rediscovery)
+[2026-03-24 12:54:00] task: Low-depth quantum circuits for factoring | result: depth O(1) cannot compute mod-N exponentiation. Even depth O(log N) insufficient without full BQP | conclusion: dead end
+[2026-03-24 12:54:00] task: Siegel modular forms (genus-2) | result: Fourier coefficients involve divisor sums = factoring. Same O(N) computation cost | conclusion: dead end
+[2026-03-24 12:54:00] task: Average-case vs worst-case factoring complexity | result: (pending inv-9)
+[2026-03-24 12:54:00] task: Ramsey theory coloring for factoring | result: guaranteed structures (van der Waerden APs) dont encode mod-p residues. Schur sums = trial division | conclusion: dead end
