@@ -57,11 +57,24 @@ Small-subgroup DL projection (g^{(N-1)/l} mod N for l | N-1): recovers O(1) bits
 
 Factorizations of N±k for small k: yield O(k·ln B) bits about p, but O(log N) needed. Information gap is exponential.
 
+## Why L[1/3] appears to be a fundamental classical barrier
+
+All known sub-exponential factoring approaches are index-calculus methods hitting the same Dickman-de Bruijn tradeoff. Optimizing smoothness bound B, sieving range M, and relation count inherently yields α=1/3 through the three-way balance. This is robust across:
+
+- Number field sieve and all known variants
+- Any reduction to lattice problems (SVP requires dimension ≥ O(log N/log log N), encoding multiplicative structure)
+- Group algebra / Hopf algebra decompositions (reduce to multi-polynomial NFS)
+- Precomputation/non-uniform models (S·T ≥ L[2/3, c] conjectured, N-dependent sieve unavoidable)
+- No known classical reduction to a problem with better algorithms
+
+The quasi-polynomial DLP breakthrough in small characteristic does NOT transfer — it requires Frobenius endomorphisms and tower field structure absent over Z.
+
 ## What would be needed to beat L[1/3]
 
 - A new algebraic structure over Z where "norms" are smaller than N^{2/3} per component
 - OR smooth numbers of size < N^{1/3} that relate to N's factorization
 - OR a completely non-smoothness-based sub-exponential approach (none known)
+- OR a new algebraic framework beyond GF(2) exponent-parity that extracts >1 bit per relation
 
 ## Explored directions and conclusions
 
