@@ -57,12 +57,12 @@ static int   g_nrels;
 
 /* ── Partial relations (stored separately from usable ones) ── */
 typedef struct {
-    u64  vec[(MAX_FB + 64) / 64];
+    u64  *vec;     /* dynamically allocated */
     mpz_t x_val;
     mpz_t rhs_abs;
 } partial_t;
 
-static partial_t g_parts[MAX_PART];
+static partial_t *g_parts;   /* heap-allocated array */
 static int       g_nparts;
 
 /* ── Large-prime matching ── */
@@ -453,7 +453,11 @@ static int factor(void) {
 
     g_B = (u32)(Lhalf);
     if (g_B < 100) g_B = 100;
-    if (g_B > 400000) g_B = 400000;
+    /* Cap B so the factor base fits in MAX_FB.
+       Rough estimate: pi(B) ≈ B/ln(B). With multi-k, ~80% of primes have roots. */
+    while (g_B > 1000 && (double)g_B / log((double)g_B) * 0.95 > MAX_FB)
+        g_B = (u32)(g_B * 0.85);
+    if (g_B > 500000) g_B = 500000;
 
     g_K = 3 + g_digits / 20;
     if (g_K > MAX_K) g_K = MAX_K;
@@ -488,6 +492,7 @@ static int factor(void) {
 
     g_nrels = 0;
     g_nparts = 0;
+    g_parts = calloc(MAX_PART, sizeof(partial_t));
     g_lp_next = 0;
     memset(g_lp_ht, 0, sizeof(g_lp_ht));
 
@@ -538,8 +543,9 @@ static int factor(void) {
                             store_rel(vec_buf, xv, absval, 1);
                             full_rels++;
                         } else if (g_nparts < MAX_PART) {
-                            /* Store partial (1-LP or 2-LP) */
+                            /* Store partial */
                             partial_t *pp = &g_parts[g_nparts];
+                            pp->vec = malloc(g_vec_words * sizeof(u64));
                             memcpy(pp->vec, vec_buf, g_vec_words * sizeof(u64));
                             mpz_init_set(pp->x_val, xv);
                             mpz_init_set(pp->rhs_abs, absval);
