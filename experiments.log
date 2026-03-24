@@ -136,3 +136,7 @@
 [2026-03-24 10:07:00] task: Best practical factoring pipeline results | result: 85/355 factored. 100% at 30-40d, ~60% at 40-50d, ~20% at 50-65d, <10% at 65+d | conclusion: practical baseline
 [2026-03-24 10:07:00] task: Pollard rho benchmark | result: factors 30-digit balanced semiprimes in 2-5 seconds | conclusion: baseline
 [2026-03-24 10:07:00] task: Lattice decoding for NFS sieving | result: (pending inv-9)
+[2026-03-24 10:15:00] task: Compositum of quadratic fields Q(√d1,√d2) for factoring | result: norm degree grows with extension, eating extra dimensions. Still L[1/2] | conclusion: dead end
+[2026-03-24 10:15:00] task: Sumsets approach (subsets mod p collision) | result: reformulation of birthday-paradox/Pollard rho. O(N^{1/4}), cannot reach subexp | conclusion: dead end
+[2026-03-24 10:15:00] task: CF of a/N for factoring info | result: convergent denominators coprime to N. Cross-value combinations 30-47x better than random but scales poorly | conclusion: dead end (weak signal)
+[2026-03-24 10:15:00] task: Recent number theory results (2010-2026) for factoring | result: none directly applicable. Gorodetsky smooth estimates give modest NFS constant improvement | conclusion: dead end
