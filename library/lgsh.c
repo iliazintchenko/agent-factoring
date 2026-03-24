@@ -121,6 +121,42 @@ static void rs_free(relset_t *rs) {
     free(rs->data);
 }
 
+#define NCHARS 16
+
+/* ===== Character bit computation ===== */
+/* For QS: sqrt_val = x+m, and at sieve hits (x+m) mod p_i = sqrtN[i] or p_i-sqrtN[i].
+   Character = 0 if it matches sqrtN[i], 1 if it matches p_i-sqrtN[i].
+   For MPQS: sqrt_val = (Ax+B)*q^{-1}, similar principle.
+   For primes p_i ≡ 3 mod 4, the two roots always give different characters.
+   We pick NCHARS primes where p ≡ 3 mod 4 for maximum discrimination. */
+static void compute_char_bits(int *exps, int fb_count, const mpz_t sqrt_val, const fb_t *fb) {
+    int ci = 0;
+    for (int i = 0; i < fb->count && ci < NCHARS; i++) {
+        int p = fb->primes[i];
+        if (p <= 2) continue;
+        if ((p & 3) != 3) continue; /* only use p ≡ 3 mod 4 */
+        unsigned long sv_mod = mpz_fdiv_ui(sqrt_val, p);
+        long sq = fb->sqrtN[i];
+        /* Check which root sv_mod is closest to */
+        /* For QS: sv_mod should be exactly sq or p-sq */
+        /* For MPQS: sv_mod = (A*x+B)*q^{-1} mod p, which may differ */
+        /* Use: is sv_mod in the "positive root" class? */
+        /* More robust: check if sv_mod ≡ sqrtN[i] (mod p) or ≡ -sqrtN[i] (mod p) */
+        if (sv_mod == (unsigned long)sq) {
+            exps[fb_count + 1 + ci] = 0;
+        } else if (sv_mod == (unsigned long)(p - sq)) {
+            exps[fb_count + 1 + ci] = 1;
+        } else {
+            /* MPQS: sv_mod is not directly a root of f mod p_i */
+            /* Use Legendre symbol as fallback */
+            exps[fb_count + 1 + ci] = (sv_mod > (unsigned long)(p / 2)) ? 1 : 0;
+        }
+        ci++;
+    }
+    /* If not enough p≡3 mod 4 primes, fill remaining with 0 */
+    for (; ci < NCHARS; ci++) exps[fb_count + 1 + ci] = 0;
+}
+
 /* ===== QS sieve ===== */
 static void qs_sieve(const mpz_t kN, const fb_t *fb, int M,
                      unsigned long lp_bound, relset_t *full, relset_t *partial) {
@@ -166,10 +202,12 @@ static void qs_sieve(const mpz_t kN, const fb_t *fb, int M,
         }
         if (mpz_cmp_ui(tmp, 1) == 0) {
             mpz_set_si(tmp, x); mpz_add(val, tmp, m);
+            compute_char_bits(exps, fb->count, val, fb);
             rs_add(full, val, exps, 0);
         } else if (mpz_fits_ulong_p(tmp) && mpz_get_ui(tmp) <= lp_bound) {
             unsigned long cofactor = mpz_get_ui(tmp);
             mpz_set_si(tmp, x); mpz_add(val, tmp, m);
+            compute_char_bits(exps, fb->count, val, fb);
             rs_add(partial, val, exps, cofactor);
         }
     }
@@ -276,6 +314,7 @@ static void mpqs_sieve(const mpz_t kN, const fb_t *fb, int M,
             unsigned long lp = is_smooth ? 0 : mpz_get_ui(tmp);
             mpz_set_si(val, x); mpz_mul(val, A, val); mpz_add(val, val, B);
             mpz_mul(val, val, q_inv); mpz_mod(val, val, kN);
+            compute_char_bits(exps, fb->count, val, fb);
             if (is_smooth) rs_add(full, val, exps, 0);
             else rs_add(partial, val, exps, lp);
         }
@@ -290,7 +329,7 @@ static int compare_lp(const void *a, const void *b) {
     return (ra->lp < rb->lp) ? -1 : (ra->lp > rb->lp) ? 1 : 0;
 }
 
-static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN) {
+static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN, const fb_t *fb) {
     if (partials->count < 2) return 0;
     qsort(partials->data, partials->count, sizeof(rel_t), compare_lp);
     int veclen = full->veclen;
@@ -301,12 +340,16 @@ static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN) {
     for (int i = 0; i < partials->count - 1; i++) {
         if (partials->data[i].lp == 0) continue;
         if (partials->data[i].lp == partials->data[i + 1].lp) {
-            for (int k = 0; k < veclen; k++)
+            /* Sum FB exponents and sign, then compute char bits from combined sv */
+            int fb_plus_sign = full->veclen - NCHARS;
+            for (int k = 0; k < fb_plus_sign; k++)
                 combined[k] = partials->data[i].exps[k] + partials->data[i + 1].exps[k];
             mpz_mul(sv, partials->data[i].sqrt_val, partials->data[i + 1].sqrt_val);
             mpz_set_ui(lp_val, partials->data[i].lp);
             if (mpz_invert(lp_inv, lp_val, kN)) mpz_mul(sv, sv, lp_inv);
             mpz_mod(sv, sv, kN);
+            /* Compute char bits from the combined sqrt_val */
+            compute_char_bits(combined, fb->count, sv, fb);
             rs_add(full, sv, combined, 0);
             matched++;
             partials->data[i].lp = 0; partials->data[i + 1].lp = 0;
@@ -347,7 +390,7 @@ static int find_deps(relset_t *rels, int veclen, int ***deps, int **sizes, int *
             }
         }
     }
-    int mx = 128;
+    int mx = 256;
     *deps = (int**)malloc(mx * sizeof(int*));
     *sizes = (int*)malloc(mx * sizeof(int));
     int nd = 0;
@@ -405,15 +448,17 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
     int ndigits = mpz_sizeinbase(kN, 10);
     double ln_N = ndigits * log(10);
     double Lexp = sqrt(ln_N * log(ln_N));
-    int B = (int)exp(0.55 * Lexp);
-    if (B < 500) B = 500; if (B > 5000000) B = 5000000;
+    int B = (int)exp(0.50 * Lexp); /* slightly smaller FB for faster matrix */
+    if (B < 500) B = 500; if (B > 2000000) B = 2000000;
     double logM = 1.05 * Lexp;
     int M = (logM > 16.0) ? 10000000 : (int)exp(logM);
     if (M < 20000) M = 20000; if (M > 10000000) M = 10000000;
 
     fb_t fb = build_fb(kN, B);
-    int veclen = fb.count + 1; /* sign + FB primes */
-    int target = fb.count + 30;
+    /* Add character bits: Legendre symbol of sqrt_val mod first few odd FB primes */
+    #define NCHARS 16
+    int veclen = fb.count + 1 + NCHARS; /* sign + FB primes + character bits */
+    int target = fb.count + 1 + NCHARS + 30;
     unsigned long lp_bound = (unsigned long)B * 50;
 
     relset_t full, partial;
@@ -425,11 +470,11 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
     for (int pi = 0; pi < 10000 && full.count < target && wall_time() < deadline; pi++) {
         mpqs_sieve(kN, &fb, M, lp_bound, pi, &full, &partial);
         if ((pi + 1) % 100 == 0) {
-            int m = match_lp(&partial, &full, kN);
+            int m = match_lp(&partial, &full, kN, &fb);
             (void)m;
         }
     }
-    match_lp(&partial, &full, kN);
+    match_lp(&partial, &full, kN, &fb);
     fprintf(stderr, "  k=%d: %d full (need %d)\n", k, full.count, target);
 
     int success = 0;

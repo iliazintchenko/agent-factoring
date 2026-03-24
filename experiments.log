@@ -366,3 +366,6 @@
 [2026-03-24 03:13:53] size: 56 | approach: ecm_baseline_first | time: 40.01s | notes: GMP-ECM with auto B1, first semiprime only
 [2026-03-24 03:13:53] size: 58 | approach: ecm_baseline_first | time: 27.83s | notes: GMP-ECM with auto B1, first semiprime only
 [2026-03-24 03:13:53] size: 60 | approach: ecm_baseline_first | time: 46.06s | notes: GMP-ECM with auto B1, first semiprime only
+[2026-03-24 03:12:27] size: 50 | approach: LGSH-v4-full | time: 118.243s | notes: found factor 9591453119320901101941821
+[2026-03-24 03:14:04] size: 50 | approach: LGSH-v4-full | time: 97.155s | notes: found factor 1437953211038098705171097
+[2026-03-24 03:18:03] size: 54 | approach: LGSH-v4-full | time: 239.219s | notes: found factor 251931353323471365990991339
