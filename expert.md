@@ -59,19 +59,17 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **Cubic/higher-degree CF**: Residues grow (Thue), worse than QS.
 - **Group-order methods for balanced semiprimes**: p±1 methods fail when p±1 aren't smooth. ECM randomizes but stays L[1/2].
 - **Multi-multiplier sieve (MMS)**: Cross-multiplier LP matching gives ~60% more relations (constant factor) but doesn't shrink polynomial values.
-- **Quaternion norms for smoothness testing**: Norm is still quadratic per variable — more variables don't reduce value sizes. However, quaternion algebras have other relevant structure (Deuring correspondence with supersingular elliptic curves, Brandt matrices encoding Hecke operators, Pizer's Ramanujan graphs) that could theoretically leak factoring information through non-smoothness-based channels. Unexplored.
+- **Quaternion norms for smoothness testing**: Norm is still quadratic per variable — more variables don't reduce value sizes.
+- **Deuring correspondence / isogeny graph factoring** (analyzed): Supersingular curves over F_p correspond to quaternion orders via Deuring. The ℓ-isogeny graph mod N is a product of graphs mod p and mod q. THREE approaches analyzed: (1) Detecting supersingularity mod p would reveal #E = p+1, enabling Pollard p+1 — but detecting supersingularity requires knowing p. (2) Spectral decomposition of the product graph would separate p and q components — but the graph has N/12 vertices, requiring exponential work. (3) Random walks to measure mixing time — gives O(N^{1/4}) birthday bound, same as Pollard rho. All three channels are blocked. The Deuring correspondence is NOT a viable non-smoothness-based approach to factoring.
 - **BatchQS (naive implementation)**: Bernstein product-tree batch GCD misses ~80% of smooth candidates vs standard sieve. The technique itself is sound but the implementation used insufficient primorial powers.
-- **Berlekamp polynomial splitting over Z/NZ**: Compute x^N mod (f(x), N) for random degree-2 polynomials f. The gcd(x^N - x, f) over Z/NZ should split f differently mod p vs q, revealing a factor. FAILS for balanced semiprimes because: over F_p with root r of f, x^N maps r → r^q, and gcd(x^N-x, f) is non-trivial only when r^{q-1} ≡ 1 (mod p), which requires ord(r) | (q-1). For random r ∈ F_p*, this has probability gcd(q-1, p-1)/(p-1) ≈ log(p)/p ≈ 0. This is essentially the Pollard p-1 condition — the approach degenerates to p-1 factoring for balanced semiprimes.
 - **Multiplicative Lattice Descent (MLD)**: Extending the LP bound from B to B^α (α>2) increases partial relation rate but the cofactor factor base grows as B^(α-1)/log(B). Tested for 30-digit N with α=3: MLD needs 2.16x MORE sieve work than standard QS because the matrix size explosion (100k × 100k) outweighs the partial relation gain (143x). The cofactor-to-matrix tradeoff is inherently bounded: any LP expansion that multiplies the relation rate by R also multiplies the matrix dimension by ≥ R, so the L-exponent cannot improve. This is the fundamental reason LP variations (single, double, triple) improve constants but not the exponent.
 - **Class group 2-Sylow exploration**: For disc -4N, the class group has ambiguous forms including (p,0,q). Finding this via repeated squaring g^(2^k) gives order-2 elements, but most are "trivial" (a=2 type, from the discriminant factor 4). Needs BSGS or Shanks-style search to find the factoring form — O(N^{1/4}) time, same as Pollard rho. Not better than QS.
+- **Quadratic character columns for extraction degeneracy**: QC columns in the GF(2) matrix DON'T help with degenerate extraction. Reason: QC bits are REDUNDANT — for any fully smooth relation, the product being a perfect square automatically satisfies all QC conditions. Tested with QC primes where kN is QNR mod q: all 128 dependencies still give trivial GCD. Also tried XOR combinations of dependency pairs — still degenerate. The problem is that the ENTIRE null space maps to x ≡ ±y (mod N), indicating the FB doesn't separate p and q for these specific N values. Known fix: Block Lanczos (different null-space sampling) or simply fall back to ECM.
 - **Multi-base GCD accumulation**: Running Pollard p-1 with many random bases and B1 up to 50000 doesn't factor balanced semiprimes (p-1 not smooth). Multi-curve ECM accumulation with B1=1000 also fails for 30-digit semiprimes. Confirmed: group-order methods fundamentally fail for balanced random semiprimes.
 - **Smoothness correlations across polynomial pairs**: Tested whether P1(x)=(x+m)²-N and P1(x+d) have correlated smoothness (would allow joint sieving). For 15-digit N with B=2000, measured conditional vs. unconditional smooth probability across shifts d=1..100 and cross-multiplier k=2. Result: no statistically significant correlation (ratios 0.85-1.63, all within 2σ of 1.0). Theoretical analysis confirms: for each prime p, the sieve conditions at x and x+d are independent (different residue classes), so joint smoothness equals the product of marginal probabilities. Cross-multiplier smoothness is also independent for the same reason. Constant-factor improvements from LP variations are possible but L-exponent is unaffected.
-- **Polynomial splitting mod composite N** (poly_split.c): For monic f(x) of degree d, compute gcd(x^{(N-1)/2} - 1, f(x)) mod N. If f splits differently mod p vs mod q, intermediate GCD steps encounter non-invertible leading coefficients, revealing a factor. HOWEVER: for monic polynomials, the probability of hitting a non-invertible coefficient is O(1/√N) per trial — essentially zero for large N. This is because all intermediate coefficients are sums/products of N-bit numbers mod N, which are essentially random. 500 trials on 30-digit N found zero factors. Dead end.
-- **CRT-structured candidate generation**: Use CRT to force Q(x) = (x+m)² - N to be divisible by several chosen primes simultaneously. Testing shows higher raw smoothness rate (0.59% vs 0.24% for sequential at B=50000, 30 digits), but this is illusory: the CRT forces x to be of size ∏primes, making Q(x) much larger. The cofactor Q(x)/∏primes ≈ 2√N regardless — same as standard QS. No asymptotic improvement.
-- **Galois action on NFS relations**: For Galois polynomials, the d automorphisms permute roots but the algebraic norm (= product of all conjugates) is Galois-invariant by definition. Applying automorphisms gives the SAME norm, not new relations. The Galois structure provides d representations of one relation, not d independent relations. At best a constant factor of d improvement in candidate coverage, which doesn't change the L-exponent.
-- **Multiplicative lattice relations (MLR)**: Find exponents e_i such that p_1^{e_1} * ... * p_k^{e_k} mod N is small, using LLL on the log-embedding lattice. Even when the residue P(e) mod N is small (achievable via lattice reduction), this doesn't help: P(e) mod p is never zero (since p doesn't divide any p_i), and small P(e) mod N doesn't imply small P(e) mod p due to CRT entanglement. Computing gcd(P(e1)/P(e2) - r1/r2, N) always gives N because the ratio is computed mod N, erasing the p-vs-q distinction. This confirms Schnorr's lattice approach is fundamentally limited — not just practically but theoretically.
-- **Best-of-K polynomial selection** (surface_factor.c): For each sieve position, evaluate K different polynomials Q_k(x) and pick the one with smallest |Q_k(x)|. Tested with K=10 on 30-digit N, B=50000, 500K candidates: smoothness rate improved 1.92x but at 10x computational cost → net 5.3x WORSE per smooth value. Theory: the smoothness improvement from minimum of K values scales as K^{u/ln(B)} ≈ K^{0.5} (where u = ln(Q)/ln(B)), which is always SUBLINEAR in K. Best-of-K cherry-picking never beats standard sequential evaluation for any K, B, or N.
-- **Approximate discrete logarithm relations** (approx_dl.c): Compute 2^e mod N for many e and check if result is close to a small prime p_i. If 2^e ≈ p_i (mod N), then gcd(2^e - p_i, N) might factor N. Tested: 5M steps with tolerance 10000 gives 325 hits, but probability of factor per hit is ~2/p ≈ 10^{-15}. Need ~10^{15} hits → ~10^{45} steps. Exponential. Dead end.
+- **Schoof-like torsion factoring**: Compute x^N mod (x³+ax+b, N) for random curves E. Tested: works on small N (3, 19 digits) but FAILS on all 30-40 digit semiprimes. Since x³+ax+b is MONIC, no inversions during polynomial reduction — factors found only from final coefficient GCDs with probability ~1/p per curve. Total work O(√N) — same as trial division. NOT polynomial time despite initial appearance.
+- **Division polynomial factoring**: Evaluate ψ_ℓ(P) for random points P on random curves, checking gcd(ψ_ℓ(P), N) for small primes ℓ. This is ECM with single-prime stage 1: tests if ℓ | #E(F_p) one prime at a time, vs ECM's simultaneous B1! test. Strictly worse than ECM because: ECM tests all primes up to B1 in one O(B1 log N) exponentiation, while divpoly tests each ℓ separately in O(ℓ²) per prime. Works on 3-digit N, fails on 30-digit.
+- **QC columns for extraction degeneracy**: QC bits are REDUNDANT — perfect squares automatically satisfy QC conditions. Tested on 49-digit semiprimes: all 128 deps + XOR pairs degenerate. Entire null space maps to x ≡ ±y (mod N). Fix: Block Lanczos or ECM fallback.
 
 ## Key insight: smoothness detection cost
 
@@ -107,47 +105,7 @@ Working MPQS implementation with:
 | 54 | 80.5 | 73.1 |
 | 58 | 244.1 | 133.1 |
 
-Scaling: roughly consistent with L[1/2]. Key optimizations: smaller FB (exp(0.50*Lexp)) reduces matrix solver time significantly. ECM fallback handles 50+ digit extraction failures. MPQS extraction degeneracy (all dependencies give trivial x≡±y mod N) affects ~25% of 50-digit semiprimes, requiring ECM fallback.
-
-### ECM baseline (ecm_baseline.c)
-GMP-ECM with auto-scaled B1 (Suyama parametrization, sigma = 6 + curve_index).
-
-**Worst-of-5 measurements:**
-
-| Digits | Worst-of-5 (s) |
-|--------|----------------|
-| 30 | 0.07 |
-| 32 | 0.05 |
-| 34 | 0.10 |
-| 36 | 0.12 |
-| 38 | 0.47 |
-| 40 | 0.41 |
-| 42 | 2.21 |
-| 44 | 1.69 |
-| 46 | 2.33 |
-| 48 | 6.67 |
-| 50 | 13.97 |
-| 52 | 14.20 |
-| 54 | 12.68 |
-| 56 | 32.75 |
-| 60 | 8.20 |
-
-**Robust ECM (ecm_robust.c) with escalating B1, worst-of-5:**
-
-| Digits | Worst-of-5 (s) |
-|--------|----------------|
-| 30 | 0.03 |
-| 34 | 0.09 |
-| 38 | 0.74 |
-| 42 | 2.86 |
-| 46 | 3.55 |
-| 50 | 10.5 |
-| 54 | 17.4 |
-| 58 | 38.3 |
-| 60 | 15.4 |
-| 62 | FAIL (>295s on some) |
-
-ECM is highly variable (factor of 10x between lucky/unlucky runs). Non-monotonic timing (60-digit faster than 58-digit) is due to favorable p-1 structure in specific test numbers. ECM is L_p[1/2] = L_N[1/2] for balanced semiprimes.
+Fitting log(time) vs digits suggests L[1/2] scaling as expected for QS variants.
 
 ### Known bugs / lessons
 - **LP matching must divide by cofactor**: When combining two single-LP relations sharing cofactor c, the combined sqrt_val must be sv1·sv2·c⁻¹ (mod N), not just sv1·sv2. Otherwise x = y for all dependencies.
@@ -176,14 +134,17 @@ Measured cofactor sizes and batch GCD collision rates across digit ranges (with 
 ### CCD factoring (ccd_factor.c)
 QS-style sieve with batch cofactor matching. Critical lesson: partial relation matching must mark partners as "used" to prevent duplicate combined relations. Duplicates cause ALL GF(2) null vectors to be trivially degenerate (X ≡ ±Y mod N always).
 
-### SIQS fast (siqs_fast.c)
-Self-initializing QS with proper SIQS polynomial generation (A = product of FB primes, small fixed sieve per polynomial). No sieve range cap — handles arbitrarily large numbers through more polynomials.
+### NFS brute-force evaluation experiment (alg_sieve_exp.c)
+Compared doubly-smooth yield of QS vs NFS (degree 3, 4, 5) for 40-digit N with B=27031:
 
-### Simplified NFS attempt (snfs_lite.c)
-Attempted base-m NFS for medium numbers (30-60 digits). Result: brute-force evaluation without lattice sieving is impractical. Algebraic norms at search boundary ≈ √N (same as QS), negating NFS advantage. **Confirmed**: NFS not competitive below ~100 digits without full lattice sieve.
+| Method | Norms (bits) | Both-smooth rate | Ratio vs QS |
+|--------|-------------|------------------|-------------|
+| QS     | 81.8        | 0.273%           | 1.00        |
+| NFS d=3| 40+59       | 0.022%           | 0.08        |
+| NFS d=4| 32+53       | 0.289%           | 1.06        |
+| NFS d=5| 27+50       | 0.717%           | **2.63**    |
 
-### LGSH parameter analysis
-LGSH caps M (sieve range) at 10M. For 50-digit N, theoretical M ≈ 60 billion — so M cap is 6000x too small. This is the primary cause of the 45→50 digit scaling cliff. Fix: SIQS-style multi-polynomial approach which doesn't need large M (LGSH v5 now addresses this with ECM fallback).
+**KEY RESULT**: NFS degree 5 produces 2.63x more doubly-smooth relations per candidate than QS at 40 digits, even with brute-force (a,b) enumeration (no lattice sieving). This is because the norms are substantially smaller: 27+50 = 77 total bits vs 82 bits for QS. The double-smoothness penalty is more than offset by smaller norms at higher degree. This advantage should GROW with N (since NFS is L[1/3] vs QS's L[1/2]). The practical challenge is implementing efficient line sieving or special-q sieving for the algebraic side. The 50+ digit experiments timed out with brute-force evaluation, confirming that some form of sieving is necessary.
 
 ## Open directions
 

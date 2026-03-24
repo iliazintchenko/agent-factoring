@@ -588,3 +588,118 @@
 [2026-03-24 03:42:09] size: 58 | approach: LGSH-v5 | time: 244.118s | notes: found factor 30195067453845270578085979081
 [2026-03-24 03:43:49] size: 58 | approach: LGSH-v5 | time: 99.540s | notes: found factor 98971722039510325085965724069
 [2026-03-24 03:45:42] size: 58 | approach: LGSH-v5 | time: 112.714s | notes: found factor 89751595122523791156893059429
+[2026-03-24 03:32:47] size: 38 | approach: siqs_fast | time: 280.371s | notes: found factor 2857813223847491747
+[2026-03-24 03:35:35] size: 30 | approach: lgsh-v5-retest | time: 0.162s | notes: found factor 237853791679697
+[2026-03-24 03:35:35] size: 30 | approach: hsd-v1 | time: 0.285s | notes: found factor 237853791679697
+[2026-03-24 03:35:35] size: 30 | approach: lgsh-v5-retest | time: 0.156s | notes: found factor 973482052545047
+[2026-03-24 03:35:35] size: 30 | approach: lgsh-v5-retest | time: 0.214s | notes: found factor 216915926307757
+[2026-03-24 03:35:35] size: 30 | approach: hsd-v1 | time: 0.307s | notes: found factor 973482052545047
+[2026-03-24 03:35:36] size: 30 | approach: lgsh-v5-retest | time: 0.163s | notes: found factor 955492613363501
+[2026-03-24 03:35:36] size: 30 | approach: lgsh-v5-retest | time: 0.132s | notes: found factor 709910301438391
+[2026-03-24 03:35:36] size: 32 | approach: lgsh-v5-retest | time: 0.202s | notes: found factor 7413929065845661
+[2026-03-24 03:35:36] size: 30 | approach: hsd-v1 | time: 0.466s | notes: found factor 742943501885287
+[2026-03-24 03:35:36] size: 32 | approach: lgsh-v5-retest | time: 0.181s | notes: found factor 8735168619646627
+[2026-03-24 03:35:36] size: 32 | approach: lgsh-v5-retest | time: 0.147s | notes: found factor 2715902638854409
+[2026-03-24 03:35:36] size: 30 | approach: hsd-v1 | time: 0.328s | notes: found factor 955492613363501
+[2026-03-24 03:35:36] size: 32 | approach: lgsh-v5-retest | time: 0.171s | notes: found factor 8092187942408081
+[2026-03-24 03:35:36] size: 30 | approach: hsd-v1 | time: 0.232s | notes: found factor 709910301438391
+[2026-03-24 03:35:37] size: 32 | approach: lgsh-v5-retest | time: 0.175s | notes: found factor 9350505294133007
+[2026-03-24 03:35:37] size: 34 | approach: lgsh-v5-retest | time: 0.170s | notes: found factor 19791715649818547
+[2026-03-24 03:35:37] size: 34 | approach: lgsh-v5-retest | time: 0.196s | notes: found factor 81246557449774337
+[2026-03-24 03:35:37] size: 32 | approach: hsd-v1 | time: 0.487s | notes: found factor 2545748071309357
+[2026-03-24 03:35:37] size: 34 | approach: lgsh-v5-retest | time: 0.224s | notes: found factor 13707337860656159
+[2026-03-24 03:35:37] size: 34 | approach: lgsh-v5-retest | time: 0.189s | notes: found factor 97615487733219949
+[2026-03-24 03:35:37] size: 32 | approach: hsd-v1 | time: 0.398s | notes: found factor 3324830153487347
+[2026-03-24 03:35:38] size: 34 | approach: lgsh-v5-retest | time: 0.226s | notes: found factor 92646457184500561
+[2026-03-24 03:35:38] size: 32 | approach: hsd-v1 | time: 0.315s | notes: found factor 8419580092467013
+[2026-03-24 03:35:38] size: 36 | approach: lgsh-v5-retest | time: 0.240s | notes: found factor 939120934611052619
+[2026-03-24 03:35:38] size: 32 | approach: hsd-v1 | time: 0.365s | notes: found factor 2895990715237859
+[2026-03-24 03:35:38] size: 36 | approach: lgsh-v5-retest | time: 0.404s | notes: found factor 282354060658473593
+[2026-03-24 03:35:38] size: 32 | approach: hsd-v1 | time: 0.386s | notes: found factor 1928874067663001
+[2026-03-24 03:35:39] size: 36 | approach: lgsh-v5-retest | time: 0.363s | notes: found factor 308335176111167687
+[2026-03-24 03:35:39] size: 34 | approach: hsd-v1 | time: 0.365s | notes: found factor 82045041604477999
+[2026-03-24 03:35:39] size: 36 | approach: lgsh-v5-retest | time: 0.361s | notes: found factor 848458195903984321
+[2026-03-24 03:35:39] size: 36 | approach: lgsh-v5-retest | time: 0.229s | notes: found factor 912293358537943607
+[2026-03-24 03:35:39] size: 34 | approach: hsd-v1 | time: 0.476s | notes: found factor 81246557449774337
+[2026-03-24 03:35:40] size: 38 | approach: lgsh-v5-retest | time: 0.507s | notes: found factor 3510315453304323199
+[2026-03-24 03:35:40] size: 34 | approach: hsd-v1 | time: 0.543s | notes: found factor 13707337860656159
+[2026-03-24 03:35:40] size: 38 | approach: lgsh-v5-retest | time: 0.553s | notes: found factor 2857813223847491747
+[2026-03-24 03:35:40] size: 34 | approach: hsd-v1 | time: 0.459s | notes: found factor 97615487733219949
+[2026-03-24 03:35:41] size: 38 | approach: lgsh-v5-retest | time: 0.542s | notes: found factor 2297663271425438981
+[2026-03-24 03:35:41] size: 34 | approach: hsd-v1 | time: 0.532s | notes: found factor 31885749280408423
+[2026-03-24 03:35:41] size: 38 | approach: lgsh-v5-retest | time: 0.584s | notes: found factor 1981968944913582883
+[2026-03-24 03:35:41] size: 36 | approach: hsd-v1 | time: 0.694s | notes: found factor 124427679318959899
+[2026-03-24 03:35:42] size: 38 | approach: lgsh-v5-retest | time: 0.500s | notes: found factor 9541016958474145709
+[2026-03-24 03:35:42] size: 36 | approach: hsd-v1 | time: 1.011s | notes: found factor 831663032834837459
+[2026-03-24 03:35:43] size: 40 | approach: lgsh-v5-retest | time: 0.738s | notes: found factor 72102693587076008849
+[2026-03-24 03:35:43] size: 40 | approach: lgsh-v5-retest | time: 0.797s | notes: found factor 78735518311587647563
+[2026-03-24 03:35:43] size: 36 | approach: hsd-v1 | time: 0.909s | notes: found factor 308335176111167687
+[2026-03-24 03:35:44] size: 40 | approach: lgsh-v5-retest | time: 0.648s | notes: found factor 26780805813699501731
+[2026-03-24 03:35:44] size: 36 | approach: hsd-v1 | time: 1.092s | notes: found factor 136048381418674093
+[2026-03-24 03:35:45] size: 40 | approach: lgsh-v5-retest | time: 0.791s | notes: found factor 83508135079636726363
+[2026-03-24 03:35:45] size: 36 | approach: hsd-v1 | time: 0.632s | notes: found factor 341557716280196699
+[2026-03-24 03:35:46] size: 40 | approach: lgsh-v5-retest | time: 0.935s | notes: found factor 92554722699095299933
+[2026-03-24 03:35:47] size: 38 | approach: hsd-v1 | time: 1.495s | notes: found factor 3510315453304323199
+[2026-03-24 03:35:47] size: 42 | approach: lgsh-v5-retest | time: 1.271s | notes: found factor 993800718941516497211
+[2026-03-24 03:35:48] size: 42 | approach: lgsh-v5-retest | time: 1.058s | notes: found factor 312903253237424504801
+[2026-03-24 03:35:48] size: 38 | approach: hsd-v1 | time: 1.702s | notes: found factor 8712064908380816417
+[2026-03-24 03:35:49] size: 42 | approach: lgsh-v5-retest | time: 1.145s | notes: found factor 832049973472240230583
+[2026-03-24 03:35:50] size: 38 | approach: hsd-v1 | time: 1.458s | notes: found factor 2297663271425438981
+[2026-03-24 03:35:50] size: 42 | approach: lgsh-v5-retest | time: 0.913s | notes: found factor 558210507008341640149
+[2026-03-24 03:35:51] size: 42 | approach: lgsh-v5-retest | time: 0.933s | notes: found factor 184183033605295054387
+[2026-03-24 03:35:51] size: 38 | approach: hsd-v1 | time: 1.627s | notes: found factor 1981968944913582883
+[2026-03-24 03:35:53] size: 38 | approach: hsd-v1 | time: 1.476s | notes: found factor 9541016958474145709
+[2026-03-24 03:35:53] size: 44 | approach: lgsh-v5-retest | time: 2.120s | notes: found factor 3431962552616557921391
+[2026-03-24 03:35:55] size: 40 | approach: hsd-v1 | time: 2.457s | notes: found factor 72102693587076008849
+[2026-03-24 03:35:57] size: 44 | approach: lgsh-v5-retest | time: 4.223s | notes: found factor 9930551827391692221833
+[2026-03-24 03:35:58] size: 40 | approach: hsd-v1 | time: 2.572s | notes: found factor 15144021729810256727
+[2026-03-24 03:35:59] size: 44 | approach: lgsh-v5-retest | time: 1.245s | notes: found factor 2972570025159287871169
+[2026-03-24 03:36:00] size: 40 | approach: hsd-v1 | time: 1.908s | notes: found factor 93638414278799019499
+[2026-03-24 03:36:01] size: 44 | approach: lgsh-v5-retest | time: 2.154s | notes: found factor 9532023585458569260631
+[2026-03-24 03:36:02] size: 40 | approach: hsd-v1 | time: 2.473s | notes: found factor 83508135079636726363
+[2026-03-24 03:36:03] size: 44 | approach: lgsh-v5-retest | time: 2.037s | notes: found factor 1988562391539792713717
+[2026-03-24 03:36:05] size: 40 | approach: hsd-v1 | time: 2.750s | notes: found factor 20804179672520600591
+[2026-03-24 03:36:06] size: 46 | approach: lgsh-v5-retest | time: 3.320s | notes: found factor 14841907243481981500237
+[2026-03-24 03:36:09] size: 46 | approach: lgsh-v5-retest | time: 2.552s | notes: found factor 85010884086564696300199
+[2026-03-24 03:36:09] size: 42 | approach: hsd-v1 | time: 4.122s | notes: found factor 993800718941516497211
+[2026-03-24 03:36:13] size: 42 | approach: hsd-v1 | time: 3.519s | notes: found factor 867102878032255241681
+[2026-03-24 03:36:17] size: 42 | approach: hsd-v1 | time: 3.976s | notes: found factor 832049973472240230583
+[2026-03-24 03:36:20] size: 42 | approach: hsd-v1 | time: 3.236s | notes: found factor 558210507008341640149
+[2026-03-24 03:36:23] size: 42 | approach: hsd-v1 | time: 3.357s | notes: found factor 184183033605295054387
+[2026-03-24 03:36:30] size: 44 | approach: hsd-v1 | time: 7.207s | notes: found factor 3431962552616557921391
+[2026-03-24 03:36:34] size: 46 | approach: lgsh-v5-retest | time: 25.647s | notes: found factor 70666773741297185724887
+[2026-03-24 03:36:38] size: 44 | approach: hsd-v1 | time: 7.375s | notes: found factor 3212163167658753397391
+[2026-03-24 03:36:38] size: 46 | approach: lgsh-v5-retest | time: 3.726s | notes: found factor 14883677127466624330153
+[2026-03-24 03:36:42] size: 46 | approach: lgsh-v5-retest | time: 3.782s | notes: found factor 87668541485909225928839
+[2026-03-24 03:36:42] size: 44 | approach: hsd-v1 | time: 4.249s | notes: found factor 8042392878198397135009
+[2026-03-24 03:36:47] size: 48 | approach: lgsh-v5-retest | time: 5.366s | notes: found factor 976676140418234156932763
+[2026-03-24 03:36:49] size: 44 | approach: hsd-v1 | time: 7.402s | notes: found factor 9532023585458569260631
+[2026-03-24 03:36:53] size: 48 | approach: lgsh-v5-retest | time: 5.874s | notes: found factor 171645973353082599514967
+[2026-03-24 03:36:56] size: 44 | approach: hsd-v1 | time: 6.919s | notes: found factor 9709754530667958906817
+[2026-03-24 03:36:59] size: 48 | approach: lgsh-v5-retest | time: 5.463s | notes: found factor 811617398279555218138087
+[2026-03-24 03:37:08] size: 46 | approach: hsd-v1 | time: 12.037s | notes: found factor 99758926037608506463313
+[2026-03-24 03:37:18] size: 46 | approach: hsd-v1 | time: 9.800s | notes: found factor 85010884086564696300199
+[2026-03-24 03:40:00] size: 30 | approach: cf_products | time: 0.5s | notes: CF product pairs have |A_i*A_j| ≈ N (97-183 bits for 100-bit N), worse than individual A_k ≈ √N (47-156 bits). Brahmagupta identity confirmed: Y=1 for consecutive, X≈√N. Products don't reduce residue size.
+[2026-03-24 03:37:47] size: 48 | approach: lgsh-v5-retest | time: 5.249s | notes: found factor 151393362073140314244911
+[2026-03-24 03:29:47] size: 55 | approach: ECM-extended | time: 36.652s | notes: worst of 5
+[2026-03-24 03:30:49] size: 56 | approach: ECM-extended | time: 39.368s | notes: worst of 5
+[2026-03-24 03:32:27] size: 57 | approach: ECM-extended | time: 60.945s | notes: worst of 5
+[2026-03-24 03:36:46] size: 58 | approach: ECM-extended | time: 70.500s | notes: worst of 5
+[2026-03-24 03:40:11] size: 59 | approach: ECM-extended | time: 103.146s | notes: worst of 5
+[2026-03-24 03:37:54] size: 50 | approach: LGSH-v4-extended | time: 122.104s | notes: worst of 5
+[2026-03-24 03:37:59] size: 46 | approach: hsd-v1 | time: FAIL | notes: no factor for 28214570496465605534...
+[2026-03-24 03:38:17] size: 48 | approach: hsd-v1 | time: FAIL | notes: no factor for 36171110301884911854...
+[2026-03-24 03:38:59] size: 50 | approach: hsd-v1 | time: 42.593s | notes: found factor 2059422624891984908427913
+[2026-03-24 03:39:45] size: 50 | approach: hsd-v1 | time: 45.800s | notes: found factor 9444316373871639557235581
+[2026-03-24 03:40:35] size: 50 | approach: hsd-v1 | time: FAIL | notes: no factor for 31457091489409200601...
+[2026-03-24 03:41:20] size: 52 | approach: hsd-v1 | time: FAIL | notes: no factor for 32382924759076069793...
+[2026-03-24 03:42:03] size: 50 | approach: lgsh-v5-retest | time: FAIL | notes: no factor for 16724097559247740010...
+[2026-03-24 03:42:04] size: 54 | approach: hsd-v1 | time: FAIL | notes: no factor for 20632095700402654656...
+[2026-03-24 03:42:08] size: 38 | approach: siqs_fast | time: 280.209s | notes: found factor 1981968944913582883
+[2026-03-24 03:42:39] size: 56 | approach: hsd-v1 | time: FAIL | notes: no factor for 15390172934730741058...
+[2026-03-24 04:00:00] size: 40 | approach: alg_sieve_exp (NFS d=5 brute force) | time: 60s | notes: NFS d=5 gives 2.63x more doubly-smooth rels per candidate than QS! avg rat_norm=26.5 bits, alg_norm=50.1 bits vs QS=81.8 bits. 44 doubly-smooth from 6138 candidates. QS-style had 2 smooth from 100K. Key finding: for 40-digit N, NFS-style evaluation IS more efficient per candidate even without lattice sieving.
+[2026-03-24 04:00:00] size: 40 | approach: alg_sieve_exp (NFS d=4 brute force) | time: 30s | notes: NFS d=4 gives 1.06x — roughly equal to QS. 89 doubly-smooth from 30770.
+[2026-03-24 04:00:00] size: 40 | approach: alg_sieve_exp (NFS d=3 brute force) | time: 15s | notes: NFS d=3 gives 0.08x — worse than QS. Double-smoothness penalty dominates.
+[2026-03-24 03:42:57] size: 60 | approach: ECM-extended | time: 52.827s | notes: worst of 5, times: 52.827 27.894 45.451 10.152 29.353
+[2026-03-24 03:44:47] size: 60 | approach: ECM-extended | time: 54.216s | notes: worst of 5, times: 54.216 16.961 48.494 10.076 29.304
+[2026-03-24 03:44:47] size: 60 | approach: ECM-extended | time: 54.216s | notes: worst of 5
