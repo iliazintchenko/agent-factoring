@@ -510,3 +510,75 @@
 [2026-03-24 03:31:22] size: 58 | approach: LGSH-v4-full | time: 124.379s | notes: found factor 99120337580715523453789130329
 [2026-03-24 03:31:23] size: 54 | approach: LGSH-v5 | time: 79.439s | notes: found factor 562862321296581094262911693
 [2026-03-24 03:33:33] size: 58 | approach: LGSH-v4-full | time: 131.015s | notes: found factor 98971722039510325085965724069
+[2026-03-24 03:21:16] size: 58 | approach: ecm_v2_58_B30M | time: 70.284s | notes: found factor 28846244187484255242635303993
+[2026-03-24 03:21:36] size: 58 | approach: ecm_v2_58_B30M | time: 20.281s | notes: found factor 19272162302635252599922921579
+[2026-03-24 03:22:22] size: 58 | approach: ecm_v2_58_B30M | time: 45.652s | notes: found factor 30195067453845270578085979081
+[2026-03-24 03:22:23] size: 58 | approach: ecm_v2_58_B30M | time: 0.706s | notes: found factor 17126378949394488899993742571
+[2026-03-24 03:22:32] size: 58 | approach: ecm_v2_58_B30M | time: 9.396s | notes: found factor 12586372445066434246481998027
+[2026-03-24 03:22:47] size: 30 | approach: ecm_robust | time: 0.018s | notes: found factor 237853791679697
+[2026-03-24 03:22:47] size: 30 | approach: ecm_robust | time: 0.018s | notes: found factor 285490143297067
+[2026-03-24 03:22:47] size: 30 | approach: ecm_robust | time: 0.030s | notes: found factor 216915926307757
+[2026-03-24 03:22:47] size: 30 | approach: ecm_robust | time: 0.018s | notes: found factor 163402858332899
+[2026-03-24 03:22:47] size: 30 | approach: ecm_robust | time: 0.003s | notes: found factor 147780977331697
+[2026-03-24 03:22:47] size: 34 | approach: ecm_robust | time: 0.047s | notes: found factor 19791715649818547
+[2026-03-24 03:22:47] size: 34 | approach: ecm_robust | time: 0.034s | notes: found factor 25815610339368071
+[2026-03-24 03:22:47] size: 34 | approach: ecm_robust | time: 0.087s | notes: found factor 13707337860656159
+[2026-03-24 03:22:47] size: 34 | approach: ecm_robust | time: 0.069s | notes: found factor 16584859093784497
+[2026-03-24 03:22:48] size: 34 | approach: ecm_robust | time: 0.015s | notes: found factor 31885749280408423
+[2026-03-24 03:22:48] size: 38 | approach: ecm_robust | time: 0.137s | notes: found factor 3510315453304323199
+[2026-03-24 03:22:48] size: 38 | approach: ecm_robust | time: 0.160s | notes: found factor 2857813223847491747
+[2026-03-24 03:22:49] size: 38 | approach: ecm_robust | time: 0.735s | notes: found factor 2297663271425438981
+[2026-03-24 03:22:49] size: 38 | approach: ecm_robust | time: 0.128s | notes: found factor 1981968944913582883
+[2026-03-24 03:22:49] size: 38 | approach: ecm_robust | time: 0.228s | notes: found factor 1419070827215424463
+[2026-03-24 03:22:49] size: 42 | approach: ecm_robust | time: 0.323s | notes: found factor 281458292402321571151
+[2026-03-24 03:22:52] size: 42 | approach: ecm_robust | time: 2.861s | notes: found factor 312903253237424504801
+[2026-03-24 03:22:52] size: 42 | approach: ecm_robust | time: 0.405s | notes: found factor 147654092019125183017
+[2026-03-24 03:22:53] size: 42 | approach: ecm_robust | time: 0.388s | notes: found factor 207501258670461422731
+[2026-03-24 03:22:53] size: 42 | approach: ecm_robust | time: 0.031s | notes: found factor 184183033605295054387
+[2026-03-24 03:22:54] size: 46 | approach: ecm_robust | time: 1.047s | notes: found factor 14841907243481981500237
+[2026-03-24 03:22:54] size: 46 | approach: ecm_robust | time: 0.114s | notes: found factor 21583085895882087740731
+[2026-03-24 03:22:58] size: 46 | approach: ecm_robust | time: 3.548s | notes: found factor 18357432076396134323221
+[2026-03-24 03:23:00] size: 46 | approach: ecm_robust | time: 2.348s | notes: found factor 14883677127466624330153
+[2026-03-24 03:23:00] size: 46 | approach: ecm_robust | time: 0.042s | notes: found factor 32183232455168051482133
+[2026-03-24 03:23:00] size: 50 | approach: ecm_robust | time: 0.335s | notes: found factor 2059422624891984908427913
+[2026-03-24 03:23:04] size: 50 | approach: ecm_robust | time: 3.490s | notes: found factor 3469948797237213917621473
+[2026-03-24 03:23:07] size: 50 | approach: ecm_robust | time: 2.922s | notes: found factor 3318784448526149968726087
+[2026-03-24 03:23:08] size: 50 | approach: ecm_robust | time: 1.602s | notes: found factor 2130491434134923133190229
+[2026-03-24 03:23:19] size: 50 | approach: ecm_robust | time: 10.544s | notes: found factor 1437953211038098705171097
+[2026-03-24 03:23:36] size: 54 | approach: ecm_robust | time: 17.422s | notes: found factor 251931353323471365990991339
+[2026-03-24 03:23:37] size: 54 | approach: ecm_robust | time: 0.829s | notes: found factor 315685386801061511673565103
+[2026-03-24 03:23:40] size: 54 | approach: ecm_robust | time: 2.562s | notes: found factor 147513778738770894300716023
+[2026-03-24 03:23:50] size: 54 | approach: ecm_robust | time: 10.376s | notes: found factor 222731417295594470332550983
+[2026-03-24 03:23:53] size: 54 | approach: ecm_robust | time: 3.281s | notes: found factor 210660520322958242851495331
+[2026-03-24 03:24:22] size: 58 | approach: ecm_robust | time: 28.890s | notes: found factor 28846244187484255242635303993
+[2026-03-24 03:24:27] size: 58 | approach: ecm_robust | time: 4.630s | notes: found factor 19272162302635252599922921579
+[2026-03-24 03:24:39] size: 58 | approach: ecm_robust | time: 12.155s | notes: found factor 30195067453845270578085979081
+[2026-03-24 03:24:41] size: 58 | approach: ecm_robust | time: 2.081s | notes: found factor 17126378949394488899993742571
+[2026-03-24 03:25:19] size: 58 | approach: ecm_robust | time: 38.341s | notes: found factor 12586372445066434246481998027
+[2026-03-24 03:25:30] size: 60 | approach: ecm_robust_60_64 | time: 4.447s | notes: found factor 323012268366406069604976245747
+[2026-03-24 03:25:46] size: 60 | approach: ecm_robust_60_64 | time: 15.291s | notes: found factor 233727393239440919182445071663
+[2026-03-24 03:25:46] size: 60 | approach: ecm_robust_60_64 | time: 0.378s | notes: found factor 160593629707405643958487297489
+[2026-03-24 03:25:56] size: 60 | approach: ecm_robust_60_64 | time: 9.652s | notes: found factor 127259672474532960959076409103
+[2026-03-24 03:25:59] size: 60 | approach: ecm_robust_60_64 | time: 3.644s | notes: found factor 185861201914548184489307675869
+[2026-03-24 03:29:09] size: 62 | approach: ecm_robust_60_64 | time: 189.667s | notes: found factor 1989635508140578482202536921097
+[2026-03-24 03:29:41] size: 62 | approach: ecm_robust_60_64 | time: 31.944s | notes: found factor 1697197652288598174769165251137
+[2026-03-24 03:29:49] size: 62 | approach: ecm_robust_60_64 | time: 7.834s | notes: found factor 2203056164832971756418716342753
+[2026-03-24 03:30:31] size: 60 | approach: ecm_robust_60 | time: 4.483s | notes: found factor 323012268366406069604976245747
+[2026-03-24 03:30:46] size: 60 | approach: ecm_robust_60 | time: 15.398s | notes: found factor 233727393239440919182445071663
+[2026-03-24 03:30:47] size: 60 | approach: ecm_robust_60 | time: 0.381s | notes: found factor 160593629707405643958487297489
+[2026-03-24 03:30:56] size: 60 | approach: ecm_robust_60 | time: 9.620s | notes: found factor 127259672474532960959076409103
+[2026-03-24 03:31:00] size: 60 | approach: ecm_robust_60 | time: 3.652s | notes: found factor 185861201914548184489307675869
+[2026-03-24 03:34:14] size: 62 | approach: ecm_robust_62 | time: 190.529s | notes: found factor 1989635508140578482202536921097
+[2026-03-24 03:34:46] size: 62 | approach: ecm_robust_62 | time: 31.800s | notes: found factor 1697197652288598174769165251137
+[2026-03-24 03:34:53] size: 62 | approach: ecm_robust_62 | time: 7.864s | notes: found factor 2203056164832971756418716342753
+[2026-03-24 03:36:07] size: 30 | approach: ecm_robust_worst5 | time: 0.030s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 34 | approach: ecm_robust_worst5 | time: 0.087s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 38 | approach: ecm_robust_worst5 | time: 0.735s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 42 | approach: ecm_robust_worst5 | time: 2.861s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 46 | approach: ecm_robust_worst5 | time: 3.548s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 50 | approach: ecm_robust_worst5 | time: 10.544s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 54 | approach: ecm_robust_worst5 | time: 17.422s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 58 | approach: ecm_robust_worst5 | time: 38.341s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 60 | approach: ecm_robust_worst5 | time: 15.398s | notes: ECM robust escalating B1, worst-of-5
+[2026-03-24 03:36:07] size: 62 | approach: ecm_robust_worst5 | time: FAIL | notes: at least one semiprime exceeded 295s timeout
+[2026-03-24 03:36:07] size: 30 | approach: approx_dl | time: FAIL | notes: 5M steps, 325 hits (tol=10K) but P(factor|hit)~2/p~0. Dead end.

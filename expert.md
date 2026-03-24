@@ -71,6 +71,7 @@ Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomia
 - **Galois action on NFS relations**: For Galois polynomials, the d automorphisms permute roots but the algebraic norm (= product of all conjugates) is Galois-invariant by definition. Applying automorphisms gives the SAME norm, not new relations. The Galois structure provides d representations of one relation, not d independent relations. At best a constant factor of d improvement in candidate coverage, which doesn't change the L-exponent.
 - **Multiplicative lattice relations (MLR)**: Find exponents e_i such that p_1^{e_1} * ... * p_k^{e_k} mod N is small, using LLL on the log-embedding lattice. Even when the residue P(e) mod N is small (achievable via lattice reduction), this doesn't help: P(e) mod p is never zero (since p doesn't divide any p_i), and small P(e) mod N doesn't imply small P(e) mod p due to CRT entanglement. Computing gcd(P(e1)/P(e2) - r1/r2, N) always gives N because the ratio is computed mod N, erasing the p-vs-q distinction. This confirms Schnorr's lattice approach is fundamentally limited — not just practically but theoretically.
 - **Best-of-K polynomial selection** (surface_factor.c): For each sieve position, evaluate K different polynomials Q_k(x) and pick the one with smallest |Q_k(x)|. Tested with K=10 on 30-digit N, B=50000, 500K candidates: smoothness rate improved 1.92x but at 10x computational cost → net 5.3x WORSE per smooth value. Theory: the smoothness improvement from minimum of K values scales as K^{u/ln(B)} ≈ K^{0.5} (where u = ln(Q)/ln(B)), which is always SUBLINEAR in K. Best-of-K cherry-picking never beats standard sequential evaluation for any K, B, or N.
+- **Approximate discrete logarithm relations** (approx_dl.c): Compute 2^e mod N for many e and check if result is close to a small prime p_i. If 2^e ≈ p_i (mod N), then gcd(2^e - p_i, N) might factor N. Tested: 5M steps with tolerance 10000 gives 325 hits, but probability of factor per hit is ~2/p ≈ 10^{-15}. Need ~10^{15} hits → ~10^{45} steps. Exponential. Dead end.
 
 ## Key insight: smoothness detection cost
 
@@ -130,7 +131,22 @@ GMP-ECM with auto-scaled B1 (Suyama parametrization, sigma = 6 + curve_index).
 | 56 | 32.75 |
 | 60 | 8.20 |
 
-ECM is highly variable (factor of 10x between lucky/unlucky runs). Non-monotonic timing (60-digit faster than 56-digit) is due to favorable p-1 structure in specific test numbers. ECM is L_p[1/2] = L_N[1/2] for balanced semiprimes (since p ~ √N, ln(p) ~ ln(N)/2).
+**Robust ECM (ecm_robust.c) with escalating B1, worst-of-5:**
+
+| Digits | Worst-of-5 (s) |
+|--------|----------------|
+| 30 | 0.03 |
+| 34 | 0.09 |
+| 38 | 0.74 |
+| 42 | 2.86 |
+| 46 | 3.55 |
+| 50 | 10.5 |
+| 54 | 17.4 |
+| 58 | 38.3 |
+| 60 | 15.4 |
+| 62 | FAIL (>295s on some) |
+
+ECM is highly variable (factor of 10x between lucky/unlucky runs). Non-monotonic timing (60-digit faster than 58-digit) is due to favorable p-1 structure in specific test numbers. ECM is L_p[1/2] = L_N[1/2] for balanced semiprimes.
 
 ### Known bugs / lessons
 - **LP matching must divide by cofactor**: When combining two single-LP relations sharing cofactor c, the combined sqrt_val must be sv1·sv2·c⁻¹ (mod N), not just sv1·sv2. Otherwise x = y for all dependencies.
