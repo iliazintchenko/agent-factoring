@@ -111,3 +111,9 @@
 [2026-03-24 09:35:00] task: Sieving over curves (not 2D lattice) in NFS | result: 1D curves have lower integer point density than 2D regions. Line sieve wins by volume | conclusion: dead end (dimensional tradeoff)
 [2026-03-24 09:35:00] task: Probabilistic method (LLL, Chernoff) for non-constructive algorithm existence | result: LLL cant break L[1/3] — barrier is structural. Bad event probabilities too high. Natural proofs barrier applies | conclusion: dead end
 [2026-03-24 09:35:00] task: MPC / secret-sharing ideas for factoring | result: any k-party MPC simulated by single party (poly overhead). Paradigm mismatch (search not evaluation). No useful share structure | conclusion: dead end
+[2026-03-24 09:43:00] task: ECC in exponent vectors for fewer NFS/QS relations | result: rank-nullity inescapable. Noiseless channel. Exactness non-negotiable over F2 | conclusion: dead end
+[2026-03-24 09:43:00] task: Amortized factoring of K semiprimes simultaneously | result: batch GCD free but finds nothing (independent primes). Shared factor base saves 11-17% of 1.3%. 0/41 relations transferable | conclusion: dead end (each N independent)
+[2026-03-24 09:43:00] task: NFS discriminant optimization for norm reduction | result: (still running inv-1)
+[2026-03-24 09:43:00] task: Simultaneous Diophantine approximation for NFS | result: (still running inv-3)
+[2026-03-24 09:43:00] task: Kannan embedding for lattice sieving | result: (still running inv-5)
+[2026-03-24 09:43:00] task: FINAL META-ANALYSIS of ~85 approaches | result: L[1/3] structural, key is non-smoothness relations. P(sub-L[1/3]) ~2-5% in 50 years | conclusion: DEFINITIVE SUMMARY
