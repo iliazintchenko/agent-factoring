@@ -72,7 +72,8 @@ typedef struct {
     long x;            /* sieve position */
     int *fb_exp;       /* FB indices with odd exponent (col 0 = sign) */
     int nfb;
-    unsigned long lp;  /* large prime (0 = fully smooth) */
+    unsigned long lp;  /* large prime 1 (0 = fully smooth) */
+    unsigned long lp2; /* large prime 2 (0 = only 1 LP) */
 } Relation;
 
 /* ========== GF(2) dense matrix ========== */
@@ -265,7 +266,8 @@ int main(int argc, char *argv[]) {
      * Use conservative threshold based on MINIMUM Q value. */
     float log2_Qmin = (float)(mpz_sizeinbase(N, 2) / 2.0 + 1.0); /* log2(~2*sqrt(N)) */
     float log2_lp = log2f((float)lp_bound);
-    /* Generous slack: factor of 2 missing (not sieved), small primes, prime powers */
+    /* Use 1LP threshold (generous enough). 2LP candidates will also pass this
+     * since they have more of Q(x) explained by FB primes than 1LP-bound would require. */
     float threshold = log2_Qmin - log2_lp - 10.0f;
     if (threshold < 3.0f) threshold = 3.0f;
 
@@ -330,16 +332,50 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        unsigned long cof = 0;
+        unsigned long cof1 = 0, cof2 = 0;
         if (mpz_cmp_ui(cofactor, 1) == 0) {
-            cof = 0; /* smooth */
+            /* Fully smooth */
         } else if (mpz_fits_ulong_p(cofactor)) {
-            cof = mpz_get_ui(cofactor);
-            if (cof > lp_bound) continue; /* too large */
-            /* Quick primality check: skip if obviously composite */
-            if (cof > 3 && (cof % 2 == 0 || cof % 3 == 0)) continue;
-            mpz_set_ui(tmp, cof);
-            if (!mpz_probab_prime_p(tmp, 2)) continue;
+            unsigned long cv = mpz_get_ui(cofactor);
+            if (cv <= lp_bound) {
+                /* Might be 1LP (prime) */
+                mpz_set_ui(tmp, cv);
+                if (mpz_probab_prime_p(tmp, 2)) {
+                    cof1 = cv;
+                } else {
+                    continue; /* composite cofactor within LP bound but not prime — skip */
+                }
+            } else if (cv <= (unsigned long)lp_bound * lp_bound) {
+                /* Might be 2LP — try to split */
+                mpz_set_ui(tmp, cv);
+                if (mpz_probab_prime_p(tmp, 2)) {
+                    continue; /* single large prime > lp_bound */
+                }
+                /* Factor cv: trial divide by small primes, then check if both parts ≤ lp_bound.
+                 * Limit trial div to min(sqrt(cv), 100000) for speed. */
+                unsigned long sq = (unsigned long)sqrt((double)cv);
+                if (sq > 100000UL) sq = 100000UL;
+                unsigned long d;
+                int found = 0;
+                for (d = 3; d <= sq; d += 2) {
+                    if (cv % d == 0) {
+                        cof1 = d;
+                        cof2 = cv / d;
+                        /* Handle repeated factors */
+                        while (cof2 % d == 0) {
+                            cof1 *= d;
+                            cof2 /= d;
+                        }
+                        if (cof1 <= lp_bound && cof2 <= lp_bound && cof2 > 1) {
+                            found = 1;
+                        }
+                        break;
+                    }
+                }
+                if (!found) continue;
+            } else {
+                continue;
+            }
         } else {
             continue;
         }
@@ -348,60 +384,69 @@ int main(int argc, char *argv[]) {
         int *fb_exp = malloc(sizeof(int) * nfb);
         memcpy(fb_exp, fb_buf, sizeof(int) * nfb);
 
-        if (cof == 0) {
+        if (cof1 == 0) {
             if (n_smooth >= rel_cap) { rel_cap *= 2; smooth_rels = realloc(smooth_rels, sizeof(Relation) * rel_cap); }
-            smooth_rels[n_smooth++] = (Relation){x, fb_exp, nfb, 0};
+            smooth_rels[n_smooth++] = (Relation){x, fb_exp, nfb, 0, 0};
         } else {
             if (n_partial >= partial_cap) { partial_cap *= 2; partial_rels = realloc(partial_rels, sizeof(Relation) * partial_cap); }
-            partial_rels[n_partial++] = (Relation){x, fb_exp, nfb, cof};
+            partial_rels[n_partial++] = (Relation){x, fb_exp, nfb, cof1, cof2};
         }
 
         if (ELAPSED() > 250) { fprintf(stderr, "Time limit\n"); break; }
     }
     free(sieve);
 
-    fprintf(stderr, "[%.1fs] %d smooth, %d partial (1LP), %ld checked\n",
-            ELAPSED(), n_smooth, n_partial, checked);
+    /* Count 1LP and 2LP partials separately */
+    int n_1lp = 0, n_2lp = 0;
+    for (int pi = 0; pi < n_partial; pi++) {
+        if (partial_rels[pi].lp2 == 0) n_1lp++;
+        else n_2lp++;
+    }
+    fprintf(stderr, "[%.1fs] %d smooth, %d partial (%d 1LP, %d 2LP), %ld checked\n",
+            ELAPSED(), n_smooth, n_partial, n_1lp, n_2lp, checked);
 
     /* ===== LARGE PRIME MATCHING ===== */
-    /* Sort partials by LP, then combine pairs with same LP */
+    /* 1LP: match pairs sharing the same large prime.
+     * 2LP: include in matrix with LP columns. */
 
-    /* Sort by LP */
+    /* First: handle 1LP matching by sorting and pairing */
+    /* Separate 1LP and 2LP */
+    Relation *lp1_rels = malloc(sizeof(Relation) * (n_1lp + 1));
+    Relation *lp2_rels = malloc(sizeof(Relation) * (n_2lp + 1));
+    int ni1 = 0, ni2 = 0;
+    for (int pi = 0; pi < n_partial; pi++) {
+        if (partial_rels[pi].lp2 == 0) lp1_rels[ni1++] = partial_rels[pi];
+        else lp2_rels[ni2++] = partial_rels[pi];
+    }
+
+    /* Sort 1LP by LP value */
     int cmp_rel_lp(const void *a, const void *b) {
         unsigned long la = ((Relation*)a)->lp, lb = ((Relation*)b)->lp;
         return (la > lb) - (la < lb);
     }
-    qsort(partial_rels, n_partial, sizeof(Relation), cmp_rel_lp);
+    qsort(lp1_rels, ni1, sizeof(Relation), cmp_rel_lp);
 
-    /* Combine pairs: for each LP appearing 2+ times, take pairs */
-    /* A "combined" relation: XOR of two 1LP relations sharing same LP */
-    /* The combined relation has the LP cancelled (even exponent) */
+    /* Combine 1LP pairs */
     int combined_cap = 4096;
     Relation *combined_rels = malloc(sizeof(Relation) * combined_cap);
     int n_combined = 0;
 
     int i = 0;
-    while (i < n_partial) {
+    while (i < ni1) {
         int j = i;
-        while (j < n_partial && partial_rels[j].lp == partial_rels[i].lp) j++;
-        /* partial_rels[i..j-1] share the same LP */
+        while (j < ni1 && lp1_rels[j].lp == lp1_rels[i].lp) j++;
         int group_size = j - i;
-        /* Combine pairs: take consecutive pairs */
         for (int k = 0; k + 1 < group_size; k += 2) {
-            Relation *a = &partial_rels[i + k];
-            Relation *b = &partial_rels[i + k + 1];
-            /* XOR exponent vectors */
+            Relation *a = &lp1_rels[i + k];
+            Relation *b = &lp1_rels[i + k + 1];
             int *merged = malloc(sizeof(int) * (a->nfb + b->nfb));
-            int mi = 0, bi2 = 0, mk = 0;
-            /* Sort both (should already be sorted) */
-            /* Simple merge-XOR */
-            int ai = 0;
-            while (ai < a->nfb && bi2 < b->nfb) {
-                if (a->fb_exp[ai] < b->fb_exp[bi2]) merged[mk++] = a->fb_exp[ai++];
-                else if (a->fb_exp[ai] > b->fb_exp[bi2]) merged[mk++] = b->fb_exp[bi2++];
-                else { ai++; bi2++; } /* cancel */
+            int ai2 = 0, bi2 = 0, mk = 0;
+            while (ai2 < a->nfb && bi2 < b->nfb) {
+                if (a->fb_exp[ai2] < b->fb_exp[bi2]) merged[mk++] = a->fb_exp[ai2++];
+                else if (a->fb_exp[ai2] > b->fb_exp[bi2]) merged[mk++] = b->fb_exp[bi2++];
+                else { ai2++; bi2++; }
             }
-            while (ai < a->nfb) merged[mk++] = a->fb_exp[ai++];
+            while (ai2 < a->nfb) merged[mk++] = a->fb_exp[ai2++];
             while (bi2 < b->nfb) merged[mk++] = b->fb_exp[bi2++];
 
             if (n_combined >= combined_cap) {
@@ -410,25 +455,51 @@ int main(int argc, char *argv[]) {
             }
             combined_rels[n_combined].fb_exp = merged;
             combined_rels[n_combined].nfb = mk;
-            combined_rels[n_combined].x = a->x; /* store first x; need both for extraction */
-            combined_rels[n_combined].lp = b->x; /* abuse: store second x in lp field */
+            combined_rels[n_combined].x = a->x;
+            combined_rels[n_combined].lp = b->x; /* store second x in lp field */
+            combined_rels[n_combined].lp2 = 0;
             n_combined++;
         }
         i = j;
     }
 
-    int total_rels = n_smooth + n_combined;
-    fprintf(stderr, "[%.1fs] %d combined from LP matching. Total: %d rels for %d cols\n",
-            ELAPSED(), n_combined, total_rels, fb_size + 1);
+    /* Collect all LP values from 2LP relations to assign column indices */
+    unsigned long *all_2lp = malloc(sizeof(unsigned long) * (ni2 * 2 + 1));
+    int n_all_2lp = 0;
+    for (int pi = 0; pi < ni2; pi++) {
+        all_2lp[n_all_2lp++] = lp2_rels[pi].lp;
+        all_2lp[n_all_2lp++] = lp2_rels[pi].lp2;
+    }
+    /* Sort and unique */
+    int cmp_ul(const void *a, const void *b) {
+        unsigned long x = *(unsigned long*)a, y = *(unsigned long*)b;
+        return (x > y) - (x < y);
+    }
+    qsort(all_2lp, n_all_2lp, sizeof(unsigned long), cmp_ul);
+    int n_unique_2lp = 0;
+    for (int pi = 0; pi < n_all_2lp; pi++)
+        if (pi == 0 || all_2lp[pi] != all_2lp[pi-1])
+            all_2lp[n_unique_2lp++] = all_2lp[pi];
 
-    if (total_rels < fb_size + 2) {
+    /* Only include 2LP relations if they meaningfully contribute.
+     * Need: total_rows > total_cols. 2LP adds ni2 rows and n_unique_2lp cols. */
+    int use_2lp = (ni2 > n_unique_2lp + 10); /* net positive contribution */
+
+    int total_rels = n_smooth + n_combined + (use_2lp ? ni2 : 0);
+    int ncols = fb_size + 1 + (use_2lp ? n_unique_2lp : 0);
+
+    fprintf(stderr, "[%.1fs] %d combined, %d 2LP%s. Total: %d rels for %d cols\n",
+            ELAPSED(), n_combined, ni2, use_2lp ? " (used)" : " (skipped)",
+            total_rels, ncols);
+
+    if (total_rels < ncols + 1) {
         fprintf(stderr, "Not enough relations (%d < %d). Need more sieving.\n",
-                total_rels, fb_size + 2);
+                total_rels, ncols + 1);
+        free(lp1_rels); free(lp2_rels); free(all_2lp);
         return 1;
     }
 
     /* ===== BUILD MATRIX ===== */
-    int ncols = fb_size + 1; /* col 0 = sign, cols 1..fb_size = factor base */
     GF2Matrix mat;
     gf2_init(&mat, total_rels, ncols);
 
@@ -437,11 +508,34 @@ int main(int argc, char *argv[]) {
         for (int c = 0; c < smooth_rels[r].nfb; c++)
             gf2_set(&mat, r, smooth_rels[r].fb_exp[c]);
     }
-    /* Add combined relations */
+    /* Add 1LP-combined relations */
     for (int r = 0; r < n_combined; r++) {
         int row = n_smooth + r;
         for (int c = 0; c < combined_rels[r].nfb; c++)
             gf2_set(&mat, row, combined_rels[r].fb_exp[c]);
+    }
+    /* Add 2LP relations with LP columns */
+    if (use_2lp) {
+        for (int r = 0; r < ni2; r++) {
+            int row = n_smooth + n_combined + r;
+            /* FB columns */
+            for (int c = 0; c < lp2_rels[r].nfb; c++)
+                gf2_set(&mat, row, lp2_rels[r].fb_exp[c]);
+            /* LP columns: binary search in all_2lp for index */
+            unsigned long lps_arr[2] = {lp2_rels[r].lp, lp2_rels[r].lp2};
+            for (int li = 0; li < 2; li++) {
+                unsigned long lp = lps_arr[li];
+                int lo = 0, hi = n_unique_2lp - 1;
+                while (lo <= hi) {
+                    int mid = (lo + hi) / 2;
+                    if (all_2lp[mid] == lp) {
+                        gf2_set(&mat, row, fb_size + 1 + mid);
+                        break;
+                    }
+                    if (all_2lp[mid] < lp) lo = mid + 1; else hi = mid - 1;
+                }
+            }
+        }
     }
 
     /* ===== GAUSSIAN ELIMINATION ===== */
@@ -474,36 +568,32 @@ int main(int argc, char *argv[]) {
             mpz_set_ui(x_acc, 1);
             mpz_set_ui(y_sq, 1);
 
+            /* Helper: accumulate x value into x_acc and y_sq */
+            #define ACCUM_X(xv) do { \
+                mpz_set_si(tmp, (xv)); mpz_add(tmp, tmp, sqrtN); \
+                mpz_mul(x_acc, x_acc, tmp); mpz_mod(x_acc, x_acc, N); \
+                mpz_set_si(tmp, (xv)); mpz_add(tmp, tmp, sqrtN); \
+                mpz_mul(tmp, tmp, tmp); mpz_sub(tmp, tmp, N); mpz_abs(tmp, tmp); \
+                mpz_mul(y_sq, y_sq, tmp); \
+            } while(0)
+
             for (int oi = 0; oi < mat.origin_count[r]; oi++) {
                 int orig = mat.origins[r][oi];
-                long x1, x2; /* the x value(s) */
-                int is_combined = (orig >= n_smooth);
-
-                if (!is_combined) {
-                    x1 = smooth_rels[orig].x;
-                    mpz_set_si(tmp, x1); mpz_add(tmp, tmp, sqrtN);
-                    mpz_mul(x_acc, x_acc, tmp); mpz_mod(x_acc, x_acc, N);
-                    mpz_set_si(tmp, x1); mpz_add(tmp, tmp, sqrtN);
-                    mpz_mul(tmp, tmp, tmp); mpz_sub(tmp, tmp, N); mpz_abs(tmp, tmp);
-                    mpz_mul(y_sq, y_sq, tmp);
-                } else {
+                if (orig < n_smooth) {
+                    /* Smooth relation */
+                    ACCUM_X(smooth_rels[orig].x);
+                } else if (orig < n_smooth + n_combined) {
+                    /* 1LP combined: two x values */
                     int ci = orig - n_smooth;
-                    x1 = combined_rels[ci].x;
-                    x2 = (long)combined_rels[ci].lp; /* stored second x here */
-
-                    mpz_set_si(tmp, x1); mpz_add(tmp, tmp, sqrtN);
-                    mpz_mul(x_acc, x_acc, tmp); mpz_mod(x_acc, x_acc, N);
-                    mpz_set_si(tmp, x1); mpz_add(tmp, tmp, sqrtN);
-                    mpz_mul(tmp, tmp, tmp); mpz_sub(tmp, tmp, N); mpz_abs(tmp, tmp);
-                    mpz_mul(y_sq, y_sq, tmp);
-
-                    mpz_set_si(tmp, x2); mpz_add(tmp, tmp, sqrtN);
-                    mpz_mul(x_acc, x_acc, tmp); mpz_mod(x_acc, x_acc, N);
-                    mpz_set_si(tmp, x2); mpz_add(tmp, tmp, sqrtN);
-                    mpz_mul(tmp, tmp, tmp); mpz_sub(tmp, tmp, N); mpz_abs(tmp, tmp);
-                    mpz_mul(y_sq, y_sq, tmp);
+                    ACCUM_X(combined_rels[ci].x);
+                    ACCUM_X((long)combined_rels[ci].lp);
+                } else if (use_2lp) {
+                    /* 2LP relation: single x value */
+                    int li = orig - n_smooth - n_combined;
+                    ACCUM_X(lp2_rels[li].x);
                 }
             }
+            #undef ACCUM_X
 
             if (mpz_perfect_square_p(y_sq)) {
                 mpz_sqrt(y_val, y_sq);
