@@ -153,3 +153,7 @@
 [2026-03-24 10:38:00] task: Persistent homology of Z/NZ* (round 16) | result: (pending inv-1)
 [2026-03-24 10:38:00] task: Algebraic statistics for CRT detection | result: (pending inv-7)
 [2026-03-24 10:38:00] task: Lattice decoding / sphere decoding for NFS | result: (pending inv-9 from earlier)
+[2026-03-24 10:46:00] task: Algorithmic game theory for factoring | result: Lipton RSR neutralizes strategic interaction. Factoring is a one-sided complexity question, not a game. Yao minimax useful for hardness proofs | conclusion: theoretical framework only
+[2026-03-24 10:46:00] task: Algebraic statistics for CRT mixture detection | result: barrier is computational not statistical. 2x2 minors known but finding right coordinates is hard | conclusion: dead end (confirms existing understanding)
+[2026-03-24 10:46:00] task: Sublinear/streaming algorithms for factoring | result: compositeness detection in O(log N) space via AMS sketch of squaring map F2/F1. Factoring likely not in polylog space (would imply FACTORING∈L) | conclusion: interesting theoretical observation
+[2026-03-24 10:46:00] task: Algebraic tori pipeline (p-1, p+1, T3, T4, T6) full results | result: 3 torus-only factorizations across 345 semiprimes. Real but limited channel | conclusion: minor practical improvement
