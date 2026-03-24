@@ -191,3 +191,10 @@
 [2026-03-24 11:26:00] task: Coppersmith + failed ECM negative information | result: each failure gives ~2^{-40} bits. Hasse barrier self-defeating. Boneh-Durfee orthogonal | conclusion: dead end
 [2026-03-24 11:26:00] task: Neural network smooth number pre-filter | result: 73% accuracy but feature extraction needs partial trial division. NN needs the answer to predict it | conclusion: dead end
 [2026-03-24 11:26:00] task: HoTT / type theory for factoring | result: factoring lives at truncation level 0. Univalence, HITs cant help. Church-Turing unchanged | conclusion: dead end
+[2026-03-24 11:34:00] task: Renormalization group ideas for factoring | result: no scale hierarchy, no locality, no universality. RSA deliberately eliminates scale separations | conclusion: dead end
+[2026-03-24 11:34:00] task: Formal power series poles over Z/NZ | result: partial poles = zero divisors = factoring. Classical shadow of Shor | conclusion: dead end
+[2026-03-24 11:34:00] task: Knot theory / braid groups for factoring | result: Jones polynomial at roots of unity is circular. Topological insensitivity opposes arithmetic | conclusion: dead end
+[2026-03-24 11:34:00] task: Incidence geometry / projective planes over Z/NZ | result: linear geometry cant reach multiplicative structure. ECM is the right geometric approach | conclusion: dead end
+[2026-03-24 11:34:00] task: Condensed math / perfectoid spaces for factoring | result: (captured in inv-7, pending full read)
+[2026-03-24 11:34:00] task: Fractal structure in factoring landscape | result: ensemble statistics, not pointwise. Dickman already captures relevant distribution | conclusion: dead end
+[2026-03-24 11:34:00] task: Model theory transfer principles (Ax-Kochen) | result: FF→NF transfer always moral never mechanical. No computational transfer principle exists | conclusion: dead end (key theoretical insight)
