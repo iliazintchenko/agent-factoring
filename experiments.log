@@ -502,6 +502,11 @@
 [2026-03-24 03:26:37] size: 54 | approach: LGSH-v5 | time: 80.480s | notes: found factor 251931353323471365990991339
 [2026-03-24 03:27:48] size: 58 | approach: LGSH-v4-full | time: 115.625s | notes: found factor 28846244187484255242635303993
 [2026-03-24 03:27:51] size: 54 | approach: LGSH-v5 | time: 73.662s | notes: found factor 936923754496815584590109357
-[2026-03-24 02:52:39] size: 39 | approach: ccd_v1 | time: 285.869s | notes: found factor 4334488463092636909
 [2026-03-24 03:28:07] size: 38 | approach: siqs_fast | time: 280.155s | notes: found factor 3510315453304323199
 [2026-03-24 03:30:00] size: 30-60 | approach: order_probe (strong_test+p1) | time: FAIL | notes: confirmed group-order methods fail for balanced semiprimes. Strong pseudoprime test: N-1 is unrelated to φ(N), squaring chain usually doesn't reach 1. p-1 with B=100000: p-1 not smooth for random balanced semiprimes.
+[2026-03-24 03:29:01] size: 54 | approach: LGSH-v5 | time: 70.034s | notes: found factor 974145362450408019560643707
+[2026-03-24 03:29:18] size: 58 | approach: LGSH-v4-full | time: 89.904s | notes: found factor 92603323431341555808646960469
+[2026-03-24 03:30:03] size: 54 | approach: LGSH-v5 | time: 61.922s | notes: found factor 222731417295594470332550983
+[2026-03-24 03:31:22] size: 58 | approach: LGSH-v4-full | time: 124.379s | notes: found factor 99120337580715523453789130329
+[2026-03-24 03:31:23] size: 54 | approach: LGSH-v5 | time: 79.439s | notes: found factor 562862321296581094262911693
+[2026-03-24 03:33:33] size: 58 | approach: LGSH-v4-full | time: 131.015s | notes: found factor 98971722039510325085965724069
