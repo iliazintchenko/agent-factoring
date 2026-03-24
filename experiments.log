@@ -129,3 +129,10 @@
 [2026-03-24 09:59:00] task: NFS discriminant optimization experiments | result: (pending full read)
 [2026-03-24 09:59:00] task: Class field theory for factoring | result: circularity kills it. h(-N) computation O(√N). No correlation found. Jacobi gives product, not separation | conclusion: dead end
 [2026-03-24 09:59:00] task: NFS heuristic assumptions and formalization status | result: L[1/3] NOT proven! Best rigorous = L[1/2]. 8 unproven assumptions. No formal verification exists | conclusion: KEY insight — rigor gap
+[2026-03-24 10:07:00] task: GRH dependence in factoring | result: no algorithm correctness depends on GRH. Only complexity proofs. Siegel zeros could theoretically help OR hurt | conclusion: interesting but no actionable insight
+[2026-03-24 10:07:00] task: Half-GCD (HGCD) speedup in factoring | result: batch GCD 55x over trial division at B=10^6. Product tree top half in HGCD territory. No new LA speedup | conclusion: practical improvement (already known)
+[2026-03-24 10:07:00] task: Random self-reducibility exploitation | result: ~1/50M random semiprimes have exploitable p-1. Total RSR cost > NFS. Rediscovers ECM at optimum | conclusion: dead end
+[2026-03-24 10:07:00] task: Number field Galois group optimization for NFS | result: (pending inv-2)
+[2026-03-24 10:07:00] task: Best practical factoring pipeline results | result: 85/355 factored. 100% at 30-40d, ~60% at 40-50d, ~20% at 50-65d, <10% at 65+d | conclusion: practical baseline
+[2026-03-24 10:07:00] task: Pollard rho benchmark | result: factors 30-digit balanced semiprimes in 2-5 seconds | conclusion: baseline
+[2026-03-24 10:07:00] task: Lattice decoding for NFS sieving | result: (pending inv-9)
