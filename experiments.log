@@ -969,3 +969,5 @@
 [2026-03-24 04:36:01] size: 50 | approach: best-combined | time: 6.440s | notes: found factor 3318784448526149968726087
 [2026-03-24 04:36:20] size: 50 | approach: best-combined | time: 18.963s | notes: found factor 2130491434134923133190229
 [2026-03-24 05:00:00] size: 60 | approach: ecm_factor (simple) | time: 53.30s | notes: first 60-digit semiprime factored by our simple ECM wrapper
+[2026-03-24 04:28:59] size: 65 | approach: ECM-extended | time: 142.098s | notes: worst of 5, times: 76.097 57.435 137.500 142.098 88.999
+[2026-03-24 04:28:59] size: 65 | approach: ECM-extended | time: 142.098s | notes: worst of 5
