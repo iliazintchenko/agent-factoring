@@ -148,3 +148,8 @@
 [2026-03-24 10:31:00] task: Derandomization of factoring algorithms | result: no deterministic subexp unconditionally known. GRH helps per-relation but not relation count. ECM derandomization open | conclusion: dead end (open problem)
 [2026-03-24 10:31:00] task: Communication complexity of factoring (split-input) | result: upper O(n), lower Ω(log n). No superlogarithmic lower bound known. Communication-PPP most promising framework | conclusion: open theoretical question
 [2026-03-24 10:31:00] task: Combining many weak factoring signals | result: all signals alpha-decay (strength → 0 with N). No polynomial combination overcomes noise floor. Only algebraic (constant-SNR) signals work = QS/NFS | conclusion: dead end (information-theoretic barrier)
+[2026-03-24 10:38:00] task: Proof complexity of factoring (Resolution, Frege, feasible interpolation) | result: feasible interpolation connects short proofs to algorithms. Under crypto assumptions, proofs must be superpolynomial. Framework explains WHY factoring is hard | conclusion: theoretical insight
+[2026-03-24 10:38:00] task: Kolmogorov complexity K(p|N) for factoring | result: 7 classes where K<<n/2 correspond to known algorithms. AIT unifies all factoring methods. But K(p|N) large ≡ factoring assumption itself | conclusion: classification framework only
+[2026-03-24 10:38:00] task: Persistent homology of Z/NZ* (round 16) | result: (pending inv-1)
+[2026-03-24 10:38:00] task: Algebraic statistics for CRT detection | result: (pending inv-7)
+[2026-03-24 10:38:00] task: Lattice decoding / sphere decoding for NFS | result: (pending inv-9 from earlier)
