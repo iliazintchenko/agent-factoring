@@ -252,3 +252,13 @@
 [2026-03-24 12:22:00] task: Expander mixing lemma for sieve collection prediction | result: gives tighter prediction of collection time but doesnt reduce it | conclusion: theoretical insight only
 [2026-03-24 12:22:00] task: PCP/IOP structure of factoring proofs | result: PCP verifier checks O(1) bits but cant construct the proof. Finding proof = factoring | conclusion: dead end
 [2026-03-24 12:22:00] task: Soliton theory / inverse scattering for factoring | result: beautiful analogy (N = multi-soliton) but inverse scattering requires continuous measurements = trial division in disguise | conclusion: dead end
+[2026-03-24 12:30:00] task: Game semantics of factoring programs | result: (pending inv-1)
+[2026-03-24 12:30:00] task: Motivic integration over Z/NZ | result: motivic volumes decompose via CRT. Same obstruction as all other functorial invariants | conclusion: dead end
+[2026-03-24 12:30:00] task: CSP constraint propagation for binary multiplication | result: carry constraints give modest pruning but branching factor remains 2.0 per bit | conclusion: dead end (same as SAT)
+[2026-03-24 12:30:00] task: Multiparameter persistent homology of number-theoretic data | result: 2D persistence adds no information beyond 1D for factoring. CRT decomposition invisible to homology | conclusion: dead end
+[2026-03-24 12:30:00] task: PIT algorithms for factoring | result: PIT detects polynomial identity not integer factoring. Schwartz-Zippel tests random evaluations, which for factoring-related polynomials gives O(1/N) success | conclusion: dead end
+[2026-03-24 12:30:00] task: Freimans theorem / additive combinatorics of smooth residues | result: smooth numbers in Z/NZ dont have small doubling (they span all of Z/NZ*). Additive structure trivial | conclusion: dead end
+[2026-03-24 12:30:00] task: BSD conjecture implications for factoring | result: BSD rank information decomposes via CRT. Computing L-function value at s=1 = O(√N) | conclusion: dead end
+[2026-03-24 12:30:00] task: QAOA at constant depth for factoring | result: p=1 classically simulable, gives zero factoring signal. Non-trivial signal requires p=Ω(n), which is full quantum | conclusion: dead end
+[2026-03-24 12:30:00] task: NFS filtering optimal complexity | result: (pending inv-9)
+[2026-03-24 12:30:00] task: Ring-LWE / NTRU reductions to factoring | result: (pending inv-10)
