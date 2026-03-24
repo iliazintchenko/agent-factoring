@@ -308,3 +308,6 @@
 [2026-03-24 02:59:18] size: 42 | approach: LGSH-v4 | time: 9.597s | notes: found factor 832049973472240230583
 [2026-03-24 02:59:19] size: 42 | approach: LGSH-v4 | time: 0.892s | notes: found factor 558210507008341640149
 [2026-03-24 02:59:20] size: 42 | approach: LGSH-v4 | time: 0.943s | notes: found factor 184183033605295054387
+[2026-03-24 02:59:08] size: 42 | approach: LGSH-v4 | time: 3.767s | notes: found factor 281458292402321571151
+[2026-03-24 02:59:09] size: 42 | approach: LGSH-v4 | time: 1.099s | notes: found factor 312903253237424504801
+[2026-03-24 02:59:46] size: 46 | approach: LGSH-v4 | time: 26.182s | notes: found factor 99758926037608506463313
