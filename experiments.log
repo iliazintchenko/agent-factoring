@@ -48,3 +48,11 @@
 [2026-03-24 07:33:00] task: CF of algebraic numbers beyond √N / multi-d CFRAC | result: equivalent to MPQS with d playing polynomial parameter role | conclusion: dead end
 [2026-03-24 07:33:00] task: Sub-L[1/3] via reductions (SVP, LWE, class groups) | result: L[1/3] robust barrier. No SVP reduction works, Schnorr refuted, DLP breakthrough doesn't transfer | conclusion: key insight — L[1/3] is fundamental
 [2026-03-24 07:33:00] task: ML prediction of semiprime factors | result: pending (inv-8 still running)
+[2026-03-24 07:40:00] task: Counting arguments (r₂, r₄, class number, partitions) | result: factor-independent counts reveal nothing, factor-dependent costs ≥ factoring | conclusion: dead end
+[2026-03-24 07:40:00] task: Weil/Tate pairings over Z/NZ via Miller algorithm | result: 0/60 pairing-specific, all ECM-equivalent | conclusion: dead end
+[2026-03-24 07:40:00] task: Dynamical systems (Chebyshev T_d, dual walks) | result: no improvement over Pollard rho. Combined p-1/p+1 real but limited | conclusion: dead end
+[2026-03-24 07:40:00] task: Multi-d CF / cube root CF for smaller residues | result: degree-3 Thue barrier confirmed, multi-d = MPQS in disguise | conclusion: dead end
+[2026-03-24 07:40:00] task: WHY L[1/3] — precise mathematical barrier | result: L[1/4] needs N^{1/d²} norms. Z has no ring endomorphism (initial in Ring). Nested norms=full norm | conclusion: KEY INSIGHT — precise barrier identified
+[2026-03-24 07:40:00] task: Classical QFT analog for factoring | result: QFT=DFT, advantage is compact representation. Ω(r^{1/3}) classical lower bound | conclusion: dead end
+[2026-03-24 07:40:00] task: Group algebra Z[C_k] / Hopf algebra (confirmed from earlier) | result: = MPNFS with cyclotomic fields | conclusion: dead end
+[2026-03-24 07:40:00] task: Sub-L[1/3] via complexity reductions | result: L[1/3] robust barrier, all reductions fail | conclusion: confirmed barrier

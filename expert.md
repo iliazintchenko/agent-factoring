@@ -75,6 +75,9 @@ The quasi-polynomial DLP breakthrough in small characteristic does NOT transfer 
 - OR smooth numbers of size < N^{1/3} that relate to N's factorization
 - OR a completely non-smoothness-based sub-exponential approach (none known)
 - OR a new algebraic framework beyond GF(2) exponent-parity that extracts >1 bit per relation
+- OR a "descent" mechanism for Z: an endomorphism-like map that reduces "complexity" of elements recursively. Z has no non-trivial ring endomorphism (it's the initial object in Ring), which is WHY Frobenius descent fails over Z.
+
+**Concrete target**: L[1/4] requires norm sizes N^{1/d²} instead of N^{1/d}. Verified by optimization: plugging N^{1/d²} into the NFS balance shifts cubic→quartic. Nested number field norms don't achieve this (composition = full norm, an invariant). This is the PRECISE mathematical barrier.
 
 ## Explored directions and conclusions
 
@@ -171,3 +174,7 @@ These are starting points, not an exhaustive list.
 - **Modular forms / theta series**: r₄(N) = 8(1+p)(1+q) gives valid factoring reduction, but computing r₄(N) costs O(N). τ(N) via series: O(N^{3/2}). All approaches: extracting N-th Fourier coefficient requires O(N) terms minimum. Elegant restatements, not faster solutions.
 - **Smooth number bit-pattern recognition**: Smooth numbers have no exploitable bit-level statistical patterns beyond small-prime residues. Smoothness is fundamentally a multiplicative property invisible to additive (bit-level) representations.
 - **Precomputation/non-uniform factoring**: Sieve lookup tables are inherently N-dependent (solutions of x²≡N mod p). N-independent precomputation limited to factor base itself. No known space-time tradeoff better than S·T = L[1/3]².
+- **Counting arguments (r₂, r₄, partitions, class number)**: Split into factor-independent counts (efficiently computable, reveal nothing) and factor-dependent counts (computing them IS factoring). No "Category C" identity known. r₄(N)=8(1+p)(1+q) is factor-dependent despite the elegant formula.
+- **Weil/Tate pairings over Z/NZ**: 0/60 pairing-specific factorizations. All factorizations came from ECM-equivalent scalar multiplication inversions. Pairing value GCD has ~10⁻⁴ probability per curve. Subsumed by ECM stages 1 and 2.
+- **Classical QFT analog for factoring**: QFT IS the DFT — same math, quantum advantage is in compact representation (n qubits = 2^n amplitudes) and efficient transformation (O(n²) vs O(n·2^n)). No classical sub-exponential Fourier approach known. Information-theoretic lower bound Ω(r^{1/3}) classically.
+- **Dynamical systems (Chebyshev, Lattès maps)**: Chebyshev T_d and dual T_2×T_3 walks: no improvement over Pollard rho. Combined p-1/p+1 testing via commuting maps is real but doesn't improve asymptotics.
