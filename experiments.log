@@ -1023,3 +1023,6 @@
 [2026-03-24 04:33:52] size: 58 | approach: ECM-optimal | time: 3.159s | notes: found factor 98971722039510325085965724069
 [2026-03-24 04:34:16] size: 58 | approach: ECM-optimal | time: 23.708s | notes: found factor 89751595122523791156893059429
 >>>>>>> Stashed changes
+[2026-03-24 04:39:29] size: 62 | approach: ECM-optimal | time: 12.523s | notes: found factor 8710261781514903350498287202657
+[2026-03-24 04:44:20] size: 62 | approach: ECM-optimal | time: FAIL | notes: no factor for 13466664873324827837...
+[2026-03-24 04:49:15] size: 66 | approach: ECM-optimal | time: FAIL | notes: no factor for 10352646757700826401...
