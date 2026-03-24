@@ -212,6 +212,8 @@ static int trial_div(mpz_t val, u64 *vec, u64 *lp1, u64 *lp2, int k_idx) {
         }
     }
 
+    /* 2-LP tested: trial division overhead outweighs benefit since graph-based
+       combining is needed for correctness (simple XOR doesn't work). */
     mpz_clear(rem);
     return 0;
 }
