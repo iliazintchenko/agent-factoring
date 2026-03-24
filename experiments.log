@@ -213,3 +213,12 @@
 [2026-03-24 11:50:00] task: ATP (Z3, Lean) for factoring lemma discovery | result: (captured in inv-7)
 [2026-03-24 11:50:00] task: Security reduction structure for factoring | result: φ(N) equivalence is tautology not advice. NFS ignores this hint. Shor follows it. Gap = where innovation happens | conclusion: theoretical insight
 [2026-03-24 11:50:00] task: AI/LLM contributions to factoring | result: ML helps with NFS parameter tuning (constant factors). Murmurations real but no factoring advance. Consensus: quantum not ML is the threat | conclusion: dead end (for asymptotic improvement)
+[2026-03-24 11:58:00] task: Proof mining (Kohlenbach) for smooth number algorithms | result: mining extracts quantitative bounds not search procedures. Continuous math not discrete | conclusion: dead end
+[2026-03-24 11:58:00] task: Harmonic analysis on GL(2, Z/NZ) | result: all routes need O(√N) work (Selberg trace). Nonabelian QFT is open problem (NHSP) | conclusion: dead end
+[2026-03-24 11:58:00] task: Optimal stopping for ECM→NFS switching | result: 10-30% improvement via Bayesian factor-size posterior. Practical for unknown-structure numbers | conclusion: minor practical improvement
+[2026-03-24 11:58:00] task: Parallel random walks (super-linear speedup?) | result: Shoup Ω(√p) lower bound. van Oorschot-Wiener O(√p/K) tight. Linear speedup is ceiling AND floor | conclusion: dead end (proven optimal)
+[2026-03-24 11:58:00] task: Moduli space M_{1,1} geometry over Z/NZ | result: every invariant decomposes via CRT or is universal. Reformulates ECM, no complexity improvement | conclusion: dead end
+[2026-03-24 11:58:00] task: Primitive root distribution for distinguishing semiprimes | result: density requires φ(N) = factoring. Max observed order: O(N) cost. Consequence not pathway | conclusion: dead end
+[2026-03-24 11:58:00] task: Algebraic combinatorics (crystal bases, KL polys, cluster algebras) | result: KL computation is #P-hard. Cluster Laurent phenomenon for polynomials not Z. Langlands non-constructive | conclusion: dead end
+[2026-03-24 11:58:00] task: Multi-precision arithmetic optimizations for NFS | result: SIMD sieve 25-63% speedup. Memory access patterns are fundamental bottleneck, not arithmetic | conclusion: practical engineering
+[2026-03-24 11:58:00] task: Nonstandard analysis / hyperreals for factoring | result: transfer principle is both foundation and barrier. Different language not different computation | conclusion: dead end
