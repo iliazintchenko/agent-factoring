@@ -222,3 +222,13 @@
 [2026-03-24 11:58:00] task: Algebraic combinatorics (crystal bases, KL polys, cluster algebras) | result: KL computation is #P-hard. Cluster Laurent phenomenon for polynomials not Z. Langlands non-constructive | conclusion: dead end
 [2026-03-24 11:58:00] task: Multi-precision arithmetic optimizations for NFS | result: SIMD sieve 25-63% speedup. Memory access patterns are fundamental bottleneck, not arithmetic | conclusion: practical engineering
 [2026-03-24 11:58:00] task: Nonstandard analysis / hyperreals for factoring | result: transfer principle is both foundation and barrier. Different language not different computation | conclusion: dead end
+[2026-03-24 12:06:00] task: Spin glass / Ising model of factoring QUBO | result: replica symmetry breaking likely. Energy landscape rugged. Doesnt help algorithmically | conclusion: dead end (physics framework)
+[2026-03-24 12:06:00] task: Wavelet analysis of a^k mod N | result: wavelets need same O(r) samples as DFT. No sub-exponential shortcut | conclusion: dead end
+[2026-03-24 12:06:00] task: Algebraic invariants of Z/NZ[x] (Krull dimension, regularity) | result: all invariants decompose via CRT | conclusion: dead end
+[2026-03-24 12:06:00] task: Analytic continuation of zeta_{Z/NZ}(s) | result: ζ = ζ_p × ζ_q by CRT. Fast convergence at s=2,3 but product is opaque | conclusion: dead end
+[2026-03-24 12:06:00] task: Fixed-point theory (Lefschetz) over Z/NZ | result: Lefschetz decomposes via CRT, cannot compute without factoring | conclusion: dead end
+[2026-03-24 12:06:00] task: Ergodic theory of arithmetic functions mod N | result: mixing time = ord(a) which requires subexponential work to detect | conclusion: dead end
+[2026-03-24 12:06:00] task: Descriptive complexity of factoring | result: factoring in Σ_1^b (bounded existential). Logical complexity mirrors computational | conclusion: theoretical framework only
+[2026-03-24 12:06:00] task: Alternative Ramanujan graph constructions | result: all known constructions require arithmetic of the factors (quaternion, Cayley, etc.) | conclusion: dead end
+[2026-03-24 12:06:00] task: Commutative algebra (primary decomposition, local cohomology) | result: primary decomposition of (0) IS factoring. Local cohomology decomposes via CRT | conclusion: dead end
+[2026-03-24 12:06:00] task: FINAL comprehensive catalog of ~190 approaches | result: (captured in inv-10)
