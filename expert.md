@@ -90,12 +90,17 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 
 ## Research survey
 
-- **No classical sub-L[1/3] algorithm exists** for general integer factoring.
+- **No classical sub-L[1/3] algorithm exists** for general integer factoring (confirmed by comprehensive 2020-2025 literature survey).
+- **van Leeuwen (2020)**: Rigorous proof that randomized NFS runs in L[1/3] (previously only heuristic).
+- **Harvey & Hittmeir (2020-2022)**: Best deterministic factoring improved from N^{1/4} to N^{1/5+o(1)}. Still exponential.
+- **Boudot et al. (2022)**: Comprehensive survey confirming NFS at L[1/3, (64/9)^{1/3}] still SOTA. RSA-250 factored.
+- **Bouillaguet et al. (2023)**: Alternative NFS sieving strategies give ~5% speedup. Constant factor only.
+- **Henry Cohn (MIT)**: Argues no known barrier prevents progress below L[1/3], noting historical 1→1/2→1/3 progression. Conjectures L[ε] for all ε > 0 may be achievable. No concrete algorithm proposed.
+- **Factoring via multiplicative relations mod n (2022)**: L[1/2] without NFS, L[1/3] with it. No improvement.
+- **Integer factoring via CF and quadratic forms (2024)**: L[1/2] class. Worse than NFS.
+- **Tower NFS**: Applied ONLY to DLP in GF(p^n) with composite n. NOT applicable to integer factoring. No analog exists.
 - **Regev (2023)**: Quantum O~(n^{3/2}) gates. No classical dequantization.
-- **Stange (2022)**: Index calculus in (Z/NZ)*. Same L[1/2] or L[1/3].
-- **Tower NFS (Barbulescu-Kim 2016)**: Sub-L[1/3] for DLP in GF(p^n) only. No factoring analog.
-- **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Exponential.
-- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces — 2 ECM curves simultaneously. Still L_p(1/2); only useful if constant improvement hints at a different scaling regime.
+- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces. Still L_p(1/2).
 
 ## Implementation status
 
