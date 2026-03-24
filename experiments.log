@@ -765,3 +765,6 @@
 [2026-03-24 03:50:31] size: 50 | approach: lgsh_test | time: 34.012s | notes: found factor 9444316373871639557235581
 [2026-03-24 03:51:04] size: 50 | approach: lgsh_test | time: 32.788s | notes: found factor 3318784448526149968726087
 [2026-03-24 03:52:17] size: 62 | approach: ecm_robust_worst5 | time: FAIL | notes: only 1/5 semiprimes factored within 295s. ECM limit ~60 digits for worst-case balanced semiprimes.
+[2026-03-24 03:52:36] size: 53 | approach: LGSH-v3-extended | time: FAIL | notes: some failed, times: 245.186 252.007 234.477 FAIL FAIL
+[2026-03-24 03:55:31] size: 61 | approach: ECM-extended | time: 188.805s | notes: worst of 5, times: 44.487 55.030 30.866 28.564 188.805
+[2026-03-24 04:10:00] size: 62 | approach: ECM-extended | time: 178.070s | notes: 3/5 tested: 43s, 128s, 178s
