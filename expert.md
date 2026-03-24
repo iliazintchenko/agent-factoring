@@ -130,9 +130,30 @@ Uses GMP-ECM library with progressive parameter scheduling. Pipeline:
 **Key observations**:
 - Surprisingly effective on balanced semiprimes: P-1/P+1 alone factor most 30-50 digit semiprimes
 - This suggests the test semiprimes have somewhat smooth p-1 or p+1 values
-- Scaling 30-55 digits: {30:1.7s, 35:2.6s, 40:3.1s, 45:3.5s, 50:30s, 55:45s}
-- The jump at 50 digits suggests P-1/P+1 reaches its limits and ECM kicks in
-- For truly hard semiprimes (both p-1 and p+1 have large prime factors), would need ECM with many more curves
+- Scaling data (worst-case across 5 semiprimes per size):
+  - 30-40d: 1.7-28.9s (mostly P-1/P+1, some ECM)
+  - 41-50d: 28-35s (ECM with progressive bounds)
+  - 51-55d: 8-45s (ECM level 3-5)
+  - 56-61d: 49-221s (ECM level 5-6, high variance)
+- The approach covers 30-65d range but is outperformed by sieve methods (MMS) for <55d
+- Best niche: 55-65d where ECM's progressive schedule handles balanced semiprimes well
+
+### CAD (Cascaded Algebraic Descent) — `library/cad.c`
+
+QS-variant with aggressive cofactor splitting via Pollard's rho and ECM. Uses log sieve for candidate identification + trial division + single-LP merging + GF(2) elimination.
+
+**Key observations**:
+- 30-digit: ~10s (much slower than MMS at 0.074s)
+- The bottleneck is trial division, not the sieve or LA
+- Cofactor splitting via rho/ECM adds ~10-15% more usable relations but the per-candidate cost is high
+- **Dead end for small digits**: standard sieve (like MMS) is much faster because the per-candidate cost of trial division + cofactor splitting outweighs the benefit of additional relations
+- **Potential for larger digits**: at 50+ digits, the ratio of LP-resolvable cofactors increases, and each resolved cofactor saves significant sieve time
+
+### BatchQS (Batch GCD QS variant) — `library/batchqs.c`
+
+Uses Bernstein's product tree approach for batch smoothness detection instead of a sieve. Computes gcd(primorial^2, Q(x)) for batches of candidates using remainder trees.
+
+**Status**: Prototype working but low yield — the batch GCD correctly identifies smooth candidates but misses ~80% compared to a standard sieve. Likely cause: the primorial power isn't high enough to extract all smooth prime powers. Needs further investigation.
 
 ### IFM (Iterated Frobenius Map) — `library/ifm.c`
 
