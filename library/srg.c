@@ -673,7 +673,14 @@ static int factor_srg(mpz_t result) {
     compute_factor_base(digits);
 
     unsigned int max_fb_prime = fb[fb_size - 1].p;
-    lp_bound = (unsigned long)max_fb_prime * max_fb_prime; /* generous LP bound */
+    /* Tighter LP bound = more LP collisions = more usable merged relations.
+     * With LP_bound = k*B, the expected number of distinct LPs is ~π(k*B) - π(B).
+     * For LP merging to be effective, we need: (# partial rels)^2 / (# distinct LPs) > fb_size.
+     * Smaller k means fewer distinct LPs and more collisions. */
+    unsigned long lp_mult = 50; /* balance: enough partials vs too many unique LPs */
+    if (digits > 60) lp_mult = 20;  /* tighter for larger numbers */
+    if (digits > 70) lp_mult = 10;
+    lp_bound = (unsigned long)max_fb_prime * lp_mult;
     if (lp_bound > 1ULL << 40) lp_bound = 1ULL << 40;
 
     target_rels = fb_size + 100;
