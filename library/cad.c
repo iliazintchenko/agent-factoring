@@ -38,7 +38,7 @@
 /* --- Parameters --- */
 #define MAX_FB     20000    /* max factor base size */
 #define MAX_RELS   100000   /* max relations */
-#define MAX_LP_PER_REL 4    /* max large primes per relation */
+#define MAX_LP_PER_REL 1    /* single large prime only — merging handles the rest */
 #define SIEVE_BLOCK  65536  /* sieve block size */
 
 static struct timespec g_start;
@@ -252,7 +252,7 @@ static int split_cofactor(unsigned long *lps, int *nlps,
             mpz_set_ui(acc, 1);
             int found = 0;
 
-            for (int i = 0; i < 100000 && !found; i++) {
+            for (int i = 0; i < 10000 && !found; i++) {
                 mpz_mul(x, x, x); mpz_add(x, x, cc); mpz_mod(x, x, c);
                 mpz_mul(y, y, y); mpz_add(y, y, cc); mpz_mod(y, y, c);
                 mpz_mul(y, y, y); mpz_add(y, y, cc); mpz_mod(y, y, c);
@@ -287,22 +287,24 @@ static int split_cofactor(unsigned long *lps, int *nlps,
         gmp_randclear(rng);
     }
 
-    /* Try ECM for medium cofactors */
-    if (mpz_cmp_ui(c, 1) > 0 && mpz_sizeinbase(c, 10) <= 30 &&
-        *nlps < MAX_LP_PER_REL) {
+    /* Try ECM for medium cofactors (only if > 15 digits to avoid overhead) */
+    if (mpz_cmp_ui(c, 1) > 0 && mpz_sizeinbase(c, 10) > 15 &&
+        mpz_sizeinbase(c, 10) <= 30 && *nlps < MAX_LP_PER_REL) {
         ecm_params par;
         ecm_init(par);
         par->method = ECM_ECM;
         par->verbose = 0;
 
-        double b1_vals[] = {100, 500, 2000, 11000, 50000};
-        int n_b1 = 5;
+        double b1_vals[] = {500, 2000, 11000};
+        int n_b1 = 3;
 
         for (int b = 0; b < n_b1 && mpz_cmp_ui(c, 1) > 0 &&
              *nlps < MAX_LP_PER_REL; b++) {
-            for (int curve = 0; curve < 10 && mpz_cmp_ui(c, 1) > 0; curve++) {
+            for (int curve = 0; curve < 5 && mpz_cmp_ui(c, 1) > 0; curve++) {
                 mpz_set_si(par->B2, -1);
                 par->B1done = 0;
+                par->param = ECM_PARAM_SUYAMA;
+                mpz_set_ui(par->sigma, 7 + b * 10 + curve);
                 int ret = ecm_factor(f, c, b1_vals[b], par);
                 if (ret > 0 && mpz_cmp_ui(f, 1) > 0 && mpz_cmp(f, c) < 0) {
                     if (mpz_fits_ulong_p(f) && mpz_get_ui(f) <= lp_max) {
@@ -326,60 +328,65 @@ static int split_cofactor(unsigned long *lps, int *nlps,
     return ok;
 }
 
-/* Logarithmic sieve to find likely-smooth candidates */
-static void sieve_block(double *log_arr, int start, int len,
-                        const mpz_t m) {
-    /* Initialize with approximate log2 of |Q(x)| */
-    mpz_t qval;
-    mpz_init(qval);
+/* Logarithmic sieve to find likely-smooth candidates.
+ * Uses integer approximation of log2 for speed.
+ * sieve_arr[i] starts at approx log2(|Q(start+i)|) and gets decremented
+ * for each factor base prime dividing Q(start+i). */
+static void sieve_block(unsigned char *sieve_arr, int start, int len) {
+    /* Approximate log2(|Q(x)|): Q(x) ≈ 2*m*(x-m) for small offsets.
+     * Since x = start+i + sqrt(N), Q(x) = (start+i)^2 + 2*sqrt(N)*(start+i).
+     * For large sqrt(N), |Q(x)| ≈ 2*sqrt(N)*|start+i| when |start+i| >> 0. */
+    double log2_2m = mpz_sizeinbase(sqrtN_global, 2) + 1; /* ≈ log2(2*sqrt(N)) */
 
     for (int i = 0; i < len; i++) {
-        int x = start + i;
-        /* Q(x) = (x+m)^2 - N ≈ 2*m*x for small x */
-        mpz_set(qval, m);
-        if (x >= 0) mpz_add_ui(qval, qval, x);
-        else mpz_sub_ui(qval, qval, -x);
-        mpz_mul(qval, qval, qval);
-        mpz_sub(qval, qval, N_global);
-        mpz_abs(qval, qval);
-        log_arr[i] = mpz_sizeinbase(qval, 2); /* ≈ log2(|Q(x)|) */
+        long x = (long)start + i;
+        if (x == 0) {
+            sieve_arr[i] = 1; /* Q(0) = m^2 - N, very small */
+        } else {
+            double lx = (x > 0) ? log2((double)x) : log2((double)(-x));
+            double lq = log2_2m + lx;
+            sieve_arr[i] = (lq > 255) ? 255 : (unsigned char)lq;
+        }
     }
-    mpz_clear(qval);
 
-    /* Subtract contributions of factor base primes */
+    /* Subtract log2(p) for each factor base prime at sieve positions */
+    long mmodp;
     for (int fi = 0; fi < fb_size; fi++) {
         unsigned long p = fb[fi].p;
-        double lp = fb[fi].logp;
+        unsigned char lp = (unsigned char)(fb[fi].logp + 0.5);
+        if (lp == 0) lp = 1;
 
         if (p == 2) {
-            for (int i = 0; i < len; i += 2)
-                log_arr[i] -= lp;
-            /* higher powers of 2 */
-            for (unsigned long pk = 4; pk <= smooth_B; pk *= 2)
-                for (int i = 0; i < len; i++)
-                    if (((start + i) % pk) == 0 || ((start + i + 1) % pk) == 0)
-                        log_arr[i] -= lp;
+            /* x+m even → x ≡ -m (mod 2) */
+            mmodp = mpz_fdiv_ui(sqrtN_global, 2);
+            long off = (mmodp == 0) ? 0 : 1; /* offset where (x+m) is even */
+            long first = start + ((off - (start % 2) + 2) % 2);
+            if (first < start) first += 2;
+            for (long x = first; x < start + len; x += 2) {
+                int idx = (int)(x - start);
+                if (idx >= 0 && idx < len)
+                    sieve_arr[idx] = (sieve_arr[idx] > lp) ? sieve_arr[idx] - lp : 0;
+            }
             continue;
         }
 
-        /* For each root r of N mod p */
+        /* For odd prime p: Q(x) = (x+m)^2 - N ≡ 0 (mod p) when x+m ≡ ±r (mod p)
+         * where r = sqrt(N) mod p. So x ≡ r-m or x ≡ -r-m (mod p). */
+        mmodp = mpz_fdiv_ui(sqrtN_global, p);
+
         for (int ri = 0; ri < 2; ri++) {
             int r = (ri == 0) ? fb[fi].r1 : fb[fi].r2;
             if (r < 0) continue;
 
-            /* x ≡ r - m (mod p) makes Q(x) divisible by p */
-            long mmodp = mpz_fdiv_ui(sqrtN_global, p);
-            long off = ((long)r - mmodp % (long)p + (long)p) % (long)p;
+            long off = ((long)r - mmodp + (long)p) % (long)p;
+            /* Find first x >= start where x ≡ off (mod p) */
+            long rem = ((long)start % (long)p + (long)p) % (long)p;
+            long first = start + ((off - rem + (long)p) % (long)p);
 
-            /* Find first x in [start, start+len) ≡ off (mod p) */
-            long first = start + ((off - start % (long)p + (long)p) % (long)p);
             for (long x = first; x < start + len; x += p) {
                 int idx = (int)(x - start);
-                if (idx >= 0 && idx < len) {
-                    log_arr[idx] -= lp;
-                    /* Higher powers */
-                    /* Quick check for p^2 */
-                }
+                if (idx >= 0 && idx < len)
+                    sieve_arr[idx] = (sieve_arr[idx] > lp) ? sieve_arr[idx] - lp : 0;
             }
         }
     }
@@ -391,17 +398,18 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
     mpz_sqrt(sqrtN_global, N);
 
     int ndigits = mpz_sizeinbase(N, 10);
+    fprintf(stderr, "CAD: starting, %d digits\n", ndigits);
 
-    /* Choose smoothness bound: L[1/2, 0.7] */
+    /* Choose smoothness bound: L[1/2, c] with c tuned for sieve+trial division */
     double logN = ndigits * log(10);
     double loglogN = log(logN);
-    smooth_B = (unsigned long)exp(0.7 * sqrt(logN * loglogN));
-    if (smooth_B < 500) smooth_B = 500;
-    if (smooth_B > 5000000) smooth_B = 5000000;
+    smooth_B = (unsigned long)exp(0.5 * sqrt(logN * loglogN));
+    if (smooth_B < 300) smooth_B = 300;
+    if (smooth_B > 2000000) smooth_B = 2000000;
 
-    /* Large prime bound: 100 * B */
-    lp_bound = smooth_B * 100;
-    if (lp_bound > 500000000UL) lp_bound = 500000000UL;
+    /* Large prime bound: moderate — smaller bound means more LP collisions */
+    lp_bound = smooth_B * 30;
+    if (lp_bound > 100000000UL) lp_bound = 100000000UL;
 
     fprintf(stderr, "CAD: %d digits, B=%lu, LP=%lu\n",
             ndigits, smooth_B, lp_bound);
@@ -423,17 +431,37 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
     mpz_t qval, cofactor;
     mpz_inits(qval, cofactor, NULL);
 
-    int sieve_radius = 0;
-    double *log_sieve = malloc(SIEVE_BLOCK * sizeof(double));
-    double threshold = log2((double)smooth_B) * 1.5; /* Sieve threshold */
+    int sieve_radius = 1;
+    unsigned char *sieve_arr = malloc(SIEVE_BLOCK);
+    /* Threshold: remaining log after sieve. Lower = stricter filtering.
+     * For fully smooth: threshold ≈ 0-5 (rounding errors in log sieve)
+     * For 1 LP: threshold ≈ log2(LP) ≈ 19
+     * For 2 LP: threshold ≈ 2*19 = 38
+     * Allow some slack for log approximation errors (+5) */
+    /* Conservative threshold — only pass likely-smooth candidates */
+    unsigned char threshold = (unsigned char)(log2((double)lp_bound) + 8);
+    if (threshold > 40) threshold = 40;
 
-    while (nrels < needed * 3 && elapsed_sec() < 270.0) {
-        /* Sieve a block */
+    /* Debug: check what sieve values look like */
+    {
+        sieve_block(sieve_arr, 1, 100);
+        int min_v = 255, max_v = 0;
+        for (int i = 0; i < 100; i++) {
+            if (sieve_arr[i] < min_v) min_v = sieve_arr[i];
+            if (sieve_arr[i] > max_v) max_v = sieve_arr[i];
+        }
+        fprintf(stderr, "CAD: sieve values range [%d, %d], threshold=%d\n",
+                min_v, max_v, threshold);
+    }
+
+    int max_rels_target = needed * 5; /* Collect many more than minimum */
+    while (nrels < max_rels_target && elapsed_sec() < 250.0) {
+        /* Sieve a block of positive offsets */
         int block_start = sieve_radius;
-        sieve_block(log_sieve, block_start, SIEVE_BLOCK, sqrtN_global);
+        sieve_block(sieve_arr, block_start, SIEVE_BLOCK);
 
         for (int i = 0; i < SIEVE_BLOCK && nrels < MAX_RELS; i++) {
-            if (log_sieve[i] > threshold) continue; /* Not smooth enough */
+            if (sieve_arr[i] > threshold) continue; /* Not smooth enough */
 
             int x = block_start + i;
 
@@ -458,7 +486,7 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
                 rels[nrels].nlp = 0;
                 nrels++;
                 full_smooth++;
-            } else if (mpz_sizeinbase(cofactor, 10) <= 25) {
+            } else if (mpz_sizeinbase(cofactor, 10) <= 18) {
                 /* Try to split cofactor into large primes */
                 unsigned long lps[MAX_LP_PER_REL];
                 int nlps = 0;
@@ -480,10 +508,9 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
         }
 
         /* Also sieve negative offsets */
-        sieve_block(log_sieve, -(block_start + SIEVE_BLOCK), SIEVE_BLOCK,
-                    sqrtN_global);
+        sieve_block(sieve_arr, -(block_start + SIEVE_BLOCK), SIEVE_BLOCK);
         for (int i = 0; i < SIEVE_BLOCK && nrels < MAX_RELS; i++) {
-            if (log_sieve[i] > threshold) continue;
+            if (sieve_arr[i] > threshold) continue;
 
             int x = -(block_start + SIEVE_BLOCK) + i;
             if (x == 0) continue;
@@ -507,7 +534,7 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
                 rels[nrels].nlp = 0;
                 nrels++;
                 full_smooth++;
-            } else if (mpz_sizeinbase(cofactor, 10) <= 25) {
+            } else if (mpz_sizeinbase(cofactor, 10) <= 18) {
                 unsigned long lps[MAX_LP_PER_REL];
                 int nlps = 0;
                 if (split_cofactor(lps, &nlps, cofactor, lp_bound)) {
@@ -529,49 +556,60 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
 
         sieve_radius += SIEVE_BLOCK;
 
-        if ((sieve_radius / SIEVE_BLOCK) % 10 == 0) {
+        if ((sieve_radius / SIEVE_BLOCK) % 5 == 0) {
             fprintf(stderr, "CAD: sieved to ±%d, %d rels (%d full + %d LP), %.1fs\n",
                     sieve_radius, nrels, full_smooth, with_lp, elapsed_sec());
         }
     }
-    free(log_sieve);
+    free(sieve_arr);
 
     fprintf(stderr, "CAD: total %d relations (%d full + %d LP)\n",
             nrels, full_smooth, with_lp);
 
-    /* Collect all unique large primes */
-    cap_all_lps = nrels * MAX_LP_PER_REL;
-    all_lps = malloc(cap_all_lps * sizeof(unsigned long));
-    n_all_lps = 0;
+    /* Merge single-LP relations: find pairs sharing the same LP.
+     * Merged relation = XOR of exponents, product of x values. */
 
+    /* Sort LP relations by their large prime */
+    /* First separate full-smooth from LP relations */
+    int n_full = 0, n_lp = 0;
+    int *full_idx = malloc(nrels * sizeof(int));
+    int *lp_idx = malloc(nrels * sizeof(int));
     for (int i = 0; i < nrels; i++) {
-        for (int j = 0; j < rels[i].nlp; j++) {
-            /* Add to list (we'll sort and unique later) */
-            all_lps[n_all_lps++] = rels[i].lp[j];
+        if (rels[i].nlp == 0)
+            full_idx[n_full++] = i;
+        else
+            lp_idx[n_lp++] = i;
+    }
+
+    /* Sort LP relations by their large prime */
+    for (int i = 0; i < n_lp - 1; i++) {
+        for (int j = i + 1; j < n_lp; j++) {
+            if (rels[lp_idx[i]].lp[0] > rels[lp_idx[j]].lp[0]) {
+                int t = lp_idx[i]; lp_idx[i] = lp_idx[j]; lp_idx[j] = t;
+            }
         }
     }
 
-    /* Sort and unique */
-    /* Simple sort for now */
-    for (int i = 0; i < n_all_lps - 1; i++)
-        for (int j = i + 1; j < n_all_lps; j++)
-            if (all_lps[i] > all_lps[j]) {
-                unsigned long t = all_lps[i];
-                all_lps[i] = all_lps[j];
-                all_lps[j] = t;
-            }
-    int unique_lps = 0;
-    for (int i = 0; i < n_all_lps; i++) {
-        if (i == 0 || all_lps[i] != all_lps[i-1])
-            all_lps[unique_lps++] = all_lps[i];
+    /* Find pairs with same LP and merge */
+    int n_merged = 0;
+    typedef struct { int r1, r2; } merge_t;
+    merge_t *merges = malloc(n_lp * sizeof(merge_t));
+
+    for (int i = 0; i < n_lp - 1; i++) {
+        if (rels[lp_idx[i]].lp[0] == rels[lp_idx[i+1]].lp[0]) {
+            merges[n_merged].r1 = lp_idx[i];
+            merges[n_merged].r2 = lp_idx[i+1];
+            n_merged++;
+            i++; /* Skip the second one (could merge more pairs of same LP) */
+        }
     }
-    n_all_lps = unique_lps;
 
-    fprintf(stderr, "CAD: %d unique large primes\n", n_all_lps);
+    fprintf(stderr, "CAD: %d full-smooth + %d LP-merged = %d usable relations\n",
+            n_full, n_merged, n_full + n_merged);
 
-    /* Build GF(2) matrix: columns = fb primes + sign + large primes */
-    int ncols = 1 + fb_size + n_all_lps; /* sign + fb + LPs */
-    int nrows = nrels;
+    /* Build GF(2) matrix: columns = sign + fb primes (NO LP columns) */
+    int ncols = 1 + fb_size;
+    int nrows = n_full + n_merged;
 
     if (nrows <= ncols) {
         fprintf(stderr, "CAD: not enough relations (%d rows, %d cols)\n",
@@ -588,37 +626,30 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
     unsigned long *history = calloc(nrows * ((nrows + 63) / 64), sizeof(unsigned long));
     int hist_words = (nrows + 63) / 64;
 
-    /* Fill matrix */
+    /* Fill matrix: first n_full rows are full-smooth, then n_merged merged rows */
     for (int i = 0; i < nrows; i++) {
-        /* History: row i depends on row i */
         history[i * hist_words + (i / 64)] |= (1UL << (i % 64));
 
-        /* Column 0: sign */
-        if (rels[i].neg)
-            matrix[i * words_per_row + 0] |= 1UL;
-
-        /* Columns 1..fb_size: factor base exponents */
-        for (int j = 0; j < fb_size; j++) {
-            if (rels[i].exp[j])
-                matrix[i * words_per_row + ((j + 1) / 64)] |=
-                    (1UL << ((j + 1) % 64));
-        }
-
-        /* LP columns */
-        for (int j = 0; j < rels[i].nlp; j++) {
-            /* Find LP index */
-            unsigned long lp = rels[i].lp[j];
-            /* Binary search in all_lps */
-            int lo = 0, hi = n_all_lps - 1;
-            while (lo <= hi) {
-                int mid = (lo + hi) / 2;
-                if (all_lps[mid] == lp) {
-                    int col = 1 + fb_size + mid;
-                    matrix[i * words_per_row + (col / 64)] |=
-                        (1UL << (col % 64));
-                    break;
-                } else if (all_lps[mid] < lp) lo = mid + 1;
-                else hi = mid - 1;
+        if (i < n_full) {
+            /* Full-smooth relation */
+            int ri = full_idx[i];
+            if (rels[ri].neg)
+                matrix[i * words_per_row + 0] |= 1UL;
+            for (int j = 0; j < fb_size; j++) {
+                if (rels[ri].exp[j])
+                    matrix[i * words_per_row + ((j + 1) / 64)] |=
+                        (1UL << ((j + 1) % 64));
+            }
+        } else {
+            /* Merged relation: XOR of two LP relations' exponents */
+            int mi = i - n_full;
+            int r1 = merges[mi].r1, r2 = merges[mi].r2;
+            if (rels[r1].neg ^ rels[r2].neg)
+                matrix[i * words_per_row + 0] |= 1UL;
+            for (int j = 0; j < fb_size; j++) {
+                if (rels[r1].exp[j] ^ rels[r2].exp[j])
+                    matrix[i * words_per_row + ((j + 1) / 64)] |=
+                        (1UL << ((j + 1) % 64));
             }
         }
     }
@@ -719,19 +750,44 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
          * recompute Q(x) and fully factor it, accumulating exponents.
          */
 
-        int *real_exp = calloc(fb_size, sizeof(int));
-        int real_neg = 0;
+        /* Collect all original relation indices in this dependency */
+        /* For full-smooth: just the relation index
+         * For merged: both component relation indices */
+        int *dep_rels = malloc(nrows * 2 * sizeof(int));
+        int ndep = 0;
 
         for (int r = 0; r < nrows; r++) {
             if (!(history[row * hist_words + (r / 64)] & (1UL << (r % 64))))
                 continue;
 
+            if (r < n_full) {
+                dep_rels[ndep++] = full_idx[r];
+            } else {
+                int mi = r - n_full;
+                dep_rels[ndep++] = merges[mi].r1;
+                dep_rels[ndep++] = merges[mi].r2;
+            }
+        }
+
+        /* Compute LHS = product of (x_i + m) and RHS^2 = product of Q(x_i)
+         * by fully factoring each Q(x_i) */
+        mpz_set_ui(lhs, 1);
+        int *real_exp = calloc(fb_size, sizeof(int));
+        int real_neg = 0;
+        /* Track LP exponents separately */
+        int *lp_counts = calloc(nrels, sizeof(int)); /* track which LPs appear */
+
+        for (int di = 0; di < ndep; di++) {
+            int ri = dep_rels[di];
             mpz_set(tmp, sqrtN_global);
-            if (rels[r].x_off >= 0) mpz_add_ui(tmp, tmp, rels[r].x_off);
-            else mpz_sub_ui(tmp, tmp, -rels[r].x_off);
+            if (rels[ri].x_off >= 0) mpz_add_ui(tmp, tmp, rels[ri].x_off);
+            else mpz_sub_ui(tmp, tmp, -rels[ri].x_off);
+            mpz_mul(lhs, lhs, tmp);
+            mpz_mod(lhs, lhs, N);
+
+            /* Fully factor Q(x) */
             mpz_mul(qval, tmp, tmp);
             mpz_sub(qval, qval, N);
-
             if (mpz_sgn(qval) < 0) { mpz_neg(qval, qval); real_neg++; }
 
             for (int j = 0; j < fb_size; j++) {
@@ -740,65 +796,70 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
                     real_exp[j]++;
                 }
             }
-            /* qval should now be the LP product — divide those out too */
-            for (int j = 0; j < rels[r].nlp; j++) {
-                unsigned long lp = rels[r].lp[j];
-                while (mpz_divisible_ui_p(qval, lp)) {
-                    mpz_divexact_ui(qval, qval, lp);
-                }
+            /* LP */
+            for (int j = 0; j < rels[ri].nlp; j++) {
+                while (mpz_divisible_ui_p(qval, rels[ri].lp[j]))
+                    mpz_divexact_ui(qval, qval, rels[ri].lp[j]);
+                lp_counts[ri]++;
             }
         }
 
-        /* All exponents should be even */
+        /* Check all exponents even */
         int all_even = 1;
-        for (int j = 0; j < fb_size; j++) {
-            if (real_exp[j] % 2 != 0) { all_even = 0; break; }
-        }
-        for (int j = 0; j < n_all_lps; j++) {
-            if (lp_exp[j] % 2 != 0) { all_even = 0; break; }
-        }
         if (real_neg % 2 != 0) all_even = 0;
+        for (int j = 0; j < fb_size && all_even; j++)
+            if (real_exp[j] % 2 != 0) all_even = 0;
 
         if (all_even) {
-            /* Compute RHS = product of fb[j]^(exp[j]/2) * product of lp[j]^(lp_exp[j]/2) mod N */
+            /* Compute RHS = sqrt of product */
             mpz_set_ui(rhs, 1);
             for (int j = 0; j < fb_size; j++) {
                 if (real_exp[j] > 0) {
+                    mpz_t pw;
+                    mpz_init(pw);
                     mpz_set_ui(tmp, fb[j].p);
-                    mpz_t e;
-                    mpz_init_set_ui(e, real_exp[j] / 2);
-                    mpz_t pw;
-                    mpz_init(pw);
-                    mpz_powm(pw, tmp, e, N);
+                    mpz_set_ui(pw, real_exp[j] / 2);
+                    mpz_powm(pw, tmp, pw, N);
                     mpz_mul(rhs, rhs, pw);
                     mpz_mod(rhs, rhs, N);
-                    mpz_clears(e, pw, NULL);
+                    mpz_clear(pw);
                 }
             }
-            for (int j = 0; j < n_all_lps; j++) {
-                if (lp_exp[j] > 0) {
-                    mpz_set_ui(tmp, all_lps[j]);
-                    mpz_t e;
-                    mpz_init_set_ui(e, lp_exp[j] / 2);
-                    mpz_t pw;
-                    mpz_init(pw);
-                    mpz_powm(pw, tmp, e, N);
-                    mpz_mul(rhs, rhs, pw);
-                    mpz_mod(rhs, rhs, N);
-                    mpz_clears(e, pw, NULL);
+            /* LP contributions (each LP appears an even number of times in merged pairs) */
+            for (int di = 0; di < ndep; di++) {
+                int ri = dep_rels[di];
+                for (int j = 0; j < rels[ri].nlp; j++) {
+                    /* Each LP should appear even times total */
                 }
             }
+            /* Actually, for merged LP pairs, the LP appears twice (once in each
+             * component), so it cancels. The LP exponent is always even in the
+             * combined product. We include it in rhs. */
+            /* Recompute LP product more carefully */
+            mpz_t lp_prod;
+            mpz_init_set_ui(lp_prod, 1);
+            for (int di = 0; di < ndep; di++) {
+                int ri = dep_rels[di];
+                for (int j = 0; j < rels[ri].nlp; j++) {
+                    mpz_mul_ui(lp_prod, lp_prod, rels[ri].lp[j]);
+                }
+            }
+            /* lp_prod should be a perfect square */
+            if (mpz_perfect_square_p(lp_prod)) {
+                mpz_sqrt(tmp, lp_prod);
+                mpz_mul(rhs, rhs, tmp);
+                mpz_mod(rhs, rhs, N);
+            }
+            mpz_clear(lp_prod);
 
-            /* Factor = gcd(lhs - rhs, N) */
+            /* Try gcd(lhs ± rhs, N) */
             mpz_sub(g, lhs, rhs);
-            mpz_mod(g, g, N);
             mpz_gcd(g, g, N);
             if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
                 mpz_set(factor, g);
                 found = 1;
             } else {
                 mpz_add(g, lhs, rhs);
-                mpz_mod(g, g, N);
                 mpz_gcd(g, g, N);
                 if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
                     mpz_set(factor, g);
@@ -807,9 +868,9 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
             }
         }
 
+        free(dep_rels);
         free(real_exp);
-        free(total_exp);
-        free(lp_exp);
+        free(lp_counts);
     }
 
     free(pivot_col);
@@ -822,12 +883,13 @@ static int cad_factor(mpz_t factor, const mpz_t N) {
 
 /* Quick trial division */
 static int trial_divide_quick(mpz_t factor, const mpz_t N) {
-    for (unsigned long d = 2; d <= 1000000; d++) {
+    if (mpz_divisible_ui_p(N, 2)) { mpz_set_ui(factor, 2); return 1; }
+    if (mpz_divisible_ui_p(N, 3)) { mpz_set_ui(factor, 3); return 1; }
+    for (unsigned long d = 5; d <= 1000000; d += (d % 6 == 5) ? 2 : 4) {
         if (mpz_divisible_ui_p(N, d)) {
             mpz_set_ui(factor, d);
             return 1;
         }
-        if (d == 2) d = 1;
     }
     return 0;
 }
@@ -848,11 +910,17 @@ int main(int argc, char *argv[]) {
 
     /* Quick trial division */
     found = trial_divide_quick(factor, N);
+    if (found) {
+        mpz_divexact(cofactor, N, factor);
+        if (mpz_cmp(factor, cofactor) > 0) mpz_swap(factor, cofactor);
+        gmp_printf("%Zd %Zd\n", factor, cofactor);
+        fprintf(stderr, "CAD: trial division in %.3fs\n", elapsed_sec());
+        mpz_clears(N, factor, cofactor, N_global, sqrtN_global, NULL);
+        return 0;
+    }
 
     /* Main CAD algorithm */
-    if (!found) {
-        found = cad_factor(factor, N);
-    }
+    found = cad_factor(factor, N);
 
     if (found) {
         mpz_divexact(cofactor, N, factor);
