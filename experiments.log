@@ -797,3 +797,8 @@
 [2026-03-24 04:03:00] size: 62 | approach: ecm_robust | time: FAIL | notes: 4/5 semiprimes exceeded 295s. ECM limit ~60 digits for balanced semiprimes.
 [2026-03-24 04:03:00] size: 64 | approach: ecm_robust | time: FAIL | notes: exceeded 295s timeout
 [2026-03-24 04:03:00] size: N/A | approach: cm_ecm_analysis | time: N/A | notes: CM curves give zero ECM advantage: u_CM = u_standard always. Near-square group orders canceled by doubled prime powers.
+[2026-03-24 03:56:59] size: 52 | approach: LGSH-v4-extended | time: FAIL | notes: some failed, times: 32.821 FAIL 27.132 65.134 25.907
+[2026-03-24 03:57:46] size: 62 | approach: ECM-extended | time: 177.760s | notes: worst of 5, times: 177.760 43.183 126.553 56.346 24.167
+[2026-03-24 04:02:38] size: 62 | approach: ECM-extended | time: 176.311s | notes: worst of 5, times: 176.311 42.766 126.896 56.725 24.284
+[2026-03-24 04:05:08] size: 63 | approach: ECM-extended | time: 217.292s | notes: worst of 5, times: 39.706 98.470 217.292 136.237 52.118
+[2026-03-24 04:06:50] size: 63 | approach: ECM-extended | time: 217.578s | notes: worst of 5, times: 39.306 98.081 217.578 136.680 52.482
