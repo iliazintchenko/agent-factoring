@@ -50,28 +50,33 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    int digits = mpz_sizeinbase(n, 10);
+
     /* Phase 2: ECM with escalating bounds */
     ecm_params params;
     ecm_init(params);
     /* Use parameterization that allows arbitrary sigma, seed deterministically */
     params->param = ECM_PARAM_SUYAMA;
 
-    /* ECM bound schedule: (B1, curves) pairs */
-    struct { double b1; int curves; } schedule[] = {
-        {     2000,    20 },
-        {    11000,    50 },
-        {    50000,   100 },
-        {   250000,   200 },
-        {  1000000,   400 },
-        {  3000000,   700 },
-        { 11000000,  1200 },
-        { 44000000,  2400 },
-        {110000000,  4800 },
-        {260000000,  8000 },
+    /* ECM bound schedule: (B1, curves) pairs
+     * Skip early levels for large N (balanced semiprime has factors ≈ √N) */
+    struct { double b1; int curves; int min_digits; } schedule[] = {
+        {     2000,    30,  0 },
+        {    11000,    60,  0 },
+        {    50000,   120, 20 },
+        {   250000,   250, 28 },
+        {  1000000,   500, 34 },
+        {  3000000,   900, 38 },
+        { 11000000,  1600, 44 },
+        { 44000000,  3000, 50 },
+        {110000000,  5000, 56 },
+        {260000000, 10000, 60 },
+        {850000000, 20000, 66 },
     };
     int nlevels = sizeof(schedule) / sizeof(schedule[0]);
 
     for (int level = 0; level < nlevels; level++) {
+        if (digits < schedule[level].min_digits) continue; /* skip low B1 for large N */
         double b1 = schedule[level].b1;
         int ncurves = schedule[level].curves;
 
