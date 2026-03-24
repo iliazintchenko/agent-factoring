@@ -108,3 +108,6 @@
 [2026-03-24 09:28:00] task: Parameterized complexity of factoring | result: most algorithms FPT in some parameter, NFS is universal mediocre. No new FPT parameterization found | conclusion: inconclusive (interesting framework)
 [2026-03-24 09:28:00] task: Factoring → graph problems reduction | result: all reductions either circular (need factors to build graph) or land on NP-hard problems | conclusion: dead end
 [2026-03-24 09:28:00] task: Compressed sensing for factor recovery | result: fails at every level — wrong sparsity, wrong measurement structure, CRT already optimal | conclusion: dead end
+[2026-03-24 09:35:00] task: Sieving over curves (not 2D lattice) in NFS | result: 1D curves have lower integer point density than 2D regions. Line sieve wins by volume | conclusion: dead end (dimensional tradeoff)
+[2026-03-24 09:35:00] task: Probabilistic method (LLL, Chernoff) for non-constructive algorithm existence | result: LLL cant break L[1/3] — barrier is structural. Bad event probabilities too high. Natural proofs barrier applies | conclusion: dead end
+[2026-03-24 09:35:00] task: MPC / secret-sharing ideas for factoring | result: any k-party MPC simulated by single party (poly overhead). Paradigm mismatch (search not evaluation). No useful share structure | conclusion: dead end
