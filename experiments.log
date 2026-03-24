@@ -696,3 +696,5 @@
 [2026-03-24 04:00:00] size: 40 | approach: alg_sieve_exp (NFS d=5 brute force) | time: 60s | notes: NFS d=5 gives 2.63x more doubly-smooth rels per candidate than QS! avg rat_norm=26.5 bits, alg_norm=50.1 bits vs QS=81.8 bits. 44 doubly-smooth from 6138 candidates. QS-style had 2 smooth from 100K. Key finding: for 40-digit N, NFS-style evaluation IS more efficient per candidate even without lattice sieving.
 [2026-03-24 04:00:00] size: 40 | approach: alg_sieve_exp (NFS d=4 brute force) | time: 30s | notes: NFS d=4 gives 1.06x — roughly equal to QS. 89 doubly-smooth from 30770.
 [2026-03-24 04:00:00] size: 40 | approach: alg_sieve_exp (NFS d=3 brute force) | time: 15s | notes: NFS d=3 gives 0.08x — worse than QS. Double-smoothness penalty dominates.
+[2026-03-24 03:42:57] size: 60 | approach: ECM-extended | time: 52.827s | notes: worst of 5, times: 52.827 27.894 45.451 10.152 29.353
+[2026-03-24 03:44:47] size: 60 | approach: ECM-extended | time: 54.216s | notes: worst of 5, times: 54.216 16.961 48.494 10.076 29.304
