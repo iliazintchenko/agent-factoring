@@ -676,7 +676,9 @@ static int ecm_factor_wrapper(mpz_t factor, mpz_t n, int digits) {
         int ncurves = levels[level].curves;
 
         for (int i = 0; i < ncurves && !found; i++) {
-            if (time(NULL) - start > 270) goto done;
+            /* Budget: for 65+ digit numbers, cap ECM at 120s for sieve time */
+            int ecm_budget = (digits > 64) ? 120 : 270;
+            if (time(NULL) - start > ecm_budget) goto done;
 
             ecm_params params;
             ecm_init(params);
