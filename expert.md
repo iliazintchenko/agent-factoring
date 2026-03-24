@@ -57,7 +57,7 @@ Small-subgroup DL projection (g^{(N-1)/l} mod N for l | N-1): recovers O(1) bits
 
 Factorizations of N±k for small k: yield O(k·ln B) bits about p, but O(log N) needed. Information gap is exponential.
 
-## The L-exponent formula and why NFS is stuck
+## Why NFS is stuck at k=2
 
 **The L-exponent formula**: α = 1/(k+1) where k = number of independent reduction stages in the algorithm.
 - QS: k=1 (smoothness only) → α = 1/2
@@ -158,13 +158,13 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 
 ## Open directions (genuinely unexplored)
 
-After ~290 investigations, the remaining open space is extremely narrow:
+After ~310 investigations, the remaining open space is extremely narrow:
 
 - **Non-smoothness-based sub-exponential relations**: Every known index-calculus method uses smooth number relations (1 bit per relation via GF(2) linear algebra). A fundamentally different relation type — extracting >1 bit per relation, or using a different algebraic structure than exponent-parity — could change the game. No candidate is known.
 - **Approximate/relaxed algebraic structures**: Most approaches seek EXACT algebraic properties (exact smoothness, exact homomorphisms). Relaxed versions with controlled error might open new avenues. No concrete proposal exists.
 - **Unpredictable mathematical breakthroughs**: The factoring landscape has been stable since 1993. Possible sources: new connections to algebraic geometry (motives, étale cohomology), advances in additive combinatorics, or unexpected consequences of the Langlands program.
 
-## Explored directions (~310 approaches, all concluded)
+## Compact catalog (~310 approaches)
 
 
 See above sections for details. Summary of ~310 investigated approaches across categories:
