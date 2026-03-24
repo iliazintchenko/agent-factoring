@@ -145,16 +145,28 @@ static int gf2_is_zero(GF2Matrix *m, int row) {
 static void choose_params(int digits, int *B, long *M, unsigned long *lp_bound) {
     /* Balanced parameters: moderate B (fast trial div), large M (many smooth near x=0),
      * lp_bound = B*100 for good LP collision rate */
-    if      (digits <= 20) { *B = 200;     *M = 5000L;          *lp_bound = 10000UL; }
-    else if (digits <= 25) { *B = 1000;    *M = 50000L;         *lp_bound = 50000UL; }
-    else if (digits <= 30) { *B = 5000;    *M = 2000000L;       *lp_bound = 300000UL; }
-    else if (digits <= 35) { *B = 15000;   *M = 10000000L;      *lp_bound = 1000000UL; }
-    else if (digits <= 40) { *B = 50000;   *M = 50000000L;      *lp_bound = 5000000UL; }
-    else if (digits <= 45) { *B = 150000;  *M = 200000000L;     *lp_bound = 20000000UL; }
-    else if (digits <= 50) { *B = 500000;  *M = 1000000000L;    *lp_bound = 100000000UL; }
-    else if (digits <= 55) { *B = 1500000; *M = 5000000000L;    *lp_bound = 500000000UL; }
-    else if (digits <= 60) { *B = 4000000; *M = 20000000000L;   *lp_bound = 3000000000UL; }
-    else { *B = 10000000; *M = 100000000000L; *lp_bound = 10000000000UL; }
+    /* Continuous L[1/2] scaling, calibrated from empirical testing.
+     * B controls factor base size (and smooth probability).
+     * M controls sieve range (must be large enough to find fb_size+ relations).
+     */
+    double ln_N = digits * 2.3026;
+    double ln_ln_N = log(ln_N);
+    double sqr = sqrt(ln_N * ln_ln_N);
+
+    /* B = L[1/2, 0.45]: conservative to keep FB small and trial div fast */
+    *B = (int)(exp(0.45 * sqr));
+    if (*B < 200) *B = 200;
+    if (*B > 8000000) *B = 8000000;
+
+    /* M = L[1/2, 1.0]: generous sieve range for enough smooth values */
+    double M_d = exp(1.0 * sqr);
+    *M = (long)M_d;
+    if (*M < 10000) *M = 10000;
+    /* Cap memory at ~2GB for sieve array (float = 4 bytes) */
+    if (*M > 250000000L) *M = 250000000L;
+
+    *lp_bound = (unsigned long)(*B) * 60;
+    if (*lp_bound < 10000) *lp_bound = 10000;
 }
 
 /* ========== Main ========== */
