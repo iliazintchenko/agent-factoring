@@ -29,38 +29,42 @@ For a sieve testing values of size N^β: total complexity is **L[1/2, √(2β)]*
 
 LLL analysis confirms QS's degree-2 polynomial IS the shortest vector in the coefficient lattice — no lattice trick can improve it. For degree 3+, you need number fields (NFS).
 
+## Why higher-dimensional algebras don't help
+
+Quadratic extensions Z[√d]: norm is a² - d·b², degree 2 in two variables. Same value sizes as QS regardless of d. Can't improve beyond L[1/2].
+
+Quaternion algebras: norm is a² + b² + c² + d², degree 4 overall but still **degree 2 in each variable**. Values are ~max(a,b,c,d)² — four variables don't reduce the norm size. More variables don't help because the norm is quadratic per variable.
+
+**Key constraint**: to improve the L-exponent via algebraic norms, you'd need a norm form that grows **subquadratically** in each variable. No standard algebraic structure has this property. NFS sidesteps this by using two *different* norm maps (rational and algebraic) and requiring simultaneous smoothness — a fundamentally different trick that doesn't generalize to L[1/4].
+
 ## What would be needed to beat L[1/3]
 
 - A new algebraic structure over Z where "norms" are smaller than N^{2/3} per component
 - OR smooth numbers of size < N^{1/3} that relate to N's factorization
 - OR a completely non-smoothness-based sub-exponential approach (none known)
 
-Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomial splitting. No analog over Z for integer factoring.
+Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomial splitting. No analog over Z for integer factoring — the descent works because polynomials over finite fields factor efficiently, but integers don't.
 
 ## Dead ends (tested or analyzed)
 
 - **Schnorr lattice factoring**: Lattice dimension grows with smoothness bound. Ducas (CWI): 0 relations in 1000 trials.
 - **Spectral methods on Cayley graphs**: Computing the spectrum of (Z/NZ)* is exponential classically — exactly what Shor's QFT solves.
-- **Multi-image NFS**: More number fields improve L[1/3] constants but can't break the barrier.
+- **Multi-image NFS**: More number fields improve L[1/3] constants but can't break the barrier. Simultaneous smoothness across fields constrains the sieve region proportionally.
 - **Iterated Frobenius Map** (x → x^N mod N): O(N^{1/4}) cycle length but 100x cost per step vs Pollard rho. Net slower.
-- **ECM cofactor descent (CDS)**: Splitting cofactors with ECM produces too many unique medium primes — matrix is always underdetermined. LP-matching is the correct approach but doesn't change the exponent.
+- **ECM cofactor descent (CDS)**: Splitting cofactors with ECM produces too many unique medium primes — matrix is always underdetermined.
 - **Smooth number enumeration near √N**: Equivalent to subset-sum — exponentially hard.
 - **LLL polynomial selection**: Degree-2 already optimal (QS polynomial IS the shortest vector). Degree-3+ needs NFS.
 - **Bilinear smoothness decomposition**: Can't split norms without number fields — a·b mod N doesn't reduce since a·b < N.
 - **Character sum / autocorrelation**: Detecting period p requires Ω(√N) samples.
 - **Cubic/higher-degree CF**: Residues grow (Thue), worse than QS.
 - **Group-order methods for balanced semiprimes**: p±1 methods fail when p±1 aren't smooth. ECM randomizes but stays L[1/2].
-- **Multi-multiplier sieve (MMS)**: Cross-multiplier LP matching gives ~60% more relations (constant factor) but doesn't shrink polynomial values — the fundamental bottleneck. Competitive only at 30-35 digits.
-- **MMCFRAC**: CF convergents minimize residues but trial division O(fb) per step with no pre-filtering makes it uncompetitive above 40 digits.
-- **BatchQS**: Bernstein product-tree batch GCD correctly identifies smooth candidates but misses ~80% vs standard sieve. Needs higher primorial powers.
+- **Multi-multiplier sieve (MMS)**: Cross-multiplier LP matching gives ~60% more relations (constant factor) but doesn't shrink polynomial values.
+- **Quaternion / higher-dimensional norms**: Norm is still quadratic per variable — more variables don't reduce value sizes.
+- **BatchQS**: Bernstein product-tree batch GCD misses ~80% of smooth candidates vs standard sieve.
 
 ## Key insight: smoothness detection cost
 
-Sieving: O(1) amortized per candidate but requires sequential memory access. Bernstein's batch GCD: O(log²B) per candidate but works on ARBITRARY candidate sets. For large B, batch GCD is cheaper and enables non-sequential candidate generation.
-
-## Genus-2 HECM (untested, potentially useful)
-
-Cosset (2009): genus-2 hyperelliptic curve method on Kummer surfaces effectively runs 2 ECM curves simultaneously. Group order ~p² with Hasse interval ~p^{3/2} — more group orders to sample. Still L_p(1/2) but potentially better constants. Worth testing for 30-80 digit range.
+Sieving: O(1) amortized per candidate but requires sequential memory access. Bernstein's batch GCD: O(log²B) per candidate but works on ARBITRARY candidate sets. For large B, batch GCD is cheaper and enables non-sequential candidate generation. This is unexploited — no implementation has combined batch GCD with a non-sequential candidate generation strategy effectively.
 
 ## Research survey
 
@@ -69,35 +73,15 @@ Cosset (2009): genus-2 hyperelliptic curve method on Kummer surfaces effectively
 - **Stange (2022)**: Index calculus in (Z/NZ)*. Same L[1/2] or L[1/3].
 - **Tower NFS (Barbulescu-Kim 2016)**: Sub-L[1/3] for DLP in GF(p^n) only. No factoring analog.
 - **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Exponential.
-
-## Implementations and scaling results
-
-See `library/index.md` for compile instructions. See `algo-scaling.json` for detailed per-size data.
-
-**Best approach by digit range** (worst-of-5 times):
-| Range | Best approach | Time range |
-|-------|--------------|------------|
-| 30-42d | BSRF-v3 (sieve) | 0.02-0.16s |
-| 30-42d | MMS (multi-multiplier sieve) | 0.07-2.9s |
-| 43-52d | MMS or SRG | 3.7-68.8s or 2.9-26s |
-| 53-55d | SRG (ECM-based) | 10.6-75.5s |
-| 56-62d | SRG or hybrid (ECM) | 11.7-165s |
-| 63-65d | SRG or hybrid | 22-277s |
-| 66d+ | No approach within 295s timeout |
-
-**Novel approaches developed**:
-- **MMCFRAC**: Multi-multiplier continued fraction. Combines CFRAC with MMS-style cross-multiplier LP merging. 30d=2.2s, 35d=28s, 40d=191s. Bottleneck: trial division O(fb) per CF step.
-- **CAD**: Sieve + aggressive cofactor splitting. 30d=10s. Outperformed by standard sieve (MMS, BSRF).
-- **IFM**: Iterated Frobenius map x→x^N mod N. Dead end — 100x per-step overhead vs rho.
-- **BatchQS**: Batch GCD smoothness detection. WIP — low yield from product tree approach.
+- **Cosset (2009)**: Genus-2 HECM on Kummer surfaces — 2 ECM curves simultaneously, group order ~p² with Hasse interval ~p^{3/2}. Still L_p(1/2) but potentially better constants. Untested.
 
 ## Open directions
 
 These are starting points, not an exhaustive list.
 
 - **Algebraic group structure**: Z_N* ≅ Z_{p-1} × Z_{q-1} but we can't see this decomposition. Can random walks, character sums, or higher-dimensional algebraic groups reveal it?
-- **Smooth polynomial families**: Do certain constructions yield systematically smoother values?
+- **Subquadratic norm forms**: Is there any algebraic structure with a norm that grows subquadratically per variable? This is the precise requirement for beating L[1/2] via algebraic methods.
 - **Function field analogies**: Can the quasi-polynomial DLP breakthrough technique be adapted? Key obstacle: no Frobenius over Z.
+- **Batch GCD + non-sequential candidates**: Bernstein's batch smoothness works on arbitrary candidate sets. What candidate generation strategy (not sieving) would best exploit this?
 - **Recursive cofactor descent**: When Q(x) = smooth_part · cofactor, recursively factor the cofactor with a smaller polynomial. Could reduce effective value sizes geometrically.
-- **Cascaded algebraic descent**: NFS-DLP style descent for factoring — recursively decompose values into smooth representations at decreasing prime bounds.
 - **Genus-2 HECM**: Implement and benchmark Cosset's approach.
