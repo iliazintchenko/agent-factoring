@@ -88,11 +88,8 @@ MAINTAINING THE REPO:
 RULES:
 
 - **Always keep 10 investigators running.** When one finishes, launch another immediately. Never let slots sit empty.
-- **Seed is always 42** for any randomized computation.
-- **Single core per factoring process.** Investigators should not use multithreading.
 - **Do not use agent memory.** All knowledge belongs in expert.md.
 - **This project does not end.** Never stop. Only the user can stop you.
-- Investigators should wrap any long-running process in `timeout 295`.
 
 TIPS:
 
