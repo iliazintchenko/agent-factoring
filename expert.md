@@ -45,6 +45,18 @@ Quaternion algebras: norm is a² + b² + c² + d², degree 4 overall but still *
 
 Tower NFS achieves sub-L[1/3] for DLP in GF(p^n) via Frobenius-enabled polynomial splitting. No analog over Z for integer factoring — the descent works because polynomials over finite fields factor efficiently, but integers don't.
 
+### Why L[1/3] appears to be a fundamental classical barrier (analysis summary)
+
+Every known approach to integer factoring falls into one of three categories, each with a proven or conjectured barrier:
+
+1. **Smoothness-based** (QS, NFS, CFRAC, Dixon): The L-exponent is determined by the ratio log(norm_value)/log(factor_base_bound). NFS achieves L[1/3] by splitting norms across two number fields. Tested improvements — LP expansion, multi-polynomial, batch GCD, multipliers, correlated norms, Galois action, CRT candidates, Best-of-K — all give at most constant-factor improvements. The exponent is locked by the polynomial degree and Thue's theorem (no small high-degree residues over Z).
+
+2. **Group-order-based** (ECM, Pollard p-1/p+1, rho, class group methods): Complexity depends on factor size p, not N. For balanced semiprimes (p ≈ √N), these match QS at L[1/2]. ECM is the best in class. Division polynomial, Schoof-like, and Deuring correspondence approaches all reduce to this category.
+
+3. **Algebraic structure** (Hecke operators, quaternion algebras, isogeny graphs, lattice methods): Either require knowing the factorization to compute (circular), or reduce to birthday bounds O(N^{1/4}), or reduce to smoothness methods. No non-smoothness channel has been found despite extensive search.
+
+The function field sieve breaks L[1/3] for DLP because it exploits TWO properties absent over Z: (a) Frobenius endomorphism provides systematic degree reduction, and (b) polynomials over finite fields factor efficiently (Berlekamp). Without analogs of either property, integer factoring appears stuck at L[1/3].
+
 ## Dead ends (tested or analyzed)
 
 - **Schnorr lattice factoring**: Lattice dimension grows with smoothness bound. Ducas (CWI): 0 relations in 1000 trials.
