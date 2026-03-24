@@ -44,6 +44,7 @@ RULES:
 TIPS:
 
 - Read expert.md first to understand what has already been tried.
+- Read guidance.md after every git pull — a gardener agent updates it periodically with specific direction on what to pursue and what to stop doing.
 - Understand *why* current algorithms are sub-exponential — what fundamentally limits them? This understanding should inform your search for approaches that avoid those limits.
 - When timing, always measure the worst case across all 5 semiprimes of a given size.
 - Beware that measured times may not accurately reflect scaling due to resource contention, cache effects, memory bandwidth, and other system-level noise — especially when running many experiments in parallel. Look at the overall trend across many sizes, not individual data points.
