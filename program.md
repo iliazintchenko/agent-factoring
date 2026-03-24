@@ -71,12 +71,12 @@ When an investigator finishes (process exits) or you kill it:
 3. Update expert.md with the findings (insights only, not implementation details)
 4. If they produced useful code, copy it to library/ in the main repo
 5. Log what was investigated and what was found in experiments.log
-6. Delete the working directory: `rm -rf /tmp/inv-N`
+6. Delete the working directory completely: `rm -rf /tmp/inv-N` — do not reuse directories, always start fresh
 7. Launch a new investigator in that slot
 
 MAINTAINING THE REPO:
 
-- **expert.md** should contain only theoretical insights, proved dead ends, and open directions. No implementation details, no timing tables, no parameter values, no build commands. If you find yourself writing about a .c file or a benchmark result, stop — that doesn't belong here.
+- **expert.md** should contain only theoretical insights, explored directions with conclusions, and open directions. No implementation details, no timing tables, no parameter values, no build commands. If you find yourself writing about a .c file or a benchmark result, stop — that doesn't belong here. Keep it internally consistent: don't list a direction as "open" if you've already concluded it doesn't work. Remove duplicates. Periodically review the whole file and clean it up — merge similar entries, remove redundancy, ensure the "open directions" section only contains genuinely unexplored ideas.
 - **library/** should contain only code that implements genuinely novel approaches. Remove any L[1/2] or L[1/3] implementations that accumulate.
 - **experiments.log** tracks what you investigated and what you found. Format:
   ```
