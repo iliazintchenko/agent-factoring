@@ -121,40 +121,49 @@ static void rs_free(relset_t *rs) {
     free(rs->data);
 }
 
-#define NCHARS 16
+/* Auxiliary primes for quadratic characters (prevent extraction degeneracy) */
+static unsigned long qc_primes[3] = {0, 0, 0};
+static int qc_count = 0;
+static mpz_t qc_kN; /* store kN for QC computation */
 
-/* ===== Character bit computation ===== */
-/* For QS: sqrt_val = x+m, and at sieve hits (x+m) mod p_i = sqrtN[i] or p_i-sqrtN[i].
-   Character = 0 if it matches sqrtN[i], 1 if it matches p_i-sqrtN[i].
-   For MPQS: sqrt_val = (Ax+B)*q^{-1}, similar principle.
-   For primes p_i ≡ 3 mod 4, the two roots always give different characters.
-   We pick NCHARS primes where p ≡ 3 mod 4 for maximum discrimination. */
-static void compute_char_bits(int *exps, int fb_count, const mpz_t sqrt_val, const fb_t *fb) {
-    int ci = 0;
-    for (int i = 0; i < fb->count && ci < NCHARS; i++) {
-        int p = fb->primes[i];
-        if (p <= 2) continue;
-        if ((p & 3) != 3) continue; /* only use p ≡ 3 mod 4 */
-        unsigned long sv_mod = mpz_fdiv_ui(sqrt_val, p);
-        long sq = fb->sqrtN[i];
-        /* Check which root sv_mod is closest to */
-        /* For QS: sv_mod should be exactly sq or p-sq */
-        /* For MPQS: sv_mod = (A*x+B)*q^{-1} mod p, which may differ */
-        /* Use: is sv_mod in the "positive root" class? */
-        /* More robust: check if sv_mod ≡ sqrtN[i] (mod p) or ≡ -sqrtN[i] (mod p) */
-        if (sv_mod == (unsigned long)sq) {
-            exps[fb_count + 1 + ci] = 0;
-        } else if (sv_mod == (unsigned long)(p - sq)) {
-            exps[fb_count + 1 + ci] = 1;
-        } else {
-            /* MPQS: sv_mod is not directly a root of f mod p_i */
-            /* Use Legendre symbol as fallback */
-            exps[fb_count + 1 + ci] = (sv_mod > (unsigned long)(p / 2)) ? 1 : 0;
+static void init_qc_primes_for_kN(const fb_t *fb, const mpz_t kN) {
+    /* Choose primes where kN is a QNR. These provide non-redundant QC bits.
+     * Key: the residue x^2 - kN can never be ≡ 0 mod such a prime,
+     * but its Jacobi symbol mod these primes still varies, giving
+     * information NOT captured by the FB exponent columns. */
+    qc_count = 0;
+    mpz_init(qc_kN);
+    mpz_set(qc_kN, kN);
+    for (unsigned long p = 3; qc_count < 3 && p < 100000; p += 2) {
+        int is_prime = 1;
+        for (unsigned long d = 3; d * d <= p; d += 2)
+            if (p % d == 0) { is_prime = 0; break; }
+        if (!is_prime) continue;
+
+        /* Verify kN is QNR mod p (Jacobi symbol = -1) */
+        int jac = mpz_kronecker_ui(kN, p);
+        if (jac == -1) {
+            qc_primes[qc_count++] = p;
         }
-        ci++;
     }
-    /* If not enough p≡3 mod 4 primes, fill remaining with 0 */
-    for (; ci < NCHARS; ci++) exps[fb_count + 1 + ci] = 0;
+    fprintf(stderr, "  QC primes: ");
+    for (int i = 0; i < qc_count; i++) fprintf(stderr, "%lu ", qc_primes[i]);
+    fprintf(stderr, "\n");
+}
+
+/* Compute QC bits for a residue: exps[fb->count+1+i] = (residue/qc_primes[i]) == -1 ? 1 : 0 */
+static void compute_qc(int *exps, const mpz_t residue, int sign, const fb_t *fb) {
+    mpz_t r;
+    mpz_init(r);
+    /* The original signed residue */
+    if (sign) mpz_neg(r, residue); else mpz_set(r, residue);
+    for (int i = 0; i < qc_count; i++) {
+        int js = mpz_jacobi(r, (mpz_srcptr)NULL); /* Can't use mpz_jacobi with unsigned long */
+        /* Use mpz_kronecker_ui instead */
+        int kr = mpz_kronecker_ui(r, qc_primes[i]);
+        exps[fb->count + 1 + i] = (kr == -1) ? 1 : 0;
+    }
+    mpz_clear(r);
 }
 
 /* ===== QS sieve ===== */
@@ -201,13 +210,13 @@ static void qs_sieve(const mpz_t kN, const fb_t *fb, int M,
             while (mpz_divisible_ui_p(tmp, p)) { mpz_divexact_ui(tmp, tmp, p); exps[i+1]++; }
         }
         if (mpz_cmp_ui(tmp, 1) == 0) {
+            compute_qc(exps, residue, sign, fb);
             mpz_set_si(tmp, x); mpz_add(val, tmp, m);
-            compute_char_bits(exps, fb->count, val, fb);
             rs_add(full, val, exps, 0);
         } else if (mpz_fits_ulong_p(tmp) && mpz_get_ui(tmp) <= lp_bound) {
             unsigned long cofactor = mpz_get_ui(tmp);
+            compute_qc(exps, residue, sign, fb);
             mpz_set_si(tmp, x); mpz_add(val, tmp, m);
-            compute_char_bits(exps, fb->count, val, fb);
             rs_add(partial, val, exps, cofactor);
         }
     }
@@ -312,9 +321,9 @@ static void mpqs_sieve(const mpz_t kN, const fb_t *fb, int M,
         int is_partial = (!is_smooth && mpz_fits_ulong_p(tmp) && mpz_get_ui(tmp) <= lp_bound);
         if (is_smooth || is_partial) {
             unsigned long lp = is_smooth ? 0 : mpz_get_ui(tmp);
+            compute_qc(exps, res, sign, fb);
             mpz_set_si(val, x); mpz_mul(val, A, val); mpz_add(val, val, B);
             mpz_mul(val, val, q_inv); mpz_mod(val, val, kN);
-            compute_char_bits(exps, fb->count, val, fb);
             if (is_smooth) rs_add(full, val, exps, 0);
             else rs_add(partial, val, exps, lp);
         }
@@ -329,7 +338,7 @@ static int compare_lp(const void *a, const void *b) {
     return (ra->lp < rb->lp) ? -1 : (ra->lp > rb->lp) ? 1 : 0;
 }
 
-static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN, const fb_t *fb) {
+static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN) {
     if (partials->count < 2) return 0;
     qsort(partials->data, partials->count, sizeof(rel_t), compare_lp);
     int veclen = full->veclen;
@@ -340,16 +349,12 @@ static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN, const fb
     for (int i = 0; i < partials->count - 1; i++) {
         if (partials->data[i].lp == 0) continue;
         if (partials->data[i].lp == partials->data[i + 1].lp) {
-            /* Sum FB exponents and sign, then compute char bits from combined sv */
-            int fb_plus_sign = full->veclen - NCHARS;
-            for (int k = 0; k < fb_plus_sign; k++)
+            for (int k = 0; k < veclen; k++)
                 combined[k] = partials->data[i].exps[k] + partials->data[i + 1].exps[k];
             mpz_mul(sv, partials->data[i].sqrt_val, partials->data[i + 1].sqrt_val);
             mpz_set_ui(lp_val, partials->data[i].lp);
             if (mpz_invert(lp_inv, lp_val, kN)) mpz_mul(sv, sv, lp_inv);
             mpz_mod(sv, sv, kN);
-            /* Compute char bits from the combined sqrt_val */
-            compute_char_bits(combined, fb->count, sv, fb);
             rs_add(full, sv, combined, 0);
             matched++;
             partials->data[i].lp = 0; partials->data[i + 1].lp = 0;
@@ -390,7 +395,7 @@ static int find_deps(relset_t *rels, int veclen, int ***deps, int **sizes, int *
             }
         }
     }
-    int mx = 256;
+    int mx = 128;
     *deps = (int**)malloc(mx * sizeof(int*));
     *sizes = (int*)malloc(mx * sizeof(int));
     int nd = 0;
@@ -448,17 +453,18 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
     int ndigits = mpz_sizeinbase(kN, 10);
     double ln_N = ndigits * log(10);
     double Lexp = sqrt(ln_N * log(ln_N));
-    int B = (int)exp(0.50 * Lexp); /* slightly smaller FB for faster matrix */
-    if (B < 500) B = 500; if (B > 2000000) B = 2000000;
+    int B = (int)exp(0.55 * Lexp);
+    if (B < 500) B = 500; if (B > 5000000) B = 5000000;
     double logM = 1.05 * Lexp;
     int M = (logM > 16.0) ? 10000000 : (int)exp(logM);
     if (M < 20000) M = 20000; if (M > 10000000) M = 10000000;
 
     fb_t fb = build_fb(kN, B);
-    /* Add character bits: Legendre symbol of sqrt_val mod first few odd FB primes */
-    #define NCHARS 16
-    int veclen = fb.count + 1 + NCHARS; /* sign + FB primes + character bits */
-    int target = fb.count + 1 + NCHARS + 30;
+    init_qc_primes_for_kN(&fb, kN);
+    /* Add 3 quadratic character columns to prevent extraction degeneracy */
+    int n_qc = qc_count;
+    int veclen = fb.count + 1 + n_qc; /* sign + FB primes + QC bits */
+    int target = fb.count + n_qc + 30;
     unsigned long lp_bound = (unsigned long)B * 50;
 
     relset_t full, partial;
@@ -470,11 +476,11 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
     for (int pi = 0; pi < 10000 && full.count < target && wall_time() < deadline; pi++) {
         mpqs_sieve(kN, &fb, M, lp_bound, pi, &full, &partial);
         if ((pi + 1) % 100 == 0) {
-            int m = match_lp(&partial, &full, kN, &fb);
+            int m = match_lp(&partial, &full, kN);
             (void)m;
         }
     }
-    match_lp(&partial, &full, kN, &fb);
+    match_lp(&partial, &full, kN);
     fprintf(stderr, "  k=%d: %d full (need %d)\n", k, full.count, target);
 
     int success = 0;
@@ -483,6 +489,34 @@ static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, doubl
         if (find_deps(&full, veclen, &deps, &dsizes, &ndeps)) {
             for (int d = 0; d < ndeps && !success; d++)
                 success = try_extract(&full, deps[d], dsizes[d], kN, &fb, result);
+
+            /* If single deps failed, try XOR combinations of pairs */
+            if (!success && ndeps >= 2) {
+                /* Combine pairs of dependencies via symmetric difference */
+                for (int i = 0; i < ndeps - 1 && !success; i++) {
+                    for (int j = i + 1; j < ndeps && !success; j++) {
+                        /* Build combined dep = symmetric difference of deps[i] and deps[j] */
+                        /* Use a bitmap to XOR the sets */
+                        int *present = (int*)calloc(full.count, sizeof(int));
+                        for (int a = 0; a < dsizes[i]; a++) present[deps[i][a]] ^= 1;
+                        for (int a = 0; a < dsizes[j]; a++) present[deps[j][a]] ^= 1;
+                        int cnt = 0;
+                        for (int a = 0; a < full.count; a++) if (present[a]) cnt++;
+                        if (cnt > 0) {
+                            int *combined = (int*)malloc(cnt * sizeof(int));
+                            int idx = 0;
+                            for (int a = 0; a < full.count; a++)
+                                if (present[a]) combined[idx++] = a;
+                            success = try_extract(&full, combined, cnt, kN, &fb, result);
+                            free(combined);
+                        }
+                        free(present);
+                    }
+                    /* Limit: only try ~50 pairs per dep */
+                }
+            }
+            if (!success)
+                fprintf(stderr, "  Extraction: %d deps, all failed\n", ndeps);
             for (int d = 0; d < ndeps; d++) free(deps[d]);
             free(deps); free(dsizes);
         }
