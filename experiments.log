@@ -756,11 +756,35 @@
 [2026-03-24 00:58:33] size: 59 | approach: bsrf-v4 | time: 36.134s | notes: found factor 44308523053430882607459859471
 [2026-03-24 01:02:53] size: 66 | approach: ecm-baseline | time: FAIL | notes: no factor for 16671137877416899735...
 [2026-03-24 01:03:28] size: 59 | approach: bsrf-v4 | time: FAIL | notes: no factor for 48066858703765039376...
+[2026-03-24 01:04:16] size: 55 | approach: mms | time: 121.751 | notes: factored 254345850051516... = 700440315665869... * 363122801990237...
 [2026-03-24 01:04:36] size: 60 | approach: bsrf-v4 | time: 67.478s | notes: found factor 323012268366406069604976245747
 [2026-03-24 01:05:03] size: 67 | approach: ecm-baseline | time: 129.649s | notes: found factor 950287335190841561478204965908747
 [2026-03-24 01:05:30] size: 60 | approach: bsrf-v4 | time: 54.613s | notes: found factor 233727393239440919182445071663
+[2026-03-24 01:06:24] size: 55 | approach: mms | time: 127.677 | notes: factored 346208360654040... = 766616684768309... * 451605564466253...
 [2026-03-24 01:07:23] size: 67 | approach: ecm-baseline | time: 140.005s | notes: found factor 219307112806203571812761522757713
+[2026-03-24 01:08:55] size: 55 | approach: bsrf-v4 | time: 6.512s | notes: found factor 613004874865992749646301531
+[2026-03-24 01:09:03] size: 55 | approach: bsrf-v4 | time: 7.771s | notes: found factor 859016482498061906252152027
+[2026-03-24 01:09:08] size: 55 | approach: bsrf-v4 | time: 4.640s | notes: found factor 218709495227837237296415933
+[2026-03-24 01:09:13] size: 55 | approach: bsrf-v4 | time: 5.188s | notes: found factor 363122801990237104785674219
 [2026-03-24 01:09:19] size: 67 | approach: ecm-baseline | time: 115.925s | notes: found factor 285387084933639324626415693249049
+[2026-03-24 01:09:20] size: 55 | approach: bsrf-v4 | time: 7.250s | notes: found factor 451605564466253080023546841
+[2026-03-24 01:10:25] size: 60 | approach: bsrf-v4 | time: 64.746s | notes: found factor 323012268366406069604976245747
 [2026-03-24 01:10:25] size: 60 | approach: bsrf-v4 | time: FAIL | notes: no factor for 10984642428074110377...
+[2026-03-24 01:11:15] size: 30 | approach: mms-pp | time: 0.076s | notes: found factor 216915926307757
+[2026-03-24 01:11:15] size: 30 | approach: mms-pp | time: 0.077s | notes: found factor 973482052545047
+[2026-03-24 01:11:15] size: 30 | approach: mms-pp | time: 0.082s | notes: found factor 853172260176581
+[2026-03-24 01:11:15] size: 30 | approach: mms-pp | time: 0.084s | notes: found factor 955492613363501
+[2026-03-24 01:11:15] size: 30 | approach: mms-pp | time: 0.085s | notes: found factor 709910301438391
+[2026-03-24 01:11:17] size: 40 | approach: mms-pp | time: 1.661s | notes: found factor 22583027504572801031
+[2026-03-24 01:11:18] size: 40 | approach: mms-pp | time: 1.408s | notes: found factor 78735518311587647563
+[2026-03-24 01:11:20] size: 40 | approach: mms-pp | time: 1.596s | notes: found factor 93638414278799019499
+[2026-03-24 01:11:21] size: 40 | approach: mms-pp | time: 1.438s | notes: found factor 83508135079636726363
+[2026-03-24 01:11:23] size: 40 | approach: mms-pp | time: 1.497s | notes: found factor 20804179672520600591
+[2026-03-24 01:11:24] size: 60 | approach: bsrf-v4 | time: 58.849s | notes: found factor 233727393239440919182445071663
 [2026-03-24 01:11:29] size: 67 | approach: ecm-baseline | time: 130.697s | notes: found factor 684107009137361975541486851335799
+[2026-03-24 01:11:55] size: 50 | approach: mms-pp | time: 31.887s | notes: found factor 8120770043557672253141101
+[2026-03-24 01:12:27] size: 50 | approach: mms-pp | time: 31.857s | notes: found factor 9444316373871639557235581
+[2026-03-24 01:12:59] size: 50 | approach: mms-pp | time: 32.705s | notes: found factor 3318784448526149968726087
 [2026-03-24 01:13:02] size: 67 | approach: ecm-baseline | time: 92.664s | notes: found factor 977285896970524251801267242996843
+[2026-03-24 01:13:30] size: 50 | approach: mms-pp | time: 30.560s | notes: found factor 2130491434134923133190229
+[2026-03-24 01:14:02] size: 50 | approach: mms-pp | time: 31.936s | notes: found factor 9919464584532754681498727
