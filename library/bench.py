@@ -3,7 +3,7 @@
 Benchmark a factoring binary against semiprimes.
 Usage: python3 bench.py <binary> <approach_name> [sizes...]
 If no sizes specified, runs all sizes from 30-100.
-Records to experiments.log and prints algo-scaling data.
+Records to experiments.log.
 """
 import json, subprocess, sys, os, time
 from datetime import datetime
@@ -88,9 +88,10 @@ def main():
             results[size] = "FAIL"
             print(f"  {size}-digit: FAIL")
 
-    # Print JSON fragment for algo-scaling.json
+    # Print summary
     print(f"\nResults for '{approach}':")
-    print(json.dumps({approach: results}, indent=2))
+    for k, v in sorted(results.items(), key=lambda x: int(x[0])):
+        print(f"  {k}-digit: {v}")
 
 if __name__ == "__main__":
     main()
