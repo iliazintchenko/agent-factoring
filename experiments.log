@@ -232,3 +232,13 @@
 [2026-03-24 12:06:00] task: Alternative Ramanujan graph constructions | result: all known constructions require arithmetic of the factors (quaternion, Cayley, etc.) | conclusion: dead end
 [2026-03-24 12:06:00] task: Commutative algebra (primary decomposition, local cohomology) | result: primary decomposition of (0) IS factoring. Local cohomology decomposes via CRT | conclusion: dead end
 [2026-03-24 12:06:00] task: FINAL comprehensive catalog of ~190 approaches | result: (captured in inv-10)
+[2026-03-24 12:14:00] task: Drinfeld modules transfer to integers | result: no transfer mechanism. Function field analog only | conclusion: dead end
+[2026-03-24 12:14:00] task: Entropy coding of factorizations | result: near-maximal entropy for balanced primes. Cannot detect sub-maximality from N | conclusion: dead end
+[2026-03-24 12:14:00] task: Sheaf cohomology over Spec(Z/NZ) | result: H^i decomposes via CRT, same obstruction | conclusion: dead end
+[2026-03-24 12:14:00] task: Number field descent generalization | result: artificial special form requires embedding that is itself exponentially costly | conclusion: dead end
+[2026-03-24 12:14:00] task: SDP relaxation of factoring QUBO | result: (captured in inv-5)
+[2026-03-24 12:14:00] task: Smooth value distribution vs Dickman for specific NFS polynomials | result: (pending inv-6)
+[2026-03-24 12:14:00] task: Subgroup testing in Z/NZ* | result: membership in specific subgroups either trivial (k-th powers via Jacobi) or equivalent to order-finding (= factoring). No intermediate difficulty | conclusion: dead end
+[2026-03-24 12:14:00] task: Quantum walk inspired classical algorithms | result: quantum mixing advantage comes from interference, no classical analog achieves sub-N^{1/4} | conclusion: dead end
+[2026-03-24 12:14:00] task: Analytic rank of L-functions for N=pq | result: analytic rank detection requires O(√N) L-function evaluation | conclusion: dead end
+[2026-03-24 12:14:00] task: Constructive Galois theory for NFS polynomial | result: small Galois groups (cyclic, dihedral) improve splitting density by constant factor only. Already exploited in SNFS | conclusion: dead end (constant improvement)
