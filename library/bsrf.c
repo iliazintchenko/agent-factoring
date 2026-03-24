@@ -1,18 +1,20 @@
 /*
- * bsrf.c - Batch Smooth Relation Finder
+ * bsrf.c - Quadratic Sieve with a=q² polynomials
  *
- * Novel approach combining:
- * 1. Polynomial evaluation Q(x) = (x+m)^2 - N near sqrt(N)
- * 2. Batch smooth-part extraction via GCD with primorial
- * 3. Multi-large-prime relation combination via graph-based merge
- * 4. GF(2) Gaussian elimination for congruence of squares
+ * For polynomial Q_a(x) = ((q²·x+b)² - N) / q²
+ * where q is prime, b² ≡ N (mod q²) (Hensel lifted), and q² ≈ sqrt(2N)/M.
  *
- * Key difference from QS: no sieving. Uses batch GCD for smoothness,
- * which changes the optimal smoothness bound and allows larger factor bases.
+ * Since q² is a perfect square, the relation
+ *   (q²·x+b)² ≡ q² · Q_a(x)  (mod N)
+ * has q² contributing even exponents on the RHS. Each relation is independently
+ * usable without pairing from the same polynomial.
+ *
+ * Sieve roots for prime p in factor base:
+ *   x ≡ (-b ± r_p) · (q²)^{-1} (mod p)
+ *   where r_p = sqrt(N mod p).
  *
  * Usage: ./bsrf <N>
  * Output: "p q" where N = p*q
- * Seed: 42
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,849 +23,620 @@
 #include <gmp.h>
 #include <ecm.h>
 
-/* Limits */
-#define MAX_LP 3        /* max large primes per relation */
-static unsigned long max_lp_val;  /* large prime bound, set dynamically */
+#define SIEVE_SIZE 131072
+#define HALF_M     (SIEVE_SIZE / 2)
+
+static mpz_t N_g, temp_g;
+
+/* ===== Factor base ===== */
 
 typedef struct {
-    unsigned long p;    /* prime */
-    int r1, r2;         /* roots of N mod p (-1 if no root) */
-    double logp;        /* log2(p) */
+    unsigned long p;
+    unsigned long r;   /* sqrt(N mod p) */
+    double logp;
 } fb_entry_t;
 
-typedef struct {
-    int x_offset;       /* x value that produced this relation */
-    int sign;           /* sign of Q(x): 0=positive, 1=negative */
-    unsigned char *exponents; /* exponents mod 2 for factor base primes (dynamically allocated) */
-    int nlp;            /* number of large primes */
-    unsigned long lp[MAX_LP]; /* large primes */
-} relation_t;
-
-/* Globals */
-static mpz_t N, sqrtN, Q_val, temp, temp2;
-static fb_entry_t *fb = NULL;
-static int fb_size, fb_capacity;
-static relation_t *rels = NULL;
-static int nrels, rels_capacity;
+static fb_entry_t *fb   = NULL;
+static int         fb_size = 0;
+static int         fb_cap  = 0;
 static unsigned long smooth_bound;
+static unsigned long max_lp_val;
 
-/* Compute Legendre symbol (a/p) for odd prime p */
-static int legendre(unsigned long a, unsigned long p) {
-    long val = a % p;
+/* ===== Modular arithmetic ===== */
+
+static unsigned long mod_inv(unsigned long a, unsigned long m) {
+    long or_ = (long)a, r = (long)m, os = 1, s = 0;
+    while (r) {
+        long q = or_ / r, t = r;
+        r = or_ - q * r; or_ = t;
+        t = s; s = os - q * s; os = t;
+    }
+    return os < 0 ? (unsigned long)(os + (long)m) : (unsigned long)os;
+}
+
+static int legendre_sym(unsigned long a, unsigned long p) {
+    unsigned long val = a % p;
     if (val == 0) return 0;
-    /* Euler criterion */
-    mpz_t base, exp, mod, result;
-    mpz_init_set_ui(base, val);
-    mpz_init_set_ui(mod, p);
-    mpz_init(exp);
-    mpz_init(result);
-    mpz_sub_ui(exp, mod, 1);
-    mpz_tdiv_q_2exp(exp, exp, 1); /* (p-1)/2 */
-    mpz_powm(result, base, exp, mod);
-    int ret;
-    if (mpz_cmp_ui(result, 1) == 0) ret = 1;
-    else if (mpz_cmp_ui(result, 0) == 0) ret = 0;
-    else ret = -1;
-    mpz_clear(base); mpz_clear(exp); mpz_clear(mod); mpz_clear(result);
+    mpz_t base, ev, mod, res;
+    mpz_init_set_ui(base, val); mpz_init_set_ui(mod, p);
+    mpz_init(ev); mpz_init(res);
+    mpz_sub_ui(ev, mod, 1); mpz_tdiv_q_2exp(ev, ev, 1);
+    mpz_powm(res, base, ev, mod);
+    int ret = (mpz_cmp_ui(res, 1) == 0) ? 1 : (mpz_cmp_ui(res, 0) == 0 ? 0 : -1);
+    mpz_clear(base); mpz_clear(ev); mpz_clear(mod); mpz_clear(res);
     return ret;
 }
 
-/* Tonelli-Shanks: find r such that r^2 ≡ n (mod p) */
-static unsigned long sqrt_mod_p(unsigned long n_val, unsigned long p) {
-    if (p == 2) return n_val & 1;
-    n_val %= p;
-    if (n_val == 0) return 0;
-
-    mpz_t nn, pp, r;
-    mpz_init_set_ui(nn, n_val);
-    mpz_init_set_ui(pp, p);
-    mpz_init(r);
-
-    /* Use GMP's built-in sqrt mod if available, otherwise Tonelli-Shanks */
-    /* Simple case: p ≡ 3 (mod 4) */
+static unsigned long sqrt_mod_p(unsigned long nv, unsigned long p) {
+    if (p == 2) return nv & 1;
+    nv %= p;
+    if (nv == 0) return 0;
     if (p % 4 == 3) {
-        mpz_t exp;
-        mpz_init(exp);
-        mpz_set_ui(exp, (p + 1) / 4);
-        mpz_powm(r, nn, exp, pp);
-        unsigned long result = mpz_get_ui(r);
-        mpz_clear(exp); mpz_clear(nn); mpz_clear(pp); mpz_clear(r);
-        return result;
+        mpz_t nn, pp, r, e;
+        mpz_init_set_ui(nn, nv); mpz_init_set_ui(pp, p);
+        mpz_init(r); mpz_init_set_ui(e, (p + 1) / 4);
+        mpz_powm(r, nn, e, pp);
+        unsigned long res = mpz_get_ui(r);
+        mpz_clear(nn); mpz_clear(pp); mpz_clear(r); mpz_clear(e);
+        return res;
     }
-
-    /* Tonelli-Shanks */
     unsigned long q = p - 1, s = 0;
     while (q % 2 == 0) { q /= 2; s++; }
-
-    /* Find quadratic non-residue */
     unsigned long z = 2;
-    while (legendre(z, p) != -1) z++;
-
-    mpz_t M, c, t, R, b, tmp;
-    mpz_init_set_ui(M, s);
-    mpz_init(c); mpz_init(t); mpz_init(R); mpz_init(b); mpz_init(tmp);
-
-    mpz_set_ui(tmp, q);
-    mpz_set_ui(c, z);
-    mpz_powm(c, c, tmp, pp);
-
-    mpz_set_ui(tmp, (q + 1) / 2);
-    mpz_powm(R, nn, tmp, pp);
-
-    mpz_set_ui(tmp, q);
-    mpz_powm(t, nn, tmp, pp);
-
-    while (1) {
-        if (mpz_cmp_ui(t, 1) == 0) break;
-
-        /* Find least i such that t^(2^i) ≡ 1 */
-        mpz_set(tmp, t);
+    while (legendre_sym(z, p) != -1) z++;
+    mpz_t pp, nn, Mv, cv, tv, Rv, bv, tmp;
+    mpz_init_set_ui(pp, p); mpz_init_set_ui(nn, nv); mpz_init_set_ui(Mv, s);
+    mpz_init(cv); mpz_init(tv); mpz_init(Rv); mpz_init(bv); mpz_init(tmp);
+    mpz_set_ui(tmp, q); mpz_set_ui(cv, z); mpz_powm(cv, cv, tmp, pp);
+    mpz_set_ui(tmp, (q + 1) / 2); mpz_powm(Rv, nn, tmp, pp);
+    mpz_set_ui(tmp, q); mpz_powm(tv, nn, tmp, pp);
+    while (mpz_cmp_ui(tv, 1) != 0) {
+        mpz_set(tmp, tv);
         unsigned long i = 0;
-        while (mpz_cmp_ui(tmp, 1) != 0) {
-            mpz_mul(tmp, tmp, tmp);
-            mpz_mod(tmp, tmp, pp);
-            i++;
-        }
-
-        unsigned long m_val = mpz_get_ui(M);
-        mpz_set(b, c);
-        for (unsigned long j = 0; j < m_val - i - 1; j++) {
-            mpz_mul(b, b, b);
-            mpz_mod(b, b, pp);
-        }
-
-        mpz_set_ui(M, i);
-        mpz_mul(c, b, b); mpz_mod(c, c, pp);
-        mpz_mul(t, t, c); mpz_mod(t, t, pp);
-        mpz_mul(R, R, b); mpz_mod(R, R, pp);
+        while (mpz_cmp_ui(tmp, 1) != 0) { mpz_mul(tmp, tmp, tmp); mpz_mod(tmp, tmp, pp); i++; }
+        unsigned long mv = mpz_get_ui(Mv);
+        mpz_set(bv, cv);
+        for (unsigned long j = 0; j < mv - i - 1; j++) { mpz_mul(bv, bv, bv); mpz_mod(bv, bv, pp); }
+        mpz_set_ui(Mv, i);
+        mpz_mul(cv, bv, bv); mpz_mod(cv, cv, pp);
+        mpz_mul(tv, tv, cv); mpz_mod(tv, tv, pp);
+        mpz_mul(Rv, Rv, bv); mpz_mod(Rv, Rv, pp);
     }
-
-    unsigned long result = mpz_get_ui(R);
-    mpz_clear(M); mpz_clear(c); mpz_clear(t); mpz_clear(R); mpz_clear(b); mpz_clear(tmp);
-    mpz_clear(nn); mpz_clear(pp); mpz_clear(r);
-    return result;
+    unsigned long res = mpz_get_ui(Rv);
+    mpz_clear(pp); mpz_clear(nn); mpz_clear(Mv); mpz_clear(cv);
+    mpz_clear(tv); mpz_clear(Rv); mpz_clear(bv); mpz_clear(tmp);
+    return res;
 }
 
-/* Build factor base: primes p where N is a QR mod p */
 static int build_factor_base(unsigned long bound) {
-    /* Simple sieve of Eratosthenes */
-    char *is_prime = calloc(bound + 1, 1);
-    if (!is_prime) return 0;
-
-    for (unsigned long i = 2; i <= bound; i++) is_prime[i] = 1;
-    for (unsigned long i = 2; i * i <= bound; i++) {
-        if (is_prime[i]) {
-            for (unsigned long j = i*i; j <= bound; j += i)
-                is_prime[j] = 0;
-        }
-    }
-
-    fb_capacity = 8192;
-    fb = realloc(fb, fb_capacity * sizeof(fb_entry_t));
+    char *sieve = calloc(bound + 1, 1);
+    for (unsigned long i = 2; i <= bound; i++) sieve[i] = 1;
+    for (unsigned long i = 2; i * i <= bound; i++)
+        if (sieve[i])
+            for (unsigned long j = i * i; j <= bound; j += i) sieve[j] = 0;
+    fb_cap  = 16384;
+    fb      = malloc(fb_cap * sizeof(fb_entry_t));
     fb_size = 0;
-    /* Always include -1 and 2 */
-    fb[fb_size].p = 2;
-    fb[fb_size].logp = 1.0;
-    /* N mod 2 root */
-    unsigned long n_mod2 = mpz_get_ui(N) & 1;
-    fb[fb_size].r1 = (n_mod2 == 0) ? 0 : 1;
-    fb[fb_size].r2 = -1;
-    fb_size++;
-
-    unsigned long n_mod_p;
+    fb[fb_size].p = 2; fb[fb_size].r = mpz_get_ui(N_g) & 1; fb[fb_size].logp = 1.0; fb_size++;
     for (unsigned long p = 3; p <= bound; p++) {
-        if (!is_prime[p]) continue;
-        n_mod_p = mpz_fdiv_ui(N, p);
-        if (legendre(n_mod_p, p) >= 0) {
-            fb[fb_size].p = p;
-            if (fb_size >= fb_capacity) {
-                fb_capacity *= 2;
-                fb = realloc(fb, fb_capacity * sizeof(fb_entry_t));
-            }
-            fb[fb_size].logp = log2((double)p);
-            if (n_mod_p == 0) {
-                fb[fb_size].r1 = 0;
-                fb[fb_size].r2 = -1;
-            } else {
-                unsigned long r = sqrt_mod_p(n_mod_p, p);
-                fb[fb_size].r1 = (int)r;
-                fb[fb_size].r2 = (int)(p - r);
-            }
-            fb_size++;
-        }
+        if (!sieve[p]) continue;
+        unsigned long nm = mpz_fdiv_ui(N_g, p);
+        if (legendre_sym(nm, p) < 0) continue;
+        if (fb_size >= fb_cap) { fb_cap *= 2; fb = realloc(fb, fb_cap * sizeof(fb_entry_t)); }
+        fb[fb_size].p    = p;
+        fb[fb_size].logp = log2((double)p);
+        fb[fb_size].r    = (nm == 0) ? 0 : sqrt_mod_p(nm, p);
+        fb_size++;
     }
-
-    free(is_prime);
+    free(sieve);
     return fb_size;
 }
 
-/* Try to factor val over the factor base. Returns 1 if successful (possibly with large primes) */
-static int try_factor(mpz_t val, int x_offset) {
-    if (nrels >= rels_capacity) {
-        rels_capacity = rels_capacity ? rels_capacity * 2 : 4096;
-        rels = realloc(rels, rels_capacity * sizeof(relation_t));
-    }
+/* ===== Bit matrix ===== */
 
-    relation_t *rel = &rels[nrels];
-    memset(rel, 0, sizeof(relation_t));
-    rel->exponents = calloc(fb_size, 1);
-    rel->x_offset = x_offset;
+typedef struct { unsigned long *rows; int nrows, ncols, wpr; } bm_t;
 
-    mpz_abs(temp, val);
-    if (mpz_sgn(val) < 0) rel->sign = 1;
-
-    /* Trial divide by factor base */
-    for (int i = 0; i < fb_size; i++) {
-        unsigned long p = fb[i].p;
-        int exp = 0;
-        while (mpz_divisible_ui_p(temp, p)) {
-            mpz_divexact_ui(temp, temp, p);
-            exp++;
-        }
-        rel->exponents[i] = exp & 1;  /* only parity matters */
-    }
-
-    /* Check cofactor */
-    if (mpz_cmp_ui(temp, 1) == 0) {
-        /* Fully smooth! */
-        rel->nlp = 0;
-        nrels++;
-        return 1;
-    }
-
-    /* Check if cofactor is a single large prime */
-    if (mpz_fits_ulong_p(temp)) {
-        unsigned long cof = mpz_get_ui(temp);
-        if (cof <= max_lp_val) {
-            /* Check if it's prime (Miller-Rabin) */
-            if (mpz_probab_prime_p(temp, 15)) {
-                rel->nlp = 1;
-                rel->lp[0] = cof;
-                nrels++;
-                return 1;
-            }
-        }
-    }
-
-    /* Try to split cofactor into 2 large primes */
-    if (mpz_sizeinbase(temp, 2) <= 56) {  /* cofactor < ~7.2 * 10^16 */
-        unsigned long cof_bound = max_lp_val;
-        /* Quick trial division by small primes not in factor base */
-        unsigned long remaining = 0;
-        if (mpz_fits_ulong_p(temp)) {
-            remaining = mpz_get_ui(temp);
-        } else {
-            /* Try Pollard rho on cofactor */
-            mpz_t rho_f;
-            mpz_init(rho_f);
-            /* Simple rho with deterministic start */
-            mpz_t x, y, d, c_rho;
-            mpz_init_set_ui(x, 2);
-            mpz_init_set_ui(y, 2);
-            mpz_init(d);
-            mpz_init_set_ui(c_rho, 1);
-            int found = 0;
-            for (int iter = 0; iter < 10000 && !found; iter++) {
-                mpz_mul(x, x, x); mpz_add(x, x, c_rho); mpz_mod(x, x, temp);
-                mpz_mul(y, y, y); mpz_add(y, y, c_rho); mpz_mod(y, y, temp);
-                mpz_mul(y, y, y); mpz_add(y, y, c_rho); mpz_mod(y, y, temp);
-                mpz_sub(d, x, y); mpz_abs(d, d);
-                mpz_gcd(d, d, temp);
-                if (mpz_cmp_ui(d, 1) > 0 && mpz_cmp(d, temp) < 0) {
-                    /* Split into two factors */
-                    mpz_t cof2;
-                    mpz_init(cof2);
-                    mpz_divexact(cof2, temp, d);
-                    if (mpz_fits_ulong_p(d) && mpz_fits_ulong_p(cof2)) {
-                        unsigned long f1 = mpz_get_ui(d);
-                        unsigned long f2 = mpz_get_ui(cof2);
-                        if (f1 <= cof_bound && f2 <= cof_bound) {
-                            rel->nlp = 2;
-                            rel->lp[0] = (f1 < f2) ? f1 : f2;
-                            rel->lp[1] = (f1 < f2) ? f2 : f1;
-                            found = 1;
-                        }
-                    }
-                    mpz_clear(cof2);
-                }
-            }
-            mpz_clear(x); mpz_clear(y); mpz_clear(d); mpz_clear(c_rho);
-            mpz_clear(rho_f);
-            if (found) {
-                nrels++;
-                return 1;
-            }
-            free(rel->exponents); rel->exponents = NULL;
-            return 0;
-        }
-
-        if (remaining > 0) {
-            /* Factor remaining into at most 2 primes */
-            for (unsigned long p = smooth_bound + 1; p * p <= remaining && p <= cof_bound; p += 2) {
-                if (remaining % p == 0) {
-                    unsigned long q = remaining / p;
-                    if (q <= cof_bound && q > 1) {
-                        rel->nlp = 2;
-                        rel->lp[0] = (p < q) ? p : q;
-                        rel->lp[1] = (p < q) ? q : p;
-                        nrels++;
-                        return 1;
-                    }
-                    break;
-                }
-            }
-            /* Maybe it's a prime */
-            if (remaining <= cof_bound && mpz_probab_prime_p(temp, 15)) {
-                rel->nlp = 1;
-                rel->lp[0] = remaining;
-                nrels++;
-                return 1;
-            }
-        }
-    }
-
-    free(rel->exponents); rel->exponents = NULL;
-    return 0;
+static bm_t *bm_alloc(int nr, int nc) {
+    bm_t *m = malloc(sizeof(bm_t)); m->nrows = nr; m->ncols = nc;
+    m->wpr = (nc + 63) / 64; m->rows = calloc((size_t)nr * m->wpr, 8); return m;
+}
+static void bm_free(bm_t *m) { free(m->rows); free(m); }
+static inline void bm_flip(bm_t *m, int r, int c) {
+    m->rows[(size_t)r * m->wpr + c / 64] ^= 1UL << (c % 64);
+}
+static inline int bm_get(bm_t *m, int r, int c) {
+    return (m->rows[(size_t)r * m->wpr + c / 64] >> (c % 64)) & 1;
+}
+static inline void bm_xor_row(bm_t *m, int d, int s) {
+    unsigned long *dp = m->rows + (size_t)d * m->wpr;
+    unsigned long *sp = m->rows + (size_t)s * m->wpr;
+    for (int i = 0; i < m->wpr; i++) dp[i] ^= sp[i];
 }
 
-/* ========== GF(2) Matrix operations for Gaussian elimination ========== */
-
-/* Bit matrix: each row is a bit vector */
-typedef struct {
-    unsigned long *rows;    /* packed bits, row-major */
-    int nrows, ncols;
-    int words_per_row;
-} bitmatrix_t;
-
-static bitmatrix_t* bm_alloc(int nrows, int ncols) {
-    bitmatrix_t *m = malloc(sizeof(bitmatrix_t));
-    m->nrows = nrows;
-    m->ncols = ncols;
-    m->words_per_row = (ncols + 63) / 64;
-    m->rows = calloc((size_t)nrows * m->words_per_row, sizeof(unsigned long));
-    return m;
-}
-
-static void bm_free(bitmatrix_t *m) {
-    free(m->rows);
-    free(m);
-}
-
-static inline void bm_set(bitmatrix_t *m, int r, int c) {
-    m->rows[(size_t)r * m->words_per_row + c/64] |= (1UL << (c % 64));
-}
-
-static inline int bm_get(bitmatrix_t *m, int r, int c) {
-    return (m->rows[(size_t)r * m->words_per_row + c/64] >> (c % 64)) & 1;
-}
-
-static inline void bm_xor_row(bitmatrix_t *m, int dst, int src) {
-    unsigned long *d = m->rows + (size_t)dst * m->words_per_row;
-    unsigned long *s = m->rows + (size_t)src * m->words_per_row;
-    for (int i = 0; i < m->words_per_row; i++)
-        d[i] ^= s[i];
-}
-
-/* Gaussian elimination over GF(2). Returns null space vectors.
-   Input: matrix M (nrels × ncols).
-   Output: array of relation index subsets whose XOR is zero. */
-static int gauss_elim(bitmatrix_t *M, int **deps, int *ndeps) {
+static int gauss_elim(bm_t *M, int **deps_out, int *ndeps_out) {
     int nr = M->nrows, nc = M->ncols;
-
-    /* Track row swaps for back-substitution */
-    int *pivot_row = malloc(nc * sizeof(int));
-    int *pivot_col = malloc(nr * sizeof(int));
-    char *is_pivot = calloc(nr, 1);
-
-    /* Also maintain an identity matrix to track dependencies */
-    bitmatrix_t *hist = bm_alloc(nr, nr);
-    for (int i = 0; i < nr; i++) bm_set(hist, i, i);
-
+    bm_t *H = bm_alloc(nr, nr);
+    for (int i = 0; i < nr; i++) bm_flip(H, i, i);
     int rank = 0;
     for (int c = 0; c < nc && rank < nr; c++) {
-        /* Find pivot */
         int piv = -1;
-        for (int r = rank; r < nr; r++) {
-            if (bm_get(M, r, c)) { piv = r; break; }
-        }
+        for (int r = rank; r < nr; r++) if (bm_get(M, r, c)) { piv = r; break; }
         if (piv < 0) continue;
-
-        /* Swap rows */
         if (piv != rank) {
-            unsigned long *tmp_row = malloc(M->words_per_row * sizeof(unsigned long));
-            memcpy(tmp_row, M->rows + (size_t)piv * M->words_per_row, M->words_per_row * sizeof(unsigned long));
-            memcpy(M->rows + (size_t)piv * M->words_per_row, M->rows + (size_t)rank * M->words_per_row, M->words_per_row * sizeof(unsigned long));
-            memcpy(M->rows + (size_t)rank * M->words_per_row, tmp_row, M->words_per_row * sizeof(unsigned long));
-
-            unsigned long *tmp_hist = malloc(hist->words_per_row * sizeof(unsigned long));
-            memcpy(tmp_hist, hist->rows + (size_t)piv * hist->words_per_row, hist->words_per_row * sizeof(unsigned long));
-            memcpy(hist->rows + (size_t)piv * hist->words_per_row, hist->rows + (size_t)rank * hist->words_per_row, hist->words_per_row * sizeof(unsigned long));
-            memcpy(hist->rows + (size_t)rank * hist->words_per_row, tmp_hist, hist->words_per_row * sizeof(unsigned long));
-
-            free(tmp_row);
-            free(tmp_hist);
+            size_t wsz = (size_t)M->wpr * 8;
+            unsigned long *t = malloc(wsz);
+            memcpy(t, M->rows + (size_t)piv * M->wpr, wsz);
+            memcpy(M->rows + (size_t)piv * M->wpr, M->rows + (size_t)rank * M->wpr, wsz);
+            memcpy(M->rows + (size_t)rank * M->wpr, t, wsz); free(t);
+            wsz = (size_t)H->wpr * 8; t = malloc(wsz);
+            memcpy(t, H->rows + (size_t)piv * H->wpr, wsz);
+            memcpy(H->rows + (size_t)piv * H->wpr, H->rows + (size_t)rank * H->wpr, wsz);
+            memcpy(H->rows + (size_t)rank * H->wpr, t, wsz); free(t);
         }
-
-        /* Eliminate */
-        for (int r = 0; r < nr; r++) {
-            if (r != rank && bm_get(M, r, c)) {
-                bm_xor_row(M, r, rank);
-                bm_xor_row(hist, r, rank);
-            }
-        }
-
-        is_pivot[rank] = 1;
-        pivot_col[rank] = c;
+        for (int r = 0; r < nr; r++) if (r != rank && bm_get(M, r, c)) { bm_xor_row(M, r, rank); bm_xor_row(H, r, rank); }
         rank++;
     }
-
-    /* Collect null space vectors (rows that became zero in M) */
-    *ndeps = 0;
-    *deps = NULL;
-
+    *ndeps_out = 0; *deps_out = NULL;
     for (int r = 0; r < nr; r++) {
-        /* Check if row r of M is all zeros */
-        int all_zero = 1;
-        for (int w = 0; w < M->words_per_row && all_zero; w++) {
-            if (M->rows[(size_t)r * M->words_per_row + w]) all_zero = 0;
-        }
-        if (!all_zero) continue;
-
-        /* Row r is in the null space. The dependency is encoded in hist[r] */
-        /* Count how many relations are in this dependency */
-        int count = 0;
-        for (int j = 0; j < nr; j++) {
-            if (bm_get(hist, r, j)) count++;
-        }
-        if (count < 2) continue;
-
-        /* Store dependency */
-        *deps = realloc(*deps, (*ndeps + 1) * (nr + 1) * sizeof(int));
-        int *dep = *deps + (*ndeps) * (nr + 1);
-        dep[0] = count;
-        int idx = 1;
-        for (int j = 0; j < nr; j++) {
-            if (bm_get(hist, r, j)) dep[idx++] = j;
-        }
-        (*ndeps)++;
-
-        if (*ndeps >= 64) break;  /* enough dependencies to try */
+        int zero = 1;
+        for (int w = 0; w < M->wpr && zero; w++) if (M->rows[(size_t)r * M->wpr + w]) zero = 0;
+        if (!zero) continue;
+        int cnt = 0; for (int j = 0; j < nr; j++) if (bm_get(H, r, j)) cnt++;
+        if (cnt < 2) continue;
+        *deps_out = realloc(*deps_out, (*ndeps_out + 1) * (nr + 1) * sizeof(int));
+        int *dep  = *deps_out + (*ndeps_out) * (nr + 1); dep[0] = cnt; int idx = 1;
+        for (int j = 0; j < nr; j++) if (bm_get(H, r, j)) dep[idx++] = j;
+        (*ndeps_out)++;
+        if (*ndeps_out >= 128) break;
     }
-
-    free(pivot_row);
-    free(pivot_col);
-    free(is_pivot);
-    bm_free(hist);
-
-    return rank;
+    bm_free(H); return rank;
 }
 
-/* Helper: add a single relation's contribution to x_prod and y_sq_accum */
-static void accum_relation(int rel_idx, mpz_t x_prod, mpz_t y_sq) {
-    relation_t *rel = &rels[rel_idx];
-    /* x_prod *= (x + sqrtN) mod N */
-    mpz_set_si(temp, rel->x_offset);
-    mpz_add(temp, temp, sqrtN);
-    mpz_mul(x_prod, x_prod, temp);
-    mpz_mod(x_prod, x_prod, N);
+/* ===== Relations ===== */
 
-    /* y_sq *= |Q(x)| */
-    mpz_set_si(temp, rel->x_offset);
-    mpz_add(temp, temp, sqrtN);
-    mpz_mul(temp, temp, temp);
-    mpz_sub(temp, temp, N);
-    mpz_mul(y_sq, y_sq, temp);
+/*
+ * For polynomial with parameter q (prime), a = q²:
+ *   (q²·x + b)² ≡ q² · Q_a(x)  (mod N)
+ *
+ * Relation: x_lhs = (q²·x + b) mod N
+ *           Q_a(x) is B-smooth (possibly with 1 LP)
+ *
+ * For GF(2) matrix: column 0 = sign, columns 1..fb_size = mod-2 exponents of Q_a(x) over fb.
+ * For Y reconstruction: use full_exp (actual exponent of each fb prime in Q_a(x)).
+ *
+ * In a valid dependency, for each fb prime p:
+ *   XOR of mod-2 exponents = 0  =>  sum of actual exponents is even  =>  half-exponent is integer.
+ * Y = (product of q) * (product of p^(total_exp/2)) * (product of LP for LP-merged pairs).
+ * X = product of x_lhs mod N.
+ * Then gcd(X ± Y, N) gives a factor.
+ */
+typedef struct {
+    unsigned long  q;
+    mpz_t          x_lhs;
+    int            sign;
+    unsigned char *exponents;    /* mod-2 exponents over fb */
+    unsigned short *full_exp;   /* actual exponents over fb (for Y reconstruction) */
+    int            nlp;
+    unsigned long  lp;
+} rel_t;
+
+static rel_t *all_rels     = NULL;
+static int    n_all_rels   = 0;
+static int    all_rels_cap = 0;
+
+/* "Full" matrix relation: direct (nlp==0) or LP-merged pair */
+typedef struct { int ri1, ri2; } full_rel_t;
+
+static full_rel_t *full_rels     = NULL;
+static int         n_full_rels   = 0;
+static int         full_rels_cap = 0;
+
+static void add_full_rel(int ri1, int ri2) {
+    if (n_full_rels >= full_rels_cap) {
+        full_rels_cap = full_rels_cap ? full_rels_cap * 2 : 4096;
+        full_rels = realloc(full_rels, full_rels_cap * sizeof(full_rel_t));
+    }
+    full_rels[n_full_rels].ri1 = ri1;
+    full_rels[n_full_rels].ri2 = ri2;
+    n_full_rels++;
 }
 
-/* Try to extract a factor from a dependency of matrix rows.
- * matrix_rel_map/matrix_merge_map/merges are passed in. */
-static int try_dependency(int *dep_indices, int dep_count,
-                          int *matrix_rel_map, int *matrix_merge_map,
-                          void *merges_ptr) {
-    typedef struct { int idx1, idx2; } mp_t;
-    mp_t *merges = (mp_t*)merges_ptr;
+/* LP hash table */
+#define LP_HASH_SIZE (1 << 20)
+typedef struct lp_node { unsigned long lp; int ri; struct lp_node *next; } lp_node_t;
+static lp_node_t **lp_hash = NULL;
 
-    mpz_t x_prod, y_sq, y_val, g;
-    mpz_init_set_ui(x_prod, 1);
-    mpz_init_set_ui(y_sq, 1);
-    mpz_init(y_val);
-    mpz_init(g);
+static void lp_hash_init(void) { lp_hash = calloc(LP_HASH_SIZE, sizeof(lp_node_t *)); }
+static void lp_hash_free(void) {
+    for (int i = 0; i < LP_HASH_SIZE; i++) {
+        lp_node_t *n = lp_hash[i];
+        while (n) { lp_node_t *nx = n->next; free(n); n = nx; }
+    }
+    free(lp_hash); lp_hash = NULL;
+}
+static int lp_lookup_insert(unsigned long lp, int ri) {
+    unsigned int h = (unsigned int)((lp * 2654435761UL) >> 12) & (LP_HASH_SIZE - 1);
+    for (lp_node_t *n = lp_hash[h]; n; n = n->next) if (n->lp == lp) return n->ri;
+    lp_node_t *nn = malloc(sizeof(lp_node_t)); nn->lp = lp; nn->ri = ri; nn->next = lp_hash[h]; lp_hash[h] = nn;
+    return -1;
+}
 
-    /* Accumulate all x values and Q(x) products */
-    for (int i = 0; i < dep_count; i++) {
-        int mat_row = dep_indices[i];
-        if (matrix_merge_map[mat_row] < 0) {
-            /* Full relation */
-            accum_relation(matrix_rel_map[mat_row], x_prod, y_sq);
-        } else {
-            /* Merged pair */
-            int m = matrix_merge_map[mat_row];
-            accum_relation(merges[m].idx1, x_prod, y_sq);
-            accum_relation(merges[m].idx2, x_prod, y_sq);
+static void collect_candidate(unsigned long q_val, mpz_t b_val, int x_off, mpz_t Q_mpz) {
+    if (n_all_rels >= all_rels_cap) {
+        all_rels_cap = all_rels_cap ? all_rels_cap * 2 : 8192;
+        all_rels = realloc(all_rels, all_rels_cap * sizeof(rel_t));
+    }
+    rel_t *r = &all_rels[n_all_rels];
+    r->q         = q_val;
+    r->nlp       = 0; r->lp = 0;
+    r->exponents = calloc(fb_size, 1);
+    r->full_exp  = calloc(fb_size, sizeof(unsigned short));
+    mpz_init(r->x_lhs);
+
+    /* x_lhs = (q²·x + b) mod N */
+    mpz_t a_mpz; mpz_init_set_ui(a_mpz, q_val); mpz_mul(a_mpz, a_mpz, a_mpz);
+    mpz_set_si(r->x_lhs, x_off);
+    mpz_mul(r->x_lhs, r->x_lhs, a_mpz);
+    mpz_add(r->x_lhs, r->x_lhs, b_val);
+    mpz_mod(r->x_lhs, r->x_lhs, N_g);
+    mpz_clear(a_mpz);
+
+    /* Factor |Q_mpz| over fb */
+    mpz_t rem; mpz_init(rem); mpz_abs(rem, Q_mpz);
+    r->sign = (mpz_sgn(Q_mpz) < 0) ? 1 : 0;
+    for (int i = 0; i < fb_size; i++) {
+        unsigned long p = fb[i].p; int exp = 0;
+        while (mpz_divisible_ui_p(rem, p)) { mpz_divexact_ui(rem, rem, p); exp++; }
+        r->exponents[i] = exp & 1;
+        r->full_exp[i]  = (unsigned short)(exp < 65535 ? exp : 65535);
+    }
+
+    if (mpz_cmp_ui(rem, 1) == 0) {
+        /* Fully smooth */
+        n_all_rels++;
+        add_full_rel(n_all_rels - 1, -1);
+        mpz_clear(rem); return;
+    }
+    if (mpz_fits_ulong_p(rem)) {
+        unsigned long cof = mpz_get_ui(rem);
+        if (cof <= max_lp_val && mpz_probab_prime_p(rem, 10)) {
+            r->nlp = 1; r->lp = cof;
+            n_all_rels++;
+            int other = lp_lookup_insert(cof, n_all_rels - 1);
+            if (other >= 0) add_full_rel(other, n_all_rels - 1);
+            mpz_clear(rem); return;
+        }
+    }
+    /* Not usable */
+    free(r->exponents); r->exponents = NULL;
+    free(r->full_exp);  r->full_exp  = NULL;
+    mpz_clear(r->x_lhs);
+    mpz_clear(rem);
+}
+
+/* Try a dependency: fr_indices[0..cnt-1] are indices into full_rels[]. */
+static int try_full_rels(int *fr_indices, int cnt) {
+    mpz_t X, Y, g;
+    mpz_init_set_ui(X, 1); mpz_init_set_ui(Y, 1); mpz_init(g);
+    int total_sign = 0;
+
+    /* Accumulate exponent sums using int to avoid overflow */
+    int *exp_sum = calloc(fb_size, sizeof(int));
+
+    for (int k = 0; k < cnt; k++) {
+        full_rel_t *fr = &full_rels[fr_indices[k]];
+        int rlist[2] = {fr->ri1, fr->ri2};
+        int rcount   = (fr->ri2 >= 0) ? 2 : 1;
+        for (int j = 0; j < rcount; j++) {
+            rel_t *r = &all_rels[rlist[j]];
+            mpz_mul(X, X, r->x_lhs); mpz_mod(X, X, N_g);
+            total_sign ^= r->sign;
+            mpz_mul_ui(Y, Y, r->q); mpz_mod(Y, Y, N_g);
+            for (int i = 0; i < fb_size; i++) exp_sum[i] += r->full_exp[i];
         }
     }
 
-    /* y_sq should be a perfect square (product of Q(x_i) values) */
-    int neg = (mpz_sgn(y_sq) < 0);
-    mpz_abs(y_sq, y_sq);
-    if (!mpz_perfect_square_p(y_sq)) {
-        mpz_clear(x_prod); mpz_clear(y_sq); mpz_clear(y_val); mpz_clear(g);
-        return 0;
-    }
-    mpz_sqrt(y_val, y_sq);
-    mpz_mod(y_val, y_val, N);
+    int ret = 0;
+    if (total_sign != 0) goto done;
 
-    /* Try gcd(x_prod ± y_val, N) */
-    mpz_sub(temp, x_prod, y_val);
-    mpz_gcd(g, temp, N);
-    if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
-        mpz_t cofactor;
-        mpz_init(cofactor);
-        mpz_divexact(cofactor, N, g);
-        if (mpz_cmp(g, cofactor) > 0) mpz_swap(g, cofactor);
-        gmp_printf("%Zd %Zd\n", g, cofactor);
-        mpz_clear(cofactor);
-        mpz_clear(x_prod); mpz_clear(y_sq); mpz_clear(y_val); mpz_clear(g);
-        return 1;
+    /* Y *= product p^(exp_sum[i]/2); exponents must all be even */
+    for (int i = 0; i < fb_size; i++) {
+        if (exp_sum[i] == 0) continue;
+        if (exp_sum[i] & 1) goto done;  /* should not happen for valid dep */
+        int half = exp_sum[i] / 2;
+        for (int e = 0; e < half; e++) { mpz_mul_ui(Y, Y, fb[i].p); mpz_mod(Y, Y, N_g); }
     }
 
-    mpz_add(temp, x_prod, y_val);
-    mpz_gcd(g, temp, N);
-    if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N) < 0) {
-        mpz_t cofactor;
-        mpz_init(cofactor);
-        mpz_divexact(cofactor, N, g);
-        if (mpz_cmp(g, cofactor) > 0) mpz_swap(g, cofactor);
-        gmp_printf("%Zd %Zd\n", g, cofactor);
-        mpz_clear(cofactor);
-        mpz_clear(x_prod); mpz_clear(y_sq); mpz_clear(y_val); mpz_clear(g);
-        return 1;
+    /* For LP-merged full_rels: multiply Y by lp (lp appears twice total, sqrt = lp^1) */
+    for (int k = 0; k < cnt; k++) {
+        full_rel_t *fr = &full_rels[fr_indices[k]];
+        if (fr->ri2 < 0) continue;
+        unsigned long lp = all_rels[fr->ri1].lp;
+        mpz_mul_ui(Y, Y, lp); mpz_mod(Y, Y, N_g);
     }
 
-    mpz_clear(x_prod); mpz_clear(y_sq); mpz_clear(y_val); mpz_clear(g);
-    return 0;
+    /* gcd(X ± Y, N) */
+    mpz_sub(temp_g, X, Y); mpz_gcd(g, temp_g, N_g);
+    if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N_g) < 0) {
+        mpz_t cf; mpz_init(cf); mpz_divexact(cf, N_g, g);
+        if (mpz_cmp(g, cf) > 0) mpz_swap(g, cf);
+        gmp_printf("%Zd %Zd\n", g, cf); mpz_clear(cf); ret = 1; goto done;
+    }
+    mpz_add(temp_g, X, Y); mpz_gcd(g, temp_g, N_g);
+    if (mpz_cmp_ui(g, 1) > 0 && mpz_cmp(g, N_g) < 0) {
+        mpz_t cf; mpz_init(cf); mpz_divexact(cf, N_g, g);
+        if (mpz_cmp(g, cf) > 0) mpz_swap(g, cf);
+        gmp_printf("%Zd %Zd\n", g, cf); mpz_clear(cf); ret = 1; goto done;
+    }
+done:
+    free(exp_sum); mpz_clear(X); mpz_clear(Y); mpz_clear(g);
+    return ret;
 }
 
-/* Main factoring routine */
+/* ===== Polynomial generation: compute q and b for a=q² ===== */
+/*
+ * Choose q such that q² ≈ sqrt(2N) / M
+ * b = Hensel lift: b0 = sqrt(N mod q), b = b0 + q·((N-b0²)/q · inv(2b0) mod q)
+ * Center: if b > q²/2, use b = q²-b.
+ */
+static int gen_poly(unsigned long q_target, mpz_t b_out, unsigned long *q_out) {
+    mpz_t cand; mpz_init_set_ui(cand, q_target);
+    if (mpz_get_ui(cand) % 2 == 0) mpz_add_ui(cand, cand, 1);
+    for (int iters = 0; iters < 10000; iters++) {
+        if (mpz_probab_prime_p(cand, 10) > 0) {
+            unsigned long q = mpz_get_ui(cand);
+            unsigned long nm = mpz_fdiv_ui(N_g, q);
+            if (nm > 0 && legendre_sym(nm, q) == 1) {
+                unsigned long b0 = sqrt_mod_p(nm, q);
+                /* Hensel lift: b = b0 + q * ((N-b0²)/q * inv(2b0) mod q) */
+                mpz_t nb0sq; mpz_init(nb0sq);
+                mpz_set_ui(nb0sq, b0); mpz_mul(nb0sq, nb0sq, nb0sq);
+                mpz_sub(nb0sq, N_g, nb0sq);
+                mpz_divexact_ui(nb0sq, nb0sq, q);
+                unsigned long two_b0 = (2 * b0) % q;
+                if (two_b0 == 0) { mpz_clear(nb0sq); mpz_add_ui(cand, cand, 2); iters++; continue; }
+                unsigned long inv2b0 = mod_inv(two_b0, q);
+                unsigned long lift = (unsigned long)(mpz_fdiv_ui(nb0sq, q) * (unsigned long long)inv2b0 % q);
+                mpz_clear(nb0sq);
+                /* b = b0 + q*lift */
+                mpz_set_ui(b_out, q); mpz_mul_ui(b_out, b_out, lift); mpz_add_ui(b_out, b_out, b0);
+                /* Verify b² ≡ N (mod q²) */
+                mpz_t q2, bsq, chk, Nq2;
+                mpz_init_set_ui(q2, q); mpz_mul(q2, q2, q2);
+                mpz_init(bsq); mpz_mul(bsq, b_out, b_out);
+                mpz_init(chk); mpz_mod(chk, bsq, q2);
+                mpz_init(Nq2); mpz_mod(Nq2, N_g, q2);
+                int ok = (mpz_cmp(chk, Nq2) == 0);
+                if (!ok) {
+                    /* Try complementary root: b = q²-b */
+                    mpz_sub(b_out, q2, b_out);
+                    mpz_mul(bsq, b_out, b_out); mpz_mod(chk, bsq, q2);
+                    ok = (mpz_cmp(chk, Nq2) == 0);
+                }
+                mpz_clear(q2); mpz_clear(bsq); mpz_clear(chk); mpz_clear(Nq2);
+                if (ok) {
+                    /* Center: if b > q²/2, use q²-b */
+                    mpz_t q2c, hq2;
+                    mpz_init_set_ui(q2c, q); mpz_mul(q2c, q2c, q2c);
+                    mpz_init(hq2); mpz_tdiv_q_2exp(hq2, q2c, 1);
+                    if (mpz_cmp(b_out, hq2) > 0) mpz_sub(b_out, q2c, b_out);
+                    mpz_clear(q2c); mpz_clear(hq2);
+                    *q_out = q; mpz_clear(cand); return 1;
+                }
+            }
+        }
+        mpz_add_ui(cand, cand, 2);
+    }
+    mpz_clear(cand); return 0;
+}
+
+/* ===== Main factoring ===== */
+
 static int factor_bsrf(void) {
-    size_t n_bits = mpz_sizeinbase(N, 2);
-    size_t n_digits = mpz_sizeinbase(N, 10);
+    size_t n_bits   = mpz_sizeinbase(N_g, 2);
+    size_t n_digits = mpz_sizeinbase(N_g, 10);
 
-    /* Choose smoothness bound B.
-     * For batch GCD, we can afford larger B than QS.
-     * Heuristic: B = exp(c * sqrt(ln N * ln ln N)) with c tuned for our approach.
-     * We use c ≈ 0.7 (slightly larger than QS's 0.5) since batch GCD is cheaper per candidate.
-     */
-    double ln_n = (double)n_bits * log(2.0);
+    double ln_n    = (double)n_bits * log(2.0);
     double ln_ln_n = log(ln_n);
-    double c = 0.5;  /* standard QS constant */
-    smooth_bound = (unsigned long)exp(c * sqrt(ln_n * ln_ln_n));
-    if (smooth_bound < 100) smooth_bound = 100;
-    if (smooth_bound > 2000000) smooth_bound = 2000000;
+    smooth_bound   = (unsigned long)exp(0.5 * sqrt(ln_n * ln_ln_n));
+    if (smooth_bound < 500)     smooth_bound = 500;
+    if (smooth_bound > 8000000) smooth_bound = 8000000;
 
-    /* Large prime bound: ~100*B to get good collision rate */
-    max_lp_val = smooth_bound * 100;
+    max_lp_val = smooth_bound * 100UL;
     if (max_lp_val > (1UL << 32)) max_lp_val = (1UL << 32);
 
-    fprintf(stderr, "BSRF: %zu-digit (%zu-bit) number, B=%lu, LP_bound=%lu\n",
+    fprintf(stderr, "BSRF a=q²: %zu-digit (%zu-bit), B=%lu, LP_max=%lu\n",
             n_digits, n_bits, smooth_bound, max_lp_val);
 
-    /* Build factor base */
     int fb_count = build_factor_base(smooth_bound);
-    fprintf(stderr, "Factor base: %d primes up to %lu\n", fb_count, smooth_bound);
+    fprintf(stderr, "Factor base: %d primes\n", fb_count);
 
-    /* Compute sqrt(N) */
-    mpz_sqrt(sqrtN, N);
+    /* q² ≈ sqrt(2N)/M  =>  q ≈ N^{1/4} / sqrt(M/2) */
+    double N_d     = mpz_get_d(N_g);
+    double q_ideal = pow(N_d, 0.25) / sqrt((double)SIEVE_SIZE / 2.0);
+    if (q_ideal < 10.0) q_ideal = 10.0;
 
-    /* We need fb_count + 1 + (extra for large primes) relations.
-     * Target: 1.1 * fb_count relations for safety margin.
-     */
-    /* We need enough full + merged-LP relations to exceed fb_count + 1.
-     * Keep collecting until we have enough, checking periodically. */
-    int target_matrix_rels = fb_count + 50;  /* target for matrix rows */
-    int target_rels = fb_count * 10 + 1000;  /* collect many, merge later */
-    if (target_rels > 100000) target_rels = 100000;
+    fprintf(stderr, "Target q ≈ %.3e (a=q²≈%.3e, M=%d)\n",
+            q_ideal, q_ideal * q_ideal, SIEVE_SIZE);
 
-    fprintf(stderr, "Need %d relations (have %d fb primes)\n", target_rels, fb_count);
+    lp_hash_init();
+    float *sieve_log = malloc(SIEVE_SIZE * sizeof(float));
+    if (!sieve_log) return 0;
 
-    nrels = 0;
-    rels_capacity = 0;
+    /* LP allowance in sieve threshold */
+    float lp_allow = (float)log2((double)max_lp_val);
 
-    /* Sieve-based smooth candidate detection.
-     * Use logarithmic sieve to quickly identify candidates where Q(x) is likely smooth.
-     * Then trial-divide only the promising candidates.
-     */
-    int sieve_size = 256 * 1024;  /* 256K entries per sieve block */
-    float *sieve_log = malloc(sieve_size * sizeof(float));
-    float *target_log = malloc(sieve_size * sizeof(float));
-    long x_base = 1;
-    int total_tested = 0;
-    int total_sieve_hits = 0;
-    float threshold_adjust = 1.5f * log2f((float)smooth_bound);  /* ~1 large prime of size B */
+    int target_full = fb_count + 200;
+    if (target_full > 500000) target_full = 500000;
+    fprintf(stderr, "Target full relations: %d\n", target_full);
 
-    /* Precompute sieve roots: for each fb prime p, find r such that Q(r) ≡ 0 (mod p).
-     * Q(x) = (x + m)^2 - N, so x + m ≡ ±√N (mod p), i.e., x ≡ r1 - m or x ≡ r2 - m (mod p).
-     * We need r1, r2 such that r_i^2 ≡ N (mod p), then sieve_start = r_i - m mod p.
-     */
+    int polys_used = 0;
+    unsigned long q_up   = (unsigned long)q_ideal;
+    unsigned long q_down = (unsigned long)q_ideal;
+    int go_up = 1;
 
-    while (nrels < target_rels) {
-        /* Initialize sieve */
-        memset(sieve_log, 0, sieve_size * sizeof(float));
-
-        /* Compute target: log2(|Q(x)|) for each x in this block */
-        for (int i = 0; i < sieve_size; i++) {
-            long x = x_base + i;
-            /* Q(x) ≈ 2*m*x for small x, Q(x) ≈ x^2 for large x */
-            /* More precisely: |Q(x)| = |(x+m)^2 - N| */
-            /* For x > 0: (x+m)^2 - N = x^2 + 2mx + (m^2-N) ≈ 2mx */
-            double q_approx = fabs(2.0 * mpz_get_d(sqrtN) * (double)x);
-            if (q_approx < 1.0) q_approx = 1.0;
-            target_log[i] = (float)log2(q_approx);
+    while (n_full_rels < target_full && polys_used < 1000000) {
+        unsigned long q_try;
+        unsigned long step = (unsigned long)(q_ideal * 0.0005 + 3);
+        if (go_up) {
+            q_try = q_up; q_up += step;
+        } else {
+            if (q_down <= step + 3) { go_up = !go_up; continue; }
+            q_try = q_down; q_down -= step;
         }
+        go_up = !go_up;
 
-        /* Sieve with factor base primes */
+        mpz_t b_val; mpz_init(b_val);
+        unsigned long q_val = 0;
+        if (!gen_poly(q_try, b_val, &q_val)) { mpz_clear(b_val); continue; }
+        polys_used++;
+
+        /* a = q², c = (b²-N)/q² */
+        mpz_t q2_mpz; mpz_init_set_ui(q2_mpz, q_val); mpz_mul(q2_mpz, q2_mpz, q2_mpz);
+        mpz_t c_coeff; mpz_init(c_coeff);
+        mpz_mul(c_coeff, b_val, b_val); mpz_sub(c_coeff, c_coeff, N_g);
+        mpz_divexact(c_coeff, c_coeff, q2_mpz);
+
+        /* Sieve threshold */
+        double ad   = (double)q_val * (double)q_val;
+        double bd   = mpz_get_d(b_val);
+        double hm   = (double)HALF_M;
+        double edge = ad * hm * hm + 2.0 * fabs(bd) * hm + fabs(mpz_get_d(c_coeff));
+        float cur_thr = (float)log2(edge) - lp_allow;
+        if (cur_thr < 2.0f) cur_thr = 2.0f;
+
+        memset(sieve_log, 0, SIEVE_SIZE * sizeof(float));
+
         for (int fi = 0; fi < fb_size; fi++) {
-            unsigned long p = fb[fi].p;
-            float logp = (float)fb[fi].logp;
+            unsigned long p   = fb[fi].p;
+            float logp        = (float)fb[fi].logp;
+            unsigned long r_p = fb[fi].r;
 
             if (p == 2) {
-                /* Handle p=2 specially */
-                unsigned long m_mod2 = mpz_fdiv_ui(sqrtN, 2);
-                /* (x+m)^2 - N ≡ 0 mod 2 when x+m is even or N is even */
-                /* Just sieve every position (most values have factors of 2) */
-                for (long pos = 0; pos < sieve_size; pos += 2)
-                    sieve_log[pos] += logp;
+                /* Q_a(x) = q²x² + 2bx + c; mod 2: (q²≡1 if q odd) x² + c mod 2.
+                 * x² ≡ x mod 2, so Q_a ≡ x + c mod 2. Root: x ≡ c mod 2. */
+                unsigned long cmod2 = (unsigned long)(mpz_get_ui(c_coeff) & 1);
+                long start = ((long)cmod2 + HALF_M) % 2;
+                if (start < 0) start += 2;
+                for (long pos = start; pos < SIEVE_SIZE; pos += 2) sieve_log[pos] += logp;
                 continue;
             }
 
-            /* Compute starting positions for this prime */
-            unsigned long m_modp = mpz_fdiv_ui(sqrtN, p);
-            int r1 = fb[fi].r1;
-            int r2 = fb[fi].r2;
+            unsigned long qmodp  = q_val % p;
+            unsigned long q2modp = (unsigned long)((unsigned long long)qmodp * qmodp % p);
+            unsigned long bmodp  = mpz_fdiv_ui(b_val, p);
 
-            if (r1 >= 0) {
-                /* Start position: x ≡ r1 - m (mod p) */
-                long start1 = ((long)r1 - (long)(m_modp % p) + (long)p) % (long)p;
-                /* Adjust for x_base */
-                start1 = (start1 - (x_base % (long)p) + (long)p) % (long)p;
-                for (long pos = start1; pos < sieve_size; pos += p)
-                    sieve_log[pos] += logp;
+            if (q2modp == 0) {
+                /* p | q: linear: 2b·x + c ≡ 0 (mod p) */
+                unsigned long two_b = (2 * bmodp) % p;
+                if (two_b == 0) continue;
+                unsigned long cmodp = mpz_fdiv_ui(c_coeff, p);
+                unsigned long x0    = (unsigned long)((p - cmodp % p) % p * (unsigned long long)mod_inv(two_b, p) % p);
+                long st = ((long)x0 + HALF_M) % (long)p; if (st < 0) st += (long)p;
+                for (long pos = st; pos < SIEVE_SIZE; pos += (long)p) sieve_log[pos] += logp;
+                continue;
             }
-            if (r2 >= 0 && r2 != r1) {
-                long start2 = ((long)r2 - (long)(m_modp % p) + (long)p) % (long)p;
-                start2 = (start2 - (x_base % (long)p) + (long)p) % (long)p;
-                for (long pos = start2; pos < sieve_size; pos += p)
-                    sieve_log[pos] += logp;
-            }
+
+            /* Two roots: x ≡ (-b ± r_p) · (q²)^{-1} (mod p) */
+            unsigned long inv_q2 = mod_inv(q2modp, p);
+            /* root 1: (-b + r_p) mod p */
+            unsigned long diff1 = (r_p + p - bmodp) % p;
+            unsigned long x1    = (unsigned long)((unsigned long long)diff1 * inv_q2 % p);
+            long st1 = ((long)x1 + HALF_M) % (long)p; if (st1 < 0) st1 += (long)p;
+            for (long pos = st1; pos < SIEVE_SIZE; pos += (long)p) sieve_log[pos] += logp;
+
+            if (r_p == 0) continue;  /* double root */
+
+            /* root 2: (-b - r_p) mod p */
+            unsigned long diff2 = (p - r_p + p - bmodp) % p;
+            unsigned long x2    = (unsigned long)((unsigned long long)diff2 * inv_q2 % p);
+            if (x2 == x1) continue;
+            long st2 = ((long)x2 + HALF_M) % (long)p; if (st2 < 0) st2 += (long)p;
+            for (long pos = st2; pos < SIEVE_SIZE; pos += (long)p) sieve_log[pos] += logp;
         }
 
-        /* Scan for smooth candidates */
-        for (int i = 0; i < sieve_size && nrels < target_rels; i++) {
-            if (sieve_log[i] >= target_log[i] - threshold_adjust) {
-                /* Promising candidate — trial divide */
-                long x = x_base + i;
-                mpz_set_si(Q_val, x);
-                mpz_add(Q_val, Q_val, sqrtN);
-                mpz_mul(Q_val, Q_val, Q_val);
-                mpz_sub(Q_val, Q_val, N);
-
-                if (try_factor(Q_val, (int)x)) {
-                    /* Relation found */
-                }
-                total_sieve_hits++;
-            }
+        /* Scan sieve */
+        for (int i = 0; i < SIEVE_SIZE; i++) {
+            if (sieve_log[i] < cur_thr) continue;
+            int x = i - HALF_M;
+            /* Q_a(x) = q²x² + 2bx + c */
+            mpz_t qv, bv2; mpz_init(qv); mpz_init_set(bv2, b_val); mpz_mul_ui(bv2, bv2, 2);
+            mpz_set_si(qv, x); mpz_mul(qv, qv, q2_mpz); mpz_add(qv, qv, bv2);
+            mpz_mul_si(qv, qv, x); mpz_add(qv, qv, c_coeff);
+            mpz_clear(bv2);
+            collect_candidate(q_val, b_val, x, qv);
+            mpz_clear(qv);
         }
 
-        total_tested += sieve_size;
-        x_base += sieve_size;
+        mpz_clear(q2_mpz); mpz_clear(c_coeff); mpz_clear(b_val);
 
-        if (total_tested % (sieve_size * 10) == 0) {
-            fprintf(stderr, "  sieved %d, hits %d, found %d/%d relations (%.1f%%)\n",
-                    total_tested, total_sieve_hits, nrels, target_rels,
-                    100.0 * nrels / target_rels);
-        }
-
-        /* Safety: don't loop forever */
-        if (total_tested > 500000000L) {
-            fprintf(stderr, "BSRF: too many candidates tested, giving up\n");
-            free(sieve_log);
-            free(target_log);
-            return 0;
-        }
+        if (polys_used % 500 == 0)
+            fprintf(stderr, "  polys=%d full_rels=%d all_rels=%d\n", polys_used, n_full_rels, n_all_rels);
     }
 
     free(sieve_log);
-    free(target_log);
+    fprintf(stderr, "Collected: %d full_rels, %d all_rels, polys=%d\n", n_full_rels, n_all_rels, polys_used);
 
-    /* Count relation types */
-    int n_full = 0, n_1lp = 0, n_2lp = 0;
-    for (int i = 0; i < nrels; i++) {
-        if (rels[i].nlp == 0) n_full++;
-        else if (rels[i].nlp == 1) n_1lp++;
-        else n_2lp++;
-    }
-    fprintf(stderr, "Found %d relations: %d full, %d 1-LP, %d 2-LP\n",
-            nrels, n_full, n_1lp, n_2lp);
-
-    /* Merge single-large-prime relations: if two relations share the same LP,
-     * their product is a full relation (LP cancels) */
-    /* First, sort 1-LP relations by their large prime */
-    int *lp1_idx = malloc(nrels * sizeof(int));
-    int n_lp1 = 0;
-    for (int i = 0; i < nrels; i++) {
-        if (rels[i].nlp == 1) lp1_idx[n_lp1++] = i;
+    if (n_full_rels < fb_count + 10) {
+        fprintf(stderr, "Too few full relations (%d)\n", n_full_rels);
+        lp_hash_free(); return 0;
     }
 
-    /* Simple sort by lp value */
-    for (int i = 0; i < n_lp1 - 1; i++) {
-        for (int j = i + 1; j < n_lp1; j++) {
-            if (rels[lp1_idx[i]].lp[0] > rels[lp1_idx[j]].lp[0]) {
-                int tmp = lp1_idx[i]; lp1_idx[i] = lp1_idx[j]; lp1_idx[j] = tmp;
-            }
+    /* Build GF(2) matrix: rows = full_rels, cols = sign + fb primes.
+     * Use bm_flip (XOR toggle) so LP-merged pairs combine correctly. */
+    int nrows = n_full_rels, ncols = 1 + fb_size;
+    fprintf(stderr, "Building matrix %d x %d...\n", nrows, ncols);
+    bm_t *M = bm_alloc(nrows, ncols);
+    for (int row = 0; row < nrows; row++) {
+        full_rel_t *fr = &full_rels[row];
+        int rlist[2] = {fr->ri1, fr->ri2};
+        int rcount   = (fr->ri2 >= 0) ? 2 : 1;
+        for (int j = 0; j < rcount; j++) {
+            rel_t *r = &all_rels[rlist[j]];
+            if (r->sign) bm_flip(M, row, 0);                          /* XOR sign */
+            for (int i = 0; i < fb_size; i++)
+                if (r->exponents[i]) bm_flip(M, row, 1 + i);          /* XOR exponents */
         }
     }
 
-    /* Create merged relations: combine pairs with same LP */
-    /* A merged relation stores TWO x_offsets; exponent vector is XOR of both */
-    typedef struct { int idx1, idx2; } merge_pair_t;
-    merge_pair_t *merges = malloc(n_lp1 * sizeof(merge_pair_t));
-    int n_merges = 0;
+    int *deps = NULL, ndeps = 0;
+    fprintf(stderr, "Gaussian elimination %d x %d...\n", nrows, ncols);
+    gauss_elim(M, &deps, &ndeps);
+    fprintf(stderr, "Dependencies found: %d\n", ndeps);
 
-    for (int i = 0; i < n_lp1 - 1; i++) {
-        if (rels[lp1_idx[i]].lp[0] == rels[lp1_idx[i+1]].lp[0]) {
-            merges[n_merges].idx1 = lp1_idx[i];
-            merges[n_merges].idx2 = lp1_idx[i+1];
-            n_merges++;
-            i++; /* skip the second one */
-        }
-    }
-
-    int total_matrix_rels = n_full + n_merges;
-    fprintf(stderr, "Merged LP pairs: %d. Total matrix relations: %d\n",
-            n_merges, total_matrix_rels);
-
-    /* Build matrix: rows = full relations + merged relations, cols = 1 (sign) + fb_size */
-    int ncols = 1 + fb_size;
-
-    if (total_matrix_rels <= ncols) {
-        fprintf(stderr, "Not enough relations (%d) for matrix (%d cols). Need more.\n",
-                total_matrix_rels, ncols);
-        free(lp1_idx);
-        free(merges);
-        return 0;
-    }
-
-    /* Map from matrix row to relation type */
-    int *matrix_rel_map = malloc(total_matrix_rels * sizeof(int));
-    int *matrix_merge_map = malloc(total_matrix_rels * sizeof(int)); /* -1 if full, merge index otherwise */
-    int mat_row = 0;
-
-    /* First: full relations */
-    for (int i = 0; i < nrels; i++) {
-        if (rels[i].nlp == 0) {
-            matrix_rel_map[mat_row] = i;
-            matrix_merge_map[mat_row] = -1;
-            mat_row++;
-        }
-    }
-    /* Then: merged pairs */
-    for (int i = 0; i < n_merges; i++) {
-        matrix_rel_map[mat_row] = merges[i].idx1;
-        matrix_merge_map[mat_row] = i;
-        mat_row++;
-    }
-
-    bitmatrix_t *M = bm_alloc(total_matrix_rels, ncols);
-
-    for (int r = 0; r < total_matrix_rels; r++) {
-        if (matrix_merge_map[r] < 0) {
-            /* Full relation */
-            relation_t *rel = &rels[matrix_rel_map[r]];
-            if (rel->sign) bm_set(M, r, 0);
-            for (int j = 0; j < fb_size; j++) {
-                if (rel->exponents[j]) bm_set(M, r, 1 + j);
-            }
-        } else {
-            /* Merged pair: XOR the two exponent vectors */
-            int m = matrix_merge_map[r];
-            relation_t *r1 = &rels[merges[m].idx1];
-            relation_t *r2 = &rels[merges[m].idx2];
-            int sign = r1->sign ^ r2->sign;
-            if (sign) bm_set(M, r, 0);
-            for (int j = 0; j < fb_size; j++) {
-                if (r1->exponents[j] ^ r2->exponents[j]) bm_set(M, r, 1 + j);
-            }
-        }
-    }
-
-    /* Gaussian elimination */
-    int *deps = NULL;
-    int ndeps = 0;
-
-    fprintf(stderr, "Running Gaussian elimination...\n");
-    int rank = gauss_elim(M, &deps, &ndeps);
-    fprintf(stderr, "Rank: %d, found %d dependencies\n", rank, ndeps);
-
-    /* Try each dependency */
     int factored = 0;
     for (int d = 0; d < ndeps && !factored; d++) {
-        int *dep = deps + d * (total_matrix_rels + 1);
-        int count = dep[0];
-        factored = try_dependency(dep + 1, count, matrix_rel_map, matrix_merge_map, merges);
+        int *dep = deps + d * (nrows + 1);
+        factored = try_full_rels(dep + 1, dep[0]);
     }
 
-    free(deps);
-    free(lp1_idx);
-    free(merges);
-    free(matrix_rel_map);
-    free(matrix_merge_map);
-    bm_free(M);
-
+    free(deps); bm_free(M); lp_hash_free();
+    for (int i = 0; i < n_all_rels; i++) {
+        mpz_clear(all_rels[i].x_lhs);
+        free(all_rels[i].exponents);
+        free(all_rels[i].full_exp);
+    }
+    free(all_rels); all_rels = NULL; n_all_rels = 0; all_rels_cap = 0;
+    free(full_rels); full_rels = NULL; n_full_rels = 0; full_rels_cap = 0;
+    free(fb); fb = NULL; fb_size = 0; fb_cap = 0;
     return factored;
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <N>\n", argv[0]);
-        return 1;
-    }
-
-    mpz_init(N);
-    mpz_init(sqrtN);
-    mpz_init(Q_val);
-    mpz_init(temp);
-    mpz_init(temp2);
-
-    if (mpz_set_str(N, argv[1], 10) != 0) {
-        fprintf(stderr, "Invalid number: %s\n", argv[1]);
-        return 1;
-    }
-
-    /* Quick trial division first */
+    if (argc < 2) { fprintf(stderr, "Usage: %s <N>\n", argv[0]); return 1; }
+    mpz_init(N_g); mpz_init(temp_g);
+    if (mpz_set_str(N_g, argv[1], 10) != 0) { fprintf(stderr, "Invalid: %s\n", argv[1]); return 1; }
+    /* Trial division up to 1M */
     for (unsigned long p = 2; p < 1000000; p++) {
-        if (mpz_divisible_ui_p(N, p)) {
-            mpz_t f, cof;
-            mpz_init_set_ui(f, p);
-            mpz_init(cof);
-            mpz_divexact(cof, N, f);
-            if (mpz_cmp_ui(cof, 1) > 0) {
-                gmp_printf("%Zd %Zd\n", f, cof);
-                mpz_clear(f); mpz_clear(cof);
-                goto cleanup;
-            }
+        if (mpz_divisible_ui_p(N_g, p)) {
+            mpz_t f, cof; mpz_init_set_ui(f, p); mpz_init(cof); mpz_divexact(cof, N_g, f);
+            if (mpz_cmp_ui(cof, 1) > 0) { gmp_printf("%Zd %Zd\n", f, cof); mpz_clear(f); mpz_clear(cof); goto cleanup; }
             mpz_clear(f); mpz_clear(cof);
         }
     }
-
-    if (factor_bsrf()) {
-        goto cleanup;
-    }
-
+    if (factor_bsrf()) goto cleanup;
     fprintf(stderr, "BSRF failed\n");
-    mpz_clear(N); mpz_clear(sqrtN); mpz_clear(Q_val); mpz_clear(temp); mpz_clear(temp2);
-    return 1;
-
+    mpz_clear(N_g); mpz_clear(temp_g); return 1;
 cleanup:
-    mpz_clear(N); mpz_clear(sqrtN); mpz_clear(Q_val); mpz_clear(temp); mpz_clear(temp2);
-    return 0;
+    mpz_clear(N_g); mpz_clear(temp_g); return 0;
 }

@@ -46,63 +46,343 @@
 [2026-03-23 23:28:53] size: 33 | approach: bsrf-v1 | time: FAIL | notes: no factor for 21131184862941068929...
 [2026-03-23 23:28:53] size: 34 | approach: bsrf-v1 | time: FAIL | notes: no factor for 16238121339133610039...
 [2026-03-23 23:28:53] size: 35 | approach: bsrf-v1 | time: FAIL | notes: no factor for 39528556317990406135...
-[2026-03-23 23:35:37] size: 30 | approach: hybrid | time: 1.742s | notes: found factor 237853791679697
-[2026-03-23 23:35:39] size: 30 | approach: hybrid | time: 1.540s | notes: found factor 285490143297067
-[2026-03-23 23:35:41] size: 30 | approach: hybrid | time: 1.551s | notes: found factor 216915926307757
-[2026-03-23 23:35:42] size: 30 | approach: hybrid | time: 1.541s | notes: found factor 163402858332899
-[2026-03-23 23:35:44] size: 30 | approach: hybrid | time: 1.460s | notes: found factor 147780977331697
-[2026-03-23 23:35:46] size: 35 | approach: hybrid | time: 2.561s | notes: found factor 69842539155469351
-[2026-03-23 23:35:48] size: 35 | approach: hybrid | time: 1.621s | notes: found factor 92227777863327913
-[2026-03-23 23:35:49] size: 35 | approach: hybrid | time: 1.535s | notes: found factor 29901438125424293
-[2026-03-23 23:35:51] size: 35 | approach: hybrid | time: 1.571s | notes: found factor 77098490402311201
-[2026-03-23 23:35:52] size: 35 | approach: hybrid | time: 1.456s | notes: found factor 37127311920159217
-[2026-03-23 23:35:55] size: 40 | approach: hybrid | time: 3.109s | notes: found factor 22583027504572801031
-[2026-03-23 23:35:58] size: 40 | approach: hybrid | time: 2.789s | notes: found factor 15144021729810256727
-[2026-03-23 23:36:01] size: 40 | approach: hybrid | time: 2.747s | notes: found factor 26780805813699501731
-[2026-03-23 23:36:04] size: 40 | approach: hybrid | time: 2.886s | notes: found factor 31096834276242774623
-[2026-03-23 23:36:07] size: 40 | approach: hybrid | time: 3.066s | notes: found factor 20804179672520600591
-[2026-03-23 23:36:10] size: 45 | approach: hybrid | time: 2.827s | notes: found factor 5657771382017363579353
-[2026-03-23 23:36:13] size: 45 | approach: hybrid | time: 3.128s | notes: found factor 8419588203749226068069
-[2026-03-23 23:36:16] size: 45 | approach: hybrid | time: 3.442s | notes: found factor 3527812285283428572707
-[2026-03-23 23:36:19] size: 45 | approach: hybrid | time: 3.186s | notes: found factor 6255792773131068668983
-[2026-03-23 23:36:23] size: 45 | approach: hybrid | time: 3.454s | notes: found factor 2300399292327339124403
-[2026-03-23 23:36:26] size: 50 | approach: hybrid | time: 2.853s | notes: found factor 2059422624891984908427913
-[2026-03-23 23:36:38] size: 50 | approach: hybrid | time: 12.490s | notes: found factor 3469948797237213917621473
-[2026-03-23 23:36:43] size: 50 | approach: hybrid | time: 4.295s | notes: found factor 3318784448526149968726087
-[2026-03-23 23:37:13] size: 50 | approach: hybrid | time: 30.249s | notes: found factor 2130491434134923133190229
-[2026-03-23 23:37:26] size: 50 | approach: hybrid | time: 12.747s | notes: found factor 1437953211038098705171097
-[2026-03-23 23:38:10] size: 55 | approach: hybrid | time: 44.696s | notes: found factor 613004874865992749646301531
-[2026-03-23 23:38:13] size: 55 | approach: hybrid | time: 2.643s | notes: found factor 859016482498061906252152027
-[2026-03-23 23:38:55] size: 55 | approach: hybrid | time: 41.724s | notes: found factor 218709495227837237296415933
-[2026-03-23 23:39:25] size: 55 | approach: hybrid | time: 30.450s | notes: found factor 363122801990237104785674219
-[2026-03-23 23:39:28] size: 55 | approach: hybrid | time: 2.772s | notes: found factor 451605564466253080023546841
-[2026-03-23 23:40:00] size: 30 | approach: dbrm | time: 7.081 | notes: factored 202930257038936... = 237853791679697... * 853172260176581...
-[2026-03-23 23:40:07] size: 30 | approach: dbrm | time: 7.214 | notes: factored 277919530678208... = 285490143297067... * 973482052545047...
-[2026-03-23 23:40:16] size: 30 | approach: dbrm | time: 8.816 | notes: factored 161156277905775... = 742943501885287... * 216915926307757...
-[2026-03-23 23:40:24] size: 30 | approach: dbrm | time: 7.934 | notes: factored 156130224139567... = 955492613363501... * 163402858332899...
-[2026-03-23 23:40:30] size: 30 | approach: dbrm | time: 6.403 | notes: factored 104911238164405... = 147780977331697... * 709910301438391...
-[2026-03-23 23:41:08] size: 31 | approach: dbrm | time: 37.412 | notes: factored 355565094289532... = 693772259654386... * 512509817654951...
-[2026-03-23 23:41:46] size: 31 | approach: dbrm | time: 38.182 | notes: factored 429293116277272... = 834077816631193... * 514691924083499...
-[2026-03-23 23:42:25] size: 31 | approach: dbrm | time: 38.543 | notes: factored 393104011369235... = 439264269483852... * 894914607625937...
-[2026-03-23 23:43:00] size: 31 | approach: dbrm | time: 35.735 | notes: factored 726689633377618... = 793089300201113... * 916277187440737...
-[2026-03-23 23:43:34] size: 31 | approach: dbrm | time: 33.858 | notes: factored 533500316084911... = 841510451217089... * 633979429861272...
-[2026-03-23 23:44:13] size: 32 | approach: dbrm | time: 38.726 | notes: factored 188739956202009... = 741392906584566... * 254574807130935...
-[2026-03-23 23:44:48] size: 32 | approach: dbrm | time: 35.407 | notes: factored 290429520223975... = 332483015348734... * 873516861964662...
-[2026-03-23 23:45:20] size: 32 | approach: dbrm | time: 31.310 | notes: factored 228667597911772... = 841958009246701... * 271590263885440...
-[2026-03-23 23:45:56] size: 32 | approach: dbrm | time: 35.889 | notes: factored 234349011471735... = 289599071523785... * 809218794240808...
-[2026-03-23 23:46:32] size: 32 | approach: dbrm | time: 36.099 | notes: factored 180359471813987... = 192887406766300... * 935050529413300...
-[2026-03-23 23:47:05] size: 33 | approach: dbrm | time: 33.853 | notes: factored 211311848629410... = 424639019169856... * 497627017513634...
-[2026-03-23 23:47:32] size: 33 | approach: dbrm | time: 26.646 | notes: factored 303401051059863... = 873693125587809... * 347262719797341...
-[2026-03-23 23:48:02] size: 33 | approach: dbrm | time: 30.316 | notes: factored 414021266036281... = 485914100382761... * 852046206747551...
-[2026-03-23 23:48:33] size: 33 | approach: dbrm | time: 30.186 | notes: factored 477714866436573... = 488826400362016... * 977268957001477...
-[2026-03-23 23:49:04] size: 33 | approach: dbrm | time: 31.497 | notes: factored 720437394186577... = 723477965614483... * 995797285373682...
-[2026-03-23 23:49:27] size: 34 | approach: dbrm | time: 23.275 | notes: factored 162381213391336... = 197917156498185... * 820450416044779...
-[2026-03-23 23:49:55] size: 34 | approach: dbrm | time: 28.033 | notes: factored 209742946853845... = 258156103393680... * 812465574497743...
-[2026-03-23 23:50:24] size: 34 | approach: dbrm | time: 28.617 | notes: factored 120853437593450... = 137073378606561... * 881669648928206...
-[2026-03-23 23:50:51] size: 34 | approach: dbrm | time: 26.732 | notes: factored 161893910942650... = 976154877332199... * 165848590937844...
-[2026-03-23 23:51:20] size: 34 | approach: dbrm | time: 29.025 | notes: factored 295410170550307... = 318857492804084... * 926464571845005...
-[2026-03-23 23:51:24] size: 35 | approach: dbrm | time: 4.158 | notes: factored 395285563179904... = 565966770337486... * 698425391554693...
-[2026-03-23 23:53:29] size: 35 | approach: dbrm | time: 125.341 | notes: factored 835438611457033... = 905842719852870... * 922277778633279...
-[2026-03-23 23:53:33] size: 35 | approach: dbrm | time: 3.701 | notes: factored 211034113370899... = 299014381254242... * 705765764461554...
-[2026-03-23 23:53:36] size: 35 | approach: dbrm | time: FAIL | notes: failed to factor 215931250208940...
-[2026-03-23 23:53:40] size: 35 | approach: dbrm | time: 3.771 | notes: factored 101710879449745... = 371273119201592... * 273951638805605...
+[2026-03-23 23:30:35] size: 30 | approach: ecm-baseline | time: 0.092s | notes: found factor 237853791679697
+[2026-03-23 23:30:35] size: 30 | approach: ecm-baseline | time: 0.013s | notes: found factor 285490143297067
+[2026-03-23 23:30:35] size: 30 | approach: ecm-baseline | time: 0.008s | notes: found factor 216915926307757
+[2026-03-23 23:30:35] size: 30 | approach: ecm-baseline | time: 0.006s | notes: found factor 163402858332899
+[2026-03-23 23:30:35] size: 30 | approach: ecm-baseline | time: 0.029s | notes: found factor 147780977331697
+[2026-03-23 23:30:35] size: 31 | approach: ecm-baseline | time: 0.139s | notes: found factor 512509817654951
+[2026-03-23 23:30:35] size: 31 | approach: ecm-baseline | time: 0.015s | notes: found factor 834077816631193
+[2026-03-23 23:30:35] size: 31 | approach: ecm-baseline | time: 0.016s | notes: found factor 894914607625937
+[2026-03-23 23:30:35] size: 31 | approach: ecm-baseline | time: 0.013s | notes: found factor 793089300201113
+[2026-03-23 23:30:35] size: 31 | approach: ecm-baseline | time: 0.060s | notes: found factor 841510451217089
+[2026-03-23 23:30:35] size: 32 | approach: ecm-baseline | time: 0.008s | notes: found factor 2545748071309357
+[2026-03-23 23:30:35] size: 32 | approach: ecm-baseline | time: 0.069s | notes: found factor 3324830153487347
+[2026-03-23 23:30:35] size: 32 | approach: ecm-baseline | time: 0.006s | notes: found factor 2715902638854409
+[2026-03-23 23:30:35] size: 32 | approach: ecm-baseline | time: 0.008s | notes: found factor 2895990715237859
+[2026-03-23 23:30:35] size: 32 | approach: ecm-baseline | time: 0.011s | notes: found factor 1928874067663001
+[2026-03-23 23:30:35] size: 33 | approach: ecm-baseline | time: 0.010s | notes: found factor 4246390191698561
+[2026-03-23 23:30:35] size: 33 | approach: ecm-baseline | time: 0.058s | notes: found factor 8736931255878097
+[2026-03-23 23:30:35] size: 33 | approach: ecm-baseline | time: 0.014s | notes: found factor 8520462067475513
+[2026-03-23 23:30:35] size: 33 | approach: ecm-baseline | time: 0.017s | notes: found factor 4888264003620161
+[2026-03-23 23:30:35] size: 33 | approach: ecm-baseline | time: 0.023s | notes: found factor 7234779656144837
+[2026-03-23 23:30:35] size: 34 | approach: ecm-baseline | time: 0.012s | notes: found factor 19791715649818547
+[2026-03-23 23:30:35] size: 34 | approach: ecm-baseline | time: 0.055s | notes: found factor 25815610339368071
+[2026-03-23 23:30:35] size: 34 | approach: ecm-baseline | time: 0.068s | notes: found factor 13707337860656159
+[2026-03-23 23:30:35] size: 34 | approach: ecm-baseline | time: 0.049s | notes: found factor 16584859093784497
+[2026-03-23 23:30:36] size: 34 | approach: ecm-baseline | time: 0.094s | notes: found factor 31885749280408423
+[2026-03-23 23:30:36] size: 35 | approach: ecm-baseline | time: 0.007s | notes: found factor 69842539155469351
+[2026-03-23 23:30:36] size: 35 | approach: ecm-baseline | time: 0.188s | notes: found factor 92227777863327913
+[2026-03-23 23:30:36] size: 35 | approach: ecm-baseline | time: 0.108s | notes: found factor 29901438125424293
+[2026-03-23 23:30:36] size: 35 | approach: ecm-baseline | time: 0.064s | notes: found factor 77098490402311201
+[2026-03-23 23:30:36] size: 35 | approach: ecm-baseline | time: 0.008s | notes: found factor 37127311920159217
+[2026-03-23 23:30:36] size: 36 | approach: ecm-baseline | time: 0.015s | notes: found factor 124427679318959899
+[2026-03-23 23:30:36] size: 36 | approach: ecm-baseline | time: 0.037s | notes: found factor 282354060658473593
+[2026-03-23 23:30:36] size: 36 | approach: ecm-baseline | time: 0.027s | notes: found factor 308335176111167687
+[2026-03-23 23:30:36] size: 36 | approach: ecm-baseline | time: 0.032s | notes: found factor 136048381418674093
+[2026-03-23 23:30:36] size: 36 | approach: ecm-baseline | time: 0.011s | notes: found factor 341557716280196699
+[2026-03-23 23:30:36] size: 37 | approach: ecm-baseline | time: 0.187s | notes: found factor 247512976258061539
+[2026-03-23 23:30:36] size: 37 | approach: ecm-baseline | time: 0.047s | notes: found factor 588689639046004393
+[2026-03-23 23:30:36] size: 37 | approach: ecm-baseline | time: 0.202s | notes: found factor 284946505447766681
+[2026-03-23 23:30:37] size: 37 | approach: ecm-baseline | time: 0.130s | notes: found factor 745861649733741133
+[2026-03-23 23:30:37] size: 37 | approach: ecm-baseline | time: 0.139s | notes: found factor 714657417109919609
+[2026-03-23 23:30:37] size: 38 | approach: ecm-baseline | time: 0.080s | notes: found factor 3510315453304323199
+[2026-03-23 23:30:37] size: 38 | approach: ecm-baseline | time: 0.147s | notes: found factor 2857813223847491747
+[2026-03-23 23:30:37] size: 38 | approach: ecm-baseline | time: 0.149s | notes: found factor 2297663271425438981
+[2026-03-23 23:30:37] size: 38 | approach: ecm-baseline | time: 0.156s | notes: found factor 1981968944913582883
+[2026-03-23 23:30:37] size: 38 | approach: ecm-baseline | time: 0.038s | notes: found factor 1419070827215424463
+[2026-03-23 23:30:37] size: 39 | approach: ecm-baseline | time: 0.192s | notes: found factor 3805776446815293773
+[2026-03-23 23:30:38] size: 39 | approach: ecm-baseline | time: 0.481s | notes: found factor 3770956117258414859
+[2026-03-23 23:30:39] size: 39 | approach: ecm-baseline | time: 0.842s | notes: found factor 9277092604312308143
+[2026-03-23 23:30:40] size: 41 | approach: ecm-baseline | time: 0.640s | notes: found factor 97281635418845629793
+[2026-03-23 23:30:40] size: 39 | approach: ecm-baseline | time: 1.546s | notes: found factor 5642016948985409609
+[2026-03-23 23:30:40] size: 39 | approach: ecm-baseline | time: 0.094s | notes: found factor 4334488463092636909
+[2026-03-23 23:30:41] size: 41 | approach: ecm-baseline | time: 0.231s | notes: found factor 47864119284989808803
+[2026-03-23 23:30:41] size: 40 | approach: ecm-baseline | time: 0.131s | notes: found factor 22583027504572801031
+[2026-03-23 23:30:41] size: 40 | approach: ecm-baseline | time: 0.035s | notes: found factor 15144021729810256727
+[2026-03-23 23:30:41] size: 41 | approach: ecm-baseline | time: 0.186s | notes: found factor 52722621216111037181
+[2026-03-23 23:30:41] size: 40 | approach: ecm-baseline | time: 0.204s | notes: found factor 26780805813699501731
+[2026-03-23 23:30:41] size: 40 | approach: ecm-baseline | time: 0.571s | notes: found factor 31096834276242774623
+[2026-03-23 23:30:42] size: 40 | approach: ecm-baseline | time: 0.158s | notes: found factor 20804179672520600591
+[2026-03-23 23:30:42] size: 41 | approach: ecm-baseline | time: 1.115s | notes: found factor 49726229804069553653
+[2026-03-23 23:30:42] size: 41 | approach: ecm-baseline | time: 0.313s | notes: found factor 71319641850106078133
+[2026-03-23 23:30:43] size: 42 | approach: ecm-baseline | time: 0.413s | notes: found factor 281458292402321571151
+[2026-03-23 23:30:43] size: 42 | approach: ecm-baseline | time: 0.102s | notes: found factor 312903253237424504801
+[2026-03-23 23:30:43] size: 42 | approach: ecm-baseline | time: 0.274s | notes: found factor 147654092019125183017
+[2026-03-23 23:30:43] size: 30 | approach: bsrf-v1 | time: 0.298s | notes: found factor 237853791679697
+[2026-03-23 23:30:44] size: 30 | approach: bsrf-v1 | time: 0.296s | notes: found factor 285490143297067
+[2026-03-23 23:30:44] size: 30 | approach: bsrf-v1 | time: 0.125s | notes: found factor 216915926307757
+[2026-03-23 23:30:44] size: 42 | approach: ecm-baseline | time: 0.775s | notes: found factor 207501258670461422731
+[2026-03-23 23:30:44] size: 42 | approach: ecm-baseline | time: 0.061s | notes: found factor 184183033605295054387
+[2026-03-23 23:30:44] size: 30 | approach: bsrf-v1 | time: 0.246s | notes: found factor 163402858332899
+[2026-03-23 23:30:45] size: 30 | approach: bsrf-v1 | time: 0.648s | notes: found factor 147780977331697
+[2026-03-23 23:30:45] size: 31 | approach: bsrf-v1 | time: 0.405s | notes: found factor 512509817654951
+[2026-03-23 23:30:45] size: 43 | approach: ecm-baseline | time: 1.367s | notes: found factor 424959156035574125951
+[2026-03-23 23:30:45] size: 31 | approach: bsrf-v1 | time: 0.416s | notes: found factor 834077816631193
+[2026-03-23 23:30:45] size: 43 | approach: ecm-baseline | time: 0.238s | notes: found factor 685508883579763761587
+[2026-03-23 23:30:45] size: 43 | approach: ecm-baseline | time: 0.028s | notes: found factor 480031815015378367571
+[2026-03-23 23:30:46] size: 31 | approach: bsrf-v1 | time: 0.377s | notes: found factor 894914607625937
+[2026-03-23 23:30:46] size: 31 | approach: bsrf-v1 | time: 0.321s | notes: found factor 793089300201113
+[2026-03-23 23:30:47] size: 31 | approach: bsrf-v1 | time: 0.541s | notes: found factor 841510451217089
+[2026-03-23 23:30:47] size: 32 | approach: bsrf-v1 | time: 0.313s | notes: found factor 2545748071309357
+[2026-03-23 23:30:47] size: 32 | approach: bsrf-v1 | time: 0.327s | notes: found factor 3324830153487347
+[2026-03-23 23:30:48] size: 32 | approach: bsrf-v1 | time: 0.580s | notes: found factor 2715902638854409
+[2026-03-23 23:30:48] size: 32 | approach: bsrf-v1 | time: 0.398s | notes: found factor 2895990715237859
+[2026-03-23 23:30:49] size: 32 | approach: bsrf-v1 | time: 0.428s | notes: found factor 1928874067663001
+[2026-03-23 23:30:49] size: 33 | approach: bsrf-v1 | time: 0.328s | notes: found factor 4246390191698561
+[2026-03-23 23:30:49] size: 43 | approach: ecm-baseline | time: 3.817s | notes: found factor 621734610734660306647
+[2026-03-23 23:30:50] size: 33 | approach: bsrf-v1 | time: 0.713s | notes: found factor 8736931255878097
+[2026-03-23 23:30:50] size: 33 | approach: bsrf-v1 | time: 0.354s | notes: found factor 8520462067475513
+[2026-03-23 23:30:50] size: 43 | approach: ecm-baseline | time: 1.006s | notes: found factor 738969104334604890011
+[2026-03-23 23:30:51] size: 33 | approach: bsrf-v1 | time: 0.498s | notes: found factor 4888264003620161
+[2026-03-23 23:30:51] size: 33 | approach: bsrf-v1 | time: 0.336s | notes: found factor 7234779656144837
+[2026-03-23 23:30:51] size: 44 | approach: ecm-baseline | time: 0.656s | notes: found factor 3431962552616557921391
+[2026-03-23 23:30:52] size: 44 | approach: ecm-baseline | time: 0.748s | notes: found factor 3212163167658753397391
+[2026-03-23 23:30:52] size: 34 | approach: bsrf-v1 | time: 0.815s | notes: found factor 19791715649818547
+[2026-03-23 23:30:52] size: 44 | approach: ecm-baseline | time: 0.532s | notes: found factor 2972570025159287871169
+[2026-03-23 23:30:52] size: 34 | approach: bsrf-v1 | time: 0.597s | notes: found factor 25815610339368071
+[2026-03-23 23:30:53] size: 34 | approach: bsrf-v1 | time: 0.510s | notes: found factor 13707337860656159
+[2026-03-23 23:30:53] size: 44 | approach: ecm-baseline | time: 0.843s | notes: found factor 1649598485426746783589
+[2026-03-23 23:30:54] size: 34 | approach: bsrf-v1 | time: 0.687s | notes: found factor 16584859093784497
+[2026-03-23 23:30:54] size: 34 | approach: bsrf-v1 | time: 0.377s | notes: found factor 31885749280408423
+[2026-03-23 23:30:54] size: 44 | approach: ecm-baseline | time: 1.370s | notes: found factor 1988562391539792713717
+[2026-03-23 23:30:54] size: 35 | approach: bsrf-v1 | time: 0.557s | notes: found factor 69842539155469351
+[2026-03-23 23:30:55] size: 35 | approach: bsrf-v1 | time: 0.460s | notes: found factor 92227777863327913
+[2026-03-23 23:30:55] size: 45 | approach: ecm-baseline | time: 0.557s | notes: found factor 5657771382017363579353
+[2026-03-23 23:30:55] size: 45 | approach: ecm-baseline | time: 0.074s | notes: found factor 8419588203749226068069
+[2026-03-23 23:30:55] size: 45 | approach: ecm-baseline | time: 0.228s | notes: found factor 3527812285283428572707
+[2026-03-23 23:30:56] size: 35 | approach: bsrf-v1 | time: 0.634s | notes: found factor 29901438125424293
+[2026-03-23 23:30:56] size: 45 | approach: ecm-baseline | time: 0.856s | notes: found factor 6255792773131068668983
+[2026-03-23 23:30:57] size: 35 | approach: bsrf-v1 | time: 0.989s | notes: found factor 77098490402311201
+[2026-03-23 23:30:57] size: 45 | approach: ecm-baseline | time: 0.538s | notes: found factor 2300399292327339124403
+[2026-03-23 23:30:57] size: 35 | approach: bsrf-v1 | time: 0.705s | notes: found factor 37127311920159217
+[2026-03-23 23:30:58] size: 46 | approach: ecm-baseline | time: 1.133s | notes: found factor 14841907243481981500237
+[2026-03-23 23:30:59] size: 46 | approach: ecm-baseline | time: 1.059s | notes: found factor 21583085895882087740731
+[2026-03-23 23:31:00] size: 46 | approach: ecm-baseline | time: 1.154s | notes: found factor 18357432076396134323221
+[2026-03-23 23:31:00] size: 46 | approach: ecm-baseline | time: 0.399s | notes: found factor 14883677127466624330153
+[2026-03-23 23:31:01] size: 46 | approach: ecm-baseline | time: 0.244s | notes: found factor 32183232455168051482133
+[2026-03-23 23:31:04] size: 47 | approach: ecm-baseline | time: 3.416s | notes: found factor 81931468391681569426621
+[2026-03-23 23:31:06] size: 47 | approach: ecm-baseline | time: 1.601s | notes: found factor 75680445070468545563987
+[2026-03-23 23:31:07] size: 47 | approach: ecm-baseline | time: 1.052s | notes: found factor 61022079294878594278343
+[2026-03-23 23:31:08] size: 47 | approach: ecm-baseline | time: 0.852s | notes: found factor 51095438111813134356253
+[2026-03-23 23:31:08] size: 47 | approach: ecm-baseline | time: 0.146s | notes: found factor 74100767199495443878501
+[2026-03-23 23:31:11] size: 48 | approach: ecm-baseline | time: 2.972s | notes: found factor 370349072788812560027843
+[2026-03-23 23:31:14] size: 48 | approach: ecm-baseline | time: 3.213s | notes: found factor 171645973353082599514967
+[2026-03-23 23:31:14] size: 48 | approach: ecm-baseline | time: 0.286s | notes: found factor 160616391926375448255877
+[2026-03-23 23:31:17] size: 48 | approach: ecm-baseline | time: 2.667s | notes: found factor 205602815378317965076943
+[2026-03-23 23:31:17] size: 48 | approach: ecm-baseline | time: 0.460s | notes: found factor 151393362073140314244911
+[2026-03-23 23:31:18] size: 49 | approach: ecm-baseline | time: 1.000s | notes: found factor 428089191893467020253793
+[2026-03-23 23:31:23] size: 49 | approach: ecm-baseline | time: 4.415s | notes: found factor 553218831838439580273533
+[2026-03-23 23:31:27] size: 49 | approach: ecm-baseline | time: 4.634s | notes: found factor 553254752874636273233573
+[2026-03-23 23:31:31] size: 49 | approach: ecm-baseline | time: 3.714s | notes: found factor 556530801993010943126801
+[2026-03-23 23:31:32] size: 49 | approach: ecm-baseline | time: 1.106s | notes: found factor 525590354464691109026639
+[2026-03-23 23:31:41] size: 50 | approach: ecm-baseline | time: 8.347s | notes: found factor 2059422624891984908427913
+[2026-03-23 23:31:42] size: 50 | approach: ecm-baseline | time: 1.630s | notes: found factor 3469948797237213917621473
+[2026-03-23 23:31:44] size: 50 | approach: ecm-baseline | time: 1.932s | notes: found factor 3318784448526149968726087
+[2026-03-23 23:31:47] size: 50 | approach: ecm-baseline | time: 2.559s | notes: found factor 2130491434134923133190229
+[2026-03-23 23:31:52] size: 50 | approach: ecm-baseline | time: 4.907s | notes: found factor 1437953211038098705171097
+[2026-03-23 23:31:55] size: 51 | approach: ecm-baseline | time: 3.934s | notes: found factor 4127357409568767268060631
+[2026-03-23 23:31:56] size: 51 | approach: ecm-baseline | time: 0.817s | notes: found factor 8115848758595820632007881
+[2026-03-23 23:31:57] size: 51 | approach: ecm-baseline | time: 0.836s | notes: found factor 7953513319018018259471423
+[2026-03-23 23:31:59] size: 51 | approach: ecm-baseline | time: 2.140s | notes: found factor 1816123731855796735100711
+[2026-03-23 23:32:06] size: 51 | approach: ecm-baseline | time: 6.323s | notes: found factor 5806238452825452583316819
+[2026-03-23 23:32:10] size: 52 | approach: ecm-baseline | time: 4.554s | notes: found factor 34003164953151782655462971
+[2026-03-23 23:32:14] size: 52 | approach: ecm-baseline | time: 4.072s | notes: found factor 28780674096203095299298811
+[2026-03-23 23:32:17] size: 52 | approach: ecm-baseline | time: 2.815s | notes: found factor 24570554797617055248456119
+[2026-03-23 23:32:32] size: 52 | approach: ecm-baseline | time: 15.187s | notes: found factor 15565294139424600003096857
+[2026-03-23 23:32:35] size: 52 | approach: ecm-baseline | time: 2.719s | notes: found factor 22318409650290877904765447
+[2026-03-23 23:32:44] size: 53 | approach: ecm-baseline | time: 9.248s | notes: found factor 39166953426167605960574537
+[2026-03-23 23:32:47] size: 53 | approach: ecm-baseline | time: 3.040s | notes: found factor 29692738994199812061880487
+[2026-03-23 23:32:50] size: 53 | approach: ecm-baseline | time: 3.108s | notes: found factor 24874557189734275922067623
+[2026-03-23 23:32:51] size: 53 | approach: ecm-baseline | time: 0.809s | notes: found factor 33785673890338315411281653
+[2026-03-23 23:32:55] size: 53 | approach: ecm-baseline | time: 4.326s | notes: found factor 83123628493545789346012201
+[2026-03-23 23:33:01] size: 54 | approach: ecm-baseline | time: 5.020s | notes: found factor 251931353323471365990991339
+[2026-03-23 23:33:04] size: 54 | approach: ecm-baseline | time: 3.541s | notes: found factor 315685386801061511673565103
+[2026-03-23 23:33:05] size: 54 | approach: ecm-baseline | time: 0.920s | notes: found factor 147513778738770894300716023
+[2026-03-23 23:33:09] size: 54 | approach: ecm-baseline | time: 3.573s | notes: found factor 222731417295594470332550983
+[2026-03-23 23:33:12] size: 54 | approach: ecm-baseline | time: 3.200s | notes: found factor 210660520322958242851495331
+[2026-03-23 23:33:20] size: 55 | approach: ecm-baseline | time: 7.888s | notes: found factor 613004874865992749646301531
+[2026-03-23 23:33:23] size: 55 | approach: ecm-baseline | time: 3.531s | notes: found factor 859016482498061906252152027
+[2026-03-23 23:33:25] size: 55 | approach: ecm-baseline | time: 2.165s | notes: found factor 218709495227837237296415933
+[2026-03-23 23:33:34] size: 55 | approach: ecm-baseline | time: 8.439s | notes: found factor 363122801990237104785674219
+[2026-03-23 23:33:38] size: 55 | approach: ecm-baseline | time: 4.208s | notes: found factor 451605564466253080023546841
+[2026-03-24 00:00:53] size: 30 | approach: bsrf-v2 | time: 0.107s | notes: found factor 237853791679697
+[2026-03-24 00:00:54] size: 30 | approach: bsrf-v2 | time: 0.105s | notes: found factor 285490143297067
+[2026-03-24 00:00:54] size: 30 | approach: bsrf-v2 | time: 0.080s | notes: found factor 216915926307757
+[2026-03-24 00:00:54] size: 30 | approach: bsrf-v2 | time: 0.104s | notes: found factor 163402858332899
+[2026-03-24 00:00:54] size: 30 | approach: bsrf-v2 | time: 0.138s | notes: found factor 147780977331697
+[2026-03-24 00:00:54] size: 31 | approach: bsrf-v2 | time: 0.122s | notes: found factor 512509817654951
+[2026-03-24 00:00:54] size: 31 | approach: bsrf-v2 | time: 0.120s | notes: found factor 834077816631193
+[2026-03-24 00:00:54] size: 31 | approach: bsrf-v2 | time: 0.121s | notes: found factor 894914607625937
+[2026-03-24 00:00:54] size: 31 | approach: bsrf-v2 | time: 0.113s | notes: found factor 793089300201113
+[2026-03-24 00:00:55] size: 31 | approach: bsrf-v2 | time: 0.132s | notes: found factor 841510451217089
+[2026-03-24 00:00:55] size: 32 | approach: bsrf-v2 | time: 0.116s | notes: found factor 2545748071309357
+[2026-03-24 00:00:55] size: 32 | approach: bsrf-v2 | time: 0.119s | notes: found factor 3324830153487347
+[2026-03-24 00:00:55] size: 32 | approach: bsrf-v2 | time: 0.153s | notes: found factor 2715902638854409
+[2026-03-24 00:00:55] size: 32 | approach: bsrf-v2 | time: 0.134s | notes: found factor 2895990715237859
+[2026-03-24 00:00:55] size: 32 | approach: bsrf-v2 | time: 0.130s | notes: found factor 1928874067663001
+[2026-03-24 00:00:55] size: 33 | approach: bsrf-v2 | time: 0.127s | notes: found factor 4246390191698561
+[2026-03-24 00:00:55] size: 33 | approach: bsrf-v2 | time: 0.159s | notes: found factor 8736931255878097
+[2026-03-24 00:00:56] size: 33 | approach: bsrf-v2 | time: 0.133s | notes: found factor 8520462067475513
+[2026-03-24 00:00:56] size: 33 | approach: bsrf-v2 | time: 0.146s | notes: found factor 4888264003620161
+[2026-03-24 00:00:56] size: 33 | approach: bsrf-v2 | time: 0.127s | notes: found factor 7234779656144837
+[2026-03-24 00:00:56] size: 34 | approach: bsrf-v2 | time: 0.168s | notes: found factor 19791715649818547
+[2026-03-24 00:00:56] size: 34 | approach: bsrf-v2 | time: 0.163s | notes: found factor 25815610339368071
+[2026-03-24 00:00:56] size: 34 | approach: bsrf-v2 | time: 0.142s | notes: found factor 13707337860656159
+[2026-03-24 00:00:57] size: 34 | approach: bsrf-v2 | time: 0.172s | notes: found factor 16584859093784497
+[2026-03-24 00:00:57] size: 34 | approach: bsrf-v2 | time: 0.140s | notes: found factor 31885749280408423
+[2026-03-24 00:00:57] size: 35 | approach: bsrf-v2 | time: 0.177s | notes: found factor 69842539155469351
+[2026-03-24 00:00:57] size: 35 | approach: bsrf-v2 | time: 0.174s | notes: found factor 92227777863327913
+[2026-03-24 00:00:57] size: 35 | approach: bsrf-v2 | time: 0.174s | notes: found factor 29901438125424293
+[2026-03-24 00:00:57] size: 35 | approach: bsrf-v2 | time: 0.204s | notes: found factor 77098490402311201
+[2026-03-24 00:00:58] size: 35 | approach: bsrf-v2 | time: 0.186s | notes: found factor 37127311920159217
+[2026-03-24 00:00:58] size: 36 | approach: bsrf-v2 | time: 0.197s | notes: found factor 124427679318959899
+[2026-03-24 00:00:58] size: 36 | approach: bsrf-v2 | time: 0.242s | notes: found factor 282354060658473593
+[2026-03-24 00:00:58] size: 36 | approach: bsrf-v2 | time: 0.275s | notes: found factor 308335176111167687
+[2026-03-24 00:00:58] size: 36 | approach: bsrf-v2 | time: 0.151s | notes: found factor 136048381418674093
+[2026-03-24 00:00:59] size: 36 | approach: bsrf-v2 | time: 0.206s | notes: found factor 341557716280196699
+[2026-03-24 00:00:59] size: 37 | approach: bsrf-v2 | time: FAIL | notes: no factor for 21827207259895081678...
+[2026-03-24 00:00:59] size: 38 | approach: bsrf-v2 | time: FAIL | notes: no factor for 32433518927635311210...
+[2026-03-24 00:01:00] size: 39 | approach: bsrf-v2 | time: 0.474s | notes: found factor 3805776446815293773
+[2026-03-24 00:01:00] size: 39 | approach: bsrf-v2 | time: 0.311s | notes: found factor 3770956117258414859
+[2026-03-24 00:01:00] size: 39 | approach: bsrf-v2 | time: 0.343s | notes: found factor 9277092604312308143
+[2026-03-24 00:01:01] size: 41 | approach: bsrf-v2 | time: FAIL | notes: no factor for 79490313721248448169...
+[2026-03-24 00:01:01] size: 39 | approach: bsrf-v2 | time: FAIL | notes: no factor for 20046500623561422604...
+[2026-03-24 00:01:01] size: 40 | approach: bsrf-v2 | time: 0.541s | notes: found factor 22583027504572801031
+[2026-03-24 00:01:01] size: 42 | approach: bsrf-v2 | time: FAIL | notes: no factor for 27971345334147874785...
+[2026-03-24 00:01:02] size: 40 | approach: bsrf-v2 | time: 0.492s | notes: found factor 15144021729810256727
+[2026-03-24 00:01:02] size: 43 | approach: bsrf-v2 | time: FAIL | notes: no factor for 28868493580451356168...
+[2026-03-24 00:01:02] size: 40 | approach: bsrf-v2 | time: 0.703s | notes: found factor 26780805813699501731
+[2026-03-24 00:01:03] size: 40 | approach: bsrf-v2 | time: 0.512s | notes: found factor 31096834276242774623
+[2026-03-24 00:01:03] size: 44 | approach: bsrf-v2 | time: FAIL | notes: no factor for 30887939949413099244...
+[2026-03-24 00:01:04] size: 40 | approach: bsrf-v2 | time: FAIL | notes: no factor for 19255250805722994549...
+[2026-03-24 00:01:05] size: 45 | approach: bsrf-v2 | time: 1.297s | notes: found factor 5657771382017363579353
+[2026-03-24 00:01:06] size: 45 | approach: bsrf-v2 | time: 1.141s | notes: found factor 8419588203749226068069
+[2026-03-24 00:01:07] size: 45 | approach: bsrf-v2 | time: 1.024s | notes: found factor 3527812285283428572707
+[2026-03-24 00:01:08] size: 45 | approach: bsrf-v2 | time: FAIL | notes: no factor for 43020229823640512191...
+[2026-03-24 00:01:09] size: 46 | approach: bsrf-v2 | time: 1.170s | notes: found factor 14841907243481981500237
+[2026-03-24 00:01:10] size: 46 | approach: bsrf-v2 | time: 1.234s | notes: found factor 21583085895882087740731
+[2026-03-24 00:01:12] size: 46 | approach: bsrf-v2 | time: FAIL | notes: no factor for 12972604990139170176...
+[2026-03-24 00:01:13] size: 47 | approach: bsrf-v2 | time: FAIL | notes: no factor for 22662729899266246772...
+[2026-03-24 00:01:14] size: 48 | approach: bsrf-v2 | time: FAIL | notes: no factor for 36171110301884911854...
+[2026-03-24 00:01:17] size: 49 | approach: bsrf-v2 | time: FAIL | notes: no factor for 23128761010340801074...
+[2026-03-24 00:01:20] size: 56 | approach: ecm-baseline | time: 10.884s | notes: found factor 2084529907224965327995401461
+[2026-03-24 00:01:20] size: 50 | approach: bsrf-v2 | time: FAIL | notes: no factor for 16724097559247740010...
+[2026-03-24 00:01:28] size: 56 | approach: ecm-baseline | time: 8.333s | notes: found factor 2619642279271363362833363051
+[2026-03-24 00:01:38] size: 56 | approach: ecm-baseline | time: 10.474s | notes: found factor 2731014286536400400755034377
+[2026-03-24 00:01:57] size: 56 | approach: ecm-baseline | time: 18.108s | notes: found factor 3133919947636714377324251347
+[2026-03-24 00:02:07] size: 56 | approach: ecm-baseline | time: 10.029s | notes: found factor 1812692971414181860801305169
+[2026-03-24 00:02:09] size: 57 | approach: ecm-baseline | time: 2.358s | notes: found factor 4561245599374620210470661251
+[2026-03-24 00:02:12] size: 57 | approach: ecm-baseline | time: 3.128s | notes: found factor 8088542170426729881777048173
+[2026-03-24 00:02:23] size: 57 | approach: ecm-baseline | time: 10.945s | notes: found factor 5255893546759994614176361127
+[2026-03-24 00:03:13] size: 57 | approach: ecm-baseline | time: 49.482s | notes: found factor 5761896353180878733239029497
+[2026-03-24 00:03:20] size: 57 | approach: ecm-baseline | time: 7.732s | notes: found factor 3488128112046766079111453917
+[2026-03-24 00:03:35] size: 58 | approach: ecm-baseline | time: 14.521s | notes: found factor 28846244187484255242635303993
+[2026-03-24 00:04:12] size: 58 | approach: ecm-baseline | time: 37.405s | notes: found factor 19272162302635252599922921579
+[2026-03-24 00:04:33] size: 58 | approach: ecm-baseline | time: 20.794s | notes: found factor 30195067453845270578085979081
+[2026-03-24 00:04:59] size: 58 | approach: ecm-baseline | time: 25.725s | notes: found factor 17126378949394488899993742571
+[2026-03-24 00:05:15] size: 58 | approach: ecm-baseline | time: 15.914s | notes: found factor 12586372445066434246481998027
+[2026-03-24 00:05:45] size: 59 | approach: ecm-baseline | time: 30.310s | notes: found factor 48651413660930190627280465967
+[2026-03-24 00:05:48] size: 59 | approach: ecm-baseline | time: 2.864s | notes: found factor 73089891300619781979847569431
+[2026-03-24 00:06:15] size: 59 | approach: ecm-baseline | time: 27.305s | notes: found factor 12495230081720858250831839399
+[2026-03-24 00:06:35] size: 59 | approach: ecm-baseline | time: 20.300s | notes: found factor 44308523053430882607459859471
+[2026-03-24 00:07:39] size: 59 | approach: ecm-baseline | time: 63.769s | notes: found factor 52881702746833105399128964501
+[2026-03-24 00:07:57] size: 60 | approach: ecm-baseline | time: 17.364s | notes: found factor 323012268366406069604976245747
+[2026-03-24 00:08:30] size: 60 | approach: ecm-baseline | time: 33.254s | notes: found factor 233727393239440919182445071663
+[2026-03-24 00:08:44] size: 60 | approach: ecm-baseline | time: 13.719s | notes: found factor 160593629707405643958487297489
+[2026-03-24 00:09:24] size: 60 | approach: ecm-baseline | time: 39.991s | notes: found factor 127259672474532960959076409103
+[2026-03-24 00:10:16] size: 60 | approach: ecm-baseline | time: 52.792s | notes: found factor 185861201914548184489307675869
+[2026-03-24 00:10:58] size: 61 | approach: ecm-baseline | time: 41.446s | notes: found factor 879833278510687554145401659213
+[2026-03-24 00:12:45] size: 30 | approach: bsrf-v3 | time: 0.014s | notes: found factor 237853791679697
+[2026-03-24 00:12:45] size: 30 | approach: bsrf-v3 | time: FAIL | notes: no factor for 27791953067820837487...
+[2026-03-24 00:12:45] size: 31 | approach: bsrf-v3 | time: 0.017s | notes: found factor 512509817654951
+[2026-03-24 00:12:45] size: 31 | approach: bsrf-v3 | time: 0.016s | notes: found factor 834077816631193
+[2026-03-24 00:12:45] size: 31 | approach: bsrf-v3 | time: 0.019s | notes: found factor 894914607625937
+[2026-03-24 00:12:45] size: 31 | approach: bsrf-v3 | time: 0.020s | notes: found factor 793089300201113
+[2026-03-24 00:12:45] size: 31 | approach: bsrf-v3 | time: 0.018s | notes: found factor 841510451217089
+[2026-03-24 00:12:45] size: 32 | approach: bsrf-v3 | time: 0.017s | notes: found factor 2545748071309357
+[2026-03-24 00:12:45] size: 32 | approach: bsrf-v3 | time: 0.016s | notes: found factor 3324830153487347
+[2026-03-24 00:12:45] size: 32 | approach: bsrf-v3 | time: 0.021s | notes: found factor 2715902638854409
+[2026-03-24 00:12:46] size: 32 | approach: bsrf-v3 | time: 0.019s | notes: found factor 2895990715237859
+[2026-03-24 00:12:46] size: 32 | approach: bsrf-v3 | time: 0.020s | notes: found factor 1928874067663001
+[2026-03-24 00:12:46] size: 33 | approach: bsrf-v3 | time: 0.017s | notes: found factor 4246390191698561
+[2026-03-24 00:12:46] size: 33 | approach: bsrf-v3 | time: 0.026s | notes: found factor 8736931255878097
+[2026-03-24 00:12:46] size: 33 | approach: bsrf-v3 | time: 0.023s | notes: found factor 8520462067475513
+[2026-03-24 00:12:46] size: 33 | approach: bsrf-v3 | time: 0.020s | notes: found factor 4888264003620161
+[2026-03-24 00:12:46] size: 33 | approach: bsrf-v3 | time: 0.024s | notes: found factor 7234779656144837
+[2026-03-24 00:12:46] size: 34 | approach: bsrf-v3 | time: 0.027s | notes: found factor 19791715649818547
+[2026-03-24 00:12:46] size: 34 | approach: bsrf-v3 | time: 0.026s | notes: found factor 25815610339368071
+[2026-03-24 00:12:46] size: 34 | approach: bsrf-v3 | time: 0.025s | notes: found factor 13707337860656159
+[2026-03-24 00:12:46] size: 34 | approach: bsrf-v3 | time: 0.026s | notes: found factor 16584859093784497
+[2026-03-24 00:12:46] size: 34 | approach: bsrf-v3 | time: 0.025s | notes: found factor 31885749280408423
+[2026-03-24 00:12:46] size: 35 | approach: bsrf-v3 | time: 0.027s | notes: found factor 69842539155469351
+[2026-03-24 00:12:46] size: 35 | approach: bsrf-v3 | time: 0.025s | notes: found factor 92227777863327913
+[2026-03-24 00:12:46] size: 35 | approach: bsrf-v3 | time: 0.029s | notes: found factor 29901438125424293
+[2026-03-24 00:12:46] size: 35 | approach: bsrf-v3 | time: 0.036s | notes: found factor 77098490402311201
+[2026-03-24 00:12:46] size: 35 | approach: bsrf-v3 | time: 0.029s | notes: found factor 37127311920159217
+[2026-03-24 00:12:46] size: 36 | approach: bsrf-v3 | time: 0.030s | notes: found factor 124427679318959899
+[2026-03-24 00:12:46] size: 36 | approach: bsrf-v3 | time: 0.041s | notes: found factor 282354060658473593
+[2026-03-24 00:12:46] size: 36 | approach: bsrf-v3 | time: 0.043s | notes: found factor 308335176111167687
+[2026-03-24 00:12:46] size: 36 | approach: bsrf-v3 | time: 0.029s | notes: found factor 136048381418674093
+[2026-03-24 00:12:46] size: 36 | approach: bsrf-v3 | time: 0.034s | notes: found factor 341557716280196699
+[2026-03-24 00:12:46] size: 37 | approach: bsrf-v3 | time: 0.058s | notes: found factor 247512976258061539
+[2026-03-24 00:12:46] size: 37 | approach: bsrf-v3 | time: 0.054s | notes: found factor 588689639046004393
+[2026-03-24 00:12:46] size: 37 | approach: bsrf-v3 | time: 0.040s | notes: found factor 284946505447766681
+[2026-03-24 00:12:46] size: 37 | approach: bsrf-v3 | time: 0.047s | notes: found factor 745861649733741133
+[2026-03-24 00:12:46] size: 37 | approach: bsrf-v3 | time: 0.045s | notes: found factor 714657417109919609
+[2026-03-24 00:12:46] size: 38 | approach: bsrf-v3 | time: 0.062s | notes: found factor 3510315453304323199
+[2026-03-24 00:12:46] size: 38 | approach: bsrf-v3 | time: 0.054s | notes: found factor 2857813223847491747
+[2026-03-24 00:12:47] size: 38 | approach: bsrf-v3 | time: 0.074s | notes: found factor 2297663271425438981
+[2026-03-24 00:12:47] size: 38 | approach: bsrf-v3 | time: 0.069s | notes: found factor 1981968944913582883
+[2026-03-24 00:12:47] size: 38 | approach: bsrf-v3 | time: 0.057s | notes: found factor 1419070827215424463
+[2026-03-24 00:12:47] size: 39 | approach: bsrf-v3 | time: 0.074s | notes: found factor 3805776446815293773
+[2026-03-24 00:12:47] size: 39 | approach: bsrf-v3 | time: 0.058s | notes: found factor 3770956117258414859
+[2026-03-24 00:12:47] size: 39 | approach: bsrf-v3 | time: 0.072s | notes: found factor 9277092604312308143
+[2026-03-24 00:12:47] size: 39 | approach: bsrf-v3 | time: 0.072s | notes: found factor 5642016948985409609
+[2026-03-24 00:12:47] size: 39 | approach: bsrf-v3 | time: 0.083s | notes: found factor 4334488463092636909
+[2026-03-24 00:12:47] size: 40 | approach: bsrf-v3 | time: 0.094s | notes: found factor 22583027504572801031
+[2026-03-24 00:12:47] size: 40 | approach: bsrf-v3 | time: 0.087s | notes: found factor 15144021729810256727
+[2026-03-24 00:12:47] size: 40 | approach: bsrf-v3 | time: 0.095s | notes: found factor 26780805813699501731
+[2026-03-24 00:12:47] size: 40 | approach: bsrf-v3 | time: 0.091s | notes: found factor 31096834276242774623
+[2026-03-24 00:12:47] size: 40 | approach: bsrf-v3 | time: 0.106s | notes: found factor 20804179672520600591
+[2026-03-24 00:12:50] size: 61 | approach: ecm-baseline | time: 112.616s | notes: found factor 755690653702078362063393888071
+[2026-03-24 00:12:52] size: 41 | approach: bsrf-v3 | time: 0.126s | notes: found factor 97281635418845629793
+[2026-03-24 00:12:52] size: 41 | approach: bsrf-v3 | time: 0.122s | notes: found factor 47864119284989808803
+[2026-03-24 00:12:52] size: 41 | approach: bsrf-v3 | time: 0.131s | notes: found factor 52722621216111037181
+[2026-03-24 00:12:52] size: 41 | approach: bsrf-v3 | time: 0.104s | notes: found factor 49726229804069553653
+[2026-03-24 00:12:52] size: 41 | approach: bsrf-v3 | time: 0.164s | notes: found factor 71319641850106078133
+[2026-03-24 00:12:52] size: 42 | approach: bsrf-v3 | time: 0.158s | notes: found factor 281458292402321571151
+[2026-03-24 00:12:52] size: 42 | approach: bsrf-v3 | time: 0.121s | notes: found factor 312903253237424504801
+[2026-03-24 00:12:52] size: 42 | approach: bsrf-v3 | time: 0.127s | notes: found factor 147654092019125183017
+[2026-03-24 00:12:53] size: 42 | approach: bsrf-v3 | time: 0.122s | notes: found factor 207501258670461422731
+[2026-03-24 00:12:53] size: 42 | approach: bsrf-v3 | time: 0.115s | notes: found factor 184183033605295054387
+[2026-03-24 00:12:53] size: 43 | approach: bsrf-v3 | time: 0.210s | notes: found factor 424959156035574125951
+[2026-03-24 00:12:53] size: 43 | approach: bsrf-v3 | time: 0.201s | notes: found factor 685508883579763761587
+[2026-03-24 00:12:53] size: 43 | approach: bsrf-v3 | time: 0.187s | notes: found factor 480031815015378367571
+[2026-03-24 00:12:54] size: 43 | approach: bsrf-v3 | time: 0.200s | notes: found factor 621734610734660306647
+[2026-03-24 00:12:54] size: 43 | approach: bsrf-v3 | time: 0.211s | notes: found factor 738969104334604890011
+[2026-03-24 00:12:54] size: 44 | approach: bsrf-v3 | time: 0.281s | notes: found factor 3431962552616557921391
+[2026-03-24 00:12:54] size: 44 | approach: bsrf-v3 | time: 0.300s | notes: found factor 3212163167658753397391
+[2026-03-24 00:12:55] size: 44 | approach: bsrf-v3 | time: 0.198s | notes: found factor 2972570025159287871169
+[2026-03-24 00:12:55] size: 44 | approach: bsrf-v3 | time: 0.239s | notes: found factor 1649598485426746783589
+[2026-03-24 00:12:55] size: 44 | approach: bsrf-v3 | time: 0.243s | notes: found factor 1988562391539792713717
+[2026-03-24 00:12:55] size: 45 | approach: bsrf-v3 | time: 0.317s | notes: found factor 5657771382017363579353
+[2026-03-24 00:12:56] size: 45 | approach: bsrf-v3 | time: 0.349s | notes: found factor 8419588203749226068069
+[2026-03-24 00:12:56] size: 45 | approach: bsrf-v3 | time: 0.307s | notes: found factor 3527812285283428572707
+[2026-03-24 00:12:56] size: 45 | approach: bsrf-v3 | time: 0.422s | notes: found factor 6255792773131068668983
+[2026-03-24 00:12:57] size: 51 | approach: bsrf-v3 | time: 1.532s | notes: found factor 4127357409568767268060631
+[2026-03-24 00:12:57] size: 45 | approach: bsrf-v3 | time: 0.309s | notes: found factor 2300399292327339124403
+[2026-03-24 00:12:57] size: 46 | approach: bsrf-v3 | time: 0.380s | notes: found factor 14841907243481981500237
+[2026-03-24 00:12:57] size: 46 | approach: bsrf-v3 | time: 0.345s | notes: found factor 21583085895882087740731
+[2026-03-24 00:12:58] size: 46 | approach: bsrf-v3 | time: 0.441s | notes: found factor 18357432076396134323221
+[2026-03-24 00:12:58] size: 46 | approach: bsrf-v3 | time: 0.397s | notes: found factor 14883677127466624330153
+[2026-03-24 00:12:58] size: 51 | approach: bsrf-v3 | time: 1.661s | notes: found factor 8115848758595820632007881
+[2026-03-24 00:12:59] size: 46 | approach: bsrf-v3 | time: 0.440s | notes: found factor 32183232455168051482133
+[2026-03-24 00:12:59] size: 47 | approach: bsrf-v3 | time: 0.552s | notes: found factor 81931468391681569426621
+[2026-03-24 00:13:00] size: 47 | approach: bsrf-v3 | time: 0.583s | notes: found factor 75680445070468545563987
+[2026-03-24 00:13:00] size: 51 | approach: bsrf-v3 | time: 1.699s | notes: found factor 7953513319018018259471423
+[2026-03-24 00:13:00] size: 47 | approach: bsrf-v3 | time: 0.584s | notes: found factor 61022079294878594278343
+[2026-03-24 00:13:01] size: 47 | approach: bsrf-v3 | time: 0.611s | notes: found factor 51095438111813134356253
+[2026-03-24 00:13:02] size: 47 | approach: bsrf-v3 | time: 0.619s | notes: found factor 74100767199495443878501
+[2026-03-24 00:13:02] size: 51 | approach: bsrf-v3 | time: 1.886s | notes: found factor 1816123731855796735100711
+[2026-03-24 00:13:02] size: 48 | approach: bsrf-v3 | time: 0.685s | notes: found factor 370349072788812560027843
