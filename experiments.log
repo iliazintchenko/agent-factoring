@@ -788,3 +788,19 @@
 [2026-03-24 01:13:02] size: 67 | approach: ecm-baseline | time: 92.664s | notes: found factor 977285896970524251801267242996843
 [2026-03-24 01:13:30] size: 50 | approach: mms-pp | time: 30.560s | notes: found factor 2130491434134923133190229
 [2026-03-24 01:14:02] size: 50 | approach: mms-pp | time: 31.936s | notes: found factor 9919464584532754681498727
+[2026-03-24 01:16:19] size: 60 | approach: bsrf-v4 | time: FAIL | notes: no factor for 10984642428074110377...
+[2026-03-24 01:17:31] size: 30 | approach: mms-opt | time: 0.073s | notes: found factor 853172260176581
+[2026-03-24 01:17:31] size: 30 | approach: mms-opt | time: 0.069s | notes: found factor 285490143297067
+[2026-03-24 01:17:31] size: 30 | approach: mms-opt | time: 0.063s | notes: found factor 742943501885287
+[2026-03-24 01:17:32] size: 30 | approach: mms-opt | time: 0.069s | notes: found factor 163402858332899
+[2026-03-24 01:17:32] size: 30 | approach: mms-opt | time: 0.071s | notes: found factor 709910301438391
+[2026-03-24 01:17:33] size: 40 | approach: mms-opt | time: 1.392s | notes: found factor 22583027504572801031
+[2026-03-24 01:17:34] size: 40 | approach: mms-opt | time: 1.158s | notes: found factor 15144021729810256727
+[2026-03-24 01:17:35] size: 40 | approach: mms-opt | time: 1.299s | notes: found factor 93638414278799019499
+[2026-03-24 01:17:37] size: 40 | approach: mms-opt | time: 1.195s | notes: found factor 31096834276242774623
+[2026-03-24 01:17:38] size: 40 | approach: mms-opt | time: 1.219s | notes: found factor 20804179672520600591
+[2026-03-24 01:18:05] size: 50 | approach: mms-opt | time: 27.083s | notes: found factor 8120770043557672253141101
+[2026-03-24 01:18:31] size: 50 | approach: mms-opt | time: 25.634s | notes: found factor 3469948797237213917621473
+[2026-03-24 01:18:57] size: 50 | approach: mms-opt | time: 26.289s | notes: found factor 3318784448526149968726087
+[2026-03-24 01:19:23] size: 50 | approach: mms-opt | time: 25.976s | notes: found factor 9591453119320901101941821
+[2026-03-24 01:19:50] size: 50 | approach: mms-opt | time: 27.542s | notes: found factor 1437953211038098705171097
