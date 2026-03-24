@@ -68,10 +68,11 @@ int main(int argc, char **argv) {
             printf("FACTOR:%lu\n", p); mpz_clears(N, f, NULL); return 0;
         }
 
-    /* Optimal B1 for balanced semiprimes */
+    /* Optimal B1 for balanced semiprimes - start lower for reliability */
     double ln_N = ndigits * log(10);
-    double B1 = exp(sqrt(0.5 * ln_N * log(ln_N))) / 5;
-    if (B1 < 1e5) B1 = 1e5;
+    double optimal_B1 = exp(sqrt(0.5 * ln_N * log(ln_N)));
+    double B1 = optimal_B1 / 20; /* start at optimal/20 */
+    if (B1 < 5e4) B1 = 5e4;
 
     fprintf(stderr, "  B1=%.0f\n", B1);
 
@@ -100,8 +101,9 @@ int main(int argc, char **argv) {
             mpz_clears(N, f, NULL); return 0;
         }
 
-        /* Ramp B1 */
-        if (curve % 10 == 9) B1 *= 1.3;
+        /* Ramp B1 faster for reliability */
+        if (curve % 5 == 4) B1 *= 1.5;
+        if (B1 > optimal_B1 * 3) B1 = optimal_B1 * 3;
 
         if (curve % 100 == 99) {
             fprintf(stderr, "  curve %d: B1=%.0f (%.1fs)\n", curve, B1, wall_time() - t0);
