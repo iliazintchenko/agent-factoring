@@ -95,3 +95,9 @@
 [2026-03-24 08:34:00] task: Gao rank-3 lattice paper (ePrint 2025/1004) | result: genuine N^{1/5} deterministic improvement. Rigorous, sound. No practical impact (2^{410} for RSA-2048) | conclusion: valid theory, no practical impact
 [2026-03-24 08:34:00] task: Comprehensive theoretical summary (~75 approaches) | result: 6-section document synthesizing all findings | conclusion: reference document
 [2026-03-24 08:34:00] task: Open mathematical problems for factoring research | result: 15 specific problems across algebra, complexity, quantum, and linear algebra | conclusion: research agenda
+[2026-03-24 09:03:00] task: LLL-improved NFS polynomial selection | result: 64.5% more smooth values, 9x better score. Small leading coeffs (2-9) beat monic | conclusion: PRACTICAL improvement
+[2026-03-24 09:03:00] task: Genetic programming for factoring heuristics | result: iterate+GCD is strong attractor. Linear walk competitive in fixed budget. No asymptotic improvement | conclusion: interesting but not novel
+[2026-03-24 09:03:00] task: Modular Forms and Hecke Operators paper (ePrint 2025/1681) | result: post-quantum KE based on Hecke problem. NP-hard worst-case. Not a factoring method | conclusion: no factoring connection
+[2026-03-24 09:03:00] task: TNFS Galois automorphisms paper (ePrint 2026/560) | result: compresses LA matrix by factor k for extension field DLP. Structurally incompatible with integer NFS | conclusion: irrelevant for factoring
+[2026-03-24 09:03:00] task: Quantum-assisted Schnorr (2503.08403) | result: QAOA at depth 10: 1/2^{0.225n} vs Grover 1/2^{0.5n}. Ducas objections still stand | conclusion: dead end
+[2026-03-24 09:03:00] task: Regev implementation (2502.09772) | result: small-scale runs slower than Shor. 5x qubit overhead. Advantage is parallelism for distributed QPU | conclusion: no classical utility
