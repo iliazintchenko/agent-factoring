@@ -768,3 +768,28 @@
 [2026-03-24 03:52:36] size: 53 | approach: LGSH-v3-extended | time: FAIL | notes: some failed, times: 245.186 252.007 234.477 FAIL FAIL
 [2026-03-24 03:55:31] size: 61 | approach: ECM-extended | time: 188.805s | notes: worst of 5, times: 44.487 55.030 30.866 28.564 188.805
 [2026-03-24 04:10:00] size: 62 | approach: ECM-extended | time: 178.070s | notes: 3/5 tested: 43s, 128s, 178s
+[2026-03-24 03:53:42] size: 30 | approach: siqs_bench | time: 0.283s | notes: found factor 237853791679697
+[2026-03-24 03:53:42] size: 30 | approach: siqs_bench | time: 0.311s | notes: found factor 973482052545047
+[2026-03-24 03:53:43] size: 30 | approach: siqs_bench | time: 0.463s | notes: found factor 742943501885287
+[2026-03-24 03:53:43] size: 30 | approach: siqs_bench | time: 0.326s | notes: found factor 955492613363501
+[2026-03-24 03:53:43] size: 30 | approach: siqs_bench | time: 0.228s | notes: found factor 709910301438391
+[2026-03-24 03:53:43] size: 34 | approach: siqs_bench | time: 0.357s | notes: found factor 82045041604477999
+[2026-03-24 03:53:44] size: 34 | approach: siqs_bench | time: 0.472s | notes: found factor 81246557449774337
+[2026-03-24 03:53:44] size: 34 | approach: siqs_bench | time: 0.526s | notes: found factor 13707337860656159
+[2026-03-24 03:53:45] size: 34 | approach: siqs_bench | time: 0.462s | notes: found factor 97615487733219949
+[2026-03-24 03:53:45] size: 34 | approach: siqs_bench | time: 0.534s | notes: found factor 31885749280408423
+[2026-03-24 03:53:47] size: 38 | approach: siqs_bench | time: 1.412s | notes: found factor 9239488404697377077
+[2026-03-24 03:53:48] size: 38 | approach: siqs_bench | time: 1.650s | notes: found factor 8712064908380816417
+[2026-03-24 03:53:50] size: 38 | approach: siqs_bench | time: 1.399s | notes: found factor 8474925057250052257
+[2026-03-24 03:53:51] size: 38 | approach: siqs_bench | time: 1.531s | notes: found factor 9506287303606162577
+[2026-03-24 03:53:53] size: 38 | approach: siqs_bench | time: 1.474s | notes: found factor 9541016958474145709
+[2026-03-24 03:53:57] size: 42 | approach: siqs_bench | time: 4.029s | notes: found factor 993800718941516497211
+[2026-03-24 03:54:00] size: 42 | approach: siqs_bench | time: 3.445s | notes: found factor 867102878032255241681
+[2026-03-24 03:54:04] size: 42 | approach: siqs_bench | time: 3.869s | notes: found factor 832049973472240230583
+[2026-03-24 03:54:07] size: 42 | approach: siqs_bench | time: 3.219s | notes: found factor 558210507008341640149
+[2026-03-24 03:54:11] size: 42 | approach: siqs_bench | time: 3.389s | notes: found factor 184183033605295054387
+[2026-03-24 03:54:23] size: 46 | approach: siqs_bench | time: 11.914s | notes: found factor 14841907243481981500237
+[2026-03-24 03:54:32] size: 46 | approach: siqs_bench | time: 9.591s | notes: found factor 85010884086564696300199
+[2026-03-24 03:54:46] size: 46 | approach: siqs_bench | time: FAIL | notes: no factor for 12972604990139170176...
+[2026-03-24 03:55:28] size: 50 | approach: siqs_bench | time: FAIL | notes: no factor for 16724097559247740010...
+[2026-03-24 03:56:22] size: 30-42 | approach: siqs_bench | time: see notes | notes: SIQS worst-of-5: 30d=0.46s, 34d=0.53s, 38d=1.65s, 42d=4.03s. FAIL at 46d.
