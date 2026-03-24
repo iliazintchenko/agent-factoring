@@ -677,3 +677,9 @@
 [2026-03-24 03:37:18] size: 46 | approach: hsd-v1 | time: 9.800s | notes: found factor 85010884086564696300199
 [2026-03-24 03:40:00] size: 30 | approach: cf_products | time: 0.5s | notes: CF product pairs have |A_i*A_j| ≈ N (97-183 bits for 100-bit N), worse than individual A_k ≈ √N (47-156 bits). Brahmagupta identity confirmed: Y=1 for consecutive, X≈√N. Products don't reduce residue size.
 [2026-03-24 03:37:47] size: 48 | approach: lgsh-v5-retest | time: 5.249s | notes: found factor 151393362073140314244911
+[2026-03-24 03:29:47] size: 55 | approach: ECM-extended | time: 36.652s | notes: worst of 5
+[2026-03-24 03:30:49] size: 56 | approach: ECM-extended | time: 39.368s | notes: worst of 5
+[2026-03-24 03:32:27] size: 57 | approach: ECM-extended | time: 60.945s | notes: worst of 5
+[2026-03-24 03:36:46] size: 58 | approach: ECM-extended | time: 70.500s | notes: worst of 5
+[2026-03-24 03:40:11] size: 59 | approach: ECM-extended | time: 103.146s | notes: worst of 5
+[2026-03-24 03:37:54] size: 50 | approach: LGSH-v4-extended | time: 122.104s | notes: worst of 5
