@@ -67,3 +67,13 @@
 [2026-03-24 07:48:00] task: O(log log N) qubit hybrid factoring | result: classically simulable Hilbert space, polylog speedup only | conclusion: dead end
 [2026-03-24 07:48:00] task: Sparse polynomial NFS variants | result: fewer roots hurts sieve. Sparsity only saves constant. Kleinjung already optimal | conclusion: dead end
 [2026-03-24 07:48:00] task: Multi-d CF / cube root CF experiments | result: Thue barrier confirmed, multi-d = MPQS | conclusion: dead end
+[2026-03-24 08:02:00] task: NFS norm correlation measurement | result: ~15% positive correlation at 40 digits, increasing with N. Cross-polynomial ~13% | conclusion: PROMISING — real effect, constant-factor improvement
+[2026-03-24 08:02:00] task: Multiplicative relations / mod-k exponents vs GF(2) | result: higher k is near-optimal. Extra bits spent on stricter divisibility. MNFS is the real direction | conclusion: dead end (mod-2 near-optimal)
+[2026-03-24 08:02:00] task: Approximate algebraic relations with controlled error | result: reduces to large-prime variation / lattice methods | conclusion: dead end
+[2026-03-24 08:02:00] task: Higher genus abelian varieties (g>1) optimization | result: g=1 provably optimal. Smoothness ρ(u)^g decays exponentially in g | conclusion: dead end (ECM optimal in class)
+[2026-03-24 08:02:00] task: Langlands program / automorphic forms for factoring | result: all 8 routes require O(N) work (dim of form spaces). O(2^k) = exponential | conclusion: dead end
+[2026-03-24 08:02:00] task: Structured sets in Z/NZ (Fibonacci, factorials, progressions) | result: algebraic detection O(polylog N), statistical O(√N). No new attack | conclusion: dead end
+[2026-03-24 08:02:00] task: AKS-style polynomial introspection for factoring | result: reduces to order detection (Pollard p-1). CRT opacity inherent | conclusion: dead end
+[2026-03-24 08:02:00] task: Bilinear MQ system from integer multiplication | result: linearization deficit n², XL needs degree √n, Hilbert series structure-blind | conclusion: dead end
+[2026-03-24 08:02:00] task: BQP vs P implications for factoring | result: factoring likely BQP-intermediate. No smooth interpolation exists | conclusion: theoretical context (no algorithm)
+[2026-03-24 08:02:00] task: Meta-analysis of ~60 approaches — most promising directions | result: 1) norm correlations 10-15%, 2) Coppersmith extensions 5-10%, 3) multi-field NFS 15-20%. P(beat L[1/3]) ~5-10% in 20 years | conclusion: KEY synthesis
