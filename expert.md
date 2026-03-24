@@ -182,9 +182,15 @@ Uses Bernstein's product tree approach for batch smoothness detection instead of
 
 **Status**: Prototype working but low yield — the batch GCD correctly identifies smooth candidates but misses ~80% compared to a standard sieve. Likely cause: the primorial power isn't high enough to extract all smooth prime powers. Needs further investigation.
 
+### MMCFRAC (Multi-Multiplier CF) — `library/mmcfrac.c`
+
+Novel: combines CFRAC with MMS-style multi-multiplier. For K square-free multipliers, runs CF expansion of sqrt(kN) simultaneously. CF convergents naturally minimize |p^2 - kNq^2| < 2√(kN). Cross-multiplier LP merging adds "free" relations.
+
+**Scaling**: 30d: 2.2s, 35d: 20s, 40d: 191s, 45d: FAIL. Bottleneck: trial division O(fb) per CF step with no pre-filtering.
+
 ### IFM (Iterated Frobenius Map) — `library/ifm.c`
 
-Novel iteration function: x → x^N mod N (instead of rho's x → x^2+c). Via CRT, decomposes into independent power maps mod p and mod q with different dynamics. **Dead end**: each iteration costs O(log N) multiplications (100x more than rho per step), but cycle length is similar (O(N^{1/4})). Net result is ~100x slower than Pollard's rho for no compensating advantage.
+**Dead end**: x → x^N mod N iteration. O(N^{1/4}) cycle length but each step costs O(log N) multiplications (100x more than rho). Net ~100x slower for no compensating advantage.
 
 ## Active approaches
 
