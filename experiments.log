@@ -89,3 +89,9 @@
 [2026-03-24 08:25:00] task: Symbolic computation (CAD, resultants) for NFS | result: CAD operates over R not mod p. Smooth set has no finite algebraic description | conclusion: dead end
 [2026-03-24 08:25:00] task: Literature search 2025-2026 | result: (pending full read of findings)
 [2026-03-24 08:25:00] task: Shotgun random algebraic experiments (20 types) | result: 3 that work = known algorithms. 17 = random with ~1/p success | conclusion: dead end (no surprises)
+[2026-03-24 08:34:00] task: Umans-Wang (α,β)-Divisor Conjecture survey | result: if true, deterministic factoring 1/5→1/6. Only for deterministic (exponential), not NFS | conclusion: interesting theory, no practical impact
+[2026-03-24 08:34:00] task: Summation-Based Algorithm (2504.21168) | result: O(√n)=O(2^{b/2}), binary coefficient search = trial division in different notation | conclusion: dead end (trivial)
+[2026-03-24 08:34:00] task: Geometry-inspired RSA factoring (2506.17233) | result: Fermat 1643 re-derived. O(|q-p|/2)=exponential. Failed on RSA-100 | conclusion: dead end (rediscovery)
+[2026-03-24 08:34:00] task: Gao rank-3 lattice paper (ePrint 2025/1004) | result: genuine N^{1/5} deterministic improvement. Rigorous, sound. No practical impact (2^{410} for RSA-2048) | conclusion: valid theory, no practical impact
+[2026-03-24 08:34:00] task: Comprehensive theoretical summary (~75 approaches) | result: 6-section document synthesizing all findings | conclusion: reference document
+[2026-03-24 08:34:00] task: Open mathematical problems for factoring research | result: 15 specific problems across algebra, complexity, quantum, and linear algebra | conclusion: research agenda
