@@ -1093,3 +1093,18 @@
 [2026-03-24 04:41:07] size: 55 | approach: LGSH-v3-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
 [2026-03-24 04:41:22] size: 54 | approach: LGSH-v4-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
 [2026-03-24 04:39:38] size: 66 | approach: ECM-extended | time: 172.286s | notes: worst of 5
+[2026-03-24 04:47:02] size: 60 | approach: ecm-optimized | time: 62.094s | notes: found factor 323012268366406069604976245747
+[2026-03-24 04:47:19] size: 60 | approach: ecm-optimized | time: 17.803s | notes: found factor 233727393239440919182445071663
+[2026-03-24 04:47:37] size: 44 | approach: siqs_fast | time: 281.185s | notes: found factor 2972570025159287871169
+[2026-03-24 04:47:41] size: 60 | approach: ecm-optimized | time: 21.831s | notes: found factor 160593629707405643958487297489
+[2026-03-24 04:48:02] size: 60 | approach: ecm-optimized | time: 20.395s | notes: found factor 127259672474532960959076409103
+[2026-03-24 04:48:32] size: 60 | approach: ecm-optimized | time: 29.992s | notes: found factor 185861201914548184489307675869
+[2026-03-24 04:48:54] size: 62 | approach: ecm-optimized | time: 22.706s | notes: found factor 1989635508140578482202536921097
+[2026-03-24 04:50:17] size: 62 | approach: ecm-optimized | time: 82.295s | notes: found factor 1697197652288598174769165251137
+[2026-03-24 04:51:20] size: 62 | approach: ecm-optimized | time: 63.769s | notes: found factor 2203056164832971756418716342753
+[2026-03-24 04:51:56] size: 62 | approach: ecm-optimized | time: 35.745s | notes: found factor 2707981310503052229459289919771
+[2026-03-24 04:52:17] size: 44 | approach: siqs_fast | time: 280.644s | notes: found factor 1649598485426746783589
+[2026-03-24 04:52:21] size: 62 | approach: ecm-optimized | time: 25.245s | notes: found factor 2946197117227792440770309025637
+[2026-03-24 04:56:58] size: 44 | approach: siqs_fast | time: 280.744s | notes: found factor 1988562391539792713717
+[2026-03-24 06:00:00] size: 64 | approach: ecm_recycle | time: 202.4s | notes: ecm_recycle handles 64-digit! B1=42.8M, found on curve 10. First single-core 64-digit factoring within timeout.
+[2026-03-24 06:00:00] size: 62 | approach: ecm_recycle | time: 12.5s | notes: ecm_recycle 1.8x faster than our ecm_factor (22.8s) — better B1 selection
