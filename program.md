@@ -32,7 +32,7 @@ RULES:
 - If something gets terminated because of the timeout, make sure to at least have logs to learn from.
 - **Single core only for factoring.** Each factoring process must use a single CPU core. No multithreading, no multiprocessing, no OpenMP, no pthreads. The benchmark measures single-core performance.
 - **Maximize parallelism.** Each factoring process uses 1 core, so you should be running many experiments concurrently to fill up the machine — different sizes, different approaches, parameter sweeps, etc. If you're only running 1-2 things at a time, you're wasting the machine. Launch experiments in bulk, not one at a time.
-- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs. If you discover that any existing results in `experiments.log` or `library/` were produced with a different seed or with parallelization, remove them and re-run with the correct settings.
+- **Seed is always 42.** Any random seed used anywhere (RNG initialization, ECM curves, etc.) must be 42. No seed hacking — you may not search over seeds to find ones that happen to work well on specific inputs.
 - You can use the browser, read papers, or any other tool at your disposal.
 - All factoring code must be in C or C++, compiled and run locally, CPU only. Use GMP (`-lgmp`) for big integer arithmetic and GMP-ECM (`-lecm`) for elliptic curve factoring. You may also use other C/C++ libraries if they help.
 - Make sure any code you write is fast — use `-O2` or `-O3`, consider SIMD, avoid unnecessary allocations, profile hotspots.
