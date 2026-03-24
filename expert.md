@@ -80,7 +80,7 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 These are starting points, not an exhaustive list.
 
 - **Algebraic group structure**: Z_N* ≅ Z_{p-1} × Z_{q-1} but we can't see this decomposition. Can random walks, character sums, or higher-dimensional algebraic groups reveal it?
-- **Subquadratic norm forms**: Is there any algebraic structure with a norm that grows subquadratically per variable? This is the precise requirement for beating L[1/2] via algebraic methods.
+- **Novel norm structures**: NFS beats L[1/2] by splitting the norm across two maps, not by having a better single norm. What algebraic structure would enable a third splitting or a fundamentally different norm reduction to beat L[1/3]?
 - **Function field analogies**: Can the quasi-polynomial DLP breakthrough technique be adapted? Key obstacle: no Frobenius over Z.
 - **Batch GCD + non-sequential candidates**: Bernstein's batch smoothness works on arbitrary candidate sets. What candidate generation strategy (not sieving) would best exploit this?
 - **Recursive cofactor descent**: When Q(x) = smooth_part · cofactor, recursively factor the cofactor with a smaller polynomial. Could reduce effective value sizes geometrically.
