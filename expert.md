@@ -94,17 +94,18 @@ Working MPQS implementation with:
 - Knuth multiplier fallback (tries k=1,3,5,7,11,... until extraction succeeds)
 - GF(2) Gaussian elimination with up to 128 dependencies
 
-**Measured scaling (LGSH-v4, worst-of-5, includes multiplier + ECM fallback):**
+**Measured scaling (LGSH-v5, worst-of-5, MPQS + multiplier + ECM fallback):**
 | Digits | Worst (s) | Avg (s) |
 |--------|-----------|---------|
-| 30 | 0.21 | 0.17 |
-| 34 | 0.25 | 0.21 |
-| 38 | 3.4 | 1.2 |
-| 42 | 9.8 | 3.4 |
-| 46 | 38 | 32 |
-| 50 | ~106 | ~100 |
+| 30 | 0.17 | 0.13 |
+| 34 | 0.25 | 0.23 |
+| 38 | 3.6 | 1.5 |
+| 42 | 10.1 | 8.1 |
+| 46 | 24.7 | 15.5 |
+| 50 | 42.1 | 33.0 |
+| 54 | ~80+ | (running) |
 
-High variance at 38+ digits due to MPQS extraction degeneracy requiring multiplier retries. Scaling is roughly L[1/2] as expected for QS variants. ECM fallback handles cases where all multipliers fail extraction.
+Scaling: roughly consistent with L[1/2]. Key optimizations: smaller FB (exp(0.50*Lexp)) reduces matrix solver time significantly. ECM fallback handles 50+ digit extraction failures. MPQS extraction degeneracy (all dependencies give trivial x≡±y mod N) affects ~25% of 50-digit semiprimes, requiring ECM fallback.
 
 ### ECM baseline (ecm_baseline.c)
 GMP-ECM with auto-scaled B1 (Suyama parametrization, sigma = 6 + curve_index).

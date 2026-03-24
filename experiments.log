@@ -465,4 +465,40 @@
 [2026-03-24 03:20:50] size: 56 | approach: ecm_baseline_worst5 | time: 32.745s | notes: GMP-ECM worst-of-5, auto B1
 [2026-03-24 03:20:50] size: 60 | approach: ecm_baseline_worst5 | time: 8.195s | notes: GMP-ECM worst-of-5, auto B1
 [2026-03-24 03:20:50] size: 30 | approach: bestofK_smoothness | time: N/A | notes: K=10 polys: rate 1.92x improvement but 10x cost = 5.3x worse net. Sublinear in K.
-[2026-03-24 02:52:39] size: 39 | approach: ccd_v1 | time: 285.869s | notes: found factor 4334488463092636909
+[2026-03-24 03:20:24] size: 30 | approach: LGSH-v5 | time: 0.105s | notes: found factor 853172260176581
+[2026-03-24 03:20:25] size: 30 | approach: LGSH-v5 | time: 0.117s | notes: found factor 285490143297067
+[2026-03-24 03:20:25] size: 30 | approach: LGSH-v5 | time: 0.127s | notes: found factor 742943501885287
+[2026-03-24 03:20:25] size: 30 | approach: LGSH-v5 | time: 0.122s | notes: found factor 163402858332899
+[2026-03-24 03:20:25] size: 30 | approach: LGSH-v5 | time: 0.174s | notes: found factor 709910301438391
+[2026-03-24 03:20:25] size: 34 | approach: LGSH-v5 | time: 0.214s | notes: found factor 82045041604477999
+[2026-03-24 03:20:25] size: 34 | approach: LGSH-v5 | time: 0.238s | notes: found factor 81246557449774337
+[2026-03-24 03:20:26] size: 34 | approach: LGSH-v5 | time: 0.233s | notes: found factor 13707337860656159
+[2026-03-24 03:20:26] size: 34 | approach: LGSH-v5 | time: 0.218s | notes: found factor 16584859093784497
+[2026-03-24 03:20:26] size: 34 | approach: LGSH-v5 | time: 0.251s | notes: found factor 92646457184500561
+[2026-03-24 03:20:30] size: 38 | approach: LGSH-v5 | time: 3.569s | notes: found factor 3510315453304323199
+[2026-03-24 03:20:30] size: 38 | approach: LGSH-v5 | time: 0.256s | notes: found factor 2857813223847491747
+[2026-03-24 03:20:31] size: 38 | approach: LGSH-v5 | time: 0.876s | notes: found factor 8474925057250052257
+[2026-03-24 03:20:33] size: 38 | approach: LGSH-v5 | time: 2.138s | notes: found factor 9506287303606162577
+[2026-03-24 03:20:34] size: 38 | approach: LGSH-v5 | time: 0.846s | notes: found factor 1419070827215424463
+[2026-03-24 03:20:44] size: 42 | approach: LGSH-v5 | time: 10.119s | notes: found factor 993800718941516497211
+[2026-03-24 03:20:52] size: 42 | approach: LGSH-v5 | time: 8.241s | notes: found factor 312903253237424504801
+[2026-03-24 03:20:59] size: 42 | approach: LGSH-v5 | time: 6.712s | notes: found factor 832049973472240230583
+[2026-03-24 03:21:08] size: 42 | approach: LGSH-v5 | time: 8.617s | notes: found factor 207501258670461422731
+[2026-03-24 03:21:14] size: 42 | approach: LGSH-v5 | time: 6.879s | notes: found factor 615209869378693267477
+[2026-03-24 03:21:29] size: 46 | approach: LGSH-v5 | time: 14.446s | notes: found factor 99758926037608506463313
+[2026-03-24 03:21:44] size: 46 | approach: LGSH-v5 | time: 14.660s | notes: found factor 21583085895882087740731
+[2026-03-24 03:21:57] size: 46 | approach: LGSH-v5 | time: 13.463s | notes: found factor 70666773741297185724887
+[2026-03-24 03:22:22] size: 46 | approach: LGSH-v5 | time: 24.660s | notes: found factor 14883677127466624330153
+[2026-03-24 03:22:24] size: 54 | approach: LGSH-v4-full | time: 260.865s | notes: found factor 936923754496815584590109357
+[2026-03-24 03:22:32] size: 46 | approach: LGSH-v5 | time: 10.339s | notes: found factor 87668541485909225928839
+[2026-03-24 03:23:02] size: 50 | approach: LGSH-v5 | time: 29.896s | notes: found factor 2059422624891984908427913
+[2026-03-24 03:23:33] size: 50 | approach: LGSH-v5 | time: 31.066s | notes: found factor 9444316373871639557235581
+[2026-03-24 03:23:34] size: 54 | approach: LGSH-v4-full | time: 69.641s | notes: found factor 974145362450408019560643707
+[2026-03-24 03:24:08] size: 50 | approach: LGSH-v5 | time: 34.733s | notes: found factor 9478497919133942265053849
+[2026-03-24 03:24:34] size: 54 | approach: LGSH-v4-full | time: 60.324s | notes: found factor 222731417295594470332550983
+[2026-03-24 03:24:50] size: 50 | approach: LGSH-v5 | time: 42.100s | notes: found factor 9591453119320901101941821
+[2026-03-24 03:25:17] size: 50 | approach: LGSH-v5 | time: 27.165s | notes: found factor 1437953211038098705171097
+[2026-03-24 03:25:53] size: 54 | approach: LGSH-v4-full | time: 78.593s | notes: found factor 562862321296581094262911693
+[2026-03-24 03:26:37] size: 54 | approach: LGSH-v5 | time: 80.480s | notes: found factor 251931353323471365990991339
+[2026-03-24 03:27:48] size: 58 | approach: LGSH-v4-full | time: 115.625s | notes: found factor 28846244187484255242635303993
+[2026-03-24 03:27:51] size: 54 | approach: LGSH-v5 | time: 73.662s | notes: found factor 936923754496815584590109357
