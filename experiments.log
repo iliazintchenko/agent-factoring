@@ -851,3 +851,9 @@
 [2026-03-24 04:14:00] size: 64 | approach: ECM-extended | time: 210.511s | notes: worst of 5, times: 210.511 4.790 158.172 95.194 62.677
 [2026-03-24 04:15:42] size: 64 | approach: ECM-extended | time: 210.604s | notes: worst of 5, times: 210.604 4.783 158.040 133.501 24.453
 [2026-03-24 04:11:44] size: 63 | approach: ECM-extended | time: 218.553s | notes: worst of 5
+[2026-03-24 04:16:44] size: 54 | approach: LGSH-v3-extended | time: FAIL | notes: some failed, times: FAIL FAIL FAIL FAIL FAIL
+[2026-03-24 04:17:11] size: 53 | approach: LGSH-v4-extended | time: FAIL | notes: some failed, times: 30.770 FAIL FAIL FAIL FAIL
+[2026-03-24 04:20:37] size: 64 | approach: ECM-extended | time: 249.457s | notes: worst of 5, times: 249.457 4.789 158.613 95.248 24.529
+[2026-03-24 04:22:22] size: 65 | approach: ECM-extended | time: 142.849s | notes: worst of 5, times: 76.205 57.213 136.515 142.849 88.985
+[2026-03-24 04:24:07] size: 65 | approach: ECM-extended | time: 142.586s | notes: worst of 5, times: 79.748 56.839 136.798 142.586 88.934
+[2026-03-24 04:20:37] size: 64 | approach: ECM-extended | time: 249.457s | notes: worst of 5
