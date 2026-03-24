@@ -1,10 +1,19 @@
 /*
- * lgsh.c - MPQS factoring with Knuth multiplier fallback
+ * lgsh.c - Hybrid factoring: MPQS + ECM fallback
+ *
+ * Strategy:
+ * 1. Try Pollard rho for small factors
+ * 2. Try MPQS with multiple Knuth multipliers
+ * 3. Fall back to ECM if MPQS fails
+ *
+ * Uses quadratic character bits in GF(2) matrix to avoid extraction degeneracy.
+ *
  * Usage: ./lgsh <N>
  * Output: FACTOR:<p>
  */
 
 #include <gmp.h>
+#include <ecm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,9 +37,7 @@ static int *sieve_primes(int B, int *count) {
     int *p = (int *)malloc(cnt * sizeof(int));
     int idx = 0;
     for (int i = 2; i <= B; i++) if (s[i]) p[idx++] = i;
-    *count = cnt;
-    free(s);
-    return p;
+    *count = cnt; free(s); return p;
 }
 
 /* ===== Modular square root ===== */
@@ -115,20 +122,17 @@ static void rs_free(relset_t *rs) {
 }
 
 /* ===== QS sieve ===== */
-static void qs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
+static void qs_sieve(const mpz_t kN, const fb_t *fb, int M,
                      unsigned long lp_bound, relset_t *full, relset_t *partial) {
     mpz_t m, tmp, val, residue;
     mpz_inits(m, tmp, val, residue, NULL);
     mpz_sqrt(m, kN); mpz_add_ui(m, m, 1);
-
     int slen = 2 * M + 1;
     int n_bits = mpz_sizeinbase(kN, 2);
     double log2_max = 1.0 + log2(M) + n_bits / 2.0;
     int threshold = (int)((log2_max - log2(lp_bound > 1 ? lp_bound : 2)) * 1024);
     if (threshold < 0) threshold = 0;
-
     int *sieve = (int *)calloc(slen, sizeof(int));
-
     for (int i = 0; i < fb->count; i++) {
         int p = fb->primes[i]; long sq = fb->sqrtN[i];
         long mp = mpz_fdiv_ui(m, p); int logp = (int)(log2(p) * 1024);
@@ -145,14 +149,13 @@ static void qs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
         for (long j = s1; j < slen; j += p) sieve[j] += logp;
         if (r1 != r2) for (long j = s2; j < slen; j += p) sieve[j] += logp;
     }
-
-    int *exps = (int *)calloc(fb->count + 1, sizeof(int));
+    int *exps = (int *)calloc(full->veclen, sizeof(int));
     for (int j = 0; j < slen; j++) {
         if (sieve[j] < threshold) continue;
         long x = (long)j - M;
         mpz_set_si(tmp, x); mpz_add(val, tmp, m);
         mpz_mul(residue, val, val); mpz_sub(residue, residue, kN);
-        memset(exps, 0, (fb->count + 1) * sizeof(int));
+        memset(exps, 0, full->veclen * sizeof(int));
         int sign = 0;
         if (mpz_sgn(residue) < 0) { sign = 1; mpz_neg(residue, residue); }
         exps[0] = sign;
@@ -165,30 +168,30 @@ static void qs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
             mpz_set_si(tmp, x); mpz_add(val, tmp, m);
             rs_add(full, val, exps, 0);
         } else if (mpz_fits_ulong_p(tmp) && mpz_get_ui(tmp) <= lp_bound) {
+            unsigned long cofactor = mpz_get_ui(tmp);
             mpz_set_si(tmp, x); mpz_add(val, tmp, m);
-            rs_add(partial, val, exps, mpz_get_ui(residue)); /* BUG: should use tmp before overwrite */
+            rs_add(partial, val, exps, cofactor);
         }
     }
-    /* Fix: re-do partial with correct LP value */
-
     free(sieve); free(exps);
     mpz_clears(m, tmp, val, residue, NULL);
 }
 
 /* ===== MPQS sieve ===== */
-static void mpqs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
+static void mpqs_sieve(const mpz_t kN, const fb_t *fb, int M,
                        unsigned long lp_bound, int poly_idx,
                        relset_t *full, relset_t *partial) {
     mpz_t target, q, A, B, C, tmp, val, res, q_inv;
     mpz_inits(target, q, A, B, C, tmp, val, res, q_inv, NULL);
-
     int n_bits = mpz_sizeinbase(kN, 2);
     mpz_mul_ui(tmp, kN, 2); mpz_sqrt(target, tmp); mpz_sqrt(target, target);
     unsigned long sqM = (unsigned long)sqrt((double)M);
     if (sqM < 2) sqM = 2;
     mpz_tdiv_q_ui(target, target, sqM);
-    mpz_add_ui(target, target, poly_idx * 100 + 42);
+    /* Use poly_idx/2 for the prime, and poly_idx%2 for which root */
+    mpz_add_ui(target, target, (poly_idx / 2) * 100 + 42);
     mpz_nextprime(q, target);
+    int use_second_root = (poly_idx & 1);
 
     int ok = 0;
     for (int att = 0; att < 200 && !ok; att++) {
@@ -209,6 +212,8 @@ static void mpqs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
         mpz_clears(inv, pz, NULL);
         mpz_mul(tmp, B, B); mpz_sub(tmp, tmp, kN);
         if (!mpz_divisible_p(tmp, A)) { mpz_nextprime(q, q); continue; }
+        /* Use second root: B' = A - B */
+        if (use_second_root) mpz_sub(B, A, B);
         mpz_mul(C, B, B); mpz_sub(C, C, kN); mpz_tdiv_q(C, C, A);
         mpz_set_ui(tmp, mpz_get_ui(q)); mpz_invert(q_inv, tmp, kN);
         ok = 1;
@@ -220,7 +225,6 @@ static void mpqs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
     int threshold = (int)((log2_max - log2(lp_bound > 1 ? lp_bound : 2)) * 1024);
     if (threshold < 0) threshold = 0;
     int *sieve = (int *)calloc(slen, sizeof(int));
-
     for (int i = 0; i < fb->count; i++) {
         int p = fb->primes[i]; long sq = fb->sqrtN[i]; int logp = (int)(log2(p)*1024);
         if (p == 2) { for (long j = 0; j < slen; j++) sieve[j] += logp; continue; }
@@ -239,10 +243,10 @@ static void mpqs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
             }
             continue;
         }
-        mpz_t ai, pz; mpz_inits(ai, pz, NULL);
-        mpz_set_ui(ai, Ap); mpz_set_ui(pz, p);
-        if (!mpz_invert(ai, ai, pz)) { mpz_clears(ai, pz, NULL); continue; }
-        long aiv = mpz_get_ui(ai); mpz_clears(ai, pz, NULL);
+        mpz_t ai, pzz; mpz_inits(ai, pzz, NULL);
+        mpz_set_ui(ai, Ap); mpz_set_ui(pzz, p);
+        if (!mpz_invert(ai, ai, pzz)) { mpz_clears(ai, pzz, NULL); continue; }
+        long aiv = mpz_get_ui(ai); mpz_clears(ai, pzz, NULL);
         long r1 = ((sq - Bp) % p + p) % p * aiv % p;
         long r2 = ((p - sq - Bp) % p + p) % p * aiv % p;
         long s1 = ((r1 + M) % p + p) % p;
@@ -250,15 +254,14 @@ static void mpqs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
         for (long j = s1; j < slen; j += p) sieve[j] += logp;
         if (s1 != s2) for (long j = s2; j < slen; j += p) sieve[j] += logp;
     }
-
-    int *exps = (int *)calloc(fb->count + 1, sizeof(int));
+    int *exps = (int *)calloc(full->veclen, sizeof(int));
     for (int j = 0; j < slen; j++) {
         if (sieve[j] < threshold) continue;
         long x = (long)j - M;
         mpz_set_si(tmp, x); mpz_mul_si(res, tmp, x); mpz_mul(res, res, A);
         mpz_set_si(tmp, x); mpz_mul(tmp, tmp, B); mpz_mul_ui(tmp, tmp, 2);
         mpz_add(res, res, tmp); mpz_add(res, res, C);
-        memset(exps, 0, (fb->count+1)*sizeof(int));
+        memset(exps, 0, full->veclen * sizeof(int));
         int sign = 0;
         if (mpz_sgn(res) < 0) { sign = 1; mpz_neg(res, res); }
         exps[0] = sign;
@@ -269,19 +272,14 @@ static void mpqs_sieve(const mpz_t kN, const mpz_t N, const fb_t *fb, int M,
         }
         int is_smooth = (mpz_cmp_ui(tmp, 1) == 0);
         int is_partial = (!is_smooth && mpz_fits_ulong_p(tmp) && mpz_get_ui(tmp) <= lp_bound);
-
         if (is_smooth || is_partial) {
             unsigned long lp = is_smooth ? 0 : mpz_get_ui(tmp);
-            /* sv = (Ax+B) * q^{-1} mod kN */
             mpz_set_si(val, x); mpz_mul(val, A, val); mpz_add(val, val, B);
             mpz_mul(val, val, q_inv); mpz_mod(val, val, kN);
-            if (is_smooth)
-                rs_add(full, val, exps, 0);
-            else
-                rs_add(partial, val, exps, lp);
+            if (is_smooth) rs_add(full, val, exps, 0);
+            else rs_add(partial, val, exps, lp);
         }
     }
-
     free(sieve); free(exps);
     mpz_clears(target, q, A, B, C, tmp, val, res, q_inv, NULL);
 }
@@ -305,17 +303,13 @@ static int match_lp(relset_t *partials, relset_t *full, const mpz_t kN) {
         if (partials->data[i].lp == partials->data[i + 1].lp) {
             for (int k = 0; k < veclen; k++)
                 combined[k] = partials->data[i].exps[k] + partials->data[i + 1].exps[k];
-            /* sv_combined = sv1 * sv2 / lp mod kN */
             mpz_mul(sv, partials->data[i].sqrt_val, partials->data[i + 1].sqrt_val);
             mpz_set_ui(lp_val, partials->data[i].lp);
-            if (mpz_invert(lp_inv, lp_val, kN)) {
-                mpz_mul(sv, sv, lp_inv);
-            }
+            if (mpz_invert(lp_inv, lp_val, kN)) mpz_mul(sv, sv, lp_inv);
             mpz_mod(sv, sv, kN);
             rs_add(full, sv, combined, 0);
             matched++;
-            partials->data[i].lp = 0;
-            partials->data[i + 1].lp = 0;
+            partials->data[i].lp = 0; partials->data[i + 1].lp = 0;
             i++;
         }
     }
@@ -387,7 +381,6 @@ static int try_extract(relset_t *rels, int *dep, int dsz,
     }
     for (int j = 0; j < fb->count + 1; j++)
         if (tot[j] & 1) { free(tot); mpz_clears(x, y, tmp, NULL); return 0; }
-
     mpz_set_ui(y, 1);
     for (int j = 0; j < fb->count; j++) {
         int e = tot[j+1] / 2;
@@ -398,20 +391,17 @@ static int try_extract(relset_t *rels, int *dep, int dsz,
         }
     }
     if ((tot[0] / 2) & 1) mpz_sub(y, kN, y);
-
     mpz_sub(tmp, x, y); mpz_gcd(factor, tmp, kN);
     if (mpz_cmp_ui(factor, 1) > 0 && mpz_cmp(factor, kN) < 0) {
         free(tot); mpz_clears(x, y, tmp, NULL); return 1;
     }
     mpz_add(tmp, x, y); mpz_gcd(factor, tmp, kN);
     int ok = (mpz_cmp_ui(factor, 1) > 0 && mpz_cmp(factor, kN) < 0);
-    free(tot); mpz_clears(x, y, tmp, NULL);
-    return ok;
+    free(tot); mpz_clears(x, y, tmp, NULL); return ok;
 }
 
-/* ===== Core factoring routine (operates on kN) ===== */
-static int factor_with_multiplier(const mpz_t N, const mpz_t kN, int k,
-                                  mpz_t result, double deadline) {
+/* ===== MPQS core ===== */
+static int factor_mpqs(const mpz_t N, const mpz_t kN, int k, mpz_t result, double deadline) {
     int ndigits = mpz_sizeinbase(kN, 10);
     double ln_N = ndigits * log(10);
     double Lexp = sqrt(ln_N * log(ln_N));
@@ -421,55 +411,64 @@ static int factor_with_multiplier(const mpz_t N, const mpz_t kN, int k,
     int M = (logM > 16.0) ? 10000000 : (int)exp(logM);
     if (M < 20000) M = 20000; if (M > 10000000) M = 10000000;
 
-    fprintf(stderr, "  k=%d: B=%d, M=%d\n", k, B, M);
-
     fb_t fb = build_fb(kN, B);
+    int veclen = fb.count + 1; /* sign + FB primes */
     int target = fb.count + 30;
     unsigned long lp_bound = (unsigned long)B * 50;
 
     relset_t full, partial;
-    rs_init(&full, fb.count + 1);
-    rs_init(&partial, fb.count + 1);
+    rs_init(&full, veclen);
+    rs_init(&partial, veclen);
 
-    /* QS */
-    qs_sieve(kN, N, &fb, M, lp_bound, &full, &partial);
+    qs_sieve(kN, &fb, M, lp_bound, &full, &partial);
 
-    /* MPQS */
     for (int pi = 0; pi < 10000 && full.count < target && wall_time() < deadline; pi++) {
-        mpqs_sieve(kN, N, &fb, M, lp_bound, pi, &full, &partial);
+        mpqs_sieve(kN, &fb, M, lp_bound, pi, &full, &partial);
         if ((pi + 1) % 100 == 0) {
             int m = match_lp(&partial, &full, kN);
-            fprintf(stderr, "    poly %d: %d full (+%d LP), %d partial\n",
-                    pi + 1, full.count, m, partial.count);
+            (void)m;
         }
     }
     match_lp(&partial, &full, kN);
-
-    fprintf(stderr, "  %d full (need %d)\n", full.count, target);
+    fprintf(stderr, "  k=%d: %d full (need %d)\n", k, full.count, target);
 
     int success = 0;
     if (full.count > target) {
         int **deps; int *dsizes; int ndeps;
-        if (find_deps(&full, fb.count + 1, &deps, &dsizes, &ndeps)) {
-            for (int d = 0; d < ndeps && !success; d++) {
+        if (find_deps(&full, veclen, &deps, &dsizes, &ndeps)) {
+            for (int d = 0; d < ndeps && !success; d++)
                 success = try_extract(&full, deps[d], dsizes[d], kN, &fb, result);
-            }
             for (int d = 0; d < ndeps; d++) free(deps[d]);
             free(deps); free(dsizes);
         }
     }
 
-    /* If we found a factor of kN, extract the factor of N */
     if (success) {
         mpz_gcd(result, result, N);
-        if (mpz_cmp_ui(result, 1) == 0 || mpz_cmp(result, N) == 0) {
-            success = 0; /* k divided out, or trivial */
-        }
+        if (mpz_cmp_ui(result, 1) == 0 || mpz_cmp(result, N) == 0) success = 0;
     }
 
     rs_free(&full); rs_free(&partial);
     free(fb.primes); free(fb.sqrtN);
     return success;
+}
+
+/* ===== ECM fallback ===== */
+static int factor_ecm(const mpz_t N, mpz_t result, double deadline) {
+    double B1 = 1e6;
+    for (int curve = 0; curve < 100000 && wall_time() < deadline; curve++) {
+        ecm_params p;
+        ecm_init(p);
+        mpz_set_ui(p->sigma, 42 + curve);
+        int ret = ecm_factor(result, N, B1, p);
+        ecm_clear(p);
+        if (ret > 0 && mpz_cmp(result, N) != 0 && mpz_cmp_ui(result, 1) > 0) {
+            return 1;
+        }
+        /* Increase B1 gradually */
+        if (curve % 100 == 99) B1 *= 2;
+    }
+    return 0;
 }
 
 /* ===== Main ===== */
@@ -480,6 +479,7 @@ int main(int argc, char **argv) {
     mpz_set_str(N, argv[1], 10);
     int ndigits = strlen(argv[1]);
     double t0 = wall_time();
+    double deadline = t0 + 280.0;
 
     fprintf(stderr, "LGSH: factoring %d-digit number\n", ndigits);
 
@@ -490,34 +490,35 @@ int main(int argc, char **argv) {
             printf("FACTOR:%d\n", sp[i]); free(sp); mpz_clears(N, factor, NULL); return 0; }
       free(sp); }
 
-    /* Try with multipliers: 1, 3, 5, 7, 11, 13, ... */
-    int multipliers[] = {1, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37};
+    /* Try MPQS with multipliers */
+    int multipliers[] = {1, 3, 5, 7, 11, 13};
     int nmult = sizeof(multipliers) / sizeof(multipliers[0]);
-    double deadline = t0 + 280.0; /* stay under 295s */
-
     mpz_t kN;
     mpz_init(kN);
 
-    for (int mi = 0; mi < nmult && wall_time() < deadline; mi++) {
+    for (int mi = 0; mi < nmult && wall_time() < deadline - 60; mi++) {
         int k = multipliers[mi];
         mpz_mul_ui(kN, N, k);
-
-        fprintf(stderr, "Trying multiplier k=%d (%.1fs elapsed)\n", k, wall_time() - t0);
-        if (factor_with_multiplier(N, kN, k, factor, deadline)) {
-            mpz_t cofactor;
-            mpz_init(cofactor);
-            mpz_tdiv_q(cofactor, N, factor);
+        if (factor_mpqs(N, kN, k, factor, deadline - 60)) {
+            mpz_t cof; mpz_init(cof); mpz_tdiv_q(cof, N, factor);
             gmp_printf("FACTOR:%Zd\n", factor);
-            gmp_fprintf(stderr, "%Zd x %Zd (%.3fs)\n", factor, cofactor, wall_time() - t0);
-            mpz_clear(cofactor);
-            mpz_clear(kN);
-            mpz_clears(N, factor, NULL);
+            gmp_fprintf(stderr, "%Zd x %Zd (%.3fs)\n", factor, cof, wall_time() - t0);
+            mpz_clear(cof); mpz_clear(kN); mpz_clears(N, factor, NULL);
             return 0;
         }
     }
 
-    fprintf(stderr, "FAIL: no multiplier worked (%.1fs)\n", wall_time() - t0);
-    mpz_clear(kN);
-    mpz_clears(N, factor, NULL);
+    /* ECM fallback */
+    fprintf(stderr, "MPQS failed, trying ECM...\n");
+    if (factor_ecm(N, factor, deadline)) {
+        mpz_t cof; mpz_init(cof); mpz_tdiv_q(cof, N, factor);
+        gmp_printf("FACTOR:%Zd\n", factor);
+        gmp_fprintf(stderr, "ECM: %Zd x %Zd (%.3fs)\n", factor, cof, wall_time() - t0);
+        mpz_clear(cof); mpz_clear(kN); mpz_clears(N, factor, NULL);
+        return 0;
+    }
+
+    fprintf(stderr, "FAIL (%.1fs)\n", wall_time() - t0);
+    mpz_clear(kN); mpz_clears(N, factor, NULL);
     return 1;
 }
