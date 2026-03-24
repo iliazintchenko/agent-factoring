@@ -943,3 +943,29 @@
 [2026-03-24 04:33:35] size: 42 | approach: siqs_fast | time: 280.263s | notes: found factor 184183033605295054387
 [2026-03-24 04:33:54] size: 65 | approach: ecm-comprehensive | time: 76.104s | notes: found factor 18525345375040314252309807387983
 [2026-03-24 04:45:00] size: 30 | approach: hybrid_qs_nfs (d=4) | time: FAIL | notes: 54/710 rels in 120s. Steady rate ~10 rels/s but search space exhausted before target. Needs larger sieve or SIQS-style multi-poly. The approach IS finding doubly-smooth relations via 1D sieving on NFS polynomials.
+[2026-03-24 04:34:51] size: 65 | approach: ecm-comprehensive | time: 57.422s | notes: found factor 34882065070015038892437762171661
+[2026-03-24 04:35:37] size: 30 | approach: best-combined | time: 0.010s | notes: found factor 237853791679697
+[2026-03-24 04:35:37] size: 30 | approach: best-combined | time: 0.018s | notes: found factor 285490143297067
+[2026-03-24 04:35:37] size: 30 | approach: best-combined | time: 0.026s | notes: found factor 216915926307757
+[2026-03-24 04:35:37] size: 30 | approach: best-combined | time: 0.023s | notes: found factor 163402858332899
+[2026-03-24 04:35:37] size: 30 | approach: best-combined | time: 0.014s | notes: found factor 147780977331697
+[2026-03-24 04:35:37] size: 35 | approach: best-combined | time: 0.044s | notes: found factor 69842539155469351
+[2026-03-24 04:35:38] size: 35 | approach: best-combined | time: 0.289s | notes: found factor 92227777863327913
+[2026-03-24 04:35:38] size: 35 | approach: best-combined | time: 0.054s | notes: found factor 29901438125424293
+[2026-03-24 04:35:38] size: 35 | approach: best-combined | time: 0.095s | notes: found factor 77098490402311201
+[2026-03-24 04:35:38] size: 35 | approach: best-combined | time: 0.025s | notes: found factor 37127311920159217
+[2026-03-24 04:35:38] size: 40 | approach: best-combined | time: 0.404s | notes: found factor 22583027504572801031
+[2026-03-24 04:35:39] size: 40 | approach: best-combined | time: 0.679s | notes: found factor 15144021729810256727
+[2026-03-24 04:35:39] size: 40 | approach: best-combined | time: 0.530s | notes: found factor 26780805813699501731
+[2026-03-24 04:35:40] size: 40 | approach: best-combined | time: 0.084s | notes: found factor 31096834276242774623
+[2026-03-24 04:35:40] size: 40 | approach: best-combined | time: 0.122s | notes: found factor 20804179672520600591
+[2026-03-24 04:35:44] size: 45 | approach: best-combined | time: 4.691s | notes: found factor 5657771382017363579353
+[2026-03-24 04:35:45] size: 45 | approach: best-combined | time: 0.258s | notes: found factor 8419588203749226068069
+[2026-03-24 04:35:45] size: 45 | approach: best-combined | time: 0.060s | notes: found factor 3527812285283428572707
+[2026-03-24 04:35:46] size: 45 | approach: best-combined | time: 0.824s | notes: found factor 6255792773131068668983
+[2026-03-24 04:35:46] size: 45 | approach: best-combined | time: 0.360s | notes: found factor 2300399292327339124403
+[2026-03-24 04:35:54] size: 50 | approach: best-combined | time: 7.684s | notes: found factor 2059422624891984908427913
+[2026-03-24 04:35:55] size: 50 | approach: best-combined | time: 1.338s | notes: found factor 3469948797237213917621473
+[2026-03-24 04:36:01] size: 50 | approach: best-combined | time: 6.440s | notes: found factor 3318784448526149968726087
+[2026-03-24 04:36:20] size: 50 | approach: best-combined | time: 18.963s | notes: found factor 2130491434134923133190229
+[2026-03-24 05:00:00] size: 60 | approach: ecm_factor (simple) | time: 53.30s | notes: first 60-digit semiprime factored by our simple ECM wrapper
