@@ -465,7 +465,9 @@ static int factor(void) {
 
     fprintf(stderr, "MMS: %d digits, B=%u, K=%d\n", g_digits, g_B, g_K);
 
-    /* Init multipliers — use square-free values only to avoid redundant parity vectors */
+    /* Use smallest square-free multipliers — smaller k gives smaller polynomial values.
+       KS scoring tested and found slower: larger k gives more FB primes but bigger
+       values, net negative. Stick with smallest square-free values. */
     static const int sqfree[] = {1,2,3,5,6,7,10,11,13,14,15,17,19,21,22,23};
     for (int k = 0; k < g_K; k++) {
         mpz_init(g_m[k]);
