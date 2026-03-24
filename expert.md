@@ -49,6 +49,14 @@ Every known approach falls into one of three categories:
 
 The function field sieve breaks L[1/3] for DLP because of TWO properties absent over Z: (a) Frobenius endomorphism provides systematic degree reduction, (b) polynomials over finite fields factor efficiently (Berlekamp).
 
+## Information-theoretic structure of factoring
+
+Factoring an n-bit semiprime requires ~n/2 bits. Each smooth relation provides exactly **1 useful bit** (one GF(2) vector) despite carrying ~7.7 bits of "surprise" at u=4. Most information in the smooth factorization is wasted — only parity of exponents matters. The 1-bit-per-relation bottleneck is fundamental to the GF(2) linear algebra framework. Breaking it would require a new algebraic framework beyond exponent-parity relations.
+
+Small-subgroup DL projection (g^{(N-1)/l} mod N for l | N-1): recovers O(1) bits total regardless of N's size, because gcd(N-1, φ(N)) is typically tiny. Strictly weaker than Pollard p-1.
+
+Factorizations of N±k for small k: yield O(k·ln B) bits about p, but O(log N) needed. Information gap is exponential.
+
 ## What would be needed to beat L[1/3]
 
 - A new algebraic structure over Z where "norms" are smaller than N^{2/3} per component

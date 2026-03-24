@@ -21,3 +21,8 @@
 [2026-03-24 06:52:00] task: Genus-2 hyperelliptic curve Jacobians (HECM) | result: smoothness advantage for u<5 but 4-5x cost neutralizes. No asymptotic gain | conclusion: inconclusive (narrow competitive range)
 [2026-03-24 06:52:00] task: Non-abelian HSP embeddings for factoring | result: faithful embeddings need exponential dimension | conclusion: dead end
 [2026-03-24 06:52:00] task: Subfield lifting Z/NZ[x]/(f(x)) tower extensions | result: 0 balanced factored, CRT decomposition IS the secret | conclusion: dead end
+[2026-03-24 06:59:00] task: Approximate factoring / lattice CVP for multiples of p | result: 2D Gauss reduction gives shortest vector ~√N (= p), this IS Wiener attack. Only works for unbalanced factors | conclusion: dead end (for balanced)
+[2026-03-24 06:59:00] task: DL in small subgroups of Z/NZ* via g^{(N-1)/l} | result: O(1) bits recovered regardless of N size, gcd(N-1,φ(N)) tiny | conclusion: dead end
+[2026-03-24 06:59:00] task: Factorization patterns of N±k for small k | result: O(k·ln B) bits about p, need O(log N). Gap exponential | conclusion: dead end
+[2026-03-24 06:59:00] task: Information-theoretic oracle classification for factoring | result: 1 bit/relation bottleneck from GF(2) framework. No known sub-exp function gives super-constant bits | conclusion: key insight — need new algebraic framework
+[2026-03-24 06:59:00] task: Isogeny walks (completed from round 2) | result: reduces to polynomial GCD, graph structure irrelevant | conclusion: dead end
