@@ -104,3 +104,7 @@
 [2026-03-24 09:10:00] task: Practical HECM vs ECM comparison on 30-37 digit semiprimes | result: HECM factored 0, ECM factored all. HECM ~60x slower per curve | conclusion: dead end (ECM strictly dominates)
 [2026-03-24 09:10:00] task: Algebraic tori factoring pipeline (p-1, p+1, T3, T4, T6) | result: (still running)
 [2026-03-24 09:10:00] task: Best practical factoring pipeline on semiprimes.json | result: (still running)
+[2026-03-24 09:28:00] task: Combinatorial structures for smooth generation (expanders, extractors) | result: smooth density ρ(u) is ceiling for generic combinatorial sets. Only algebraic structure beats it | conclusion: dead end
+[2026-03-24 09:28:00] task: Parameterized complexity of factoring | result: most algorithms FPT in some parameter, NFS is universal mediocre. No new FPT parameterization found | conclusion: inconclusive (interesting framework)
+[2026-03-24 09:28:00] task: Factoring → graph problems reduction | result: all reductions either circular (need factors to build graph) or land on NP-hard problems | conclusion: dead end
+[2026-03-24 09:28:00] task: Compressed sensing for factor recovery | result: fails at every level — wrong sparsity, wrong measurement structure, CRT already optimal | conclusion: dead end
