@@ -25,3 +25,8 @@ library/sss_test*
 library/hybrid
 bsrf
 ecm_factor
+mms_bin
+library/mms
+library/cds
+library/lps
+library/snamc
