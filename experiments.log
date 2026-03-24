@@ -157,3 +157,12 @@
 [2026-03-24 10:46:00] task: Algebraic statistics for CRT mixture detection | result: barrier is computational not statistical. 2x2 minors known but finding right coordinates is hard | conclusion: dead end (confirms existing understanding)
 [2026-03-24 10:46:00] task: Sublinear/streaming algorithms for factoring | result: compositeness detection in O(log N) space via AMS sketch of squaring map F2/F1. Factoring likely not in polylog space (would imply FACTORING∈L) | conclusion: interesting theoretical observation
 [2026-03-24 10:46:00] task: Algebraic tori pipeline (p-1, p+1, T3, T4, T6) full results | result: 3 torus-only factorizations across 345 semiprimes. Real but limited channel | conclusion: minor practical improvement
+[2026-03-24 10:54:00] task: Persistent homology of Z/NZ* | result: (pending full read)
+[2026-03-24 10:54:00] task: NFS Galois group optimization | result: (pending full read)
+[2026-03-24 10:54:00] task: ECM with stage 2 pushing frontier | result: 5/5 through 56d, wall at 58d (29-digit factors) | conclusion: practical baseline
+[2026-03-24 10:54:00] task: Algebraic K-theory / motivic cohomology | result: K-groups split via CRT. K0 rank = #factors but computing = factoring. Homotopy-theoretic refinements all respect CRT | conclusion: dead end
+[2026-03-24 10:54:00] task: Category theory of CRT isomorphism | result: idempotent splitting = factoring. Naturality obstruction: CRT indexed by factors not product. CT is complexity-blind | conclusion: dead end (framework only)
+[2026-03-24 10:54:00] task: Differential algebra over Z/NZ | result: all differential invariants decompose via CRT. D(x^p)=px^{p-1} half-vanishes but p identification required | conclusion: dead end
+[2026-03-24 10:54:00] task: Blockchain/PoW ideas for factoring | result: PoW is structureless/stateless. Blockchain solves coordination not algorithmic problem. NFS LA inherently sequential | conclusion: dead end
+[2026-03-24 10:54:00] task: CFRAC implementation | result: (still running inv-8)
+[2026-03-24 10:54:00] task: Game theory of factoring | result: RSR neutralizes strategy. One-sided complexity question | conclusion: theoretical only
