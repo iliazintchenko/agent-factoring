@@ -242,3 +242,13 @@
 [2026-03-24 12:14:00] task: Quantum walk inspired classical algorithms | result: quantum mixing advantage comes from interference, no classical analog achieves sub-N^{1/4} | conclusion: dead end
 [2026-03-24 12:14:00] task: Analytic rank of L-functions for N=pq | result: analytic rank detection requires O(√N) L-function evaluation | conclusion: dead end
 [2026-03-24 12:14:00] task: Constructive Galois theory for NFS polynomial | result: small Galois groups (cyclic, dihedral) improve splitting density by constant factor only. Already exploited in SNFS | conclusion: dead end (constant improvement)
+[2026-03-24 12:22:00] task: Quantum money and factoring | result: classical money schemes dont connect to factoring in new ways | conclusion: dead end
+[2026-03-24 12:22:00] task: Automatic sequences and factoring | result: character sums with automatic sequences have no factoring-relevant anomalies | conclusion: dead end
+[2026-03-24 12:22:00] task: Matrix multiplication breakthrough for NFS LA | result: NFS LA is sparse matrix; dense matrix mult exponent irrelevant. Block Wiedemann already optimal for sparse | conclusion: dead end
+[2026-03-24 12:22:00] task: Isogeometric analysis for NFS sieving | result: NFS sieve operates on lattice points, not curves. IGA computational infra doesnt apply | conclusion: dead end
+[2026-03-24 12:22:00] task: Symbolic regression for factoring identities | result: no formula correlates with p beyond trivial sqrt(N) approximation | conclusion: dead end
+[2026-03-24 12:22:00] task: Random projections of multiplication table | result: JL projection to O(log^2 N) dimensions loses CRT structure (below detection threshold) | conclusion: dead end
+[2026-03-24 12:22:00] task: Persistent homology of QS/NFS factor graph | result: Betti numbers match random bipartite graph with same degree sequence. No exploitable topology | conclusion: dead end
+[2026-03-24 12:22:00] task: Expander mixing lemma for sieve collection prediction | result: gives tighter prediction of collection time but doesnt reduce it | conclusion: theoretical insight only
+[2026-03-24 12:22:00] task: PCP/IOP structure of factoring proofs | result: PCP verifier checks O(1) bits but cant construct the proof. Finding proof = factoring | conclusion: dead end
+[2026-03-24 12:22:00] task: Soliton theory / inverse scattering for factoring | result: beautiful analogy (N = multi-soliton) but inverse scattering requires continuous measurements = trial division in disguise | conclusion: dead end
