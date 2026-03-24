@@ -802,3 +802,8 @@
 [2026-03-24 04:02:38] size: 62 | approach: ECM-extended | time: 176.311s | notes: worst of 5, times: 176.311 42.766 126.896 56.725 24.284
 [2026-03-24 04:05:08] size: 63 | approach: ECM-extended | time: 217.292s | notes: worst of 5, times: 39.706 98.470 217.292 136.237 52.118
 [2026-03-24 04:06:50] size: 63 | approach: ECM-extended | time: 217.578s | notes: worst of 5, times: 39.306 98.081 217.578 136.680 52.482
+[2026-03-24 02:30:12] size: 36 | approach: baseline-qs | time: 10.957s | notes: worst of 5
+[2026-03-24 02:32:32] size: 38 | approach: baseline-qs | time: 19.655s | notes: worst of 5
+[2026-03-24 02:36:22] size: 40 | approach: baseline-qs | time: 24.744s | notes: worst of 5
+[2026-03-24 02:43:24] size: 42 | approach: baseline-qs | time: 57.518s | notes: worst of 5
+[2026-03-24 02:54:51] size: 44 | approach: baseline-qs | time: 79.239s | notes: worst of 5
