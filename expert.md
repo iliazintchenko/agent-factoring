@@ -67,9 +67,33 @@ NFS achieves L[1/3] by splitting the norm across TWO polynomials (algebraic + ra
 - **Harvey-Hittmeir**: Deterministic N^{1/5+o(1)}. Still exponential.
 - **Tower NFS (Barbulescu-Kim 2016)**: Achieves sub-L[1/3] for DLP in specific finite field extensions via tower of number fields. Key ingredient: Frobenius action allows systematic polynomial splitting at each tower level. No analog over Z for integer factoring — the "descent" works because polynomials over finite fields factor efficiently, but integers don't.
 
-## Why novel approaches are hard
+## Why novel approaches are hard — comprehensive analysis
 
-The core difficulty: any classical approach to factoring must somehow distinguish the factor p from ~sqrt(N) other candidates of similar size. Sub-exponential algorithms achieve this via smooth number relations + linear algebra. To improve the L-exponent, you need SMALLER smooth candidates, which requires new algebraic structures that reduce norm sizes below what NFS achieves.
+The core difficulty: any classical approach to factoring must somehow distinguish the factor p from ~√N other candidates. Sub-exponential algorithms do this via smooth number relations + linear algebra.
+
+**The L-exponent hierarchy and what determines it:**
+
+1. **L[1/2]** (QS-class): Sieve a degree-2 polynomial f(x) = x² - N. Values ≈ M√N at sieve boundary M. LLL analysis shows THIS IS OPTIMAL for degree-2 polynomials over Z — the standard QS polynomial IS the shortest vector in the coefficient lattice. No lattice trick can improve it.
+
+2. **L[1/3]** (NFS-class): Use algebraic number fields to decompose the norm into TWO parts (algebraic + rational), each smaller than the single polynomial value. This "norm splitting" is the KEY INGREDIENT that improves the exponent. It requires:
+   - A polynomial f(x) of degree d ≥ 3 with a root m mod N
+   - An algebraic number field Q(α) where f(α) = 0
+   - The ability to define "smoothness" in this number field (via prime ideals)
+
+3. **Sub-L[1/3]** (Tower NFS for DLP, no analog for factoring): Tower of field extensions enables recursive descent where polynomials factor efficiently. Works for DLP in GF(p^n) because the Frobenius endomorphism provides a systematic splitting. No analog over Z.
+
+**What WOULD be needed to beat L[1/3] for factoring:**
+- A new algebraic structure over Z (not number fields, not function fields) where "norms" are smaller than N^{2/3} per component
+- OR a way to generate smooth numbers of size < N^{1/3} that still relate to N's factorization
+- OR a completely non-smoothness-based approach (no known sub-exponential method of this type exists)
+
+**Approaches that CAN'T help (proven by our experiments):**
+- Multi-multiplier combination (MMS): only improves constants, not the exponent
+- Bilinear decomposition: can't split norms without number fields
+- LLL polynomial selection: degree-2 is already optimal; degree-3+ needs NFS
+- Smooth number enumeration: subset-sum hard
+- ECM cofactor descent (CDS): too many unique medium primes for extended matrix; LP-matching doesn't change the exponent
+- Birthday/collision methods: O(N^{1/4}), not sub-exponential
 
 ## Key insight: smoothness detection cost matters
 
