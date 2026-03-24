@@ -92,6 +92,7 @@ The quasi-polynomial DLP breakthrough in small characteristic does NOT transfer 
 
 **Smoothness-based approaches explored:**
 - **Schnorr lattice factoring**: Lattice dimension grows with smoothness bound. Ducas (CWI): 0 relations in 1000 trials.
+- **Lattice crypto techniques (BDD/dual/hybrid/primal) for factoring**: Kannan embedding already in NFS. No useful BDD formulation (Coppersmith needs partial info). Dual attack degenerates to Gaussian elimination (no noise unlike LWE). Hybrid BKZ+MITM adds cost at GNFS optimal saddle point. Primal BKZ: LLL already near-optimal in 2D; high-dim has no useful relation mapping. Fundamental: p is not a short vector in any known poly-dim lattice, and factoring needs π(B) relations not one vector.
 - **LLL polynomial selection**: Degree-2 already optimal (shortest vector). Degree-3+ needs NFS.
 - **Multi-image NFS**: Improves L[1/3] constants only, not the exponent.
 - **Multi-multiplier sieve (MMS)**: ~60% more relations (constant factor) but doesn't shrink polynomial values.
