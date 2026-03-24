@@ -171,3 +171,10 @@
 [2026-03-24 11:02:00] task: Unconditional factoring hardness for specific integer classes | result: special forms (Mersenne, Fermat, Cunningham) are EASIER via SNFS. Hardest = random balanced semiprimes. Best proven lower bound = trivial Ω(n) | conclusion: dead end
 [2026-03-24 11:02:00] task: Symmetric group representation theory S_n | result: Young symmetrizers nilpotent mod N. Schur functions symmetric in p,q → computable from s,N alone. Breaking symmetry = sqrt(s²-4N) = factoring | conclusion: dead end
 [2026-03-24 11:02:00] task: Probabilistic NT (Erdos-Kac, Dickman) | result: omega(N)=2 known already. Dickman fully exploited since 1980s. Rating 2/10 | conclusion: dead end
+[2026-03-24 11:10:00] task: Boolean function complexity of factoring (Fourier, circuits) | result: flat low-degree spectrum, mass at high degrees. All bits poly-equivalent. No super-linear lower bound known. Boolean Fourier cant crack algebraic structure | conclusion: confirms hardness, no algorithm
+[2026-03-24 11:10:00] task: Randomized linear algebra (sketching) for NFS matrix | result: projection destroys null space over GF(2). No approximate rank. Block Wiedemann already optimal in black-box model | conclusion: dead end
+[2026-03-24 11:10:00] task: SAT/SMT solvers for factoring (20-48 bit) | result: works but exponential. Z3 > raw SAT. Wall at 40-50 bits. Vastly inferior to number-theoretic algorithms | conclusion: dead end
+[2026-03-24 11:10:00] task: Computational ANT (class groups) for factoring | result: class groups L[1/2] > factoring L[1/3]. Improving CG only helps if it surpasses L[1/3] — no path | conclusion: dead end (indirect interplay only)
+[2026-03-24 11:10:00] task: CFRAC vs QS comparison (25-40 digits) | result: QS 1.5-2.5x faster. CFRAC zero parameter tuning. Both dominated by relation collection | conclusion: practical baseline
+[2026-03-24 11:10:00] task: Higher-dimensional Pollard rho (2D, 3D maps) | result: (pending inv-3)
+[2026-03-24 11:10:00] task: Quantum annealing/adiabatic for factoring | result: (pending inv-4)
