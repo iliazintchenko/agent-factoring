@@ -178,3 +178,10 @@
 [2026-03-24 11:10:00] task: CFRAC vs QS comparison (25-40 digits) | result: QS 1.5-2.5x faster. CFRAC zero parameter tuning. Both dominated by relation collection | conclusion: practical baseline
 [2026-03-24 11:10:00] task: Higher-dimensional Pollard rho (2D, 3D maps) | result: (pending inv-3)
 [2026-03-24 11:10:00] task: Quantum annealing/adiabatic for factoring | result: (pending inv-4)
+[2026-03-24 11:18:00] task: Etale fundamental groups of Spec(Z/NZ) | result: all topological invariants decompose via CRT. Same opacity barrier | conclusion: dead end
+[2026-03-24 11:18:00] task: Quantum error correction analogs for factoring | result: stabilizer formalism over GF(2) is purely classical, doesn't amplify weak signals | conclusion: dead end
+[2026-03-24 11:18:00] task: Information geometry of factoring | result: 1D manifold with trivial curvature. Geodesics = Fermat's method | conclusion: dead end
+[2026-03-24 11:18:00] task: Noncommutative geometry (Connes) over Z/NZ | result: spectrum decomposes via CRT, same as commutative case | conclusion: dead end
+[2026-03-24 11:18:00] task: Near-ring endomorphisms / Witt-Frobenius | result: p-th power is approximate ring endo with error O(p). Witt formalism makes precise. But composite N: no single polynomial works. CRT decomposition required | conclusion: KEY insight — Witt-Frobenius is the closest thing to Z-Frobenius, but it loses precision
+[2026-03-24 11:18:00] task: Quantum annealing / QUBO for factoring | result: gap closes exponentially. D-Wave best: 23-bit. Scaling 2^{-0.6l}. QUBO destroys number-theoretic structure. Worse than NFS | conclusion: dead end
+[2026-03-24 11:18:00] task: DEFINITIVE top 5 theoretical insights | result: L[1/3] structural, archimedean gap, GF(2) bottleneck, CRT opacity, Z-rigidity | conclusion: DEFINITIVE synthesis
