@@ -8,9 +8,6 @@
 [2026-03-24 04:30:00] size: 51 | approach: QS-v1 | time: 22.693s | notes: QS-v1 51-digit, fails at 52+
 [2026-03-24 04:30:00] size: 30 | approach: CCF-batch-gcd | time: FAIL | notes: batch smooth detection too slow, only 5/655 smooth from 2.6M candidates
 [2026-03-24 04:30:00] size: 30 | approach: CCF-v3-tuned | time: FAIL | notes: better params (B=11051), 217 smooth + 191 LP = 408/675. batch GCD found 6623 shared cofactors but couldn't convert to relations
-[2026-03-24 04:30:00] size: 30 | approach: QS-v1 | time: 0.055s | notes: working QS with multi-polynomial + LP matching
-[2026-03-24 04:30:00] size: 40 | approach: QS-v1 | time: 0.853s | notes: QS-v1 40-digit
-[2026-03-24 04:30:00] size: 50 | approach: QS-v1 | time: 11.514s | notes: QS-v1 50-digit
 [2026-03-24 04:30:00] size: 51 | approach: QS-v1 | time: 22.693s | notes: QS-v1 fails at 52+
 [2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.132s | notes: found factor 853172260176581
 [2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.141s | notes: found factor 973482052545047
@@ -1035,3 +1032,15 @@
 [2026-03-24 05:30:00] size: 60 | approach: best-combined (ECM+LGSH+HSD) | time: FAIL | notes: all 3 methods timeout on some 60-digit semiprimes
 [2026-03-24 05:30:00] size: 62 | approach: ecm_factor (optimized) | time: 35.91s | notes: Optimized ECM with B1 level skipping. 62-digit in 36s.
 [2026-03-24 05:30:00] size: 64 | approach: ecm_factor (optimized) | time: FAIL | notes: 64-digit needs ~3300 curves at B1=43M, only ~295 possible in 295s timeout
+[2026-03-24 04:19:08] size: 60 | approach: cm_ecm_bench | time: FAIL | notes: no factor for 28677507619682817975...
+[2026-03-24 04:20:54] size: 62 | approach: cm_ecm_bench | time: FAIL | notes: no factor for 17330246125701865118...
+[2026-03-24 04:33:10] size: 60 | approach: cm_ecm_first | time: 107.4s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 62 | approach: cm_ecm_first | time: 106.2s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 64 | approach: cm_ecm_first | time: 247.4s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 66 | approach: cm_ecm_first | time: 67.0s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 68 | approach: cm_ecm_first | time: 47.0s | notes: first semiprime only. Status: OK
+[2026-03-24 04:33:10] size: 70 | approach: cm_ecm_first | time: 295s | notes: first semiprime only. Status: FAIL
+[2026-03-24 04:35:24] size: 62 | approach: cm_ecm_w5 | time: FAIL | notes: no factor for 17330246125701865118...
+[2026-03-24 04:35:25] size: 60 | approach: cm_ecm_w5 | time: FAIL | notes: no factor for 28677507619682817975...
+[2026-03-24 04:45:34] size: 60 | approach: cm_ecm_worst5 | time: 107.8s | notes: all 5 factored. Individual: 107.8, 3.2, 23.0, 77.6, 54.1
+[2026-03-24 04:45:34] size: 62 | approach: cm_ecm_worst5 | time: 111.4s | notes: all 5 factored. Individual: 111.4, 95.3, 16.3, 63.8, 64.3
