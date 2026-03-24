@@ -916,3 +916,9 @@
 [2026-03-24 04:28:59] size: 50 | approach: ecm-comprehensive | time: 1.297s | notes: found factor 1437953211038098705171097
 [2026-03-24 04:29:12] size: 55 | approach: ecm-comprehensive | time: 12.715s | notes: found factor 613004874865992749646301531
 [2026-03-24 04:29:20] size: 55 | approach: ecm-comprehensive | time: 8.462s | notes: found factor 859016482498061906252152027
+[2026-03-24 04:29:57] size: 55 | approach: ecm-comprehensive | time: 36.557s | notes: found factor 218709495227837237296415933
+[2026-03-24 04:30:00] size: 55 | approach: ecm-comprehensive | time: 3.111s | notes: found factor 363122801990237104785674219
+[2026-03-24 04:30:07] size: 55 | approach: ecm-comprehensive | time: 6.775s | notes: found factor 451605564466253080023546841
+[2026-03-24 04:31:00] size: 60 | approach: ecm-comprehensive | time: 53.525s | notes: found factor 323012268366406069604976245747
+[2026-03-24 04:31:17] size: 60 | approach: ecm-comprehensive | time: 16.945s | notes: found factor 233727393239440919182445071663
+[2026-03-24 04:30:00] size: 30 | approach: candidate_strategies | time: 7.5s | notes: Compared 5 strategies at B=5000, 50K trials. Near-zero best (0.022%), Sequential 2nd (0.018%), Random worst (0.008%). Multi-k comparable (0.016%). Confirms smallest |x²-N| gives best smoothness — standard QS knowledge.
