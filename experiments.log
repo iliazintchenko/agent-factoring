@@ -84,3 +84,8 @@
 [2026-03-24 08:12:00] task: Hybrid method combination (ECM info → NFS/Coppersmith) | result: info/ECM-failure negligible. n/4 threshold via ECM costs L_p[1/2] >> NFS. Cross-method info incompatible | conclusion: dead end (current practice optimal)
 [2026-03-24 08:16:00] task: NFS norm correlation SCALING with N (deep measurement) | result: actually NEGATIVE ~-2% structurally. Size channel gives weak positive push. Previous 15% was artifact | conclusion: dead end (anti-correlated)
 [2026-03-24 08:16:00] task: Theoretical lower bound on NFS constant c | result: floor is (32/9)^{1/3}≈1.526 (SNFS/MNFS-DLP). No known optimization changes GNFS leading c. Constant-factor improvements are sub-leading | conclusion: KEY: c=1.923 is tight for GNFS
+[2026-03-24 08:25:00] task: 4th optimization variable for L[1/4] — what structure would be needed | result: α=1/(k+1), k=reduction stages. Archimedean vs non-archimedean size is THE deep reason | conclusion: KEY INSIGHT — deepest structural result
+[2026-03-24 08:25:00] task: MNFS constant optimization — theoretical floor | result: c=(32/9)^{1/3}≈1.526 uniquely determined, zero slack. Linear polys optimal. Double MNFS worse | conclusion: tight barrier confirmed
+[2026-03-24 08:25:00] task: Symbolic computation (CAD, resultants) for NFS | result: CAD operates over R not mod p. Smooth set has no finite algebraic description | conclusion: dead end
+[2026-03-24 08:25:00] task: Literature search 2025-2026 | result: (pending full read of findings)
+[2026-03-24 08:25:00] task: Shotgun random algebraic experiments (20 types) | result: 3 that work = known algorithms. 17 = random with ~1/p success | conclusion: dead end (no surprises)

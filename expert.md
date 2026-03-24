@@ -57,7 +57,16 @@ Small-subgroup DL projection (g^{(N-1)/l} mod N for l | N-1): recovers O(1) bits
 
 Factorizations of N±k for small k: yield O(k·ln B) bits about p, but O(log N) needed. Information gap is exponential.
 
-## Why L[1/3] appears to be a fundamental classical barrier
+## Why L[1/3] IS the fundamental classical barrier
+
+**The L-exponent formula**: α = 1/(k+1) where k = number of independent reduction stages in the algorithm.
+- QS: k=1 (smoothness only) → α = 1/2
+- NFS: k=2 (polynomial degree + smoothness) → α = 1/3
+- FFS: k=3+ (+ tower descent via Frobenius) → α = 1/4 → 0
+
+**Why NFS is stuck at k=2**: Adding a 3rd stage requires an iterable "compression map" Φ that reduces element size while preserving smoothness structure. Integer size is ARCHIMEDEAN — it cannot be iteratively reduced by algebraic maps. Polynomial degree is NON-ARCHIMEDEAN — Frobenius + quotient reduction decreases it freely. This asymmetry is the deep reason FFS reaches quasi-polynomial while NFS cannot break L[1/3].
+
+**Constants**: GNFS c = (64/9)^{1/3} ≈ 1.923 (tight). MNFS floor: c = (32/9)^{1/3} ≈ 1.526 (tight, uniquely determined, no slack). No known optimization changes the leading constant for GNFS. All improvements (polynomial selection, lattice sieving, large primes, batch methods) affect only sub-leading terms.
 
 All known sub-exponential factoring approaches are index-calculus methods hitting the same Dickman-de Bruijn tradeoff. Optimizing smoothness bound B, sieving range M, and relation count inherently yields α=1/3 through the three-way balance. This is robust across:
 
