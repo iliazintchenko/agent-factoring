@@ -804,3 +804,4 @@
 [2026-03-24 01:18:57] size: 50 | approach: mms-opt | time: 26.289s | notes: found factor 3318784448526149968726087
 [2026-03-24 01:19:23] size: 50 | approach: mms-opt | time: 25.976s | notes: found factor 9591453119320901101941821
 [2026-03-24 01:19:50] size: 50 | approach: mms-opt | time: 27.542s | notes: found factor 1437953211038098705171097
+[2026-03-24 01:21:14] size: 65 | approach: bsrf-v4 | time: FAIL | notes: no factor for 12240309739634277554...
