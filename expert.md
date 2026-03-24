@@ -202,9 +202,11 @@ Since (x + m_k)² ≡ f_k(x) (mod N) for each k, *products* across multipliers g
 
 Comparison with SRG (ECM-based): MMS is faster at 30-42 digits (e.g., 30d: 0.07s vs 0.83s), but slower at 50+ digits (50d: 20s vs 2.9s). The SRG approach benefits from ECM's subexponential scaling, while MMS is a pure sieve method with L[1/2] scaling.
 
-55-digit test: ~132s on a single core (within timeout). Beyond 55 digits, the sieve needs impractically long intervals with current parameters.
+55-digit test: ~75s (truncated FB) to ~132s (full FB). Beyond 55 digits impractical with current parameters.
 
-**Scaling analysis**: Both L[1/2] and L[1/3] models fit the 30-53 digit data comparably (SSE 0.477 vs 0.440). The effective L[1/2] constant c ≈ 0.93 (fitted with offset). Growth rate averages ~1.3x per digit, roughly doubling every 3 digits. Over this digit range, L[1/2] and L[1/3] are hard to distinguish — would need 70+ digit data to differentiate.
+**Scaling analysis**: L[1/2] and L[1/3] fits comparably (SSE 0.477 vs 0.440 over 30-53d). Growth ~1.3x per digit.
+
+**Key finding**: MMS is competitive only at 30-35 digits. BSRF-v3 (uses SIQS-style smaller polynomials) is 3-20x faster across all sizes. The multi-multiplier LP matching provides ~60% more relations (constant factor), but doesn't shrink the polynomial values — the fundamental bottleneck. Lesson: improving the L-constant requires smaller polynomial values, not just more relations from the same-sized values.
 
 ## Open directions
 
