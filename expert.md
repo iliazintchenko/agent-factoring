@@ -132,6 +132,18 @@ Measured cofactor sizes and batch GCD collision rates across digit ranges (with 
 ### CCD factoring (ccd_factor.c)
 QS-style sieve with batch cofactor matching. Critical lesson: partial relation matching must mark partners as "used" to prevent duplicate combined relations. Duplicates cause ALL GF(2) null vectors to be trivially degenerate (X ≡ ±Y mod N always).
 
+### NFS brute-force evaluation experiment (alg_sieve_exp.c)
+Compared doubly-smooth yield of QS vs NFS (degree 3, 4, 5) for 40-digit N with B=27031:
+
+| Method | Norms (bits) | Both-smooth rate | Ratio vs QS |
+|--------|-------------|------------------|-------------|
+| QS     | 81.8        | 0.273%           | 1.00        |
+| NFS d=3| 40+59       | 0.022%           | 0.08        |
+| NFS d=4| 32+53       | 0.289%           | 1.06        |
+| NFS d=5| 27+50       | 0.717%           | **2.63**    |
+
+**KEY RESULT**: NFS degree 5 produces 2.63x more doubly-smooth relations per candidate than QS at 40 digits, even with brute-force (a,b) enumeration (no lattice sieving). This is because the norms are substantially smaller: 27+50 = 77 total bits vs 82 bits for QS. The double-smoothness penalty is more than offset by smaller norms at higher degree. This advantage should GROW with N (since NFS is L[1/3] vs QS's L[1/2]). The practical challenge is implementing efficient line sieving or special-q sieving for the algebraic side. The 50+ digit experiments timed out with brute-force evaluation, confirming that some form of sieving is necessary.
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
