@@ -163,9 +163,10 @@ After ~290 investigations, the remaining open space is extremely narrow:
 - **Approximate/relaxed algebraic structures**: Most approaches seek EXACT algebraic properties (exact smoothness, exact homomorphisms). Relaxed versions with controlled error might open new avenues. No concrete proposal exists.
 - **Unpredictable mathematical breakthroughs**: The factoring landscape has been stable since 1993. Possible sources: new connections to algebraic geometry (motives, étale cohomology), advances in additive combinatorics, or unexpected consequences of the Langlands program.
 
-## Explored directions (comprehensive dead-end catalog)
+## Explored directions (~310 approaches, all concluded)
 
-See above sections for details. Summary of ~300 investigated approaches across categories:
+
+See above sections for details. Summary of ~310 investigated approaches across categories:
 
 **Smoothness-based (all L[1/2] or L[1/3], no improvement):** Schnorr lattice, LLL polynomial selection, multi-image NFS, 3-field NFS, MMS, MLD, Best-of-K, CRT candidates, batch GCD, MLR, K-large-prime, CF-base descent, multi-d CF, sparse polynomial NFS, group algebra Z[C_k], lattice tower/BKZ, lattice on O_K, batch GCD + non-sequential, higher-order residues GF(k), smooth bit-patterns.
 
