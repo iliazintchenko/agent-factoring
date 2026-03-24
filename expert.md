@@ -183,6 +183,8 @@ Comparison with SRG (ECM-based): MMS is faster at 30-42 digits (e.g., 30d: 0.07s
 
 55-digit test: ~132s on a single core (within timeout). Beyond 55 digits, the sieve needs impractically long intervals with current parameters.
 
+**Scaling analysis**: Both L[1/2] and L[1/3] models fit the 30-53 digit data comparably (SSE 0.477 vs 0.440). The effective L[1/2] constant c ≈ 0.93 (fitted with offset). Growth rate averages ~1.3x per digit, roughly doubling every 3 digits. Over this digit range, L[1/2] and L[1/3] are hard to distinguish — would need 70+ digit data to differentiate.
+
 ## Open directions
 
 - **Algebraic group structure**: Z_N* ≅ Z_{p-1} × Z_{q-1} but we can't see this decomposition. Can random walks, character sums, or higher-dimensional algebraic groups reveal it without smooth numbers?
