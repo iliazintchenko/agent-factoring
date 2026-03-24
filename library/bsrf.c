@@ -452,14 +452,16 @@ static int factor_bsrf(void) {
     fprintf(stderr, "Factor base: %d primes\n", fb_count);
 
     /* Adaptive sieve size: larger for bigger numbers to find more smooths per poly */
-    if (n_digits >= 60) {
-        SIEVE_SIZE = 1024 * 1024;   /* 1M for 60+ digits */
+    if (n_digits >= 65) {
+        SIEVE_SIZE = 4 * 1024 * 1024;   /* 4M for 65+ digits */
+    } else if (n_digits >= 60) {
+        SIEVE_SIZE = 2 * 1024 * 1024;   /* 2M for 60-64 digits */
     } else if (n_digits >= 55) {
-        SIEVE_SIZE = 512 * 1024;    /* 512K for 55-59 digits */
+        SIEVE_SIZE = 1024 * 1024;        /* 1M for 55-59 digits */
     } else if (n_digits >= 45) {
-        SIEVE_SIZE = 256 * 1024;    /* 256K for 45-54 digits */
+        SIEVE_SIZE = 512 * 1024;         /* 512K for 45-54 digits */
     } else {
-        SIEVE_SIZE = 131072;        /* 128K for smaller */
+        SIEVE_SIZE = 131072;             /* 128K for smaller */
     }
     HALF_M = SIEVE_SIZE / 2;
 
