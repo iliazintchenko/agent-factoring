@@ -1,0 +1,179 @@
+[2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.132s | notes: found factor 853172260176581
+[2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.141s | notes: found factor 973482052545047
+[2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.184s | notes: found factor 742943501885287
+[2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.146s | notes: found factor 955492613363501
+[2026-03-24 02:20:40] size: 30 | approach: LGSH-v1 | time: 0.114s | notes: found factor 709910301438391
+[2026-03-24 02:20:40] size: 31 | approach: LGSH-v1 | time: 0.136s | notes: found factor 512509817654951
+[2026-03-24 02:20:41] size: 31 | approach: LGSH-v1 | time: 0.150s | notes: found factor 834077816631193
+[2026-03-24 02:20:41] size: 31 | approach: LGSH-v1 | time: 0.134s | notes: found factor 894914607625937
+[2026-03-24 02:20:41] size: 31 | approach: LGSH-v1 | time: 0.145s | notes: found factor 793089300201113
+[2026-03-24 02:20:41] size: 31 | approach: LGSH-v1 | time: 0.128s | notes: found factor 841510451217089
+[2026-03-24 02:20:41] size: 32 | approach: LGSH-v1 | time: 0.183s | notes: found factor 7413929065845661
+[2026-03-24 02:20:41] size: 32 | approach: LGSH-v1 | time: 0.157s | notes: found factor 8735168619646627
+[2026-03-24 02:20:42] size: 32 | approach: LGSH-v1 | time: 0.134s | notes: found factor 8419580092467013
+[2026-03-24 02:20:42] size: 32 | approach: LGSH-v1 | time: 0.148s | notes: found factor 8092187942408081
+[2026-03-24 02:20:42] size: 32 | approach: LGSH-v1 | time: 0.156s | notes: found factor 9350505294133007
+[2026-03-24 02:20:42] size: 33 | approach: LGSH-v1 | time: 0.190s | notes: found factor 4246390191698561
+[2026-03-24 02:20:42] size: 33 | approach: LGSH-v1 | time: 0.283s | notes: found factor 8736931255878097
+[2026-03-24 02:20:42] size: 33 | approach: LGSH-v1 | time: 0.169s | notes: found factor 48591410038276199
+[2026-03-24 02:20:43] size: 33 | approach: LGSH-v1 | time: 0.166s | notes: found factor 97726895700147713
+[2026-03-24 02:20:43] size: 33 | approach: LGSH-v1 | time: 0.183s | notes: found factor 7234779656144837
+[2026-03-24 02:20:43] size: 34 | approach: LGSH-v1 | time: 0.146s | notes: found factor 82045041604477999
+[2026-03-24 02:20:43] size: 34 | approach: LGSH-v1 | time: 0.173s | notes: found factor 25815610339368071
+[2026-03-24 02:20:43] size: 34 | approach: LGSH-v1 | time: 0.202s | notes: found factor 88166964892820689
+[2026-03-24 02:20:43] size: 41 | approach: LGSH-v1 | time: FAIL | notes: no factor for 79490313721248448169...
+[2026-03-24 02:20:44] size: 34 | approach: LGSH-v1 | time: 0.166s | notes: found factor 97615487733219949
+[2026-03-24 02:20:44] size: 34 | approach: LGSH-v1 | time: 0.198s | notes: found factor 31885749280408423
+[2026-03-24 02:20:44] size: 35 | approach: LGSH-v1 | time: 0.194s | notes: found factor 69842539155469351
+[2026-03-24 02:20:44] size: 35 | approach: LGSH-v1 | time: 0.216s | notes: found factor 905842719852870697
+[2026-03-24 02:20:44] size: 42 | approach: LGSH-v1 | time: FAIL | notes: no factor for 27971345334147874785...
+[2026-03-24 02:20:44] size: 35 | approach: LGSH-v1 | time: 0.186s | notes: found factor 705765764461554899
+[2026-03-24 02:20:45] size: 35 | approach: LGSH-v1 | time: 0.321s | notes: found factor 77098490402311201
+[2026-03-24 02:20:45] size: 35 | approach: LGSH-v1 | time: 0.184s | notes: found factor 273951638805605597
+[2026-03-24 02:20:45] size: 36 | approach: LGSH-v1 | time: 0.217s | notes: found factor 124427679318959899
+[2026-03-24 02:20:45] size: 36 | approach: LGSH-v1 | time: 0.368s | notes: found factor 831663032834837459
+[2026-03-24 02:20:45] size: 43 | approach: LGSH-v1 | time: FAIL | notes: no factor for 28868493580451356168...
+[2026-03-24 02:20:46] size: 36 | approach: LGSH-v1 | time: 0.333s | notes: found factor 308335176111167687
+[2026-03-24 02:20:46] size: 36 | approach: LGSH-v1 | time: 0.322s | notes: found factor 848458195903984321
+[2026-03-24 02:20:46] size: 36 | approach: LGSH-v1 | time: 0.208s | notes: found factor 341557716280196699
+[2026-03-24 02:20:47] size: 37 | approach: LGSH-v1 | time: 0.509s | notes: found factor 247512976258061539
+[2026-03-24 02:20:47] size: 37 | approach: LGSH-v1 | time: 0.370s | notes: found factor 9555851289521223263
+[2026-03-24 02:20:47] size: 44 | approach: LGSH-v1 | time: FAIL | notes: no factor for 30887939949413099244...
+[2026-03-24 02:20:47] size: 37 | approach: LGSH-v1 | time: 0.197s | notes: found factor 9978420706037468441
+[2026-03-24 02:20:48] size: 37 | approach: LGSH-v1 | time: 0.356s | notes: found factor 745861649733741133
+[2026-03-24 02:20:48] size: 37 | approach: LGSH-v1 | time: 0.230s | notes: found factor 714657417109919609
+[2026-03-24 02:20:48] size: 38 | approach: LGSH-v1 | time: FAIL | notes: no factor for 32433518927635311210...
+[2026-03-24 02:20:48] size: 39 | approach: LGSH-v1 | time: FAIL | notes: no factor for 35230639590643520357...
+[2026-03-24 02:20:49] size: 40 | approach: LGSH-v1 | time: FAIL | notes: no factor for 16282971124307224240...
+[2026-03-24 02:20:49] size: 45 | approach: LGSH-v1 | time: FAIL | notes: no factor for 31764148469987349364...
+[2026-03-24 02:20:52] size: 46 | approach: LGSH-v1 | time: FAIL | notes: no factor for 14806127269595649393...
+[2026-03-24 02:20:56] size: 47 | approach: LGSH-v1 | time: FAIL | notes: no factor for 22662729899266246772...
+[2026-03-24 02:21:02] size: 48 | approach: LGSH-v1 | time: FAIL | notes: no factor for 36171110301884911854...
+[2026-03-24 02:21:12] size: 49 | approach: LGSH-v1 | time: FAIL | notes: no factor for 23128761010340801074...
+[2026-03-24 02:21:23] size: 50 | approach: LGSH-v1 | time: FAIL | notes: no factor for 16724097559247740010...
+[2026-03-24 02:26:06] size: 30 | approach: LGSH-v2 | time: 0.137s | notes: found factor 237853791679697
+[2026-03-24 02:26:06] size: 30 | approach: LGSH-v2 | time: 0.142s | notes: found factor 973482052545047
+[2026-03-24 02:26:06] size: 30 | approach: LGSH-v2 | time: 0.194s | notes: found factor 742943501885287
+[2026-03-24 02:26:06] size: 30 | approach: LGSH-v2 | time: 0.151s | notes: found factor 955492613363501
+[2026-03-24 02:26:07] size: 30 | approach: LGSH-v2 | time: 0.119s | notes: found factor 709910301438391
+[2026-03-24 02:26:07] size: 32 | approach: LGSH-v2 | time: 0.187s | notes: found factor 7413929065845661
+[2026-03-24 02:26:07] size: 32 | approach: LGSH-v2 | time: 0.165s | notes: found factor 8735168619646627
+[2026-03-24 02:26:07] size: 32 | approach: LGSH-v2 | time: 0.135s | notes: found factor 8419580092467013
+[2026-03-24 02:26:07] size: 32 | approach: LGSH-v2 | time: 0.156s | notes: found factor 8092187942408081
+[2026-03-24 02:26:07] size: 32 | approach: LGSH-v2 | time: 0.165s | notes: found factor 9350505294133007
+[2026-03-24 02:26:08] size: 34 | approach: LGSH-v2 | time: 0.154s | notes: found factor 82045041604477999
+[2026-03-24 02:26:08] size: 34 | approach: LGSH-v2 | time: 0.182s | notes: found factor 25815610339368071
+[2026-03-24 02:26:08] size: 34 | approach: LGSH-v2 | time: 0.210s | notes: found factor 88166964892820689
+[2026-03-24 02:26:08] size: 34 | approach: LGSH-v2 | time: 0.174s | notes: found factor 97615487733219949
+[2026-03-24 02:26:08] size: 34 | approach: LGSH-v2 | time: 0.205s | notes: found factor 31885749280408423
+[2026-03-24 02:26:09] size: 36 | approach: LGSH-v2 | time: 0.229s | notes: found factor 124427679318959899
+[2026-03-24 02:26:09] size: 36 | approach: LGSH-v2 | time: 0.388s | notes: found factor 831663032834837459
+[2026-03-24 02:26:09] size: 36 | approach: LGSH-v2 | time: 0.350s | notes: found factor 308335176111167687
+[2026-03-24 02:26:10] size: 36 | approach: LGSH-v2 | time: 0.348s | notes: found factor 848458195903984321
+[2026-03-24 02:26:10] size: 36 | approach: LGSH-v2 | time: 0.218s | notes: found factor 341557716280196699
+[2026-03-24 02:26:10] size: 38 | approach: LGSH-v2 | time: 0.494s | notes: found factor 3510315453304323199
+[2026-03-24 02:26:11] size: 38 | approach: LGSH-v2 | time: 0.563s | notes: found factor 2857813223847491747
+[2026-03-24 02:26:11] size: 38 | approach: LGSH-v2 | time: 0.531s | notes: found factor 2297663271425438981
+[2026-03-24 02:26:12] size: 38 | approach: LGSH-v2 | time: 0.590s | notes: found factor 1981968944913582883
+[2026-03-24 02:26:13] size: 38 | approach: LGSH-v2 | time: 0.507s | notes: found factor 9541016958474145709
+[2026-03-24 02:26:13] size: 40 | approach: LGSH-v2 | time: 0.752s | notes: found factor 22583027504572801031
+[2026-03-24 02:26:14] size: 40 | approach: LGSH-v2 | time: 0.804s | notes: found factor 78735518311587647563
+[2026-03-24 02:26:15] size: 40 | approach: LGSH-v2 | time: 0.610s | notes: found factor 26780805813699501731
+[2026-03-24 02:26:16] size: 40 | approach: LGSH-v2 | time: 0.799s | notes: found factor 83508135079636726363
+[2026-03-24 02:26:16] size: 40 | approach: LGSH-v2 | time: 0.944s | notes: found factor 20804179672520600591
+[2026-03-24 02:26:18] size: 42 | approach: LGSH-v2 | time: 1.251s | notes: found factor 993800718941516497211
+[2026-03-24 02:26:19] size: 42 | approach: LGSH-v2 | time: 1.033s | notes: found factor 312903253237424504801
+[2026-03-24 02:26:20] size: 42 | approach: LGSH-v2 | time: 1.154s | notes: found factor 832049973472240230583
+[2026-03-24 02:26:21] size: 42 | approach: LGSH-v2 | time: 0.913s | notes: found factor 207501258670461422731
+[2026-03-24 02:26:22] size: 42 | approach: LGSH-v2 | time: 0.946s | notes: found factor 615209869378693267477
+[2026-03-24 02:26:24] size: 44 | approach: LGSH-v2 | time: 2.163s | notes: found factor 3431962552616557921391
+[2026-03-24 02:26:26] size: 44 | approach: LGSH-v2 | time: 2.220s | notes: found factor 9930551827391692221833
+[2026-03-24 02:26:27] size: 44 | approach: LGSH-v2 | time: 1.164s | notes: found factor 2972570025159287871169
+[2026-03-24 02:26:29] size: 44 | approach: LGSH-v2 | time: 2.159s | notes: found factor 9532023585458569260631
+[2026-03-24 02:26:31] size: 44 | approach: LGSH-v2 | time: 2.022s | notes: found factor 9709754530667958906817
+[2026-03-24 02:26:35] size: 46 | approach: LGSH-v2 | time: 3.323s | notes: found factor 14841907243481981500237
+[2026-03-24 02:26:37] size: 46 | approach: LGSH-v2 | time: 2.639s | notes: found factor 85010884086564696300199
+[2026-03-24 02:26:42] size: 46 | approach: LGSH-v2 | time: 4.229s | notes: found factor 70666773741297185724887
+[2026-03-24 02:26:45] size: 46 | approach: LGSH-v2 | time: 3.774s | notes: found factor 14883677127466624330153
+[2026-03-24 02:26:50] size: 46 | approach: LGSH-v2 | time: FAIL | notes: no factor for 28214570496465605534...
+[2026-03-24 02:26:55] size: 48 | approach: LGSH-v2 | time: FAIL | notes: no factor for 36171110301884911854...
+[2026-03-24 02:27:08] size: 50 | approach: LGSH-v2 | time: 13.795s | notes: found factor 8120770043557672253141101
+[2026-03-24 02:27:25] size: 50 | approach: LGSH-v2 | time: 16.363s | notes: found factor 3469948797237213917621473
+[2026-03-24 02:27:44] size: 50 | approach: LGSH-v2 | time: FAIL | notes: no factor for 31457091489409200601...
+[2026-03-24 02:28:38] size: 30 | approach: LGSH-v2b | time: 0.139s | notes: found factor 237853791679697
+[2026-03-24 02:28:39] size: 30 | approach: LGSH-v2b | time: 0.148s | notes: found factor 973482052545047
+[2026-03-24 02:28:39] size: 30 | approach: LGSH-v2b | time: 0.193s | notes: found factor 742943501885287
+[2026-03-24 02:28:39] size: 30 | approach: LGSH-v2b | time: 0.157s | notes: found factor 955492613363501
+[2026-03-24 02:28:39] size: 30 | approach: LGSH-v2b | time: 0.118s | notes: found factor 709910301438391
+[2026-03-24 02:28:39] size: 34 | approach: LGSH-v2b | time: 0.154s | notes: found factor 82045041604477999
+[2026-03-24 02:28:39] size: 34 | approach: LGSH-v2b | time: 0.184s | notes: found factor 25815610339368071
+[2026-03-24 02:28:40] size: 34 | approach: LGSH-v2b | time: 0.209s | notes: found factor 88166964892820689
+[2026-03-24 02:28:40] size: 34 | approach: LGSH-v2b | time: 0.174s | notes: found factor 97615487733219949
+[2026-03-24 02:28:40] size: 34 | approach: LGSH-v2b | time: 0.204s | notes: found factor 31885749280408423
+[2026-03-24 02:28:40] size: 38 | approach: LGSH-v2b | time: 0.502s | notes: found factor 3510315453304323199
+[2026-03-24 02:28:41] size: 38 | approach: LGSH-v2b | time: 0.574s | notes: found factor 2857813223847491747
+[2026-03-24 02:28:42] size: 38 | approach: LGSH-v2b | time: 0.529s | notes: found factor 2297663271425438981
+[2026-03-24 02:28:42] size: 38 | approach: LGSH-v2b | time: 0.602s | notes: found factor 1981968944913582883
+[2026-03-24 02:28:43] size: 38 | approach: LGSH-v2b | time: 0.512s | notes: found factor 9541016958474145709
+[2026-03-24 02:28:44] size: 42 | approach: LGSH-v2b | time: 1.255s | notes: found factor 993800718941516497211
+[2026-03-24 02:28:45] size: 42 | approach: LGSH-v2b | time: 1.030s | notes: found factor 312903253237424504801
+[2026-03-24 02:28:46] size: 42 | approach: LGSH-v2b | time: 1.158s | notes: found factor 832049973472240230583
+[2026-03-24 02:28:47] size: 42 | approach: LGSH-v2b | time: 0.927s | notes: found factor 207501258670461422731
+[2026-03-24 02:28:48] size: 42 | approach: LGSH-v2b | time: 0.958s | notes: found factor 615209869378693267477
+[2026-03-24 02:28:51] size: 46 | approach: LGSH-v2b | time: 3.250s | notes: found factor 14841907243481981500237
+[2026-03-24 02:28:54] size: 46 | approach: LGSH-v2b | time: 2.641s | notes: found factor 85010884086564696300199
+[2026-03-24 02:28:58] size: 46 | approach: LGSH-v2b | time: 4.294s | notes: found factor 70666773741297185724887
+[2026-03-24 02:29:02] size: 46 | approach: LGSH-v2b | time: 3.794s | notes: found factor 14883677127466624330153
+[2026-03-24 02:29:06] size: 46 | approach: LGSH-v2b | time: FAIL | notes: no factor for 28214570496465605534...
+[2026-03-24 02:29:20] size: 50 | approach: LGSH-v2b | time: 13.808s | notes: found factor 8120770043557672253141101
+[2026-03-24 02:29:36] size: 50 | approach: LGSH-v2b | time: 16.300s | notes: found factor 3469948797237213917621473
+[2026-03-24 02:29:55] size: 50 | approach: LGSH-v2b | time: FAIL | notes: no factor for 31457091489409200601...
+[2026-03-24 02:31:01] size: 54 | approach: LGSH-v2b | time: FAIL | notes: no factor for 20632095700402654656...
+[2026-03-24 02:33:47] size: 58 | approach: LGSH-v2b | time: FAIL | notes: no factor for 26570027388372471817...
+[2026-03-24 02:44:09] size: 30 | approach: LGSH-v3 | time: 0.144s | notes: found factor 237853791679697
+[2026-03-24 02:44:09] size: 30 | approach: LGSH-v3 | time: 0.151s | notes: found factor 973482052545047
+[2026-03-24 02:44:10] size: 30 | approach: LGSH-v3 | time: 0.197s | notes: found factor 216915926307757
+[2026-03-24 02:44:10] size: 30 | approach: LGSH-v3 | time: 0.159s | notes: found factor 955492613363501
+[2026-03-24 02:44:10] size: 30 | approach: LGSH-v3 | time: 0.124s | notes: found factor 709910301438391
+[2026-03-24 02:44:10] size: 32 | approach: LGSH-v3 | time: 0.198s | notes: found factor 7413929065845661
+[2026-03-24 02:44:10] size: 32 | approach: LGSH-v3 | time: 0.180s | notes: found factor 8735168619646627
+[2026-03-24 02:44:10] size: 32 | approach: LGSH-v3 | time: 0.150s | notes: found factor 2715902638854409
+[2026-03-24 02:44:10] size: 32 | approach: LGSH-v3 | time: 0.166s | notes: found factor 8092187942408081
+[2026-03-24 02:44:11] size: 32 | approach: LGSH-v3 | time: 0.174s | notes: found factor 9350505294133007
+[2026-03-24 02:44:11] size: 34 | approach: LGSH-v3 | time: 0.164s | notes: found factor 19791715649818547
+[2026-03-24 02:44:11] size: 34 | approach: LGSH-v3 | time: 0.190s | notes: found factor 81246557449774337
+[2026-03-24 02:44:11] size: 34 | approach: LGSH-v3 | time: 0.213s | notes: found factor 13707337860656159
+[2026-03-24 02:44:11] size: 34 | approach: LGSH-v3 | time: 0.186s | notes: found factor 97615487733219949
+[2026-03-24 02:44:12] size: 34 | approach: LGSH-v3 | time: 0.213s | notes: found factor 92646457184500561
+[2026-03-24 02:44:12] size: 36 | approach: LGSH-v3 | time: 0.246s | notes: found factor 939120934611052619
+[2026-03-24 02:44:12] size: 36 | approach: LGSH-v3 | time: 0.383s | notes: found factor 282354060658473593
+[2026-03-24 02:44:13] size: 36 | approach: LGSH-v3 | time: 0.344s | notes: found factor 308335176111167687
+[2026-03-24 02:44:13] size: 36 | approach: LGSH-v3 | time: 0.330s | notes: found factor 848458195903984321
+[2026-03-24 02:44:13] size: 36 | approach: LGSH-v3 | time: 0.215s | notes: found factor 912293358537943607
+[2026-03-24 02:44:14] size: 38 | approach: LGSH-v3 | time: 0.494s | notes: found factor 3510315453304323199
+[2026-03-24 02:44:14] size: 38 | approach: LGSH-v3 | time: 0.528s | notes: found factor 2857813223847491747
+[2026-03-24 02:44:15] size: 38 | approach: LGSH-v3 | time: 0.517s | notes: found factor 2297663271425438981
+[2026-03-24 02:44:15] size: 38 | approach: LGSH-v3 | time: 0.586s | notes: found factor 1981968944913582883
+[2026-03-24 02:44:16] size: 38 | approach: LGSH-v3 | time: 0.489s | notes: found factor 9541016958474145709
+[2026-03-24 02:44:16] size: 40 | approach: LGSH-v3 | time: 0.733s | notes: found factor 72102693587076008849
+[2026-03-24 02:44:17] size: 40 | approach: LGSH-v3 | time: 0.793s | notes: found factor 78735518311587647563
+[2026-03-24 02:44:18] size: 40 | approach: LGSH-v3 | time: 0.612s | notes: found factor 26780805813699501731
+[2026-03-24 02:44:19] size: 40 | approach: LGSH-v3 | time: 0.800s | notes: found factor 83508135079636726363
+[2026-03-24 02:44:20] size: 40 | approach: LGSH-v3 | time: 0.926s | notes: found factor 92554722699095299933
+[2026-03-24 02:44:21] size: 42 | approach: LGSH-v3 | time: 1.256s | notes: found factor 993800718941516497211
+[2026-03-24 02:44:22] size: 42 | approach: LGSH-v3 | time: 1.032s | notes: found factor 312903253237424504801
+[2026-03-24 02:44:23] size: 42 | approach: LGSH-v3 | time: 1.136s | notes: found factor 832049973472240230583
+[2026-03-24 02:44:24] size: 42 | approach: LGSH-v3 | time: 0.894s | notes: found factor 558210507008341640149
+[2026-03-24 02:44:25] size: 42 | approach: LGSH-v3 | time: 0.928s | notes: found factor 184183033605295054387
+[2026-03-24 02:44:27] size: 44 | approach: LGSH-v3 | time: 2.106s | notes: found factor 3431962552616557921391
+[2026-03-24 02:44:31] size: 44 | approach: LGSH-v3 | time: 4.168s | notes: found factor 9930551827391692221833
+[2026-03-24 02:44:32] size: 44 | approach: LGSH-v3 | time: 1.171s | notes: found factor 2972570025159287871169
+[2026-03-24 02:44:34] size: 44 | approach: LGSH-v3 | time: 2.116s | notes: found factor 9532023585458569260631
+[2026-03-24 02:44:36] size: 44 | approach: LGSH-v3 | time: 1.976s | notes: found factor 1988562391539792713717
+[2026-03-24 02:44:40] size: 46 | approach: LGSH-v3 | time: 3.262s | notes: found factor 14841907243481981500237
+[2026-03-24 02:44:42] size: 46 | approach: LGSH-v3 | time: 2.525s | notes: found factor 85010884086564696300199
+[2026-03-24 02:45:08] size: 46 | approach: LGSH-v3 | time: 25.664s | notes: found factor 70666773741297185724887
+[2026-03-24 02:45:12] size: 46 | approach: LGSH-v3 | time: 3.711s | notes: found factor 14883677127466624330153
+[2026-03-24 02:45:15] size: 46 | approach: LGSH-v3 | time: 3.780s | notes: found factor 87668541485909225928839
+[2026-03-24 02:45:20] size: 48 | approach: LGSH-v3 | time: 4.928s | notes: found factor 976676140418234156932763
+[2026-03-24 02:45:26] size: 48 | approach: LGSH-v3 | time: 5.509s | notes: found factor 171645973353082599514967

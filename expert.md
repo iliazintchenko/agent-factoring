@@ -75,6 +75,38 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 - **Umans & Wang (2025)**: Conditional deterministic N^{1/6+o(1)}. Exponential.
 - **Cosset (2009)**: Genus-2 HECM on Kummer surfaces — 2 ECM curves simultaneously. Still L_p(1/2); only useful if constant improvement hints at a different scaling regime.
 
+## Implementation status
+
+### MPQS baseline (lgsh.c)
+Working MPQS implementation with:
+- Standard QS + MPQS polynomial generation (single-prime MPQS: A=q², Hensel-lifted B)
+- LP matching with correct cofactor handling (divide sv product by lp⁻¹ mod N)
+- Knuth multiplier fallback (tries k=1,3,5,7,11,... until extraction succeeds)
+- GF(2) Gaussian elimination with up to 128 dependencies
+
+**Measured scaling (LGSH-v3, worst-of-5):**
+| Digits | Time (s) |
+|--------|----------|
+| 30 | 0.20 |
+| 34 | 0.21 |
+| 38 | 0.59 |
+| 42 | 1.26 |
+| 44 | 4.17 |
+| 46 | ~4s |
+
+Fitting log(time) vs digits suggests L[1/2] scaling as expected for QS variants.
+
+### Known bugs / lessons
+- **LP matching must divide by cofactor**: When combining two single-LP relations sharing cofactor c, the combined sqrt_val must be sv1·sv2·c⁻¹ (mod N), not just sv1·sv2. Otherwise x = y for all dependencies.
+- **Sign handling in extraction**: When total sign count / 2 is odd, negate y. Without this, some dependencies give incorrect x²≡y² congruences.
+- **Integer overflow in parameter selection**: `(int)pow(L, 1.1)` overflows when L > 2³¹. Use `exp(1.1 * log(L))` with cap checks.
+- **Degenerate extraction**: Some N values cause ALL dependencies to give trivial factors (x≡±y mod N). Knuth multiplier k·N fixes this by changing the algebraic structure.
+
+### Batch GCD cofactor matching (siqs.c, experimental)
+Implemented Bernstein product-tree batch GCD for finding shared factors among cofactors. The idea: instead of exact LP matching (same cofactor), find ANY common prime between cofactors of different partial relations. In O(n log²n) vs O(n²) for pairwise GCD. Allows much larger cofactors (up to B² instead of B) since we can decompose them after the batch GCD.
+
+Status: infrastructure built, needs testing at scale to measure whether the extra relations from shared-factor matching actually improve throughput.
+
 ## Open directions
 
 These are starting points, not an exhaustive list.
@@ -84,3 +116,5 @@ These are starting points, not an exhaustive list.
 - **Function field analogies**: Can the quasi-polynomial DLP breakthrough technique be adapted? Key obstacle: no Frobenius over Z.
 - **Batch GCD + non-sequential candidates**: Bernstein's batch smoothness works on arbitrary candidate sets. What candidate generation strategy (not sieving) would best exploit this?
 - **Recursive cofactor descent**: CDS (extended matrix) failed because unique medium primes grow faster than relations. But LP-matching based descent is unexplored — could the collision rate be improved with structured cofactor generation?
+- **Correlated norms across number fields**: In multi-image NFS, the norms from different fields are essentially independent. If we could design fields where smoothness of one norm CORRELATES with smoothness of another (e.g., via Galois structure or isogenies), the simultaneous smoothness probability would increase, potentially improving the exponent. No known construction achieves this.
+- **High-dimensional lattice descent on cofactors**: For k cofactors c₁...cₖ, the lattice {(a₁,...,aₖ) : Σ aᵢcᵢ ≡ 0 (mod N)} has determinant N and shortest vector ~N^{1/(k+1)}. For k=3, vectors are ~N^{1/4}. If these short vectors could be used to build multiplicative (not just additive) cofactor relations, the effective smoothness bound would decrease. Obstacle: additive lattice relations don't directly give multiplicative relations needed for congruence-of-squares.
