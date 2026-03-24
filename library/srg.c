@@ -26,7 +26,7 @@
 #define SIEVE_HALF   65536
 #define SIEVE_BLOCK  (2 * SIEVE_HALF)
 #define ECM_CURVES   3
-#define MAX_APRIME   3      /* max number of factor base primes in 'a' */
+#define MAX_APRIME   10     /* max number of factor base primes in 'a' */
 
 /* ---- Sparse exponent vector ---- */
 typedef struct {
@@ -174,10 +174,12 @@ static int tonelli_shanks(unsigned int *result, mpz_t n, unsigned int p) {
 static int compute_factor_base(int digits) {
     double n = digits * log(10.0);
     double logn = log(n);
-    /* Use smaller FB than standard QS -- rely on LP relations to compensate */
-    double B = exp(0.45 * sqrt(n * logn));
+    /* Balance: FB must be large enough for good MPQS polynomial selection
+     * (a-primes near sqrt(2*sqrt(N)/M)), but not so large that we need
+     * too many relations. Use 0.5*sqrt(n*logn) (standard QS bound). */
+    double B = exp(0.5 * sqrt(n * logn));
     if (B < 200) B = 200;
-    if (B > 2e6) B = 2e6;
+    if (B > 3e6) B = 3e6;
 
     unsigned int bound = (unsigned int)B;
     fprintf(stderr, "FB bound: %u\n", bound);
@@ -676,8 +678,12 @@ static int ecm_factor_wrapper(mpz_t factor, mpz_t n, int digits) {
         int ncurves = levels[level].curves;
 
         for (int i = 0; i < ncurves && !found; i++) {
-            /* Budget: for 65+ digit numbers, cap ECM at 120s for sieve time */
-            int ecm_budget = (digits > 64) ? 120 : 270;
+            /* Budget ECM time based on expected difficulty.
+             * 65-75d: 120s ECM, rest for sieve
+             * 76+d: 30s ECM, rest for sieve (ECM unlikely to find 38+d factors) */
+            int ecm_budget = 270;
+            if (digits > 75) ecm_budget = 30;
+            else if (digits > 64) ecm_budget = 120;
             if (time(NULL) - start > ecm_budget) goto done;
 
             ecm_params params;
@@ -767,18 +773,13 @@ static int factor_srg(mpz_t result) {
 
     /* Determine how many factor base primes to multiply to reach target_a.
      * We want primes near (target_a)^(1/k) for k primes.
-     * Try k=2 or k=3. */
-    int a_nprimes = 2;
+     * Choose k so that ideal prime fits in the FB. */
     double log_target_a = mpz_sizeinbase(target_a, 2) * log(2.0);
-    double ideal_log_per_prime = log_target_a / 2.0;
-    if (ideal_log_per_prime > log((double)max_fb_prime)) {
-        a_nprimes = 3;
-        ideal_log_per_prime = log_target_a / 3.0;
-    }
-    if (a_nprimes == 2 && ideal_log_per_prime < log(3.0)) {
-        a_nprimes = 1;
-        ideal_log_per_prime = log_target_a;
-    }
+    double log_max_fb = log((double)max_fb_prime);
+    int a_nprimes = (int)ceil(log_target_a / log_max_fb);
+    if (a_nprimes < 1) a_nprimes = 1;
+    if (a_nprimes > MAX_APRIME) a_nprimes = MAX_APRIME;
+    double ideal_log_per_prime = log_target_a / a_nprimes;
 
     /* Find the FB index range near the ideal prime size */
     double ideal_prime_size = exp(ideal_log_per_prime);
@@ -829,36 +830,24 @@ static int factor_srg(mpz_t result) {
         uint16_t a_idx[MAX_APRIME];
         int ok = 1;
 
-        if (a_nprimes == 1) {
-            SIMPLE_RNG();
-            a_idx[0] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
-        } else if (a_nprimes == 2) {
-            for (int attempt = 0; attempt < 20; attempt++) {
+        /* General selection of a_nprimes distinct FB indices */
+        for (int attempt = 0; attempt < 100; attempt++) {
+            for (int k = 0; k < a_nprimes; k++) {
                 SIMPLE_RNG();
-                a_idx[0] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
-                SIMPLE_RNG();
-                a_idx[1] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
-                if (a_idx[0] != a_idx[1]) break;
-                if (attempt == 19) ok = 0;
+                a_idx[k] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
             }
-            /* Sort indices */
-            if (a_idx[0] > a_idx[1]) { uint16_t t = a_idx[0]; a_idx[0] = a_idx[1]; a_idx[1] = t; }
-        } else { /* a_nprimes == 3 */
-            for (int attempt = 0; attempt < 50; attempt++) {
-                SIMPLE_RNG();
-                a_idx[0] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
-                SIMPLE_RNG();
-                a_idx[1] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
-                SIMPLE_RNG();
-                a_idx[2] = window_lo + (int)(rng_state % (unsigned long)(window_hi - window_lo + 1));
-                if (a_idx[0] != a_idx[1] && a_idx[0] != a_idx[2] && a_idx[1] != a_idx[2]) break;
-                if (attempt == 49) ok = 0;
-            }
-            /* Sort */
-            for (int i = 0; i < 3; i++)
-                for (int j = i+1; j < 3; j++)
-                    if (a_idx[i] > a_idx[j]) { uint16_t t = a_idx[i]; a_idx[i] = a_idx[j]; a_idx[j] = t; }
+            /* Check all distinct */
+            int distinct = 1;
+            for (int k = 0; k < a_nprimes && distinct; k++)
+                for (int l = k + 1; l < a_nprimes && distinct; l++)
+                    if (a_idx[k] == a_idx[l]) distinct = 0;
+            if (distinct) break;
+            if (attempt == 99) ok = 0;
         }
+        /* Sort indices */
+        for (int i = 0; i < a_nprimes; i++)
+            for (int j = i + 1; j < a_nprimes; j++)
+                if (a_idx[i] > a_idx[j]) { uint16_t t = a_idx[i]; a_idx[i] = a_idx[j]; a_idx[j] = t; }
 
         if (!ok) { poly_count++; continue; }
 
@@ -872,58 +861,22 @@ static int factor_srg(mpz_t result) {
          * For each prime q_k, we know sqrt(N) mod q_k = fb[a_idx[k]].sqrt_n_mod_p
          * We combine using CRT to get b mod a. */
 
-        if (a_nprimes == 1) {
-            unsigned int q = fb[a_idx[0]].p;
-            unsigned int sq = fb[a_idx[0]].sqrt_n_mod_p;
-            /* Choose root closer to a/2 for better centering */
-            mpz_set_ui(b_val, sq);
-        } else if (a_nprimes == 2) {
-            unsigned int q0 = fb[a_idx[0]].p;
-            unsigned int q1 = fb[a_idx[1]].p;
-            unsigned int s0 = fb[a_idx[0]].sqrt_n_mod_p;
-            unsigned int s1 = fb[a_idx[1]].sqrt_n_mod_p;
-
-            /* CRT: b = s0 * q1 * (q1^-1 mod q0) + s1 * q0 * (q0^-1 mod q1) mod (q0*q1) */
-            unsigned int q1_inv_q0 = modinv_ui(q1 % q0, q0);
-            unsigned int q0_inv_q1 = modinv_ui(q0 % q1, q1);
-
-            mpz_set_ui(b_val, 0);
-            mpz_set_ui(tmp, s0);
-            mpz_mul_ui(tmp, tmp, q1);
-            mpz_mul_ui(tmp, tmp, q1_inv_q0);
-            mpz_add(b_val, b_val, tmp);
-
-            mpz_set_ui(tmp, s1);
-            mpz_mul_ui(tmp, tmp, q0);
-            mpz_mul_ui(tmp, tmp, q0_inv_q1);
-            mpz_add(b_val, b_val, tmp);
-
-            mpz_mod(b_val, b_val, a_val);
-        } else { /* a_nprimes == 3 */
-            unsigned int q[3], s[3];
-            for (int k = 0; k < 3; k++) {
-                q[k] = fb[a_idx[k]].p;
-                s[k] = fb[a_idx[k]].sqrt_n_mod_p;
-            }
-
-            /* CRT for 3 moduli */
-            mpz_set_ui(b_val, 0);
-            for (int k = 0; k < 3; k++) {
-                /* M_k = a / q[k] */
-                mpz_divexact_ui(tmp, a_val, q[k]);
-                /* M_k^-1 mod q[k] */
-                unsigned int mk_mod_qk = mpz_fdiv_ui(tmp, q[k]);
-                unsigned int mk_inv = modinv_ui(mk_mod_qk, q[k]);
-                /* term = s[k] * M_k * mk_inv */
-                mpz_mul_ui(tmp, tmp, (unsigned long)s[k] * mk_inv % q[k]);
-                /* Actually do it more carefully to avoid overflow */
-                mpz_divexact_ui(tmp, a_val, q[k]);
-                mpz_mul_ui(tmp2, tmp, s[k]);
-                mpz_mul_ui(tmp2, tmp2, mk_inv);
-                mpz_add(b_val, b_val, tmp2);
-            }
-            mpz_mod(b_val, b_val, a_val);
+        /* General CRT for a_nprimes moduli */
+        mpz_set_ui(b_val, 0);
+        for (int k = 0; k < a_nprimes; k++) {
+            unsigned int qk = fb[a_idx[k]].p;
+            unsigned int sk = fb[a_idx[k]].sqrt_n_mod_p;
+            /* M_k = a / q_k */
+            mpz_divexact_ui(tmp, a_val, qk);
+            /* M_k^-1 mod q_k */
+            unsigned int mk_mod_qk = mpz_fdiv_ui(tmp, qk);
+            unsigned int mk_inv = modinv_ui(mk_mod_qk, qk);
+            /* term = s_k * M_k * mk_inv */
+            mpz_mul_ui(tmp2, tmp, sk);
+            mpz_mul_ui(tmp2, tmp2, mk_inv);
+            mpz_add(b_val, b_val, tmp2);
         }
+        mpz_mod(b_val, b_val, a_val);
 
         /* Verify b^2 == N mod a */
         mpz_mul(tmp, b_val, b_val);
