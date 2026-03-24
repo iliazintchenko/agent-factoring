@@ -1,0 +1,466 @@
+OPEN MATHEMATICAL PROBLEMS WHOSE RESOLUTION WOULD ADVANCE
+UNDERSTANDING OF INTEGER FACTORING COMPLEXITY
+============================================================
+
+Each problem below is formulated precisely enough for a mathematician to
+work on. Problems are ordered by directness of impact on factoring, not
+by perceived difficulty. For each we state: the problem, current best
+results, and why resolution matters for factoring.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION A: SMOOTHNESS AND ANALYTIC NUMBER THEORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM 1: Smoothness of Polynomial Values (The Dickman Barrier)
+----------------------------------------------------------------
+
+Statement:  Let f ∈ Z[x] be an irreducible polynomial of degree d ≥ 2.
+Prove that
+
+  |{a ≤ X : f(a) is Y-smooth}| = X · ρ(d·log X / log Y) · (1 + o(1))
+
+for Y in the range X^(dε) ≤ Y ≤ X^d, where ρ is the Dickman function
+satisfying uρ'(u) = -ρ(u-1), ρ(u)=1 for 0 ≤ u ≤ 1.
+
+Current best results:
+  - For linear f (d=1): fully resolved, Ψ(X,B) = Xρ(u)(1+O(1/log B))
+    by Hildebrand-Tenenbaum (1986).
+  - For d=2: partial conditional results (Granville, 2008), depending
+    on variants of the Bunyakovsky conjecture.
+  - For d ≥ 3: essentially nothing rigorous. Not even a lower bound of
+    X^(1-ε) · ρ(d log X / log Y) is known.
+
+Why it matters:  EVERY known subexponential factoring algorithm (QS, NFS,
+FFS) assumes this heuristic holds. The NFS's claimed complexity
+L(1/3, (64/9)^{1/3}) depends entirely on this unproven assumption. Even
+proving a weaker lower bound of X^(1-ε)·ρ(d log X / log Y) would
+suffice to rigorize factoring complexity claims.
+
+Approachability:  This is a hard but recognized problem in analytic
+number theory. Partial progress could come from:
+  (a) Establishing the result for specific polynomial families (e.g.,
+      norm forms from number fields used in NFS).
+  (b) Proving it for restricted smoothness ranges (e.g., Y ≥ X^(d/2)).
+  (c) Average-case results over polynomial families.
+
+
+PROBLEM 2: Simultaneous Smoothness Independence
+------------------------------------------------
+
+Statement:  Let f, g ∈ Z[x] be coprime polynomials with deg(f)=d₁,
+deg(g)=d₂. Define
+
+  S(X,B) = |{a ≤ X : f(a) is B-smooth AND g(a) is B-smooth}|.
+
+Is S(X,B) = X · ρ(d₁ log X/log B) · ρ(d₂ log X/log B) · (1+o(1))?
+
+In other words: are the smoothness events for f(a) and g(a)
+asymptotically independent?
+
+Current best results:  No rigorous results. The NFS assumes independence
+for the rational norm a - bm and the algebraic norm N(a - bα). Even
+conditional results (assuming GRH or other standard conjectures) are
+not available.
+
+Why it matters:  NFS relation collection requires BOTH norms to be
+simultaneously smooth. If there is a positive correlation (smoothness of
+one increases probability of the other), NFS would be faster than
+believed. If negative correlation, NFS might be slower. Any result
+either way would sharpen factoring complexity bounds.
+
+Approachability:  More tractable than Problem 1 in some ways. One could:
+  (a) Study correlations modulo small primes (which is tractable by
+      sieve theory) and show large-prime contributions are independent.
+  (b) Investigate specific NFS polynomial pairs.
+
+
+PROBLEM 3: Super-Smoothness — Can Relations Yield > 1 Bit Each?
+---------------------------------------------------------------
+
+Statement:  In current NFS, each relation provides essentially 1 bit of
+information (a linear dependency over F₂ among exponent vectors). Does
+there exist a "non-smoothness relation type" — a way to extract algebraic
+relations among factor base elements — that yields more than 1 bit per
+relation?
+
+More precisely:  Define a relation collection scheme as a method that,
+given n and a factor base F, produces a matrix M over some ring R such
+that ker(M) reveals a factorization of n. The "information rate" is
+dim(ker(M))/cost(M). For standard NFS, this rate is ≈ 1/(cost per
+relation). Is there a scheme with strictly higher rate?
+
+Current best results:  All known relation types (smooth pairs, partial
+relations with large primes, special-q lattice sieving) contribute
+rank ≤ 1 per relation over F₂. Large-prime variations effectively
+increase the relation-finding rate but not the per-relation information.
+
+Why it matters:  Higher information rate would directly reduce the
+number of required relations, changing the constant c in L(1/3, c).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION B: ALGEBRAIC AND STRUCTURAL BARRIERS IN NFS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM 4: Norm Reduction Beyond Known Polynomial Selection
+-----------------------------------------------------------
+
+Statement:  In NFS with polynomial f of degree d and root m ≡ n^(1/d),
+the algebraic norm N(a - bα) has size ≈ ||f||_∞ · ||(a,b)||^d ≈ n^(1/d)
+for a,b in the sieve region. Can one construct an algebraic structure
+(ring R, norm map N: R → Z, and a "sievable" representation) such that
+the norm values encoding factoring information have size n^(γ/d) for
+some γ < 1, asymptotically?
+
+Current best results:  Kleinjung's polynomial selection (2006, 2008)
+achieves constant-factor improvements in ||f||_∞ via root optimization
+and skewness, yielding practical speedups of ~2x but no asymptotic
+improvement. The MNFS (Multiple NFS) of Coppersmith uses several
+number fields simultaneously but achieves at best c = (32/9)^(1/3) ≈
+1.526 for special numbers (SNFS), not general integers.
+
+Specific sub-question:  Can the MNFS constant c < (64/9)^(1/3) be
+achieved for GENERAL integers using a non-standard algebraic structure?
+The tower NFS (TNFS) of Barbulescu-Gaudry-Joux-Thomé achieves
+improvements for discrete log in extension fields but not for integer
+factoring. Is there a structural reason why TNFS-type improvements
+cannot help factoring?
+
+Why it matters:  Any asymptotic norm reduction directly lowers the
+exponent constant c in L(1/3, c), making factoring provably easier.
+
+
+PROBLEM 5: Effective Class Number Bounds for NFS Number Fields
+--------------------------------------------------------------
+
+Statement:  For the number fields K = Q(α) arising in NFS — where α is
+a root of a degree-d polynomial f with d ≈ (3 ln n / ln ln n)^(1/3)
+and discriminant |Δ_K| ≈ n — prove that the class number h_K satisfies
+
+  h_K ≤ (log |Δ_K|)^C
+
+for some explicit constant C depending only on d.
+
+Current best results:  The Brauer-Siegel theorem gives
+log(h_K · R_K) ~ log √|Δ_K| asymptotically, but this is ineffective
+(no explicit bound on the implied constants for specific fields). Under
+GRH, Louboutin and others give h_K ≤ C_d · |Δ_K|^(1/2) · (log |Δ_K|)^(d-1),
+but this is exponentially worse than what NFS needs.
+
+The NFS assumes h_K is small enough that the extra relations needed to
+"kill" the class group do not dominate the running time. For this,
+h_K ≤ L(1/3, c')^o(1) suffices, but even this is unproven.
+
+Why it matters:  An effective bound would be a key step toward a
+rigorous proof that NFS runs in L(1/3, (64/9)^{1/3}).
+
+
+PROBLEM 6: Does a Useful Non-Commutative Norm Map Exist?
+---------------------------------------------------------
+
+Statement:  All known factoring algorithms use commutative algebraic
+structures (number fields, function fields). Does there exist:
+  (a) A non-commutative ring R (e.g., a quaternion algebra, a group
+      ring, a matrix ring over Z),
+  (b) A norm-like map N: R → Z with N(ab) = N(a)N(b) (or a
+      multiplicative-to-additive map),
+  (c) A way to embed the factoring problem into R such that "smooth"
+      elements of R (with small norm) yield factoring relations,
+  (d) With the property that smooth elements are MORE ABUNDANT or
+      EASIER TO FIND than in the commutative (number field) case?
+
+Current best results:  No non-commutative approach to factoring is known
+to yield even L(1/2, c), let alone L(1/3, c). Quaternion algebras over Q
+have been studied (Pizer, 1980s; Kohel, Lauter, et al. for isogeny
+graphs) but not applied to integer factoring. The difficulty is that
+non-commutative norms (reduced norms of quaternion algebras) yield
+positive-definite quadratic forms, which are "too rigid" for sieving.
+
+Why it matters:  The L(1/3) barrier may be an artifact of working in
+commutative number rings. A genuinely different algebraic framework
+could break this barrier.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION C: COMPLEXITY-THEORETIC BARRIERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM 7: Any Superlinear Lower Bound for Factoring
+-----------------------------------------------------
+
+Statement:  Prove that integer factoring requires ω(n) bit operations
+in ANY explicit computational model (Boolean circuits, algebraic
+circuits, branching programs, etc.), where n = log N is the input length.
+
+Current best results:  No superlinear lower bound is known for factoring
+in any unrestricted model. For monotone circuits, factoring is not
+naturally monotone so the model doesn't directly apply. For bounded-depth
+circuits (AC⁰), it is known that factoring is NOT in AC⁰ (since it
+can compute parity), but AC⁰ is an extremely weak model.
+
+The best unconditional circuit lower bound for ANY explicit function
+in NP is 5n - o(n) for Boolean circuits (Iwama et al., 2002), and
+roughly 3n for general functions.
+
+Why it matters:  ANY superpolynomial lower bound for factoring would be
+a breakthrough. A superlinear lower bound in general circuits would
+already exceed the state of the art for circuit complexity.
+
+Approachability:  More feasible sub-goals:
+  (a) Prove superpolynomial lower bounds for factoring in monotone
+      arithmetic circuits.
+  (b) Prove factoring requires depth Ω(log n / log log n) in
+      unbounded fan-in circuits.
+  (c) Establish lower bounds in algebraic models (e.g., prove that
+      straight-line programs for the factoring function over Z
+      require superlinear length).
+
+
+PROBLEM 8: Factoring and the UP ∩ coUP Characterization
+--------------------------------------------------------
+
+Statement:  Factoring (as a search problem) lies in FNP. The associated
+decision problem ("Does n have a factor in [2, k]?") lies in
+NP ∩ coNP, and more specifically in UP ∩ coUP (since composite numbers
+have a unique factorization, so the witness — the smallest prime
+factor — is unique).
+
+Is factoring COMPLETE for UP ∩ coUP under polynomial-time reductions?
+Or does factoring sit strictly below UP ∩ coUP-complete problems (if
+such problems exist)?
+
+Current best results:
+  - Factoring is in UP ∩ coUP (trivially).
+  - It is not known whether UP ∩ coUP has complete problems.
+  - Factoring is equivalent (under randomized reductions) to computing
+    Euler's totient φ(n), to computing the order of random elements
+    mod n, and to computing square roots mod n.
+
+Why it matters:  Pinning down the exact class of factoring would clarify
+whether factoring is "easier than NP-hard" in a provable structural
+sense. If factoring were complete for a well-studied class, all
+conditional results about that class would transfer.
+
+
+PROBLEM 9: Oracle Separation — Factoring Outside BPP Relative to
+              Algebraic Oracles
+-----------------------------------------------------------------
+
+Statement:  Construct an oracle O (preferably an algebraic oracle, not
+an arbitrary one) relative to which:
+  (i)   Factoring ∈ BQP^O  (Shor still works with oracle access)
+  (ii)  Factoring ∉ BPP^O  (no classical poly-time algorithm)
+  (iii) The oracle O captures the algebraic structure of (Z/nZ)* rather
+        than being an arbitrary black box.
+
+Current best results:  Generic oracle separations between BPP and BQP
+exist (Bernstein-Vazirani, Simon). For period-finding over black-box
+groups, Ω(√r) classical queries are needed vs. O(log r) quantum
+queries. But these are for unstructured groups. For the SPECIFIC
+algebraic structure of (Z/nZ)*, no separation is known.
+
+Why it matters:  Would formalize the intuition that quantum advantage
+for factoring is "real" and not an artifact of our ignorance about
+classical algorithms exploiting algebraic structure.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION D: QUANTUM-CLASSICAL INTERFACE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM 10: Polynomial-Time Quantum Algorithm for Dihedral HSP
+--------------------------------------------------------------
+
+Statement:  Find a polynomial-time quantum algorithm for the Hidden
+Subgroup Problem over the dihedral group D_N = Z_N ⋊ Z_2, or prove
+that none exists.
+
+Given: f: D_N → S with f(x) = f(y) iff xy⁻¹ ∈ H for an unknown
+subgroup H = {e, (s, 1)} (a hidden reflection). Find s.
+
+Current best results:
+  - Kuperberg (2005): quantum algorithm in time 2^(O(√log N)),
+    space 2^(O(√log N)).
+  - Regev (2004): time 2^(O(√log N)), space poly(log N).
+  - No polynomial-time algorithm known.
+  - A 2^(O(∛log N)) algorithm was claimed by Kuperberg (2013) using
+    different sieving techniques.
+
+Why it matters for factoring:  The dihedral HSP is structurally "one
+step away" from the abelian HSP that Shor solves. Understanding this
+boundary clarifies what makes quantum period-finding powerful. Moreover,
+Regev showed a reduction from unique-SVP to dihedral HSP, connecting
+to lattice-based cryptography — the primary post-quantum alternative
+to factoring-based crypto.
+
+
+PROBLEM 11: Classical Complexity of the Principal Ideal Problem
+---------------------------------------------------------------
+
+Statement:  Given a number field K of degree d and an ideal I ⊂ O_K
+(specified by generators), determine whether I is principal, and if so,
+find a generator. What is the classical complexity as a function of d
+and log|Δ_K|?
+
+Current best results:
+  - Quantumly: polynomial time for cyclotomic fields and certain
+    other fields (Biasse-Song, 2016, building on CDPR 2016).
+  - Classically for quadratic fields (d=2): subexponential
+    L_{|Δ|}(1/2, c) via class group computation.
+  - Classically for d large: best known is exponential in d.
+    Specifically, computing the class group (and hence testing
+    principality) costs L_{|Δ|}(1/3, c) operations, but each
+    operation involves elements of O_K which have size poly(d),
+    giving a total cost that is exponential when d grows with |Δ|
+    (as in NFS).
+
+Why it matters for factoring:  PIP is a subroutine in the "algebraic
+reconstruction" phase of NFS. The quantum easiness of PIP (via CDPR/
+Biasse-Song) suggests that quantum computers might help factoring even
+beyond Shor, by speeding up the algebraic parts of NFS. Understanding
+the classical hardness of PIP clarifies where the quantum advantage
+truly lies.
+
+
+PROBLEM 12: Reduction Between Factoring and Lattice Problems
+-------------------------------------------------------------
+
+Statement:  Is there a polynomial-time (or even subexponential-time)
+reduction from integer factoring to any standard lattice problem
+(GapSVP_γ, SIVP_γ, LWE_{n,q,α}) or vice versa?
+
+Current best results:
+  - No known reduction in either direction.
+  - Both factoring and worst-case GapSVP_γ (for γ = poly(n)) are in
+    NP ∩ coNP.
+  - LWE reduces to worst-case GapSVP (Regev, 2005).
+  - Factoring reduces to computing class groups of imaginary quadratic
+    fields, which involves lattice problems in the Minkowski embedding,
+    but this is not a reduction to a STANDARD lattice problem.
+  - Schnorr's attempts (2021) to reduce factoring to CVP in specific
+    lattices have unresolved gaps — the required approximation factors
+    appear to be exponential.
+
+Why it matters:  Post-quantum cryptography is migrating from
+factoring-based (RSA) to lattice-based (NTRU, Kyber). If factoring
+reduced to a lattice problem, breaking lattices would break RSA too.
+Conversely, if lattice problems reduced to factoring, Shor's algorithm
+would break lattice crypto. Either direction would reshape cryptography.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION E: EFFECTIVE ALGEBRAIC NUMBER THEORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM 13: Unconditional Effective Chebotarev for NFS Families
+---------------------------------------------------------------
+
+Statement:  Let K/Q be a Galois extension with |Gal(K/Q)| = d and
+discriminant Δ_K. Let C ⊂ Gal(K/Q) be a conjugacy class. Prove that
+there exists a prime p ≤ (log|Δ_K|)^A (for some absolute constant A)
+with Frobenius Frob_p ∈ C, WITHOUT assuming GRH.
+
+Current best results:
+  - Under GRH (Lagarias-Odlyzko, 1977): primes up to O((log|Δ_K|)^2)
+    suffice.
+  - Unconditionally (Lagarias-Montgomery-Odlyzko, 1979): primes up to
+    O(|Δ_K|^(1/(2[K:Q])) · (log|Δ_K|)^2) are needed, which for NFS
+    fields is n^(Θ(1/d)) — far too large.
+  - For abelian extensions: much better bounds via L-function zero-free
+    regions (but NFS fields are generally non-abelian when Gal(K/Q)
+    is the full symmetric group).
+
+Why it matters:  The NFS needs to know that its factor base (primes up
+to bound B) contains enough primes that split in K. The Chebotarev
+theorem guarantees this, but only effectively under GRH. Removing GRH
+would make one part of the NFS analysis unconditional.
+
+
+PROBLEM 14: Explicit Fundamental Units in High-Degree Fields
+-------------------------------------------------------------
+
+Statement:  Given a number field K of degree d with r = r₁ + r₂ - 1
+fundamental units, find a system of fundamental units {η₁,...,η_r} in
+time polynomial in d and log|Δ_K|.
+
+Current best results:
+  - For d = 2 (real quadratic): continued fraction algorithm, runs in
+    time O(|Δ|^(1/4+ε)) unconditionally, O(|Δ|^ε) under GRH.
+  - For general d: Buchmann's algorithm computes units in
+    L_{|Δ|}(1/2, c) time (subexponential in log|Δ|, but exponential
+    in d when d grows).
+  - For d growing with |Δ| (as in NFS): no subexponential algorithm
+    is known for the unit group computation. The log-embedding
+    approach requires solving approximate CVP in an (r₁+r₂)-dimensional
+    lattice, which takes exponential time when r₁+r₂ ≈ d.
+
+Why it matters:  After NFS collects smooth relations, it must lift from
+ideal relations to element relations (actual integers whose product is
+a square). This requires knowing the unit group. If unit-finding is
+the bottleneck, it caps the overall algorithm.
+
+Approachability:  Focus on the specific families of fields used by NFS:
+  (a) Fields defined by polynomials with small coefficients relative
+      to their degree.
+  (b) Fields where the Galois group is S_d or A_d (generic case).
+  Proving that THESE specific fields have small regulator (equivalently,
+  that fundamental units have bounded log-height) would suffice.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION F: LINEAR ALGEBRA PHASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM 15: Sparse Matrix Kernel over F₂ Below Quadratic Time
+-------------------------------------------------------------
+
+Statement:  Given a sparse matrix M ∈ F₂^(n×n) with O(n) nonzero
+entries total (i.e., average O(1) entries per row), find a nonzero
+vector in ker(M) in time o(n²).
+
+Current best results:
+  - Block Lanczos / Block Wiedemann: O(n²/b) where b is the block size,
+    limited by memory bandwidth rather than computation. With
+    parallelization, effectively O(n²) total work.
+  - For DENSE matrices over F₂: O(n^ω) where ω ≈ 2.37 (Strassen-type
+    methods), but these don't exploit sparsity.
+  - For sparse matrices over large fields: Wiedemann's algorithm is
+    O(n · nnz) where nnz = number of nonzero entries. For nnz = O(n),
+    this gives O(n²).
+  - No known algorithm achieves o(n²) for sparse F₂ matrices.
+
+Why it matters:  The linear algebra phase of NFS costs B² ≈ L(1/3, c')²
+which contributes to the constant c in the overall L(1/3, c). An o(n²)
+sparse kernel algorithm would reduce c. Even a practical constant-
+factor improvement (e.g., n^1.9 via fast matrix multiplication adapted
+to sparse F₂) would change the landscape.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRIORITIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tier 1 — Highest impact, potentially approachable:
+  Problem 1   (Smoothness of polynomial values)
+  Problem 2   (Simultaneous smoothness independence)
+  Problem 5   (Effective class number bounds)
+  Problem 15  (Sparse F₂ kernel below n²)
+
+Tier 2 — High impact, requires new techniques:
+  Problem 4   (Norm reduction / MNFS for general integers)
+  Problem 6   (Non-commutative norm maps)
+  Problem 10  (Dihedral HSP)
+  Problem 13  (Effective Chebotarev without GRH)
+
+Tier 3 — Foundational, breakthrough-level:
+  Problem 7   (Superlinear lower bound for factoring)
+  Problem 8   (UP ∩ coUP completeness)
+  Problem 9   (Oracle separation for factoring)
+  Problem 12  (Factoring ↔ lattice reduction)
+
+Resolution of ANY Tier 1 problem would immediately change either
+the rigorous complexity status of NFS or the practical constant
+in its running time. Tier 2 problems could open entirely new
+algorithmic avenues. Tier 3 problems would reshape our structural
+understanding of factoring's place in the complexity landscape.
