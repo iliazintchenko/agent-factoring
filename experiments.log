@@ -198,3 +198,10 @@
 [2026-03-24 11:34:00] task: Condensed math / perfectoid spaces for factoring | result: (captured in inv-7, pending full read)
 [2026-03-24 11:34:00] task: Fractal structure in factoring landscape | result: ensemble statistics, not pointwise. Dickman already captures relevant distribution | conclusion: dead end
 [2026-03-24 11:34:00] task: Model theory transfer principles (Ax-Kochen) | result: FF→NF transfer always moral never mechanical. No computational transfer principle exists | conclusion: dead end (key theoretical insight)
+[2026-03-24 11:42:00] task: RMT on matrices over Z/NZ (not GF(2)) | result: variance distinguishes semiprimes from primes but computing eigenvalues mod N = factoring (Rabin) | conclusion: dead end (computationally inaccessible)
+[2026-03-24 11:42:00] task: Matroid theory of QS/NFS | result: linear matroid = matrix = same LA. Only one matroid, no intersection theorem applies | conclusion: dead end (strict redundancy)
+[2026-03-24 11:42:00] task: Zero-divisor finding in Z/NZ specifically | result: N^{1/4} optimal in black-box ring (Shoup). Sub-exp needs non-black-box (integer representation) | conclusion: dead end (Shoup lower bound)
+[2026-03-24 11:42:00] task: Multi-generator Cayley graph spectral methods | result: eigenvalues couple factors via sum over generators. Decoupling = DLP = factoring | conclusion: dead end
+[2026-03-24 11:42:00] task: Continuous dynamics / ODE for factoring | result: constructing vector field with equilibrium at (p,q) IS factoring. Classical ODE cant replicate quantum parallelism | conclusion: dead end
+[2026-03-24 11:42:00] task: Higher-dim Pollard rho (inv-3 from earlier) | result: (completed)
+[2026-03-24 11:42:00] task: ECM implementation (inv-6 from earlier) | result: 71/105 factored through 50 digits. B1=10^7 wall at ~56d (28-digit factors) | conclusion: practical baseline
