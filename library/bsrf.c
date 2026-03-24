@@ -284,11 +284,17 @@ static void collect_candidate(unsigned long q_val, mpz_t b_val, int x_off, mpz_t
     /* Factor |Q_mpz| over fb */
     mpz_t rem; mpz_init(rem); mpz_abs(rem, Q_mpz);
     r->sign = (mpz_sgn(Q_mpz) < 0) ? 1 : 0;
+    int done_early = 0;
     for (int i = 0; i < fb_size; i++) {
         unsigned long p = fb[i].p; int exp = 0;
         while (mpz_divisible_ui_p(rem, p)) { mpz_divexact_ui(rem, rem, p); exp++; }
         r->exponents[i] = exp & 1;
         r->full_exp[i]  = (unsigned short)(exp < 65535 ? exp : 65535);
+        /* Check early exit every 32 primes to amortize mpz overhead */
+        if (exp > 0 && (i & 31) == 31) {
+            if (mpz_cmp_ui(rem, 1) == 0) { done_early = 1; break; }
+            if (mpz_sizeinbase(rem, 2) <= 32) { done_early = 1; break; }
+        }
     }
 
     if (mpz_cmp_ui(rem, 1) == 0) {
