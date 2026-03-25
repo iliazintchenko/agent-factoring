@@ -18,7 +18,7 @@ You manage this research project by launching investigator subprocesses — sepa
 2. **Launch investigators** to test specific hypotheses or explore specific questions
 3. **Monitor** their progress by reading their logs
 4. **Harvest** useful findings when they finish, updating expert.md and library/
-5. **Repeat** — always keeping 10 investigators running
+5. **Repeat** — always keeping 5 investigators running
 
 LAUNCHING INVESTIGATORS:
 
@@ -86,7 +86,7 @@ MAINTAINING THE REPO:
 
 RULES:
 
-- **Always keep 10 investigators running.** When one finishes, launch another immediately. Never let slots sit empty.
+- **Always keep 5 investigators running.** When one finishes, launch another immediately. Never let slots sit empty.
 - **Do not use agent memory.** All knowledge belongs in expert.md.
 - **This project does not end.** Never stop. Only the user can stop you.
 
