@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~437 approaches investigated. None improved the L-exponent.
+~442 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -402,6 +402,10 @@ Why not higher:
 - **p-adic L-functions / Iwasawa theory**: p-adic zeta interpolates ζ(1-n) beautifully. But evaluation at p|N requires knowing p. Iwasawa main conjecture relates L-values to class groups — both computationally hard. The p-adic world provides encoding informationally equivalent to the original problem, not lossy.
 - **Property testing for ring structure**: Testing "N has exactly 2 factors" or "balanced factorization" requires the full L[1/3] complexity. Only primality (polynomial) and small factor detection (ECM/L[1/2]) are sub-L[1/3]. Full factorization comes "for free" at the L[1/3] threshold.
 - **Categorical Galois theory (Janelidze)**: The Galois groupoid of Z/NZ in CommRing carries the same information as the CRT decomposition. Categorical generalization provides a higher vantage point but no new computational force. Descent data = idempotents = factoring.
+- **Discrete Gaussian sampling for NFS square root**: DGS elegantly samples lattice points but the NFS square root step is already O(B^{1+ε}) in practice. DGS doesn't improve the asymptotic because the bottleneck is class group computation, not lattice sampling.
+- **Classical QEC analog for factoring**: QEC preserves superpositions; the computational advantage lives in the superposition, not the error correction. "Classical QEC" is an illuminating oxymoron: redundant classical computation of modular exponentiation provides fault tolerance but not speedup. The quantum-classical gap is in information encoding, not error resilience.
+- **CFSG / group structure properties of (Z/NZ)***: The exponent lcm(p-1,q-1) can be computed probabilistically (Pollard lambda) in O(√(exponent)) time. The Frattini subgroup, socle, and automorphism group all decompose via CRT. The Jacobi symbol provides 1-dimensional shadow of the full group structure — "the shadow has exactly one dimension fewer, and that missing dimension IS the factorization."
+- **Étale K-theory of Z/NZ**: K^ét_0 = Z^{ω(N)} (computing IS factoring). Higher K-groups: K^ét_1(Z/NZ) = (Z/NZ)*, K^ét_2 = 0. All decompose via CRT. Quillen-Lichtenbaum (= Rost-Voevodsky) relates to motivic cohomology, which also decomposes. K-theory unifies known algorithms (p-1 = K₁, ECM = K₀ of curves, QS/NFS = K₁ via smooth relations) but provides no new computational shortcut.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
