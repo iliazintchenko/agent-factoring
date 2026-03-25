@@ -28,7 +28,7 @@ For each investigator, create a working directory, copy in whatever files they n
 mkdir -p /tmp/inv-N
 cp semiprimes.json /tmp/inv-N/   # plus any other files they need
 cd /tmp/inv-N && nohup claude -p '<task description>' \
-  --dangerously-skip-permissions --output-format text \
+  --dangerously-skip-permissions --verbose --output-format text \
   > log.txt 2>&1 &
 echo $! > pid.txt
 ```
