@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~352 approaches investigated. None improved the L-exponent.
+~357 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -324,6 +324,11 @@ Why not higher:
 - **Formal group laws for EC factoring**: Investigation launched but no conclusive results obtained within time limit. The [l]-endomorphism on formal groups reduces to ECM-like group operations. Formal logarithm convergence radius depends on p but detecting it requires knowing p.
 - **Tower descent axiomatics**: Precisely characterized what Z would need for FFS-style tower descent. Four requirements: (A) non-trivial ring endomorphism (impossible: End_Ring(Z)={id,0}), (B) independent "degree" function additive on products and compatible with halving (no such function exists), (C) primes organized into Frobenius orbits (primes are algebraically independent), (D) smoothness testing without factoring (equivalent to factoring). In function fields, "degree" and "complexity" are INDEPENDENT parameters; in number fields they are the SAME (bit-length). This independence is the deep reason FFS achieves quasi-polynomial while NFS cannot break L[1/3].
 - **First principles beyond GF(2)**: Any alternative algebraic structure for factoring must satisfy 4 axioms: information source, sieveability, combining, information density. The key trade-off: |S| larger → fewer evaluations but harder combining. NFS already exploits this optimally via number field structure (each relation carries ~d bits, combining partly over Z, partly over GF(2)). Conjecture: optimal trade-off gives L[1/3]. Beating it requires super-logarithmic info density per relation AND polynomial combining, or a Frobenius-like endomorphism for Z.
+- **Stange index calculus bridge (arXiv:2211.06821)**: Clean framework unifying factoring and DLP through index calculus. The bridge: collect smooth relations mod N → rational kernel (over Q) → extract ord(g) → GCD factors N. Complexity L[1/2] base, matchable to L[1/3] with NFS relations but with worse constants. Does NOT improve L-exponent — no new algebraic structure beyond what GNFS exploits. Value is conceptual/pedagogical.
+- **Gorodetsky phase transition at y=(log x)^{3/2}**: NFS operates FAR above this threshold (by 5-9x in log scale, growing with N). Moving toward threshold catastrophically increases sieve cost (~10^{125} penalty for 1024-bit N). Zeta-zero corrections are multiplicative and bounded; smoothness loss is superpolynomial. No algorithmic implications for factoring. Tao max-entropy validates NFS large-prime variations as near-optimal. Pascadi equidistribution confirms NFS heuristics.
+- **Hybrid factoring (smoothness + group-order + algebraic)**: L[1/4] requires a THIRD independent smoothness source. All candidates fail: MNFS improves c not exponent, class/unit groups already exploited by NFS, multiplicative orders wrong domain, ECM on cofactors sub-dominant (L[1/6]), isogeny structures no smoothness connection. Only function fields have a third source (Frobenius).
+- **Quantum-inspired dequantization**: Classical periodogram for period r costs O(r·(log N)²) — WORSE than trial division. Compressed sensing needs O(r·log r) samples. Tang-style doesn't apply (Shor exploits multiplicative group, not low-rank structure). Ω(√r) classical lower bound is tight. The quantum advantage is genuine.
+- **Special semiprimes bootstrap**: Pr[p-1 is L_p[1/3,1]-smooth] ≈ 10^{-12} to 10^{-34} at crypto sizes. ECM already optimally exploits the union of all group-order special cases at L[1/2]. Union of polynomial-many exponentially-rare events has total probability → 0. No positive-density subset of semiprimes admits sub-L[1/3] factoring via known structural properties.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
@@ -346,7 +351,7 @@ Z has no non-trivial ring endomorphism. What about endomorphisms of structures t
 CLOSED. Systematic testing of 11 structured sampling strategies (geometric, polynomial, adaptive/SVD, quadratic residues, smooth numbers, etc.) showed NO strategy accumulates CRT information faster than random sampling. MI per sample ~0.04 bits regardless of strategy. The mod-N wrapping barrier is robust: structured sampling helps only through algebraic dependencies (smoothness, group structure), which IS what existing factoring algorithms already exploit. No new approach possible through generic CRT probing.
 
 **Index calculus bridge (Stange 2022):**
-Stange's framework connects factoring to index calculus in a novel way. The idea deserves deeper investigation — specifically whether the "bridge" between these two problems enables techniques from one to transfer to the other. Reference: arXiv:2211.06821.
+CLOSED. Investigated. Conceptual framework unifying factoring and DLP through index calculus, but no new algebraic structure. Complexity matches GNFS at L[1/3] with worse constants. Does not improve L-exponent.
 
 **Smooth number anatomy and max-entropy (Tao 2025, Gorodetsky 2023):**
-Recent work on the fine structure of smooth numbers (phase transition at y=(log x)^{3/2}, max-entropy framework) could improve the constant in L[1/3] if applied to NFS polynomial values. Specifically, Pascadi's equidistribution results to moduli x^{5/8} are directly relevant to sieving theory. None of these change the exponent, but they represent the frontier of analytic number theory relevant to factoring.
+CLOSED. NFS operates far above the Gorodetsky threshold. No algorithmic implications for factoring — corrections are bounded while smoothness loss is superpolynomial. Tao max-entropy validates existing NFS optimizations as near-optimal.
