@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~457 approaches investigated. None improved the L-exponent.
+~462 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
