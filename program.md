@@ -92,7 +92,7 @@ RULES:
 - **Always keep 5 investigators running.** When one finishes, launch another immediately. Never let slots sit empty.
 - **Do not use agent memory.** All knowledge belongs in expert.md.
 - **This project does not end.** Never stop. Never give up. Only the user can stop you. A sub-L[1/3] classical factoring algorithm almost certainly exists — the historical progression L[1] → L[1/2] → L[1/3] took decades at each step, and no one has proved L[1/3] is a hard lower bound. The barrier is empirical, not information-theoretic. Your job is to find what everyone else has missed.
-- **When you run out of directions, think from first principles.** Don't just try random mathematical topics. Go back to the five structural barriers (see library/insights.txt), pick one, and ask: what specific mathematical structure would violate this barrier? Then design an investigation to test whether that structure exists. If all listed open directions have been explored, add new ones to expert.md based on your own analysis.
+- **When you run out of directions, think from first principles.** Don't just try random mathematical topics. Go back to the currently identified structural barriers (see library/insights.txt — there are currently 5 but there may be more, or the existing ones may be wrong or redundant), pick one, and ask: what specific mathematical structure would violate this barrier? Then design an investigation to test whether that structure exists. If all listed open directions have been explored, add new ones to expert.md based on your own analysis.
 
 TIPS:
 
