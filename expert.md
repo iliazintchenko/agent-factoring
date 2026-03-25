@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~402 approaches investigated. None improved the L-exponent.
+~407 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -366,6 +366,10 @@ Why not higher:
 - **Compressed exponent vector search**: Exponent vectors divorced from algebraic context carry zero information about N. The smoothness bottleneck exists precisely because it extracts information about N's algebraic structure. Working entirely in compressed domain = trying to factor with no input about N.
 - **Arakelov intersection theory for NFS poly selection**: Arithmetic Hilbert function and metrized line bundles provide theoretical LOWER BOUNDS on polynomial quality but classical lattice geometry (Minkowski, Banaszczyk) gives same bounds without Arakelov machinery. Framework is beautiful but orthogonal to NFS polynomial selection.
 - **Quantum walk advantage analysis**: Shor's speedup is QUALITATIVE (exponential), not QUANTITATIVE (polynomial overhead). The advantage comes from coherent superposition enabling O(1) evaluations at O(N) points simultaneously. No classical technique (random walks, Markov chains, spectral methods) can approximate this sub-exponentially. The gap O(√r) classical vs O(polylog r) quantum is provably tight in the generic group model.
+- **Elliptic curve L-function analytic rank**: L(E,1) computation requires Euler product factorization at p — circular. Local-global decomposition of L-functions mirrors CRT decomposition. No shortcut beyond ECM.
+- **Sum-product / incidence geometry over Z/NZ**: Sum-product ratio for random sets differs SP vs prime (detectable for small N < 1000) but effect size too small for large N (O(1/√N)). CRT decomposition creates zero divisors that affect |A·B| but detection requires probing all zero divisors = factoring.
+- **Bombieri-Vinogradov / primes in APs for factoring**: BV gives equidistribution to moduli up to x^{1/2}. The density of primes compatible with N mod l for all l ≤ B is ~1/(∏ φ(l)) · PNT. This matches NFS optimal analysis — distributional results validate NFS but don't improve it. Breakthroughs come from algebraic ideas, not sharper distribution estimates.
+- **Maass forms / non-holomorphic spectral theory**: Less arithmetically structured than holomorphic modular forms (no Eichler-Shimura, no Deligne). Same fundamental barrier: computing spectrum requires knowing geometry (factorization). The only "free" eigenvalues (level-1 oldforms) are N-independent. Dead end.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
