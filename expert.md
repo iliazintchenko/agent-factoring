@@ -89,14 +89,10 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 **P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~482 systematic investigations.
 
 Why not 0%:
-- No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic.
-- Mathematics has surprised us before (AKS for primality, fast matrix multiplication). A paradigm not relying on smooth-number relations is conceivable.
-
-Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
 - The function field DLP breakthrough shows analogous barriers CAN be broken
 - L[1/3] is a THEOREM within the sieve framework (Dickman function + 2-parameter optimization), NOT a proven lower bound for factoring in general
-- Mathematics has surprised us before (AKS, Babai GI)
+- Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
 - ~482 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
@@ -213,7 +209,7 @@ Why 2-3% (lowered from initial estimate):
 - **Additive structure of power residues via CRT**: Reconstructing CRT decomposition requires Jacobi sums mod N = factoring.
 - **Eigenvalue structure of matrices over Z/NZ**: Eigenvalues leak via CRT but computing them requires polynomial root-finding mod N → p-1 condition.
 - **GF(3)/ternary relations**: (a) QS produces quadratic relations; GF(3) kernel gives a²≡b³ (mixed, unusable); (b) cube sieve needs N^{2/3}-size values, worse L-exponent; (c) GF(3) rank higher → more relations needed; (d) entropy per entry ≠ useful info; (e) Z/6Z strictly harder. GF(k) for k>2 strictly worse.
-- **Higher residue symbols (cubic/quartic)**: 0/500+ factored. Composite scrambles characters. Reduces to ECM/p-1 group order testing.
+- **Higher residue symbols / reciprocity (cubic/quartic)**: 0/500+ factored. Composite scrambles characters. Reduces to ECM/p-1 group order testing. Quadratic reciprocity computable without factoring (Jacobi symbol); higher reciprocity (cubic in Z[ω], quartic in Z[i]) CANNOT be computed mod N without knowing factors — norm map involves factorization. Unique computational gift of degree 2.
 - **Bilinear smoothness decomposition**: Can't split norms without number fields.
 - **Counting arguments** (r₂, r₄, class number, partitions): Factor-independent counts reveal nothing; factor-dependent costs ≥ factoring.
 - **Modular forms / theta / tau**: r₄(N)=8(1+p)(1+q) elegant but computing requires O(N) work.
@@ -258,22 +254,22 @@ Why 2-3% (lowered from initial estimate):
 
 - **1-bit/relation bottleneck**: Fundamental to GF(2) framework.
 - **Oracle classification**: No known sub-exp function gives super-constant bits.
-- **Interactive proofs / sum-check**: IP amplifies verification not search.
+- **Interactive proofs / sum-check**: IP amplifies verification not search. Self-reducibility doesn't help algorithmically. Sum-check verifies smooth-number counts but verification easier than search. IPS/algebraic proofs face natural proof barriers.
 - **ML prediction**: Accuracy → chance by 32 bits. Learns only magnitude. No exploitable statistical regularity; carry chain destroys locality.
 - **Coppersmith + partial info**: n/4 threshold. Sources self-defeating (reaching threshold = already factored).
 - **Precomputation S·T bound**: No amortization (relations N-specific). T≥L[1/3, 1.923-o(1)] for any subexp S.
 - **Analytic function impossibility**: Evaluability + convergence + sensitivity impossible simultaneously.
 - **Classical QFT analog**: QFT=DFT; advantage is compact representation. Ω(r^{1/3}) classical lower bound.
-- **Period-finding dequantization**: O(√r) tight. Partial DFT zero signal. Tensor networks need exp bond dim.
+- **Period-finding dequantization**: O(√r) tight. Partial DFT zero signal. Tensor networks need exp bond dim. Classical periodogram costs O(r·(log N)²) — worse than trial division. Compressed sensing needs O(r·log r) samples. Tang-style inapplicable (Shor exploits multiplicative group, not low-rank). Exponential gap robust.
 - **Non-standard computation**: All classical models hit 2^n info barrier. Only quantum escapes.
-- **Hybrid quantum**: O(log log N) qubits classically simulable, polylog speedup only.
+- **Hybrid quantum**: O(log log N) qubits classically simulable, polylog speedup only. Shor's speedup is qualitative (coherent superposition enabling O(1) evaluations at O(N) points). Gap O(√r) classical vs O(polylog r) quantum provably tight in generic group model.
 - **Kolmogorov complexity**: K(p|N)=O(1) but K^poly(p|N) large iff factoring hard (restates problem). Levin Kt(p|N)=O(n^{1/3}(log n)^{2/3}) via GNFS.
 - **Pell/class groups**: Genus theory gives O(1) bits only. CF period indistinguishable SP vs prime.
 - **Communication complexity**: Upper O(n), lower Ω(log n). Coppersmith n/4 certificate tight for lattice methods.
 - **Entropy/MI analysis**: Each trial yields ~10^{-3} bits. MI/cost optimum matches NFS parameter selection.
 - **SDP/LP relaxations**: Lasserre level O(1) insufficient (global carry structure). Level n/2 exact but exponential.
 - **Descriptive complexity**: Factoring in ESO∩USO. FO+LFP definition = P algorithm = open.
-- **Proof complexity**: Feasible interpolation connects short proofs to algorithms. Under crypto assumptions, proofs must be superpolynomial.
+- **Proof complexity / feasible interpolation**: Feasible interpolation (Krajíček): if proofs are short AND interpolation is feasible, factoring is easy. Under crypto assumptions, proofs in strong systems must be superpolynomial. Factoring tautologies have polynomial-size Resolution/Frege proofs. No algorithmic leverage.
 - **Bounded arithmetic**: NFS provable in S^1_2 iff factoring in P/poly. Non-constructive.
 - **Combining weak signals**: All signals alpha-decay (strength → 0 with N). Only algebraic (constant-SNR) signals work = QS/NFS.
 
@@ -303,8 +299,8 @@ Why 2-3% (lowered from initial estimate):
 - **PIT**: Universal vs existential statement mismatch.
 - **Bio-inspired**: Flat fitness landscape, no gradient.
 - **NCG/Connes**: Spectral action = character theory. Bost-Connes partition function = finite zeta. All computable quantities N-independent or circular.
-- **HoTT**: All homotopy trivial, complexity-oblivious.
-- **Dequantization**: Exponential gap robust, Tang-style inapplicable.
+- **HoTT / cubical type theory**: All homotopy trivial, complexity-oblivious. Univalence says Z/NZ and Z/pZ × Z/qZ are "the same" but computing the CRT isomorphism IS factoring.
+
 - **Reverse math**: FTA in RCA₀, no large cardinals needed.
 - **Sheaf theory on divisibility poset**: Descriptive not prescriptive. Cellular sheaf Laplacian = GF(2) LA.
 - **Game theory**: Query complexity n/2 optimal. RSR neutralizes strategic interaction.
@@ -336,7 +332,7 @@ Why 2-3% (lowered from initial estimate):
 - **Stange index calculus bridge (arXiv:2211.06821)**: Clean framework unifying factoring and DLP through index calculus. The bridge: collect smooth relations mod N → rational kernel (over Q) → extract ord(g) → GCD factors N. Complexity L[1/2] base, matchable to L[1/3] with NFS relations but with worse constants. Does NOT improve L-exponent — no new algebraic structure beyond what GNFS exploits. Value is conceptual/pedagogical.
 - **Gorodetsky phase transition at y=(log x)^{3/2}**: NFS operates FAR above this threshold (by 5-9x in log scale, growing with N). Moving toward threshold catastrophically increases sieve cost (~10^{125} penalty for 1024-bit N). Zeta-zero corrections are multiplicative and bounded; smoothness loss is superpolynomial. No algorithmic implications for factoring. Tao max-entropy validates NFS large-prime variations as near-optimal. Pascadi equidistribution confirms NFS heuristics.
 - **Hybrid factoring (smoothness + group-order + algebraic)**: L[1/4] requires a THIRD independent smoothness source. All candidates fail: MNFS improves c not exponent, class/unit groups already exploited by NFS, multiplicative orders wrong domain, ECM on cofactors sub-dominant (L[1/6]), isogeny structures no smoothness connection. Only function fields have a third source (Frobenius).
-- **Quantum-inspired dequantization**: Classical periodogram for period r costs O(r·(log N)²) — WORSE than trial division. Compressed sensing needs O(r·log r) samples. Tang-style doesn't apply (Shor exploits multiplicative group, not low-rank structure). Ω(√r) classical lower bound is tight. The quantum advantage is genuine.
+
 - **Special semiprimes bootstrap**: Pr[p-1 is L_p[1/3,1]-smooth] ≈ 10^{-12} to 10^{-34} at crypto sizes. ECM already optimally exploits the union of all group-order special cases at L[1/2]. Union of polynomial-many exponentially-rare events has total probability → 0. No positive-density subset of semiprimes admits sub-L[1/3] factoring via known structural properties.
 - **Expander graph combinatorics**: Cayley graph Cay((Z/NZ)*, S) properties split into: (a) GLOBAL (girth, diameter, expansion) — encode factoring info but require O(N) computation, (b) LOCAL (random walks, collision times, clustering) — efficiently computable but reduce to Pollard rho/p-1/ECM. No middle ground. Graph reformulation is exactly algebraic methods in graph language.
 - **Additive-multiplicative relations (a·b+c≡0 mod N)**: Finding smooth triples reduces to finding smooth c = -(a·b) mod N where c is size ~N (worse than QS's ~√N). Exponent vectors still live in GF(2)^k. Non-zero-mod-N partial relations hit factors with probability 1/√N (exponential). Ring structure Z/NZ fully mined by existing methods.
@@ -354,7 +350,7 @@ Why 2-3% (lowered from initial estimate):
 - **Gao et al. second vector technique**: Elegant constant-factor improvement to deterministic factoring (N^{1/5} → improved). Does NOT and CANNOT reduce the n/4 partial information requirement for Coppersmith — different complexity class. No path to sub-L[1/3].
 - **Rigorous L[1/3] gap**: Lee-Venkatesan proved L[1/3] for the sieving phase. Remaining gaps: (1) algebraic square root extraction in L[1/3] time, (2) independence of smoothness events, (3) class group/unit group computation. A provably L[1/3] algorithm is tantalizingly close — the resulting algorithm would be NFS-like with different analysis.
 - **Deformation theory of Z/NZ**: HH^2(Z/NZ) deformation space SPLITS via CRT — the dimensions of factors reveal p and q. But computing HH^2 over Z/NZ requires the CRT decomposition = factoring. All deformation invariants (Hochschild cohomology, cotangent complex, automorphism groups) decompose via CRT. The deformation theory framework provides NO computational shortcut.
-- **Interactive proofs / sum-check for factoring**: Self-reducibility of factoring doesn't help algorithmically (random → random, no simplification). Sum-check can verify smooth-number counts but verification is easier than search. Proof complexity: factoring unsatisfiability proofs must be superpolynomial under crypto assumptions (feasible interpolation). IPS/algebraic proofs face natural proof barriers. No interactive technique bypasses the search-vs-verification gap.
+
 - **Algebraic complexity theory (VP/VNP, tau conjecture)**: Factor polynomial F_N(x) = Σ_{d|N} x^d has exponential degree, falls outside standard VP/VNP. Tau conjecture connects factoring hardness to VP ≠ VNP via Lipton. Algebraic natural proofs barrier potentially obstructs circuit lower bounds. Most promising: Koiran's real tau conjecture connecting root-counting to depth-4 circuits.
 - **Special Galois groups for NFS (abelian, CM, solvable)**: Galois structure (splitting patterns, Artin reciprocity) does NOT change L-exponent — only affects constant c. Cyclotomic polynomials give SNFS-like advantage only for special-form N. Abelian extensions have structured factor bases but same smoothness probabilities. CM fields have no computational advantage for general semiprimes.
 - **Langlands program**: Langlands correspondence connects automorphic forms to Galois representations. Factoring info IS encoded everywhere in the Langlands landscape, but every extraction method either presupposes the answer or reduces to known hard computation. The program describes correspondence (existence/uniqueness), not computation. No algorithmic handle.
@@ -371,10 +367,10 @@ Why 2-3% (lowered from initial estimate):
 - **Adelic methods**: Adele ring A_Q "knows" every factorization but knowledge stored in index set (the primes), not in algebraic/topological structure. Product formula ensures gains at one place offset by losses at others. Hardness persists in full adelic setting — robust across all mathematical frameworks.
 - **Digit distribution of √N**: Digits of √N are pseudorandom (consistent with normality conjecture). Symbolic √N = √p·√q does not translate to digit-level structure due to non-local carry propagation. Factoring info "dissolved" into carries.
 - **MPC / oblivious transfer complexity**: MPC communication tracks circuit complexity (polynomial for factoring), while time complexity is sub-exponential. Separation shows MPC cannot resolve factoring's complexity status. Oblivious transfer historically connected to factoring (Rabin) but provides no new bounds.
-- **Proof complexity / feasible interpolation**: Factoring tautologies have polynomial-size Resolution/Frege proofs. Feasible interpolation (Krajíček): if proofs are short AND interpolation is feasible, factoring is easy. Under crypto assumptions, proofs in strong systems must be superpolynomial (or interpolation infeasible). No algorithmic leverage.
+
 - **Compressed exponent vector search**: Exponent vectors divorced from algebraic context carry zero information about N. The smoothness bottleneck exists precisely because it extracts information about N's algebraic structure. Working entirely in compressed domain = trying to factor with no input about N.
 - **Arakelov intersection theory for NFS poly selection**: Arithmetic Hilbert function and metrized line bundles provide theoretical LOWER BOUNDS on polynomial quality but classical lattice geometry (Minkowski, Banaszczyk) gives same bounds without Arakelov machinery. Framework is beautiful but orthogonal to NFS polynomial selection.
-- **Quantum walk advantage analysis**: Shor's speedup is QUALITATIVE (exponential), not QUANTITATIVE (polynomial overhead). The advantage comes from coherent superposition enabling O(1) evaluations at O(N) points simultaneously. No classical technique (random walks, Markov chains, spectral methods) can approximate this sub-exponentially. The gap O(√r) classical vs O(polylog r) quantum is provably tight in the generic group model.
+
 - **Elliptic curve L-function analytic rank**: L(E,1) computation requires Euler product factorization at p — circular. Local-global decomposition of L-functions mirrors CRT decomposition. No shortcut beyond ECM.
 - **Sum-product / incidence geometry over Z/NZ**: Sum-product ratio for random sets differs SP vs prime (detectable for small N < 1000) but effect size too small for large N (O(1/√N)). CRT decomposition creates zero divisors that affect |A·B| but detection requires probing all zero divisors = factoring.
 - **Bombieri-Vinogradov / primes in APs for factoring**: BV gives equidistribution to moduli up to x^{1/2}. The density of primes compatible with N mod l for all l ≤ B is ~1/(∏ φ(l)) · PNT. This matches NFS optimal analysis — distributional results validate NFS but don't improve it. Breakthroughs come from algebraic ideas, not sharper distribution estimates.
@@ -383,11 +379,11 @@ Why 2-3% (lowered from initial estimate):
 - **Integer programming for xy=N**: Branch-and-bound with hyperbola-specific cuts. The hyperbola xy=N has O(d(N)) integer points. Cutting planes reduce feasible region but cannot avoid exhaustive search over √N candidates. No polynomial convergence possible.
 - **L[1/3] universality theorem**: The exponent 1/3 arises inevitably from Dickman function + 2-parameter optimization (smoothness bound + polynomial degree). This is analogous to universality in statistical mechanics (critical exponents). Proved: any sieve-based algorithm with k parameters achieves L[1/(k+1)]. NFS has k=2 → 1/3. Breaking it requires k=3 (a third degree of freedom) or a non-sieve paradigm.
 - **Succinct data structures for factoring**: The precomputation bound S·T ≥ L[2/3] constrains space-time tradeoffs. Succinct representations require S ≥ L[2/3]/T — for sub-L[1/3] query time, preprocessing exceeds L[1/3]. No amortization across N values (each N independent).
-- **HoTT / cubical type theory**: Univalence says Z/NZ and Z/pZ × Z/qZ are "the same" but this is classification not computation. Computing the CRT isomorphism IS factoring. Cubical type theory makes the isomorphism compute once you have it, but finding it is the bottleneck.
+
 - **Simultaneous diophantine approximation (LLL)**: Simultaneous approximation of (N^{1/3}, N^{2/3}) via LLL gives relations but norm sizes match or exceed standard NFS. The multi-dim CF approach (Jacobi-Perron) already confirmed this — complex conjugates ruin the estimate.
 - **ML on exponent matrix structure**: GNN/matrix completion on sparse F₂ matrix cannot predict kernel vectors — the kernel is a global property determined by the full rank structure. No local structural pattern in the matrix predictive of kernel membership. Reduces to Block Lanczos.
 - **Non-abelian class field theory for factoring**: Representation-theoretic structure of Gal(K/Q) for splitting field of x^d - N faces the same multiplicative mixing barrier. Langlands program organizes and relates arithmetic data, does not compute it more efficiently.
-- **Higher reciprocity laws (cubic, quartic)**: Quadratic reciprocity is computable without factoring (via Jacobi symbol / GCD-like reduction). Higher reciprocity (cubic in Z[ω], quartic in Z[i]) CANNOT be computed mod N without knowing factors — the norm map from Z[ω] to Z involves the factorization. Unique computational gift of degree 2.
+
 - **Analytic rank jumps of EC families**: NO statistically significant differences between prime and semiprime parameters on any non-circular metric (all p-values > 0.05). Rank jumps, root numbers, and L-values for E_t at t=N are indistinguishable SP vs prime without computing E's reduction type at p,q.
 - **Persistent cohomology of (Z/NZ)* with multiplicative distance**: Betti numbers from subsampled Rips complex indistinguishable SP vs prime for computationally feasible sample sizes. Product structure β₁ = β₁(p) + β₁(q) only visible at O(N) sample sizes. Random subsamples too noisy.
 - **Zeta zeros near 2π/ln(p)**: Mathematically valid but computing ζ(1/2+it) to precision sufficient to detect zeros requires O(t^{1/2}) = O(N^{1/4}) operations. This IS Pollard rho complexity. The Montgomery/GUE connection does not provide shortcuts — extracting local from universal is at least as expensive as brute-force.
@@ -434,12 +430,3 @@ Can a single smooth relation yield >1 independent constraint? The algebraic obje
 
 **Near-endomorphisms of Z (barrier #5 — Z-rigidity):**
 Z has no non-trivial ring endomorphism. What about endomorphisms of structures that faithfully encode factoring but are not rings? The Deuring correspondence connects to modular polynomials, class polynomials, and j-invariant arithmetic — explored through specific channels but not exhaustively. The Witt-Frobenius near-miss suggests there may be other approximate endomorphisms worth investigating.
-
-**Iterative CRT information accumulation (barrier #4 — CRT opacity):**
-CLOSED. Systematic testing of 11 structured sampling strategies (geometric, polynomial, adaptive/SVD, quadratic residues, smooth numbers, etc.) showed NO strategy accumulates CRT information faster than random sampling. MI per sample ~0.04 bits regardless of strategy. The mod-N wrapping barrier is robust: structured sampling helps only through algebraic dependencies (smoothness, group structure), which IS what existing factoring algorithms already exploit. No new approach possible through generic CRT probing.
-
-**Index calculus bridge (Stange 2022):**
-CLOSED. Investigated. Conceptual framework unifying factoring and DLP through index calculus, but no new algebraic structure. Complexity matches GNFS at L[1/3] with worse constants. Does not improve L-exponent.
-
-**Smooth number anatomy and max-entropy (Tao 2025, Gorodetsky 2023):**
-CLOSED. NFS operates far above the Gorodetsky threshold. No algorithmic implications for factoring — corrections are bounded while smoothness loss is superpolynomial. Tao max-entropy validates existing NFS optimizations as near-optimal.
