@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~422 approaches investigated. None improved the L-exponent.
+~427 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -390,6 +390,10 @@ Why not higher:
 - **Persistent cohomology of (Z/NZ)* with multiplicative distance**: Betti numbers from subsampled Rips complex indistinguishable SP vs prime for computationally feasible sample sizes. Product structure β₁ = β₁(p) + β₁(q) only visible at O(N) sample sizes. Random subsamples too noisy.
 - **Zeta zeros near 2π/ln(p)**: Mathematically valid but computing ζ(1/2+it) to precision sufficient to detect zeros requires O(t^{1/2}) = O(N^{1/4}) operations. This IS Pollard rho complexity. The Montgomery/GUE connection does not provide shortcuts — extracting local from universal is at least as expensive as brute-force.
 - **Computability-theoretic / algebraic computation tree**: Steele-Yao gives Ω(n log n) lower bound for algebraic decision trees for factoring. Milnor-Warren bound on connected components gives Ω(2^n/n) for degree-d computation trees. Neither matches the sub-exponential upper bound — the algebraic computation tree model is too weak. Oracle relativizations: factoring is in P^A for trivial A (factoring oracle), not in P^B for generic oracle B. Algebrization barrier (Aaronson-Wigderson) blocks proving factoring ∉ BPP using known techniques.
+- **Randomized PIT for factoring over Z/NZ**: Zero-hit rate for random polynomials differs SP vs prime due to CRT decomposition but distinguishing requires either O(N) evaluations (to detect the difference from d/N) or knowing specific polynomials that split differently mod p vs mod q (circular). Schwartz-Zippel probability d/N requires O(N/d) evaluations to detect — exponential.
+- **Vector bundles / Chern classes over Spec(Z/NZ)**: All algebraic vector bundles over Spec(Z/NZ) are free (Quillen-Suslin applies to finite rings). Chern classes trivial. Idempotent-finding for bundle decomposition IS factoring. No partial visibility — invariants either don't see CRT decomposition or see it completely.
+- **PPAD / Nash equilibria reduction**: Factoring reduces to PPAD via the Papadimitriou PPP connection. But Nash equilibrium computation in general PPAD is PPAD-complete and has no known sub-exponential algorithm. Special structure of factoring game (constant rank) might help but constant-rank bimatrix games are still PPAD-hard (Chen-Teng-Valiant 2014).
+- **Motivic homotopy theory / A¹-invariants**: Stable motivic homotopy groups DO carry arithmetic information but computing them for Spec(Z/NZ) reduces to computing K-groups (which decompose via CRT). No known non-CRT-decomposable motivic invariant is computationally accessible.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
