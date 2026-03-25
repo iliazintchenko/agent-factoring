@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~518 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~523 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~518 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~523 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~518 approaches investigated. None improved the L-exponent.
+~523 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -451,6 +451,11 @@ Why 2-3% (lowered from initial estimate):
 - **BBS pseudorandomness distinguishers**: BBS security is EQUIVALENT to factoring (QR reduction, confirmed tight). Every distinguisher reduces to detecting the BBS period, which grows exponentially. Linear complexity ratio LC/n converges to 0.50 (random) by 32 bits. Spectral analysis: no exploitable peaks. Higher-order correlations: zero signal. Next-bit prediction advantage: zero above noise for N > 24 bits. Distinguishing and extracting are different problems, and even distinguishing fails at cryptographic sizes. PRG-based approaches offer no advantage over direct algebraic methods.
 - **Sparse polynomials / lacunary series**: Carry propagation in p*q destroys factor sparsity: products of two sparse numbers have HW ≈ n/2. N's sparsity is independent of factor sparsity. Cyclotomic factoring (gcd(Phi_k(2), N)) reduces to Pollard p-1. ISD for GF(2) kernel: complexity 2^{O(n/log n)} worse than Gaussian O(n³). Coppersmith + sparse factor enumeration: polynomial for t-sparse factors when second bit position < n/4 (~49% of 2-sparse cases). But general semiprimes have no sparse factor structure.
 - **Third homomorphism / third NFS channel**: Systematic analysis of all candidate third channels: (1) Second number field = MNFS, improves constant only; (2) p-adic = circular (choosing p IS factoring); (3) Function field = circular; (4) Adelic = product formula constrains, no independent info; (5) Modular forms = Hecke eigenvalues at level N are the factors (circular). CONJECTURE: among algorithms based on smooth values of norms from number fields (the "smooth number paradigm"), GNFS is asymptotically optimal at L[1/3]. The algebraic structure of Z provably cannot support a third independent smoothness channel due to the product formula and characteristic barrier.
+- **Genus-g Jacobian ECM scaling**: Efficiency PEAKS AT g=1. Proved: L-exponent scales as √g, so g=1 minimizes. At 50 digits: g=2 is 10^{5.8}× worse, g=3 is 10^{12.5}× worse. Even granting g× GLV speedup + √(2g)× channel effect, g=1 still wins by 5+ orders of magnitude. No crossover at any semiprime size from 10 to 60+ digits. Lenstra's 1987 choice of elliptic curves was optimal, not just convenient.
+- **Quadratic form reduction theory / Bhargava composition**: Ambiguous forms of discriminant -4pq directly encode the factoring form (p,0,q). But finding it requires searching through h(D)/2 ~ √N forms. Class group infrastructure (Shanks) gives O(N^{1/4}) which IS SQUFOF. Higher composition (Bhargava cubic, quartic) gives additional representations but computing them requires class group computation ≡ factoring. No shortcut through the class group beyond SQUFOF.
+- **Fargues-Scholze geometrization**: The geometric Langlands at local level does NOT provide algorithmic shortcuts. The Fargues-Fontaine curve at a "bad prime" l|N reveals l, but identifying bad primes IS factoring. All geometric objects (Bun_G, Hecke stacks, eigensheaves) decompose via CRT or require factoring to access. Prismatic cohomology (the most "prime-independent" framework) still reduces to Z/pZ × Z/qZ computations. The construction is a structural theorem about the SHAPE of Langlands, not a computational tool.
+- **PFR / additive combinatorics for smooth numbers**: Smooth numbers have 10-27% smaller additive doubling than random, and their exponent vectors have 2-33% smaller sumsets in F_2^k. But PFR's polynomial bounds (K^{12}) are too large to yield algorithmic improvements. Kelley-Meka 3-AP bounds: smooth numbers have 2-5× AP enrichment over random, but this IS the sieve structure (already exploited). Multiplication-addition barrier: DL ↔ factoring equivalence prevents additive combinatorics from contributing beyond what multiplicative structure already provides.
+- **Galois cohomology of Z/NZ**: Ext^1(Z/NZ, Z/NZ) = Z/NZ (decomposes via CRT). Brauer group Br(Z/NZ) = 0 (finite commutative ring). H^i(G, (Z/NZ)*) for Galois G decomposes via CRT for all i. Fundamental trichotomy: every cohomological invariant is either (1) trivially computable but CRT-decomposed, (2) encodes factoring but is as hard to compute as factoring, or (3) is defined in terms of the factoring (circular). No "sweet spot" where an invariant encodes enough info to factor but is computable without factoring.
 
 ### Witt-Frobenius near-miss
 
