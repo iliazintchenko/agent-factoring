@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~447 approaches investigated. None improved the L-exponent.
+~452 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -411,6 +411,10 @@ Why not higher:
 - **Fourier analysis on (Z/NZ)***: Characters require knowing φ(N) = factoring. Partial Fourier info (power sums Σf(x)^k) accessible but carries O(1/√N) signal. Character sum bounds (Burgess) give the best estimates but don't improve on NFS. Smooth number equidistribution in residue classes (Fouvry-Tenenbaum) validates NFS heuristics.
 - **Algorithmic information theory / sophistication**: Sophistication of semiprimes is O(log n) (polynomial in bit length) — the "regularity" is simple. But sophistication measures regularity structure, not accessibility. "Identifying the regularity" vs "computing how to decompose" is precisely the gap that factoring hardness represents.
 - **MCTS / heuristic search for factoring**: Factoring constraint is DETERMINISTIC (carry chain), not statistical. Constraint propagation determines all feasible branches; MCTS redundantly re-discovers feasibility via random rollouts. No value function gradient exists — the landscape is information-theoretically flat until the exact answer is found.
+- **Matroid intersection for factoring**: The GF(2) dependency-finding phase IS efficiently solvable (Gaussian elimination). The sieving phase — the true bottleneck — lies outside matroid theory. No second matroid exists that enables polynomial-time factoring via matroid intersection.
+- **Graph isomorphism → factoring transfer**: Babai's quasi-polynomial GI algorithm uses group-theoretic "split-or-Johnson" strategy. Aut(G_N) for N-dependent graphs either encodes full factoring or is trivial. The automorphism approach doesn't avoid the CRT barrier. GI and factoring are both NP-intermediate but for different structural reasons.
+- **Hasse-Minkowski / local-to-global for factoring**: xy=N is genus 0 — Hasse principle holds trivially (no local-to-global obstruction). The Brauer-Manin obstruction is zero. The problem is not finding RATIONAL solutions (trivially exist) but finding INTEGER solutions with PRIME factors. Local-to-global principles describe rational points on varieties, not integer decompositions.
+- **Smooth number graph spectral theory**: The graph has good expansion (consistent with random model) and no spectral anomaly distinguishing SP from prime. Character sum circularity: computing eigenvalues of the smooth number Laplacian requires knowing the factoring-relevant structure.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
