@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~372 approaches investigated. None improved the L-exponent.
+~377 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -341,6 +341,10 @@ Why not higher:
 - **CRT descent with inequality/primality pruning**: Branching factor per prime l is (l-1)/l ≈ 1 after inequality constraint. Cumulative pruning only 1/ln(B) — logarithmic, not geometric. 10000 primes provide ~4 bits about p. For 512-bit RSA need primes up to exp(2^{256}). Provides NO asymptotic improvement over trial division.
 - **Randomized linear algebra for F₂ kernel**: Sketching, Kaczmarz, sparse recovery, Laplacian solvers all fail over F₂ — exploit continuous structure (gradients, distances) that doesn't exist over F₂. O(B²/w) Block Lanczos appears essentially optimal. SVD-based rounding shows R↔F₂ null space correlation (interesting structural observation) but SVD costs O(B³).
 - **ML for sieve acceleration**: AUC 0.80-0.87 with full features but features cost as much as the sieve itself. Cheap features (magnitude, position) give AUC 0.59 (near chance). The sieve IS the optimal feature extractor for smoothness. Any useful skip rate (>75%) loses >34% of smooth relations. Model doesn't generalize across N. ML cannot improve on the sieve because the sieve IS already the optimal ML model for smoothness detection.
+- **Lattice reductions of factoring (comprehensive survey)**: Coppersmith needs n/4 bits of p (dim O(n^ε)). Schnorr needs BKZ block size O(n) (debunked). Regev dim O(√n) quantum-only. Classical lattice factoring needs dim ≈ n^{1/3} but no known construction achieves this without quantum help. The gap between what lattice algorithms COULD do and what we CAN construct classically is the open problem.
+- **Gao et al. second vector technique**: Elegant constant-factor improvement to deterministic factoring (N^{1/5} → improved). Does NOT and CANNOT reduce the n/4 partial information requirement for Coppersmith — different complexity class. No path to sub-L[1/3].
+- **Rigorous L[1/3] gap**: Lee-Venkatesan proved L[1/3] for the sieving phase. Remaining gaps: (1) algebraic square root extraction in L[1/3] time, (2) independence of smoothness events, (3) class group/unit group computation. A provably L[1/3] algorithm is tantalizingly close — the resulting algorithm would be NFS-like with different analysis.
+- **Deformation theory of Z/NZ**: HH^2(Z/NZ) deformation space SPLITS via CRT — the dimensions of factors reveal p and q. But computing HH^2 over Z/NZ requires the CRT decomposition = factoring. All deformation invariants (Hochschild cohomology, cotangent complex, automorphism groups) decompose via CRT. The deformation theory framework provides NO computational shortcut.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
