@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~493 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~498 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~493 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~498 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~493 approaches investigated. None improved the L-exponent.
+~498 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -427,6 +427,11 @@ Why 2-3% (lowered from initial estimate):
 - **Hypercontractivity / global functions on (Z/NZ)***: (Z/NZ)* ≅ (Z/pZ)* × (Z/qZ)* is a product group where KLLM hypercontractivity applies perfectly. The Jacobi symbol is the ideal non-global function (factors as Legendre_p × Legendre_q), with hypercontractivity ratio ρ² vs ρ for primes. BUT: computing the noise operator T_ρ requires the CRT decomposition = factoring. No efficiently computable operation on (Z/NZ)* can independently affect the two CRT coordinates. Fourier spectrum indistinguishable SP vs prime without level structure. Power residue count k² test detects semiprimes but requires O(N) work. Deep principle: algebraic structure (product decomposition) and computational access (CRT evaluation) are different things.
 - **Non-malleable extractors / two-source extraction**: Smooth relations viewed as CRT-encoded pairs (a_p, a_q) have min-entropy ~7-9 bits in 685 dimensions. Sources are perfectly independent (CRT), so two-source extraction works. BUT: extracted bits carry zero factoring information — extraction ≠ factoring. GF(2) LA already extracts the MAXIMUM factoring information from smooth relations. The information-theoretic bound: each smooth relation provides at most 1 bit of factoring information (its GF(2) parity vector). Two-source extractors solve randomness extraction, not factoring. The algebraic structure of CRT-encoded smooth relations carries no more factoring information than GF(2) exponent vectors.
 - **F_1 geometry / Frobenius homomorphism test**: gcd((a+b)^p - a^p - b^p, N) = p always when p|N (Fermat). Product aggregation over random k gives trial division in disguise. Birthday collision on Frobenius failure values achieves O(N^{1/4}) — IS Pollard rho. F(k) mod p cycles with period dividing p-1; birthday bound gives O(√p) collisions. F_1-geometry (Borger lambda-rings, Connes-Consani arithmetic site, Deninger flow) provides clean conceptual framework but no computational advantage. Adams operations ψ_k(x) = x^k on (Z/NZ)* decompose via CRT; joint eigenvalue structure inaccessible without factors.
+- **Iwasawa theory / cyclotomic towers / l-adic structure**: All l-adic computations on N=pq yield symmetric aggregate functions: power residues give AND of individual characters, valuations give MIN, logarithms give SUM. Recovering individual values from AND/MIN/SUM IS the factoring problem. 2-adic sqrt(N) via Hensel lifting is efficiently computable but carries no extra information beyond N (x→x² is bijective on 1+8Z_2). l-th power residue fingerprints are lossy (AND operation). Legendre symbol sequence (N/l) for l=2,3,... is statistically indistinguishable SP vs prime (product of independent ±1 sequences is random ±1). Fundamental unit norm differs (SP more likely norm +1) but computing it costs O(√N).
+- **RMT / arithmetic statistics / L-function zeros**: L(s, chi_N) = L(s, chi_p)·L(s, chi_q) — zeros are the union of two independent sets with detectably different pair correlation (reduced repulsion). BUT evaluating L(s, chi_N) to useful precision requires Ω(√N) Dirichlet coefficients. Small-n coefficients chi_N(n) = chi_p(n)·chi_q(n) carry O(1/√N) factoring information per term. One-level density, central values, and moment statistics all require Ω(√N) computation. RMT describes the OUTPUT of an expensive computation (zero statistics), not a shortcut to it. Beautiful dead end.
+- **Arithmetic dynamics / arboreal Galois**: Pollard rho is O(N^{1/4}) and OPTIMAL among generic group algorithms (Shoup lower bound). All polynomial iteration schemes operate within the generic group model. Multi-map birthday (k independent maps) gives O(N^{1/4}/√k) but O(k²) pairwise GCDs make it strictly worse per unit work. Dynatomic polynomials: gcd(Φ_n(f,x), N) reduces to group-order testing. Preimage tree variance ratio SP/prime ≈ 3x but computing preimage trees requires solving x²≡a mod N = factoring. Postcritical orbits reduce to p-1/p+1. Novel ideas (resultant, discriminant, commutator) all 0% success for ≥30-bit.
+- **Smooth number construction via algebraic dependencies**: Products of known smooth relations are DEPENDENT (GF(2) vectors are sums). Independence barrier: the only way to generate independent relations is to evaluate the polynomial at NEW points, reverting to Dickman-predicted rates. EC point addition: x-coordinate smoothness not preserved by group law. Number field norm multiplication preserves smoothness but gives dependent relations. Smooth rewriting paths either produce dependent relations (multiplication) or require new evaluations (addition/subtraction). The Dickman function reflects the multiplicative structure of Z, not a limitation of current methods.
+- **Subspace designs for GF(2) LA**: Subspace-design-based Wiedemann achieves O(n²·s/w) — same as standard Block Lanczos/Wiedemann. Graph decomposition of factor base matrix not viable (no block structure). SGE + Block Lanczos gives practical constant-factor improvement (f~2-5x). LA phase already well-optimized; no method beats O(n²·s/w) for sparse GF(2) matrices. The LA phase does NOT determine the L-exponent — sieving dominates.
 
 ### Witt-Frobenius near-miss
 
