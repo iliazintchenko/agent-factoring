@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~503 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~508 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~503 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~508 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~503 approaches investigated. None improved the L-exponent.
+~508 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -437,6 +437,11 @@ Why 2-3% (lowered from initial estimate):
 - **Higher reciprocity / explicit Langlands beyond GL(1)**: Cubic reciprocity (N/pi)_3 = (p/pi)_3·(q/pi)_3 in Z[omega] — product computable, individual symbols are not. Multi-curve EC approach: a_N(E) = a_p(E)·a_q(E) but k curves give k equations with k+1 unknowns (underdetermination GROWTH theorem — more curves make it harder, not easier). Sato-Tate product moments depend only on N, not on factorization, ruling out ALL moment-based tests. Rankin-Selberg L-functions face same computational gap. Langlands base change preserves multiplicativity ambiguity. The Langlands correspondence is structural, not computational — it maps factoring to an isomorphic problem on the automorphic side.
 - **Oracle separation / query complexity**: NFS uses 6 operations beyond the generic ring model: polynomial selection (reads N's digits), smoothness testing (integer property), sieving (consecutive-integer structure), LLL (Euclidean geometry), GF(2) LA, and algebraic square root. These explain the gap: generic ring Ω(N^{1/3}) vs NFS L[1/3]. Decision tree depth for factoring is Θ(n) (trivial — must read all input bits). Certificate complexity: compositeness O(1) bits, primality Θ(n) bits. The DT model captures input complexity, not computational complexity.
 - **Thin groups / super-approximation / Apollonian**: Apollonian curvatures have essentially RANDOM smoothness (ratio to Dickman 0.94-1.06). Super-approximation ensures pseudo-random behavior mod N — exactly what factoring algorithms need to AVOID. Zaremba-style bounded partial quotients trade approximation quality for algebraic structure but this tradeoff does NOT help smoothness. Markoff triples mod N: 0 factor revelations in all tests. BGS sieve detects primes in orbits but not smooth numbers useful for factoring. Thin group expansion property is adversarial to factoring.
+- **Random polynomial systems over Z/NZ**: Solution counts |V(f) mod N| have CRT multiplicativity but signal is O(1/N) per sample — undetectable with polynomial many evaluations. Exponential sums S_t = sum f(x)^t over Z/NZ decompose via CRT but computing any S_t requires O(N) evaluations. Weil bounds hold per component but cross-component structure requires CRT decomposition = factoring.
+- **Multi-dimensional diophantine approximation**: Multi-exponent lattice {(a_0,...,a_k) : sum a_i * N^{i/d} small} tested for varying k and d. LLL on multi-exponent lattices gives norms WORSE than standard NFS: the "folding barrier" — extra dimensions add algebraic dependencies that prevent independent size reduction. Three "degrees of freedom" (B, k, d) collapse because k does not independently reduce value sizes (algebraic equivalence to choosing different d). L[1/4] would require norms ~N^{1/d²}; achieving this needs a number field where norms depend on factors of N, not N itself — which requires knowing the factors. The CRT barrier persists.
+- **Cohomological obstructions for smooth numbers**: Smooth Selmer group concept investigated. Class number h of NFS number field Q(alpha) moderately correlates with sieve yield (discriminant provides additional predictive power beyond alpha score). However, correlation is with CONSTANTS not EXPONENTS — optimizing polynomial selection using algebraic invariants improves c in L[1/3, c] but cannot change the 1/3. The Hasse-principle analogy breaks: smoothness is not a local-to-global property (a number can be smooth mod every prime yet not globally smooth). No cohomological obstruction defined.
+- **GI / Babai-style techniques**: Cayley graph Cay((Z/NZ)*, S) spectrum has smaller normalized spectral gap for semiprimes (0.29) vs primes (0.42) — weak statistical distinguisher but unreliable. Eigenvalue bilinear structure E[i,j] encodes factorization but decomposing eigenvalue multiset into tensor factors requires knowing φ(p)×φ(q) dimensions = factoring. WL refinement stabilizes at a partition that does NOT reveal factors. Power graph and multiplication graph automorphism groups decompose via CRT. The factoring-to-GI reduction fails because ring structure is too rich: any graph encoding either preserves CRT (circular) or loses factoring info.
+- **Effective abc / Baker theory for factoring**: abc bound on p+q given N=pq is trivially satisfied (quality ~1/3, not ~1). Baker lower bound |log(p/q)| > exp(-C*log²N) is astronomically weaker than useful. S-unit equation approach: number of solutions to a+b=N with S-smooth a,b gives upper bound that matches QS complexity (the approach IS QS). Smooth-sum density for balanced semiprimes: Pr[p+q is B-smooth] drops exponentially with log(N)/log(B). Direction mismatch: abc gives LOWER bounds on radical while factoring needs UPPER bounds on smoothness.
 
 ### Witt-Frobenius near-miss
 
