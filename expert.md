@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~387 approaches investigated. None improved the L-exponent.
+~392 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -353,6 +353,11 @@ Why not higher:
 - **Random multi-curve point counts**: For affine points, CRT multiplicativity holds perfectly. Multi-curve joint point counts carry information via CRT decomposition, but accessing individual components requires knowing p,q. Multi-curve approach reduces to running ECM on each curve independently. No advantage from joint analysis.
 - **Representation stability / plethysm**: FI-modules describe the PE (stable/forward) direction; factoring requires the PL (inverse) direction. Partition anomalies in Rademacher terms encode factors but detection requires exponential search. Categorified plethysm is genuinely unexplored but far beyond current mathematics.
 - **Coppersmith without partial info**: LLL on Coppersmith lattice with s₀=0 (no prior info) produces vectors indistinguishable from random — 0 bits recovered across all tested dimensions. Iterative feedback (recover bits → refeed) fails because 0 bits are recovered at each step. Confirms n/4 partial info threshold is sharp.
+- **Multidimensional CF (Jacobi-Perron)**: JP algorithm on (N^{1/(d+1)},...,N^{d/(d+1)}) produces LARGER norms than standard CFRAC. The gap grows as N^{(d-1)/(2(d+1))}. Complex conjugates ruin the norm estimate that works for degree 2. Standard single-variable CF on √N remains optimal.
+- **Number wall / Padé approximants of {n^k mod N}**: Zero patterns in the number wall encode factoring info but only in rows ≥ p+1 (O(p) barrier). Near-boundary entries are multiples of N, not proper factors. The mod-N perturbation is multilinear in rows, picking up N not p.
+- **Selberg sieve for smoothness**: The Selberg sieve is optimized for EXCLUDING primes (upper bound sieve). Running it "in reverse" for smoothness detection doesn't improve on Dickman — the optimal sieve weights converge to the same density estimate.
+- **Circle method for factoring**: The resonance T(d,N) = π(N)² iff d|N is beautiful but trivially a divisibility check. Singular series S(N) encodes factors but computing it requires the factors. The additive-to-multiplicative bridge runs in the wrong direction for factoring.
+- **Floor-division sequence discrepancy**: {⌊kN/m⌋ mod N} is perfectly structured when m|N, generically quasi-random otherwise — no intermediate regime. Cross-correlation with complementary factor is maximal but requires testing m=p to observe. O(B²) search dominated by trivial m·d=N check.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
