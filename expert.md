@@ -114,7 +114,7 @@ Why not higher:
 
 ## Explored directions
 
-~342 approaches investigated. None improved the L-exponent.
+~347 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -316,6 +316,11 @@ Why not higher:
 - **CRT tree search (function field analogy)**: For each small prime l, p·q ≡ N mod l gives ~l possible values for p mod l. Cross-constraints between primes don't prune: branching factor is multiplicative across primes, tree grows exponentially. The approach reduces to exhaustive search of O(√N) candidates.
 - **Matrix Frobenius normal form gap**: Char poly ≠ min poly over Z/NZ DOES encode factoring info in principle, but computing it requires LA mod N. Factor leakage during Gaussian elimination is exactly random GCD at rate O(1/min(p,q)). All matrix families (companion, circulant, geometric, nilpotent, random) identical at ~12% for tiny factors. Scales as O(1/p), equivalent to trial division. No structural advantage over random GCD.
 - **Modular forms at composite level N=pq**: Old/new decomposition encodes factorization. Hecke eigenvalues at l|N satisfy |a_l| = l^{(k-2)/2} (ramification signature). BUT: dimension formula uses ψ(N) = N∏(1+1/p), Eichler-Selberg trace formula involves divisor sums of N — all computations require knowing factors. Computing the space requires O(N) minimum. Modular forms framework provides theoretical insight but no computational shortcut.
+- **Additive structure of smooth numbers**: Smooth representations N = a + b: tautology barrier (a + b ≡ 0 mod p is vacuous when p|N). Smooth numbers distribute uniformly mod large primes (χ² confirmed). σ(N) = (1+p)(1+q) computing IS factoring. Additive energy indistinguishable SP vs prime. The multiplicative birthday paradox (finding matching GF(2) vectors) has no additive analog.
+- **Representation theory / partial Gauss sums**: Partial Gauss sums |G_T(χ)|² DO encode factor info (p-primitive vs q-primitive characters behave differently). But extracting this requires identifying which characters are p-only — circular without knowing p. Autocorrelation peaks at lags p,q require exhaustive search (= trial division). ANOVA/clustering shows NO useful signal (F < 0.035). Random orders factor via GCD in 1 try for 99%+ of elements but IS Pollard p-1.
+- **Super-Dickman sieving regions (probabilistic method)**: Super-smooth windows DO exist (C ≈ 2-12x Dickman). They ARE findable (via small-prime score). But: (a) QS sieve already exploits this structure, (b) enhancement is bounded constant not growing with N, (c) large-prime divisibility is the bottleneck and structureless, (d) second moment method proves variance is Θ(E[X]) — fluctuations O(√mean), sublinear. Cannot improve L-exponent via region selection.
+- **Product lattice / geometry of numbers**: L_rel = {exponent vectors} has dimension π(B) — far too large for LLL (works for dim < 300). Bootstrapping paradox: constructing L_rel requires the smooth relations that factoring seeks. LLL minimizes L2 norm but factoring needs mod-2 kernel (Hamming weight, NP-hard). NFS already optimally deploys lattice methods via 2D sieving decomposition.
+- **Formal group laws for EC factoring**: Investigation launched but no conclusive results obtained within time limit. The [l]-endomorphism on formal groups reduces to ECM-like group operations. Formal logarithm convergence radius depends on p but detecting it requires knowing p.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
