@@ -108,13 +108,14 @@ Why not higher:
 - **Schnorr lattice (2021 claim)**: Refuted by Ducas (CWI), 0/1000 relations. Never peer-reviewed.
 - **GNFS L[1/3, 1.923] unchanged since 1990s**: RSA-250 (Feb 2020) remains record. All progress in practical constants.
 - **NFS L[1/3] is HEURISTIC, not proven**: Best rigorous bound is L[1/2] (Lenstra-Pomerance 1992). Lee-Venkatesan (2017) proved L[1/3] only for finding square congruences. Key unproven assumptions: smoothness heuristic, independence of smoothness events, monogenic field, square root step.
+- **2024-2025 literature survey**: No algorithm has improved the classical L-exponent since GNFS (early 1990s). Every sub-L[1/3] claim debunked or retracted (Schnorr 2021, Yan et al., Chen quantum LWE). Notable new work: Stange 2022 (index calculus bridge), Gao et al. 2025 (rank-3 lattice second vector in Coppersmith), Gorodetsky 2023 (Dickman phase transition at y=(log x)^{3/2}), Pascadi 2025 (smooth number equidistribution to moduli x^{5/8}), Tao 2025 (max-entropy framework for smooth number anatomy). None change the L-exponent.
 - **Regev lattice classically intractable**: Dimension O(√n), indistinguishable from random q-ary lattices by BKZ. Classical cost 2^{Θ(√n)} strictly worse than GNFS.
 - **GF(2) reduction is optimal**: Z-lattice dependencies are a SUBSET of GF(2) dependencies. SNF invariant factors all 1 or 2. Mod-2 reduction RELAXES constraints to increase the solution space. 1-bit/relation is a feature within congruence-of-squares.
 - **L[1/3]↔L[1/2] gap**: Most promising path: complete Lee-Venkatesan by proving congruence-to-factor extraction in L[1/3] time. Medium-term: extend smooth number equidistribution to polynomial values. Deep obstruction: parity problem in sieve theory.
 
 ## Explored directions
 
-~347 approaches investigated. None improved the L-exponent.
+~352 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -321,6 +322,8 @@ Why not higher:
 - **Super-Dickman sieving regions (probabilistic method)**: Super-smooth windows DO exist (C ≈ 2-12x Dickman). They ARE findable (via small-prime score). But: (a) QS sieve already exploits this structure, (b) enhancement is bounded constant not growing with N, (c) large-prime divisibility is the bottleneck and structureless, (d) second moment method proves variance is Θ(E[X]) — fluctuations O(√mean), sublinear. Cannot improve L-exponent via region selection.
 - **Product lattice / geometry of numbers**: L_rel = {exponent vectors} has dimension π(B) — far too large for LLL (works for dim < 300). Bootstrapping paradox: constructing L_rel requires the smooth relations that factoring seeks. LLL minimizes L2 norm but factoring needs mod-2 kernel (Hamming weight, NP-hard). NFS already optimally deploys lattice methods via 2D sieving decomposition.
 - **Formal group laws for EC factoring**: Investigation launched but no conclusive results obtained within time limit. The [l]-endomorphism on formal groups reduces to ECM-like group operations. Formal logarithm convergence radius depends on p but detecting it requires knowing p.
+- **Tower descent axiomatics**: Precisely characterized what Z would need for FFS-style tower descent. Four requirements: (A) non-trivial ring endomorphism (impossible: End_Ring(Z)={id,0}), (B) independent "degree" function additive on products and compatible with halving (no such function exists), (C) primes organized into Frobenius orbits (primes are algebraically independent), (D) smoothness testing without factoring (equivalent to factoring). In function fields, "degree" and "complexity" are INDEPENDENT parameters; in number fields they are the SAME (bit-length). This independence is the deep reason FFS achieves quasi-polynomial while NFS cannot break L[1/3].
+- **First principles beyond GF(2)**: Any alternative algebraic structure for factoring must satisfy 4 axioms: information source, sieveability, combining, information density. The key trade-off: |S| larger → fewer evaluations but harder combining. NFS already exploits this optimally via number field structure (each relation carries ~d bits, combining partly over Z, partly over GF(2)). Conjecture: optimal trade-off gives L[1/3]. Beating it requires super-logarithmic info density per relation AND polynomial combining, or a Frobenius-like endomorphism for Z.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
@@ -341,3 +344,9 @@ Z has no non-trivial ring endomorphism. What about endomorphisms of structures t
 
 **Iterative CRT information accumulation (barrier #4 — CRT opacity):**
 CLOSED. Systematic testing of 11 structured sampling strategies (geometric, polynomial, adaptive/SVD, quadratic residues, smooth numbers, etc.) showed NO strategy accumulates CRT information faster than random sampling. MI per sample ~0.04 bits regardless of strategy. The mod-N wrapping barrier is robust: structured sampling helps only through algebraic dependencies (smoothness, group structure), which IS what existing factoring algorithms already exploit. No new approach possible through generic CRT probing.
+
+**Index calculus bridge (Stange 2022):**
+Stange's framework connects factoring to index calculus in a novel way. The idea deserves deeper investigation — specifically whether the "bridge" between these two problems enables techniques from one to transfer to the other. Reference: arXiv:2211.06821.
+
+**Smooth number anatomy and max-entropy (Tao 2025, Gorodetsky 2023):**
+Recent work on the fine structure of smooth numbers (phase transition at y=(log x)^{3/2}, max-entropy framework) could improve the constant in L[1/3] if applied to NFS polynomial values. Specifically, Pascadi's equidistribution results to moduli x^{5/8} are directly relevant to sieving theory. None of these change the exponent, but they represent the frontier of analytic number theory relevant to factoring.
