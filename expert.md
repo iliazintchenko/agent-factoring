@@ -88,7 +88,7 @@ The quasi-polynomial DLP breakthrough in small characteristic does NOT transfer 
 
 **Concrete target**: L[1/4] requires norm sizes N^{1/d²} instead of N^{1/d}. Verified by optimization: plugging N^{1/d²} into the NFS balance shifts cubic→quartic. Nested number field norms don't achieve this (composition = full norm, an invariant). This is the PRECISE mathematical barrier.
 
-## Explored directions and conclusions
+## Explored directions (no improvement found yet)
 
 **Smoothness-based approaches explored:**
 - **Schnorr lattice factoring**: Lattice dimension grows with smoothness bound. Ducas (CWI): 0 relations in 1000 trials.
@@ -156,13 +156,30 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 - **GNFS L[1/3, 1.923] unchanged since 1990s**: RSA-250 (Feb 2020) remains factoring record. All progress is in practical constants (better sieving, batch smoothness).
 - **NFS L[1/3] is HEURISTIC, not proven**: Best rigorous bound is L[1/2] (Lenstra-Pomerance 1992). Lee-Venkatesan (2017) proved L[1/3] only for randomized variant finding square congruences. Key unproven assumptions: smoothness heuristic ("norms behave like random integers"), independence of smoothness events, monogenic field, square root step.
 
-## Open directions (genuinely unexplored)
+## Open directions
 
-After ~310 investigations, the remaining open space is extremely narrow:
+~310 approaches have been investigated. Five structural barriers have been identified (see library/top5_insights.txt). A breakthrough would need to violate at least one. These directions remain open:
 
-- **Non-smoothness-based sub-exponential relations**: Every known index-calculus method uses smooth number relations (1 bit per relation via GF(2) linear algebra). A fundamentally different relation type — extracting >1 bit per relation, or using a different algebraic structure than exponent-parity — could change the game. No candidate is known.
-- **Approximate/relaxed algebraic structures**: Most approaches seek EXACT algebraic properties (exact smoothness, exact homomorphisms). Relaxed versions with controlled error might open new avenues. No concrete proposal exists.
-- **Unpredictable mathematical breakthroughs**: The factoring landscape has been stable since 1993. Possible sources: new connections to algebraic geometry (motives, étale cohomology), advances in additive combinatorics, or unexpected consequences of the Langlands program.
+**Violating the GF(2) bottleneck (barrier #3):**
+- Every known method extracts 1 bit per relation via exponent-parity. A different algebraic coincidence that leaks more information per relation could change the exponent. Higher-residue symbols, K-theory classes, and Brauer group elements were tested and reduced back to GF(2) — but not all algebraic structures have been explored. What about relations over GF(3) that DON'T use the cube sieve? The cube sieve was tested and failed, but it's one specific construction, not the only way to use ternary structure.
+- The "super-smoothness" question (open_problems.txt, Problem 3): can a single smooth relation be made to yield >1 independent constraint? This is not just about changing the field — it's about finding a richer algebraic object than "exponent parity vector."
+
+**Violating Z-rigidity (barrier #5):**
+- Z has no non-trivial ring endomorphism. But what about near-endomorphisms, or endomorphisms of structures that are not rings but faithfully encode factoring? The Deuring correspondence was explored but only through three specific channels — endomorphism ring computation is circular, BUT the correspondence also connects to modular polynomials, class polynomials, and j-invariant arithmetic, which were not deeply explored computationally.
+- Quaternion algebras over Q ramified at p have computable structure (Brandt matrices were tested and found N-independent for small primes). But Pizer's Ramanujan graphs and the connection to Hecke operators on quaternion algebras (not modular forms) remain only lightly explored.
+
+**Violating CRT opacity (barrier #4):**
+- CRT composition is opaque to all tested approaches. But the tensor decomposition investigation found the rank-2 structure IS detectable — it's just destroyed by mod-N wrapping for samples > √N. What if there's a way to work with structured samples that avoid wrapping? This would require a non-random sampling strategy correlated with the CRT decomposition — which sounds circular, but iterative/adaptive approaches might gradually accumulate partial CRT information.
+- The sum-product investigation found E*(A)/E+(A) is indistinguishable for N > 10^6. But this tested random sets A. Algebraically structured sets (e.g., orbits of specific group actions on Z/NZ) might behave differently.
+
+**Approximate / relaxed approaches:**
+- Every approach tested sought exact algebraic properties (exact smoothness, exact homomorphisms). What about probabilistic or approximate variants with controlled error? For example: approximate smooth relations (values that are "almost smooth" — smooth except for a bounded number of medium primes) combined in a way that the medium primes cancel statistically rather than exactly.
+- The batch GCD investigation showed sequential sieving wins for standard candidates. But batch GCD on algebraically structured candidate sets (not random, not sequential) was not tested.
+
+**Cross-disciplinary connections not yet explored:**
+- Additive combinatorics: the sum-product result was negative for random sets, but Freiman's theorem, Plünnecke-Ruzsa inequality, and Balog-Szemerédi-Gowers theorem relate additive and multiplicative structure. These tools haven't been applied to factor-base relations.
+- Algebraic topology: persistent homology of the smooth-relation complex was tested (trivial). But the nerve complex of the factor base covering, or the Čech complex of the sieve, might have non-trivial structure.
+- Proof complexity: factoring certificates are O(n) bits (Pratt), but proving NON-factorability (of primes) requires AKS-class work. The asymmetry between proving "N is composite" and finding factors is itself a structural feature that hasn't been algorithmically exploited.
 
 ## Compact catalog (~310 approaches)
 
