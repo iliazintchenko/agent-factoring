@@ -1,0 +1,1953 @@
+══════════════════════════════════════════════════════════════════════════
+  THEORETICAL ANALYSIS: CHARACTERIZING THE L[1/3] BARRIER IN INTEGER
+  FACTORING AND THE MATHEMATICAL REQUIREMENTS FOR BREAKING IT
+══════════════════════════════════════════════════════════════════════════
+
+  A synthesis of ~360 explored algorithmic approaches to integer
+  factoring, the five structural barriers they encounter, and a
+  precise specification of what a hypothetical barrier-breaking
+  mathematical object would need to satisfy.
+
+  Date: 2025-03-25
+
+══════════════════════════════════════════════════════════════════════════
+
+
+NOTATION AND CONVENTIONS
+────────────────────────────────────────────────────────────────────────
+
+Throughout this document:
+
+  N = pq         composite to be factored, p < q, both primes
+  n = log N      bit-length of N (we use log = log₂ unless stated)
+
+  L_N[α, c] = exp( c · (log N)^α · (log log N)^(1-α) )
+
+  When c is suppressed:  L[α] = L_N[α, c] for some constant c > 0.
+
+  The "L-exponent" of an algorithm is the infimum α such that the
+  algorithm runs in time L[α, c] for some c.
+
+  Current state of the art:
+    - NFS (Number Field Sieve):        L[1/3, (64/9)^{1/3}]  ≈  L[1/3, 1.923]
+    - Best heuristic variant:          L[1/3, (32/9)^{1/3}]  ≈  L[1/3, 1.526]
+    - No classical algorithm achieves:  L[α] for any α < 1/3
+
+  The five structural barriers (from the synthesis of ~360 approaches):
+
+    B1. L[1/3] Wall — all known relation-finding strategies produce
+        relations at cost ≥ L[1/3] per useful bit of information.
+    B2. Archimedean/Non-Archimedean Gap — smoothness is an archimedean
+        property (smallness of prime factors of norms), but the
+        factoring secret (p) is a non-archimedean object (a prime
+        divisor of N). No known technique bridges this gap at cost < L[1/3].
+    B3. GF(2) Bottleneck — the exponent vectors of smooth relations
+        live in GF(2)^π(B), and linear algebra over GF(2) cannot
+        exploit multiplicative or analytic structure.
+    B4. CRT Opacity — the Chinese Remainder Theorem isomorphism
+        Z/NZ ≅ Z/pZ × Z/qZ is the fundamental structure hiding p,
+        and any algorithm that requires "seeing through" this
+        isomorphism to combine information faces an intrinsic barrier.
+    B5. Z-Rigidity — the integers Z have very rigid algebraic
+        structure; there are few "soft" algebraic operations available
+        compared to, say, function fields over finite fields.
+
+
+══════════════════════════════════════════════════════════════════════════
+SECTION 1: PRECISE MATHEMATICAL SPECIFICATION OF A BARRIER-BREAKING
+           STRUCTURE
+══════════════════════════════════════════════════════════════════════════
+
+We seek to characterize, in precise mathematical terms, what type of
+object could break the L[1/3] barrier. We do NOT claim such an object
+exists. We specify the REQUIREMENTS it must satisfy.
+
+────────────────────────────────────────────────────────────────────────
+1.1  THE FIVE REQUIREMENTS (FORMAL STATEMENT)
+────────────────────────────────────────────────────────────────────────
+
+Let F be a hypothetical algorithm that factors N in time L[α] with
+α < 1/3. Such an algorithm must, implicitly or explicitly, work with
+a mathematical structure S(N) satisfying:
+
+REQUIREMENT R1: COMPUTABILITY AND N-DEPENDENCE
+──────────────────────────────────────────────
+  S(N) must be a computable mathematical object associated to N
+  (or more precisely, to Z/NZ) such that:
+
+  (a) S(N) can be constructed from N in time ≤ L[α', c'] for some
+      α' ≤ α.
+  (b) S(N) carries structure that is sensitive to the factorization
+      N = pq, meaning:
+        S(N) ≇ S(N')  (in some appropriate categorical sense)
+      for "most" N' with different factorizations.
+  (c) Elements of S(N) can be represented in polynomial space
+      poly(log N).
+
+  Formally: S is a functor (or at least a map) from the category of
+  composite integers (with some morphisms) to some computable category
+  C, such that S preserves enough structure to distinguish
+  factorizations.
+
+
+REQUIREMENT R2: INFORMATION DENSITY
+────────────────────────────────────
+  There must exist a family of efficiently computable "queries"
+  or "evaluations"
+
+    φ_i : S(N) → Ω_i
+
+  where Ω_i is some measurable output space, such that each
+  evaluation reveals Ω(1) bits of information about the factorization
+  (p, q) of N. More precisely:
+
+  Let X = (p mod M) for some modulus M that is being reconstructed
+  (or equivalently, let X encode some partial information about p).
+  Then:
+
+    H(X | φ_1(S(N)), ..., φ_k(S(N))) ≤ H(X) - Ω(k)
+
+  That is, k evaluations reduce the entropy of our uncertainty about
+  X by at least Ω(k) bits.
+
+  CRITICAL CONSTRAINT: This must hold with > O(1) bits per evaluation,
+  not merely O(1/poly(n)) bits. The reason: if each evaluation costs
+  T and yields b bits, and we need n = log N bits total to determine
+  p, then the algorithm costs at least (n/b) · T. To beat L[1/3],
+  we need b · L[1/3] > n, i.e., b > n / L[1/3] — which for
+  sub-L[1/3] evaluation cost means b must be Ω(1) or better.
+
+  Remark: In NFS, each smooth relation yields exactly 1 bit of
+  information about a dependency in the exponent vector space. The
+  cost per relation is L[1/3], giving the L[1/3] bound. To beat this,
+  either the cost per relation must decrease OR the bits per
+  evaluation must increase.
+
+
+REQUIREMENT R3: COMPOSABILITY
+─────────────────────────────
+  The outputs of multiple evaluations must COMPOSE — that is, there
+  must be an efficiently computable combination operation
+
+    ⊕ : Ω_i × Ω_j → Ω_{ij}
+
+  (or more generally, a combination over any subset of evaluations)
+  such that the combined output carries MORE information about p
+  than any individual evaluation. Moreover:
+
+  (a) The combination must be ALGEBRAIC, not merely set-theoretic.
+      That is, ⊕ must have algebraic structure (group, ring, module,
+      etc.) that enables efficient combination of many evaluations.
+
+  (b) The combination must be SUB-ADDITIVE in cost: combining k
+      evaluations should cost o(k · T_single), or at least the
+      combined information should be super-additive: the k combined
+      evaluations should yield ω(k · b_single) bits.
+
+  (c) The composition must eventually SATURATE: after sufficiently
+      many evaluations (polynomially many in log N), the combined
+      information must determine p completely.
+
+  Why this is hard: In NFS, composition happens via linear algebra
+  over GF(2) — and the GF(2) structure is exactly what prevents
+  super-additive information gain. Each new relation adds at most
+  1 dimension to the null space.
+
+
+REQUIREMENT R4: CRT-OPACITY AVOIDANCE
+──────────────────────────────────────
+  The most subtle requirement. The CRT isomorphism
+
+    Z/NZ  ≅  Z/pZ × Z/qZ
+
+  means that ANY element a ∈ Z/NZ is "secretly" a pair (a mod p,
+  a mod q). The factoring problem is precisely that we cannot
+  efficiently decompose this pair.
+
+  The structure S(N) must be constructible WITHOUT knowing the CRT
+  decomposition, yet the evaluations φ_i must extract information
+  that is CORRELATED with the CRT decomposition.
+
+  Formally: Define the "CRT barrier" as follows. Let
+
+    π_p : Z/NZ → Z/pZ    (reduction mod p)
+
+  be the unknown projection. Any algorithm that factors N must
+  eventually compute or reconstruct π_p (or equivalently, p).
+  The CRT-opacity barrier says:
+
+    For any polynomial-time computable function f : Z/NZ → {0,1}^*,
+    the mutual information I(f(a); a mod p) is "small" for random
+    a ∈ Z/NZ, UNLESS f implicitly encodes p.
+
+  More precisely, for most "natural" functions f:
+
+    I(f(a); a mod p | N) ≤ O(1/N^{1/2})
+
+  The barrier-breaking structure must circumvent this, likely by:
+
+  (a) Working with a STRUCTURED (non-random) subset of Z/NZ where
+      the CRT decomposition partially "leaks" through algebraic
+      relations, OR
+  (b) Operating in an EXTENSION or LIFT of Z/NZ where the CRT
+      decomposition has a different character, OR
+  (c) Using a GLOBAL property of Z/NZ (such as its multiplicative
+      group structure, or a derived algebraic-geometric object)
+      rather than pointwise evaluations.
+
+  CRITICAL OBSERVATION: Approaches (a) and (b) are what NFS does
+  (via number field embeddings). The L[1/3] barrier arises because
+  the "leakage" per structured element is O(1) bits at cost L[1/3]
+  per element. Approach (c) — using global structure — is the
+  most promising but least understood direction.
+
+
+REQUIREMENT R5: SUB-L[1/3] CONSTRUCTIBILITY
+───────────────────────────────────────────
+  Every component of the algorithm must be constructible in time
+  < L[1/3]:
+
+  (a) The structure S(N) itself must be constructible in time L[α']
+      with α' < 1/3.
+  (b) Each evaluation φ_i must be computable in time L[α''] with
+      α'' < 1/3.
+  (c) The composition operation ⊕ must be computable in polynomial
+      time in log N.
+  (d) The final extraction of p from the composed information must
+      be computable in polynomial time in log N.
+
+  This is the "findability" requirement. It rules out many beautiful
+  mathematical structures that carry the right information but
+  cannot be efficiently computed.
+
+  EXAMPLE OF FAILURE: The class group Cl(Q(√-N)) carries information
+  about the factorization of N (its order h(-N) is related to p and q
+  via genus theory). But computing h(-N) exactly is itself as hard as
+  factoring N by the best known methods.
+
+────────────────────────────────────────────────────────────────────────
+1.2  THE INFORMATION-THEORETIC CONSTRAINT
+────────────────────────────────────────────────────────────────────────
+
+A fundamental quantitative constraint ties these requirements together.
+To factor N, an algorithm must extract n/2 = (log N)/2 bits of
+information about p. If the algorithm:
+
+  - Makes k queries/evaluations
+  - Each costs time T
+  - Each yields b bits of information about p
+
+Then:
+
+  Total time ≥ k · T
+  Total info ≥ k · b ≥ n/2
+
+  ⟹  k ≥ n/(2b)
+  ⟹  Total time ≥ (n · T) / (2b)
+
+For the algorithm to run in time L[α] with α < 1/3, we need:
+
+  (n · T) / (2b) ≤ L[α]
+
+Case analysis:
+
+  CASE A: b = O(1) bits per evaluation (like NFS).
+    Then T ≤ L[α] · 2b/n ≈ L[α]/n.
+    Since n = poly(log N) grows slower than any L[ε], this means
+    T ≤ L[α] — each evaluation must cost at most L[α].
+    For NFS: T = L[1/3], b = O(1), giving L[1/3].
+    To beat L[1/3] with b = O(1), need T < L[1/3].
+
+  CASE B: b = ω(1) bits per evaluation (SUPER-LINEAR INFORMATION).
+    Then T can be as large as L[α] · b, which allows more expensive
+    individual evaluations if they yield proportionally more information.
+    This is the "information-dense" regime that no known structure
+    achieves.
+
+  CASE C: b = poly(log N) bits per evaluation (POLYNOMIAL INFO).
+    Then k = O(1) evaluations suffice, and T ≤ L[α] total.
+    This would be a "few expensive queries" algorithm — essentially
+    computing the factorization in one or few steps.
+    This is the regime of hypothetical polynomial-time algorithms
+    (which would give L[0]).
+
+The barrier-breaking structure most plausibly operates in CASE B:
+yielding super-constant but sub-polynomial information per evaluation,
+at a cost that makes the total sub-L[1/3].
+
+────────────────────────────────────────────────────────────────────────
+1.3  THE ALGEBRAIC CONSTRAINT: WHAT TYPE OF OBJECT?
+────────────────────────────────────────────────────────────────────────
+
+Given requirements R1-R5, what algebraic species could S(N) belong to?
+
+CONSTRAINT FROM R1 + R5 (computability):
+  S(N) must live in a category where objects are polynomial-size
+  and morphisms are polynomial-time computable.
+  This rules out: infinite-dimensional objects, non-constructive
+  objects, objects requiring exponential-size representations.
+
+CONSTRAINT FROM R2 + R3 (information + composability):
+  The evaluations must have algebraic structure enabling composition.
+  The most natural frameworks:
+    (i)   Group-theoretic: evaluations live in a group, composition = group law
+    (ii)  Ring-theoretic: evaluations live in a ring, composition = ring operations
+    (iii) Module-theoretic: evaluations live in a module over a known ring
+    (iv)  Category-theoretic: evaluations are morphisms, composition = composition
+    (v)   Cohomological: evaluations are cocycles, composition = cup product
+
+CONSTRAINT FROM R4 (CRT-opacity avoidance):
+  The structure must "see through" the CRT decomposition without
+  knowing it. This is the most restrictive constraint.
+
+  Known structures that partially see through CRT:
+    - Quadratic residuosity: 1 bit (Jacobi vs actual residuosity)
+    - Smooth relations: O(1) bits per relation
+    - Elliptic curve group order: carries info but costs L[1/3] to extract
+    - Class group structure: carries info but costs ≥ L[1/3] to compute
+
+COMBINED CONSTRAINT:
+  S(N) must be an algebraic object that:
+    (1) Is polynomial-size and polynomial-time constructible from N
+    (2) Has a natural "evaluation" operation yielding > O(1) bits
+        about the CRT decomposition
+    (3) Has algebraic composition of evaluations
+    (4) Does not require knowing p for construction or composition
+    (5) Is constructible in time < L[1/3]
+
+  This is an extraordinarily restrictive set of requirements, which
+  explains why 360 approaches have all failed.
+
+
+══════════════════════════════════════════════════════════════════════════
+SECTION 2: WHY EACH KNOWN MATHEMATICAL STRUCTURE FAILS
+══════════════════════════════════════════════════════════════════════════
+
+We systematically examine every major class of mathematical structure
+that has been proposed or explored for factoring, and identify exactly
+which requirement(s) each one fails.
+
+The ~360 explored approaches cluster into approximately 20 structural
+families. We analyze each family below.
+
+────────────────────────────────────────────────────────────────────────
+2.1  NUMBER FIELDS AND NORMS (NFS family)
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Number fields K = Q(α) with a homomorphism φ: Z[α] → Z/NZ.
+ALGORITHMS: NFS, SNFS, GNFS, tower NFS, multiple NFS.
+
+HOW IT WORKS:
+  Choose f(x) ∈ Z[x] with f(m) ≡ 0 (mod N). Then the map α ↦ m
+  gives a ring homomorphism Z[α] → Z/NZ. Elements a - bα ∈ Z[α]
+  that are smooth (as ideals) AND whose norm N_{K/Q}(a - bα) is
+  smooth (as integers) give relations.
+
+WHICH REQUIREMENTS IT SATISFIES:
+  ✓ R1 (computability): Number fields are constructible in poly time.
+  ✓ R3 (composability): Relations compose via addition in GF(2)^k.
+  ✓ R4 (CRT-opacity): Construction doesn't need p.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R2 (information density): Each smooth relation yields O(1) bits.
+  ✗ R5 (sub-L[1/3] cost): The fundamental issue is NORM SIZE.
+
+DETAILED FAILURE ANALYSIS:
+  For a - bα with |a|, |b| ≤ M, the norm N_{K/Q}(a - bα) has size
+  roughly M^d where d = deg(f). The probability that this norm is
+  B-smooth is approximately:
+
+    ψ(M^d, B) / M^d ≈ u^{-u}  where u = d·log(M)/log(B)
+
+  Optimization: choosing d ≈ (log N / log log N)^{1/3} and
+  B ≈ L[1/3, β], M ≈ L[1/3, μ] gives the L[1/3] complexity.
+
+  THE BARRIER: The norm N_{K/Q}(·) is a POLYNOMIAL of degree d in
+  the coefficients. Its size grows as M^d. To get smoothness
+  probability u^{-u} with u = O(1), we need B ≈ M^d, but then
+  we need L[1/3]-many relations to span the space.
+
+  No choice of number field avoids this: the norm is always a
+  degree-d polynomial, and d must grow with N to keep norms
+  "reasonably sized" relative to N. This is a theorem, not a
+  limitation of current methods.
+
+  WHAT WOULD FIX IT: A "norm" map whose output is SUBEXPONENTIAL
+  in the input coefficients, rather than polynomial-exponential.
+  No such map exists in number fields (it is a consequence of
+  the product formula / Artin-Whaples theorem).
+
+────────────────────────────────────────────────────────────────────────
+2.2  MULTIPLICATIVE GROUP ORDERS AND ECM
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: The multiplicative group (Z/NZ)*, elliptic curves E(Z/NZ),
+higher-dimensional abelian varieties A(Z/NZ).
+
+ALGORITHMS: Pollard p-1, Williams p+1, ECM, HECM.
+
+HOW IT WORKS:
+  Compute a^M mod N for M = lcm(1, ..., B). If p-1 is B-smooth,
+  then a^M ≡ 1 (mod p) but a^M ≢ 1 (mod q) (probably), so
+  gcd(a^M - 1, N) = p.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R2 (information density): Each computation either succeeds
+    completely (if p-1 is smooth) or yields ZERO bits.
+  ✗ R4 (CRT-opacity): The group order |E(Z/pZ)| depends on p,
+    and the algorithm only works if this order has a special form.
+    For random p, the probability that p-1 (or |E(F_p)|) is
+    B-smooth is ≈ u^{-u} with u = log(p)/log(B) ≈ log(N)/log(B).
+
+  The fundamental issue: GROUP ORDER IS A PROPERTY OF p, NOT OF N.
+  We cannot compute |E(Z/pZ)| without knowing p. We can only
+  compute in E(Z/NZ), which has order lcm(|E(Z/pZ)|, |E(Z/qZ)|),
+  and this lcm structure hides the individual orders via CRT.
+
+  ECM achieves L_p[1/2] for finding a factor p, which is
+  subexponential in p but exponential in log(N)/2 when p ≈ √N.
+
+────────────────────────────────────────────────────────────────────────
+2.3  LATTICE METHODS AND LATTICE REDUCTION
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Integer lattices L ⊂ Z^n, their short vectors, and
+reduction theory (LLL, BKZ, HKZ).
+
+ALGORITHMS: Lattice-based relation finding, Coppersmith's method,
+lattice sieving, approximate GCD.
+
+HOW IT WORKS:
+  Many factoring subproblems reduce to finding short vectors in
+  lattices derived from N. Coppersmith's method finds small roots
+  of modular polynomial equations, which can factor N when partial
+  information about p is known.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (sub-L[1/3] cost): Lattice reduction achieves polynomial
+    approximation factors in polynomial time (LLL), but the
+    lattices arising from factoring have dimension d that must
+    grow with N. Finding shortest vectors in dimension d takes
+    time 2^{Θ(d)}, and the required dimension d for factoring-
+    relevant lattices is ω(polylog(N)).
+
+  ✗ R2 (information density): Lattice methods provide information
+    proportional to the "quality" of the short vector found, but
+    this quality is limited by the lattice dimension and the
+    Gaussian heuristic. The information per lattice reduction
+    operation is O(1) bits toward factoring.
+
+  COPPERSMITH'S EXCEPTION: When ≥ n/2 bits of p are known,
+  Coppersmith's method factors N in polynomial time. This is
+  exactly the Case C regime from Section 1.2 — but it requires
+  external information about p that must itself be found.
+
+  FUNDAMENTAL BARRIER: Lattice methods are excellent at converting
+  "approximate" information into "exact" information (the
+  Coppersmith principle). But they cannot GENERATE the initial
+  approximate information about p from N alone at sub-L[1/3] cost.
+
+────────────────────────────────────────────────────────────────────────
+2.4  ALGEBRAIC GEOMETRY: CURVES AND HIGHER-DIMENSIONAL VARIETIES
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Algebraic curves C/Z/NZ, Jacobians J(C), abelian
+varieties, schemes over Spec(Z/NZ).
+
+ALGORITHMS: Hyperelliptic curve method, higher-genus analogues of
+ECM, Jacobian-based methods.
+
+HOW IT WORKS:
+  Generalize ECM to curves of higher genus g. The Jacobian J(C)
+  has dimension g, so its group order over F_p is ≈ p^g, with
+  smoothness probability that depends on the distribution of
+  eigenvalues of Frobenius.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R4 (CRT-opacity): The Jacobian J(C)(Z/NZ) decomposes via CRT:
+    J(C)(Z/NZ) ≅ J(C)(Z/pZ) × J(C)(Z/qZ)
+    and this decomposition is just as opaque as for Z/NZ itself.
+    The group order |J(C)(F_p)| depends on p through the
+    characteristic polynomial of Frobenius, which cannot be
+    computed without knowing p.
+
+  ✗ R2 (in the ECM regime): For genus g curves, the group order
+    is ≈ p^g, and smoothness probability improves, but the time
+    to compute in the Jacobian also grows as poly(g). The
+    optimized complexity for finding a factor p is:
+
+      L_p[1/2, 1/√(2g)]    (decreasing with g)
+
+    But as g → ∞, we need genus g ≈ √(log p) curves, and the
+    overhead of computing in high-genus Jacobians negates the
+    improvement. The complexity stays in the L_p[1/2] class.
+
+  ✗ R5 (when seeking L_N[1/3]): To match NFS's L_N[1/3], the
+    algebraic geometry approach would need to somehow extract
+    information about BOTH p and q simultaneously from the
+    geometry of C over Z/NZ. No known mechanism does this without
+    implicitly knowing the CRT decomposition.
+
+  WHAT WOULD FIX IT: An algebraic-geometric invariant of C/Z/NZ
+  that is:
+    (a) sensitive to the factorization of N
+    (b) computable without the CRT decomposition
+    (c) more informative than individual group orders
+  Candidates like the "Hasse-Weil zeta function of C over Z/NZ"
+  are not even well-defined objects — the Weil conjectures assume
+  curves over FIELDS, not over Z/NZ.
+
+────────────────────────────────────────────────────────────────────────
+2.5  CLASS FIELD THEORY AND CLASS GROUPS
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Class groups Cl(K) for number fields K related to N,
+Hilbert class fields, ring class fields, and genus theory.
+
+ALGORITHMS: Class group computation, relation-finding in Cl(K),
+subexponential discrete logarithm in Cl(K).
+
+HOW IT WORKS:
+  For K = Q(√(-N)), the class group Cl(K) has an explicit
+  connection to the factorization of N through GENUS THEORY:
+
+    Cl(K) / Cl(K)^2  ≅  (Z/2Z)^{t-1}
+
+  where t is the number of distinct prime factors of the discriminant
+  of K. The 2-rank of Cl(K) reveals the number of prime factors of N.
+
+  More refined information: the actual group structure of Cl(K)
+  determines p and q through the theory of binary quadratic forms.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (sub-L[1/3] cost): Computing the full class group Cl(Q(√(-N)))
+    requires finding smooth relations among ideals, which is
+    essentially the same problem as NFS. The best known algorithm
+    computes Cl(K) in time L[1/2] for general K, or L[1/3] when
+    using NFS-like techniques in the function field analogy.
+
+  ✗ R2 (information density in genus theory): Genus theory gives
+    exactly t-1 bits about the factorization (where t = number of
+    prime factors). For N = pq, this is just 1 bit — the Jacobi
+    symbol, which is trivially computable. Getting MORE than 1 bit
+    from genus theory requires computing in the class group
+    BEYOND the 2-torsion, which costs L[1/3].
+
+  The deep irony: the class group CONTAINS the full factorization
+  of N (one can recover p from the structure of Cl(Q(√(-N)))), but
+  COMPUTING this structure is as hard as factoring N directly. The
+  information is there but inaccessible.
+
+────────────────────────────────────────────────────────────────────────
+2.6  p-ADIC AND LOCAL METHODS
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: p-adic integers Z_p, p-adic analysis, Hensel lifting,
+Newton polygons, Witt vectors.
+
+HOW IT WORKS (hypothetically):
+  If we knew p, we could embed Z/NZ into Z_p and use p-adic
+  analysis. The idea is to find p-adic invariants computable
+  from N alone.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R1 (N-dependence without p): p-adic methods intrinsically
+    require knowing which prime p to complete to. Z/NZ does not
+    have a canonical embedding into any p-adic ring without
+    knowing a factor. This is a CATEGORICAL obstruction:
+
+      Spec(Z/NZ) = {(p), (q)}  (two closed points)
+
+    and choosing a local completion means choosing a point,
+    which IS the factorization.
+
+  ✗ R4 (CRT-opacity): This is the same barrier from a different
+    angle. The "local-global" structure of Z/NZ
+
+      Z/NZ ↪ Z_p × Z_q    (via CRT)
+
+    cannot be decomposed without knowing p and q. p-adic methods
+    are inherently "local" and the factoring problem is precisely
+    the problem of passing from global to local.
+
+────────────────────────────────────────────────────────────────────────
+2.7  ANALYTIC NUMBER THEORY AND L-FUNCTIONS
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Riemann zeta function ζ(s), Dirichlet L-functions L(s,χ),
+Dedekind zeta functions ζ_K(s), automorphic L-functions.
+
+HOW IT WORKS (hypothetically):
+  The factorization of N is "encoded" in the analytic properties
+  of L-functions. For example:
+
+    ζ_{Q(√(-N))}(s) = ζ(s) · L(s, χ_{-N})
+
+  and the special value L(1, χ_{-N}) determines the class number
+  h(-N), which determines the factorization.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (sub-L[1/3] cost): Computing L(1, χ_{-N}) to sufficient
+    precision requires evaluating ≈ √N terms of the L-series
+    (via the approximate functional equation), which costs
+    O(√N) = O(2^{n/2}) — exponential time.
+
+  ✗ R2 (information density via partial sums): Partial sums of
+    the L-series give approximations to L(1, χ_{-N}), but each
+    term contributes O(1/T) bits of precision when T terms are
+    summed. To get enough precision to determine p, we need
+    T ≈ √N terms.
+
+  More sophisticated approaches (e.g., using zeros of L-functions,
+  moment methods) run into the same barrier: the analytic
+  information about p is distributed across ≈ √N Fourier
+  coefficients, and there is no known shortcut to aggregate them.
+
+  CONNECTION TO RIEMANN HYPOTHESIS: Even assuming GRH, the best
+  known improvement to L-series evaluation is polylogarithmic.
+  GRH helps with CERTIFICATION of factors (Miller's test) but
+  not with FINDING them.
+
+────────────────────────────────────────────────────────────────────────
+2.8  REPRESENTATION THEORY AND AUTOMORPHIC FORMS
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Representations of GL_n(Z/NZ), automorphic forms on
+reductive groups, Hecke operators, Langlands program connections.
+
+HOW IT WORKS (hypothetically):
+  The representation theory of GL_n(Z/NZ) reflects the CRT
+  decomposition:
+
+    Rep(GL_n(Z/NZ)) ≅ Rep(GL_n(Z/pZ)) ⊗ Rep(GL_n(Z/qZ))
+
+  Perhaps some representation-theoretic invariant could detect
+  the factorization.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R4 (CRT-opacity): The decomposition of representations mirrors
+    the CRT decomposition EXACTLY. Any representation-theoretic
+    quantity that distinguishes the factorization must "see through"
+    CRT, which is the factoring problem itself.
+
+  ✗ R5 (constructibility): Computing representation-theoretic
+    invariants of GL_n(Z/NZ) for n ≥ 2 involves working with
+    objects of size |GL_n(Z/NZ)| ≈ N^{n²}, which is exponential.
+    Even for n = 1, we are back to the multiplicative group
+    (Z/NZ)*, whose structure is determined by CRT.
+
+────────────────────────────────────────────────────────────────────────
+2.9  FUNCTION FIELDS AND THE FUNCTION FIELD ANALOGY
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: F_q[T] (polynomial rings over finite fields), function
+fields F_q(C) of curves, Drinfeld modules.
+
+WHY THIS IS INTERESTING:
+  Factoring in F_q[T] (splitting a polynomial into irreducible factors)
+  is in POLYNOMIAL TIME (Berlekamp's algorithm, Cantor-Zassenhaus).
+  The function field analogy suggests that structures available over
+  F_q might have Z-analogues that help with integer factoring.
+
+  More precisely: the analogue of NFS over function fields achieves
+  L[1/3] as well (Adleman-Huang for function field DLP), suggesting
+  the L[1/3] barrier might be a phenomenon of the analogy itself.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (Z-rigidity): The fundamental reason factoring is easy over
+    F_q[T] is the FROBENIUS ENDOMORPHISM: for f(T) ∈ F_q[T],
+
+      f(T)^q ≡ f(T^q) (mod p(T))   for irreducible p(T)
+
+    This gives a polynomial-time computable "fingerprint" of p(T).
+    There is NO analogue of Frobenius for Z. The integers lack an
+    endomorphism of this type, which is the Z-rigidity barrier (B5).
+
+  ✗ R1 (the analogy doesn't transfer): Drinfeld modules, Anderson
+    T-motives, and other function field constructions have no direct
+    Z-analogue that would help with factoring. The "translation
+    dictionary" between function fields and number fields (the
+    Langlands program, the Weil-Deligne group, etc.) is structural,
+    not algorithmic — it preserves theorems but not algorithms.
+
+  WHAT WE LEARN: The function field case tells us that the L[1/3]
+  barrier is NOT an information-theoretic necessity. It is a
+  consequence of the ARITHMETIC STRUCTURE of Z versus F_q[T].
+  Specifically, Z lacks:
+    (a) A Frobenius endomorphism
+    (b) A finite base field to reduce to
+    (c) A geometric structure (curves, surfaces) with cohomological tools
+
+────────────────────────────────────────────────────────────────────────
+2.10  QUANTUM APPROACHES (SHOR AND BEYOND)
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Quantum Fourier transform, hidden subgroup problem,
+quantum walks, quantum polynomial systems.
+
+ALGORITHMS: Shor's algorithm, Regev's recent improvement, quantum
+NFS, quantum lattice sieving.
+
+HOW SHOR WORKS:
+  Shor's algorithm factors N in poly(n) quantum time by:
+  (a) Computing the order r of a random a ∈ (Z/NZ)*
+  (b) Using r to find p via gcd(a^{r/2} ± 1, N)
+
+  The key insight: order-finding reduces to the HIDDEN SUBGROUP
+  PROBLEM (HSP) in the abelian group Z, which quantum computers
+  solve efficiently via the quantum Fourier transform (QFT).
+
+WHICH CLASSICAL REQUIREMENT IT SATISFIES:
+  ✓ R2 (information density): Each quantum order-finding yields
+    O(n) bits of information about the group structure (the full
+    order r, which determines p with probability ≥ 1/2).
+  ✓ R3 (composability): Multiple runs compose trivially (one run
+    suffices with high probability).
+  ✓ R4 (CRT-opacity): QFT "sees through" CRT because it can
+    detect periodicity in the SUPERPOSITION a^0, a^1, ..., a^{r-1},
+    which encodes r = ord(a) in (Z/NZ)* without knowing p.
+
+WHICH CLASSICAL REQUIREMENT IT "VIOLATES":
+  ✗ R5 (classical sub-L[1/3]): Shor's algorithm requires a
+    QUANTUM computer. The QFT is not classically simulable in
+    sub-exponential time.
+
+LESSON FOR CLASSICAL ALGORITHMS:
+  Shor's algorithm demonstrates that R4 (CRT-opacity) is NOT an
+  absolute barrier — it can be circumvented by accessing the
+  correct mathematical structure (periodicity detection via
+  superposition). The question is whether there exists a CLASSICAL
+  mechanism that achieves something analogous.
+
+  CRITICAL INSIGHT: Shor's algorithm extracts O(n) bits from ONE
+  evaluation by accessing the ENTIRE periodic structure of a^k mod N
+  simultaneously. Classically, we can only evaluate a^k for one k
+  at a time, getting O(1) bits. The quantum advantage is precisely
+  in INFORMATION DENSITY per evaluation (R2).
+
+────────────────────────────────────────────────────────────────────────
+2.11  SMOOTH NUMBERS AND SIEVING
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: B-smooth numbers, the Dickman rho function ρ(u),
+sieving theory, smooth number distribution.
+
+ALGORITHMS: Quadratic sieve, CFRAC, Dixon's method, sieving in NFS.
+
+THE UNIVERSAL BOTTLENECK:
+  Almost all subexponential factoring algorithms reduce to:
+    (1) Find B-smooth numbers in a structured set S ⊂ Z/NZ
+    (2) Combine smooth relations to find a square mod N
+    (3) Extract p from gcd(x² - y², N) = gcd(x-y, N) · gcd(x+y, N)
+
+  The smoothness bottleneck: the probability that a random integer
+  m ≤ X is B-smooth is ρ(u) where u = log(X)/log(B) and ρ is
+  the Dickman function satisfying ρ(u) ∼ u^{-u} for large u.
+
+  Optimization: the sieve region has X ≈ N^{1/d} (for degree-d
+  polynomials) and we choose B = L[1/3, β]. This gives:
+
+    u ≈ (1/d) · (log N / log B) ≈ (1/d) · (log N)^{2/3} / (log log N)^{1/3}
+
+  and the smoothness probability ρ(u) ≈ L[-1/3, ...], meaning we
+  need L[1/3] sieve operations to find one smooth relation.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R2 + R5 jointly: The smoothness probability ρ(u) ∼ u^{-u}
+    is a UNIVERSAL bound — it applies to any polynomial evaluated
+    at integers in a range. There is no polynomial p(x₁,...,x_k)
+    with roots mod N whose values are smoother than ρ predicts,
+    unless the polynomial has special structure (e.g., degree 1,
+    which gives trivial smoothness at too-large cost).
+
+  This is perhaps the deepest barrier: smoothness is governed by
+  the ANALYTIC properties of the integers (prime distribution),
+  and no algebraic trick changes the analytic smoothness probability.
+
+  POTENTIAL LOOPHOLE: Non-polynomial structured sets. If the
+  "sieve target" is not a polynomial evaluation but some other
+  structured set, the smoothness probability might differ. But
+  all known constructions of structured sets in Z/NZ ultimately
+  reduce to polynomial evaluations after algebraic manipulation.
+
+────────────────────────────────────────────────────────────────────────
+2.12  LINEAR ALGEBRA OVER GF(2) AND STRUCTURED MATRICES
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Sparse matrices over GF(2), structured linear algebra
+(Block Lanczos, Block Wiedemann), the GF(2) null space.
+
+THE GF(2) BOTTLENECK (Barrier B3):
+  After collecting smooth relations, factoring reduces to:
+
+    Find v ∈ GF(2)^k such that Mv = 0
+
+  where M is the exponent matrix of smooth relations. The matrix
+  M has dimensions ≈ π(B) × (π(B) + ε), and the null space
+  computation takes time O(π(B)^2) (Block Wiedemann) or O(π(B)·w)
+  where w is the average row weight.
+
+  With B = L[1/3, β], this linear algebra costs L[2/3, ...],
+  which would DOMINATE the sieving cost — EXCEPT that the matrix
+  is sparse (row weight O(polylog N)), and structured algorithms
+  exploit this, bringing the cost down to L[1/3, ...] matching
+  the sieve.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R3 (composability, in a deep sense): The GF(2) structure
+    destroys multiplicative information. When we reduce exponent
+    vectors mod 2, we lose the actual exponents — we only know
+    PARITY. This means:
+
+    (a) We cannot use multiplicative structure (e.g., the fact
+        that smooth numbers have small prime factors with specific
+        exponent distributions) to speed up the linear algebra.
+    (b) We cannot compose relations "multiplicatively" — only
+        additively (XOR) in the exponent space.
+    (c) The problem is combinatorial (find a GF(2) dependency)
+        rather than algebraic (exploit ring structure).
+
+  WHAT WOULD FIX IT: A framework where the "relations" live in
+  a richer algebraic structure than GF(2)^k — perhaps a module
+  over a ring with more structure, where the combination operation
+  is more efficient. This connects to the question of whether
+  factoring can be reduced to a problem over a field of
+  characteristic ≠ 2, or over a ring with non-trivial units.
+
+────────────────────────────────────────────────────────────────────────
+2.13  QUANTUM-INSPIRED CLASSICAL APPROACHES
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Tensor networks, matrix product states, simulated
+quantum circuits, dequantized algorithms.
+
+HOW IT WORKS (hypothetically):
+  Attempt to classically simulate enough of Shor's algorithm to
+  factor N. Since Shor works by exploiting the STRUCTURE of the
+  QFT applied to periodic functions, perhaps this structure can
+  be captured classically.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (sub-L[1/3] cost): The quantum state in Shor's algorithm
+    after the modular exponentiation step is:
+
+      |ψ⟩ = (1/√r) Σ_{j=0}^{r-1} |j·(N/r)⟩|a^j mod N⟩
+
+    This state has ENTANGLEMENT ENTROPY proportional to log(r) ≈ n.
+    Classically simulating this requires representing an exponentially
+    large state, which costs 2^{Ω(n)} time/space.
+
+  More precisely: the tensor network representing the modular
+  exponentiation circuit has bond dimension 2^{Ω(n)}, and no
+  known compression brings this below subexponential.
+
+  Tang-style dequantization (for recommendation systems, etc.) does
+  not apply because factoring is not a "low-rank" problem in the
+  relevant sense.
+
+────────────────────────────────────────────────────────────────────────
+2.14  COMBINATORIAL AND GRAPH-THEORETIC APPROACHES
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Cayley graphs of (Z/NZ)*, expander graphs, spectral
+methods on graphs derived from N.
+
+HOW IT WORKS (hypothetically):
+  Construct a graph G(N) whose spectral properties (eigenvalues of
+  adjacency matrix, expansion, etc.) encode the factorization of N.
+  Use spectral algorithms (random walks, spectral clustering) to
+  extract this information.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R4 (CRT-opacity): The Cayley graph of (Z/NZ)* decomposes
+    spectrally via CRT:
+
+      Spec(Cay((Z/NZ)*)) = Spec(Cay((Z/pZ)*)) ⊗ Spec(Cay((Z/qZ)*))
+
+    where ⊗ denotes the tensor product of spectra. Computing the
+    individual spectral components requires knowing p.
+
+  ✗ R2 (information density): Random walks on Cayley graphs of
+    (Z/NZ)* mix in time O(log N) = O(n), but the mixing gives
+    UNIFORM distribution — it erases information about the graph
+    structure rather than revealing it. Spectral algorithms extract
+    eigenvalues, but the relevant eigenvalues (those of the
+    "p-component") are hidden in the tensor product.
+
+────────────────────────────────────────────────────────────────────────
+2.15  ALGEBRAIC COMPLEXITY AND ARITHMETIC CIRCUITS
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Arithmetic circuits, algebraic computation trees,
+Straight-line programs for computing in Z/NZ.
+
+HOW IT WORKS (hypothetically):
+  Lower bounds on arithmetic circuit complexity could show that
+  certain computations over Z/NZ require Ω(f(N)) operations,
+  which would establish barriers. Conversely, efficient circuits
+  for "factoring-related" functions could break barriers.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ This is not a constructive approach but a BARRIERS approach.
+    No arithmetic circuit lower bound beyond linear is known for
+    EXPLICIT functions (the "P vs NC" type gap). We cannot even
+    prove that multiplication requires super-linear circuit size,
+    let alone that factoring requires L[1/3] circuit size.
+
+  ✗ R5 (in the constructive direction): Known efficient arithmetic
+    circuits over Z/NZ compute POLYNOMIAL functions, and evaluating
+    polynomial functions mod N does not escape the smoothness
+    bottleneck (Section 2.11).
+
+────────────────────────────────────────────────────────────────────────
+2.16  ARITHMETIC GEOMETRY: MOTIVES AND COHOMOLOGY
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Étale cohomology H^i(Spec(Z/NZ), F), motivic cohomology,
+crystalline cohomology, the motivic Galois group.
+
+WHY THIS IS INTERESTING:
+  The deepest invariants of Z/NZ come from arithmetic geometry.
+  The étale fundamental group π₁(Spec(Z/NZ)) "knows" the
+  factorization: Spec(Z/NZ) = Spec(Z/pZ) ⊔ Spec(Z/qZ) (as
+  schemes), so π₁ = π₁(Spec(F_p)) × π₁(Spec(F_q)) = Ẑ × Ẑ,
+  and knowing this decomposition is knowing p and q.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (sub-L[1/3] cost): Computing étale cohomology groups of
+    Spec(Z/NZ) (or of varieties over Z/NZ) requires either:
+    (a) Knowing the decomposition Spec(Z/NZ) = Spec(F_p) ⊔ Spec(F_q),
+        which IS the factorization, or
+    (b) Working with cohomological invariants that are "blind" to the
+        decomposition, which reduces to the same barriers as
+        Section 2.8 (representation theory).
+
+  ✗ R4 (CRT-opacity): Cohomology is FUNCTORIAL, meaning:
+    H^i(Spec(Z/NZ), F) ≅ H^i(Spec(F_p), F) ⊕ H^i(Spec(F_q), F)
+    and this decomposition mirrors CRT exactly. ANY cohomological
+    invariant of Spec(Z/NZ) decomposes as a product of invariants
+    of Spec(F_p) and Spec(F_q), and computing the components requires
+    the factorization.
+
+  THE MOTIVIC DREAM: Is there a "motivic" invariant of Z/NZ that
+  does NOT decompose via CRT? This would require a non-functorial
+  construction, which goes against the foundations of algebraic
+  geometry. It seems unlikely but cannot be absolutely ruled out.
+
+────────────────────────────────────────────────────────────────────────
+2.17  ADDITIVE COMBINATORICS AND SUM-PRODUCT PHENOMENA
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Sumsets A+A, product sets A·A, sum-product estimates
+in Z/NZ, Freiman-type theorems.
+
+HOW IT WORKS (hypothetically):
+  The sum-product phenomenon says that for A ⊂ Z/pZ,
+  max(|A+A|, |A·A|) ≫ |A|^{1+ε}. The point: addition and
+  multiplication "disagree" in Z/pZ, and this disagreement
+  might be exploitable for factoring since the CRT decomposition
+  treats addition and multiplication differently.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R4 (CRT-opacity): Sum-product estimates over Z/NZ involve
+    BOTH the additive and multiplicative structure, but they hold
+    for ANY ring, not specifically for Z/NZ with its particular
+    factorization. The sum-product phenomenon is a GENERIC property
+    of rings, not one that distinguishes Z/NZ from Z/N'Z.
+
+  ✗ R2 (information density): Known sum-product results give
+    EXISTENCE results (certain sets must be large) but not
+    CONSTRUCTIVE information about p. Converting sum-product
+    bounds into a factoring algorithm would require constructing
+    specific sets A where the sum-product behavior differs between
+    the "mod p" and "mod q" components — which again requires CRT
+    decomposition to verify.
+
+────────────────────────────────────────────────────────────────────────
+2.18  DERANDOMIZATION AND PSEUDORANDOMNESS
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Pseudorandom generators, extractors, expander graphs,
+the hardness-randomness connection.
+
+HOW IT WORKS (hypothetically):
+  If factoring is hard, then the Blum-Blum-Shub generator (x → x²
+  mod N) is a secure PRG. Conversely, if we could BREAK this PRG
+  (distinguish its output from random), we could factor N. Perhaps
+  structural properties of the PRG's output can be detected
+  without factoring N.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ This is CIRCULAR: breaking BBS is as hard as factoring N
+    (under standard assumptions). Any efficient BBS distinguisher
+    IS a factoring algorithm, so this doesn't provide a new angle.
+
+  ✗ R1 (the structure IS the problem): The "structure" here is
+    the quadratic residuosity structure of Z/NZ, which is exactly
+    the factoring problem in disguise.
+
+────────────────────────────────────────────────────────────────────────
+2.19  HOMOMORPHIC ENCRYPTION AND BOOTSTRAPPING (COMPUTATIONAL)
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Fully homomorphic encryption (FHE) circuits,
+bootstrapping, noise management, the LWE/RLWE connection.
+
+HOW IT WORKS (hypothetically):
+  FHE allows computation on encrypted data. If we could "encrypt"
+  the factoring problem and solve it homomorphically using structure
+  that is visible in the encrypted domain...
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (this doesn't help): FHE computes the same functions as
+    non-FHE, just on encrypted inputs. It doesn't provide access
+    to new mathematical structure — it provides PRIVACY of inputs.
+    Running NFS under FHE still costs L[1/3].
+
+  ✗ Fundamentally: FHE is a tool for COMPUTATION, not for
+    MATHEMATICS. It doesn't reveal new structural properties of
+    Z/NZ; it merely allows existing computations to be done in
+    different settings.
+
+────────────────────────────────────────────────────────────────────────
+2.20  TOPOLOGICAL AND HOMOTOPICAL APPROACHES
+────────────────────────────────────────────────────────────────────────
+
+STRUCTURES: Homotopy type theory, higher categories, topological
+invariants of Spec(Z/NZ), perfectoid spaces.
+
+WHY THIS IS INTERESTING:
+  Perfectoid spaces (Scholze) have revolutionized arithmetic geometry
+  by providing new tools for "tilting" between characteristic 0 and
+  characteristic p. The perfectoid approach might provide a bridge
+  between the function field world (where factoring is easy) and
+  the number field world.
+
+WHICH REQUIREMENT IT FAILS:
+  ✗ R5 (sub-L[1/3] cost): Perfectoid methods work over COMPLETE
+    fields (e.g., Q_p^, the completed algebraic closure of Q_p).
+    Constructing the relevant perfectoid spaces requires choosing
+    a prime p — which IS the factoring problem. The tilting
+    equivalence
+
+      Perf_{Q_p} ≅ Perf_{F_p((t))}
+
+    relates the p-adic world to the function field world, but
+    only AFTER p is known.
+
+  ✗ R4 (CRT-opacity): There is no known "perfectoid space over
+    Z/NZ" that doesn't decompose via CRT. The entire perfectoid
+    machinery is local (centered at a prime p), and globalizing
+    it over Spec(Z/NZ) without knowing the primes is an unsolved
+    (and possibly unsolvable) problem.
+
+  SPECULATIVE DIRECTION: Could "prismatic cohomology" (Bhatt-Scholze),
+  which is designed to unify various p-adic cohomology theories,
+  provide a GLOBAL invariant of Z/NZ that doesn't decompose via
+  CRT? This is mathematically meaningful as a question but there
+  is currently no evidence it would help with factoring.
+
+
+════════════════════════════════════════════════════════════════════════
+SECTION 2 SUMMARY TABLE
+════════════════════════════════════════════════════════════════════════
+
+Structure Family         | Fails R: | Primary Barrier
+─────────────────────────┼──────────┼──────────────────────────────
+Number fields/NFS        | R2, R5   | Norm sizes → smoothness cost
+Group orders/ECM         | R2, R4   | Order depends on unknown p
+Lattice methods          | R2, R5   | Dimension/approximation tradeoff
+Algebraic geometry       | R4       | CRT decomposition of Jacobians
+Class groups             | R5       | Computing Cl(K) costs ≥ L[1/3]
+p-adic methods           | R1, R4   | Require choosing p (= factoring)
+L-functions/analytic     | R5       | √N terms needed in L-series
+Representation theory    | R4, R5   | Rep decomposition mirrors CRT
+Function fields          | R5       | Z-rigidity (no Frobenius for Z)
+Quantum (Shor)           | R5*      | Not classical (* by definition)
+Smooth numbers/sieving   | R2, R5   | Universal smoothness bounds
+GF(2) linear algebra     | R3       | Destroys multiplicative structure
+Quantum-inspired         | R5       | Entanglement is essential
+Graph/spectral           | R2, R4   | Spectral decomposition = CRT
+Arithmetic circuits      | —        | No useful lower bounds known
+Motives/cohomology       | R4, R5   | Functoriality mirrors CRT
+Additive combinatorics   | R2, R4   | Generic, not N-specific
+Derandomization          | R1       | Circular (breaking PRG = factoring)
+Homomorphic encryption   | R5       | Computes same functions, no new math
+Topological/perfectoid   | R4, R5   | Local methods require knowing p
+─────────────────────────┴──────────┴──────────────────────────────
+
+
+══════════════════════════════════════════════════════════════════════════
+SECTION 3: WHAT REMAINS POSSIBLE
+══════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────
+3.1  THE LOGICAL GAP: WHAT HAS NOT BEEN TRIED
+────────────────────────────────────────────────────────────────────────
+
+After examining all 20 structural families above (encompassing ~360
+specific approaches), we can identify the precise logical gap between
+what has been explored and what might be possible.
+
+OBSERVATION 1: EVERY KNOWN APPROACH IS "LOCAL" IN SOME SENSE.
+
+  All explored approaches work with INDIVIDUAL elements of Z/NZ (or
+  extensions thereof), computing properties of those elements one at
+  a time. Even NFS, which uses algebraic structure (number fields),
+  ultimately evaluates a norm polynomial at individual points and
+  tests smoothness pointwise.
+
+  The logical gap: GLOBAL properties of Z/NZ as a whole — properties
+  that cannot be decomposed into pointwise evaluations — have not
+  been systematically explored as a route to factoring.
+
+  Examples of global properties:
+  - The SPECTRUM of Z/NZ as a ring (Spec(Z/NZ) = {(p), (q)})
+  - The AUTOMORPHISM GROUP of structures over Z/NZ
+  - The DEFORMATION THEORY of Z/NZ (how does Z/NZ change as N varies?)
+  - GLOBAL cohomological invariants that don't decompose via CRT
+
+  The issue: most global properties either (a) reduce to CRT
+  (and hence require knowing p) or (b) are trivial (Spec(Z/NZ) has
+  exactly two points, but FINDING them is the problem). The gap is
+  whether there exist global properties that are NONTRIVIAL yet
+  COMPUTABLE without knowing the decomposition.
+
+
+OBSERVATION 2: THE "INFORMATION SOURCE" HASN'T CHANGED.
+
+  All known algorithms extract factoring information from the same
+  fundamental source: the MULTIPLICATIVE STRUCTURE of Z/NZ, possibly
+  lifted to number fields or group varieties.
+
+  The logical gap: are there DIFFERENT sources of information about
+  the factorization that are not derived from the multiplicative
+  structure?
+
+  Candidate alternative information sources:
+  - ADDITIVE structure of Z/NZ interacting with multiplicative
+    structure (sum-product phenomena, but Section 2.17 shows
+    these are too generic)
+  - The RING STRUCTURE of Z/NZ as a whole (not just multiplicative
+    or additive separately)
+  - DERIVED algebraic structures: K-theory K₀(Z/NZ), Hochschild
+    cohomology HH*(Z/NZ), topological Hochschild homology THH(Z/NZ)
+  - METRIC or GEOMETRIC properties of Z/NZ viewed as a metric space
+    (e.g., under some natural metric induced by the factorization)
+
+
+OBSERVATION 3: THE "COMBINATION MECHANISM" HASN'T CHANGED.
+
+  All known algorithms combine partial information via LINEAR ALGEBRA
+  over GF(2) (or occasionally over Z). The GF(2) bottleneck (B3) is
+  a direct consequence.
+
+  The logical gap: are there NONLINEAR combination mechanisms that
+  could compose partial information more efficiently?
+
+  Candidate nonlinear mechanisms:
+  - Combining relations via group operations in a non-abelian group
+  - Using MULTIPLICATIVE combination (products of relations) rather
+    than additive (sums of exponent vectors)
+  - Tropical algebra: combining relations via (min, +) operations
+  - Homological algebra: combining cocycles via cup products or
+    higher operations (Massey products, A-infinity structures)
+
+
+OBSERVATION 4: THE SMOOTHNESS PARADIGM HASN'T BEEN ESCAPED.
+
+  Every known subexponential factoring algorithm relies on finding
+  SMOOTH numbers in some structured set. The Dickman function ρ(u)
+  governs the cost, and no algebraic trick has changed this.
+
+  The logical gap: is there a way to extract information about p
+  from N that does NOT require finding smooth numbers?
+
+  Non-smoothness-based approaches that have been tried:
+  - Pollard rho (random walks): O(√p) time, exponential in n/4
+  - Fermat's method: finds factors near √N only
+  - Lehman's method: O(N^{1/3}) time, exponential
+
+  All of these are polynomial-time in N but exponential in n = log N.
+  No known non-smoothness-based approach achieves subexponential time.
+
+  THE DEEP QUESTION: Is smoothness NECESSARY for subexponential
+  factoring, or is there an entirely different paradigm?
+
+────────────────────────────────────────────────────────────────────────
+3.2  WHAT MATHEMATICAL OBJECT COULD SATISFY ALL REQUIREMENTS?
+────────────────────────────────────────────────────────────────────────
+
+Based on the gap analysis above, a barrier-breaking structure would
+need to be something genuinely NEW — not a variation of existing
+number-theoretic objects. We can, however, characterize its properties
+with some precision.
+
+CHARACTERIZATION THEOREM (informal):
+
+  A barrier-breaking structure S(N) must be an object that:
+
+  (P1) Lives in a category C that is NOT a subcategory of:
+       - Commutative rings (to avoid CRT decomposition)
+       - Abelian groups (to avoid GF(2) bottleneck)
+       - Polynomial maps Z^k → Z/NZ (to avoid smoothness bottleneck)
+
+  (P2) Has a "natural" construction from N that does NOT require
+       factoring N, yet produces different objects for different
+       factorizations.
+
+  (P3) Supports an "evaluation" operation that extracts > O(1) bits
+       per evaluation, where the information is about the factoring
+       of N (not about some independent random variable).
+
+  (P4) Has algebraic composition that is SUPER-ADDITIVE in
+       information: k evaluations composed yield ω(k) bits.
+
+  (P5) Is constructible in time L[α] for some α < 1/3.
+
+Let us examine what P1-P5 allow:
+
+CANDIDATE TYPE A: NON-COMMUTATIVE ALGEBRAIC STRUCTURES OVER Z/NZ
+
+  If S(N) is a non-commutative ring or group derived from Z/NZ,
+  it might avoid the CRT decomposition (which is a phenomenon of
+  COMMUTATIVE algebra). For example:
+
+  - Matrix rings M_n(Z/NZ): these DO decompose via CRT
+    (M_n(Z/NZ) ≅ M_n(Z/pZ) × M_n(Z/qZ)), so they don't help.
+
+  - Free algebras or group algebras: Z/NZ[G] for non-abelian G.
+    These decompose as Z/pZ[G] × Z/qZ[G], so CRT still applies.
+
+  - Non-associative algebras: octonions O(Z/NZ), Jordan algebras,
+    Lie algebras over Z/NZ. These are less studied and the CRT
+    decomposition is less straightforward. HOWEVER, the Lie
+    algebra g(Z/NZ) ≅ g(Z/pZ) × g(Z/qZ) still holds for most
+    natural constructions.
+
+  VERDICT: Non-commutativity alone does NOT escape CRT. The CRT
+  decomposition is a phenomenon of the BASE RING Z/NZ, not of
+  structures over it. Any structure OVER Z/NZ inherits CRT.
+
+CANDIDATE TYPE B: STRUCTURES NOT "OVER" Z/NZ BUT "DERIVED FROM" Z/NZ
+
+  The key distinction: a structure "over Z/NZ" (like a module or
+  algebra with Z/NZ as base ring) automatically inherits CRT.
+  But a structure "derived from" Z/NZ (like a topological space
+  or graph CONSTRUCTED from Z/NZ) might not.
+
+  Examples:
+  - The CAYLEY GRAPH of (Z/NZ)* under specific generators:
+    this is a graph, not a Z/NZ-module, so it doesn't directly
+    inherit CRT. But its spectrum does decompose (Section 2.14).
+
+  - The UNIT GROUP LATTICE: view (Z/NZ)* as an abelian group
+    and study its subgroup lattice. This lattice is
+    Sub((Z/pZ)* × (Z/qZ)*), which has more structure than
+    Sub((Z/pZ)*) × Sub((Z/qZ)*) — the subgroup lattice does
+    NOT decompose as a product! This is because subgroups of a
+    product A × B include "diagonal" subgroups that project
+    non-trivially onto both factors.
+
+    However: enumerating subgroups of (Z/NZ)* requires knowing
+    the group structure, which requires knowing p and q (since
+    (Z/NZ)* ≅ (Z/pZ)* × (Z/qZ)* = Z/(p-1)Z × Z/(q-1)Z).
+
+  - HIGHER K-THEORY of Z/NZ: K₀(Z/NZ) = Z² (reflecting two
+    indecomposable projective modules), K₁(Z/NZ) = (Z/NZ)*.
+    Higher K-groups K_n(Z/NZ) for n ≥ 2 might carry non-CRT
+    information, but computing them is extremely hard (equivalent
+    to computing stable homotopy groups, which is a major open
+    problem in algebraic topology even for simple rings).
+
+CANDIDATE TYPE C: DYNAMICAL SYSTEMS OVER Z/NZ
+
+  Consider a dynamical system f: Z/NZ → Z/NZ (e.g., x → x² + c).
+  The dynamics of f do NOT necessarily decompose via CRT in a
+  simple way. The orbit structure of f on Z/NZ is related to but
+  not identical to the orbit structures of f on Z/pZ and Z/qZ.
+
+  Specifically: if O_N(x₀) is the orbit of x₀ under f in Z/NZ,
+  and O_p(x₀ mod p), O_q(x₀ mod q) are the orbits in Z/pZ, Z/qZ,
+  then:
+    |O_N(x₀)| = lcm(|O_p(x₀ mod p)|, |O_q(x₀ mod q)|)
+
+  This lcm structure is LESS opaque than full CRT: it constrains
+  |O_p| and |O_q| to be divisors of |O_N|. Pollard's rho method
+  exploits this (via birthday collisions in orbits), but only
+  achieves O(√p) time.
+
+  THE QUESTION: Is there a family of dynamical systems f_N where
+  the orbit structure reveals MORE than O(1) bits about p per
+  orbit computed, yet orbits are computable in poly(log N) time?
+
+  CURRENT STATUS: Unknown, but the lcm structure of orbits over
+  Z/NZ is genuinely more tractable than full CRT opacity, making
+  this a non-trivially open direction.
+
+CANDIDATE TYPE D: ENTROPY/INFORMATION-THEORETIC OBJECTS
+
+  Consider the DISTRIBUTION of some function f(a) as a ranges over
+  Z/NZ (or a structured subset). The distribution D_N of f over
+  Z/NZ is related to but different from the product distribution
+  D_p × D_q (the distribution of (f(a mod p), f(a mod q))).
+
+  For example: the distribution of Jacobi symbols
+  (a/N) = (a/p)(a/q) over random a carries exactly 1 bit about
+  the factorization (distinguishing quadratic residues from
+  non-residues with Jacobi symbol 1).
+
+  THE QUESTION: Is there a function f and a statistical test T
+  such that:
+  - T(D_N) reveals > 1 bit about the factorization per sample
+  - Each sample is computable in poly(log N) time
+  - The test T is computable in poly(k) time given k samples
+
+  This is essentially asking: can we AMPLIFY the 1-bit information
+  from quadratic residuosity to multi-bit information without
+  increasing the per-sample cost proportionally?
+
+  KNOWN BARRIER: Higher-order residuosity (e.g., k-th power
+  residuosity for k > 2) requires knowing the group structure of
+  (Z/NZ)*, which requires knowing p and q when k ∤ (p-1)(q-1).
+  So higher residuosity is CRT-opaque.
+
+────────────────────────────────────────────────────────────────────────
+3.3  WHAT A NEGATIVE RESULT (PROOF OF L[1/3] OPTIMALITY) WOULD
+     LOOK LIKE
+────────────────────────────────────────────────────────────────────────
+
+A proof that no classical algorithm can factor N in time o(L[1/3])
+would be one of the most important results in computational complexity.
+Let us characterize what such a proof would need to establish.
+
+APPROACH 1: ORACLE/BLACK-BOX LOWER BOUND
+
+  Prove that any algorithm with oracle access to Z/NZ (i.e., that
+  can perform ring operations and equality tests in Z/NZ but has
+  no "special knowledge" of how Z/NZ is represented) requires
+  Ω(L[1/3]) ring operations to factor N.
+
+  CURRENT STATUS: Shoup (1997) proved that any GENERIC RING
+  ALGORITHM for factoring requires Ω(N^{1/4}) ring operations.
+  This is a lower bound of 2^{Ω(n)} — exponential, but weaker
+  than L[1/3] for large N.
+
+  DIFFICULTY: Generic ring lower bounds cannot capture algorithms
+  that exploit the specific REPRESENTATION of elements (as integers
+  0, 1, ..., N-1) rather than just the ring structure. NFS exploits
+  representation (via smoothness of integer representatives).
+
+APPROACH 2: INFORMATION-THEORETIC LOWER BOUND
+
+  Prove that any algorithm that extracts information about p from
+  Z/NZ must pay at least L[1/3] computational cost per bit of
+  information.
+
+  This would require formalizing:
+  (a) What "extracting information about p" means computationally
+  (b) A lower bound on the computational cost per bit
+  (c) That n/2 bits are necessary (which is trivially true)
+
+  DIFFICULTY: Part (b) is essentially a circuit complexity lower
+  bound, and no super-linear circuit lower bounds are known for
+  explicit functions (the fundamental barrier in complexity theory).
+
+APPROACH 3: REDUCTION TO A KNOWN HARD PROBLEM
+
+  Prove that factoring N in time o(L[1/3]) would imply breaking
+  some other assumption believed to be hard (e.g., solving
+  worst-case lattice problems, or violating a well-established
+  conjecture).
+
+  CURRENT STATUS: No such reduction is known. In fact, the
+  relationship between factoring and other hard problems (LWE,
+  lattice problems, etc.) is poorly understood.
+
+APPROACH 4: SMOOTHNESS BARRIER FORMALIZATION
+
+  Prove that any factoring algorithm must, implicitly or explicitly,
+  find smooth numbers in a set of size ≥ L[1/3], and that the
+  smoothness probability in any such set is ≤ L[-1/3].
+
+  This would need:
+  (a) A theorem that smooth numbers are NECESSARY (not just
+      sufficient) for subexponential factoring
+  (b) A universal smoothness probability bound for all "factoring-
+      relevant" sets
+
+  DIFFICULTY: Part (a) is wide open. Pollard's rho does not use
+  smooth numbers and achieves O(√p) time. It is conceivable that
+  a non-smoothness-based approach could achieve subexponential time,
+  which would refute (a).
+
+APPROACH 5: BARRIERS ON BARRIERS (META-BARRIERS)
+
+  Prove that current proof techniques CANNOT prove L[1/3] optimality.
+  This would be analogous to the Baker-Gill-Solovay theorem (oracle
+  separations show relativization cannot resolve P vs NP) or the
+  Razborov-Rudich natural proofs barrier.
+
+  CURRENT STATUS: Boneh-Lipton (1996) showed that certain oracle
+  techniques cannot prove super-polynomial lower bounds for
+  factoring. This suggests that proving L[1/3] optimality will
+  require fundamentally new proof techniques, beyond oracles and
+  generic models.
+
+THE MOST LIKELY FORM OF A NEGATIVE RESULT:
+
+  Based on the current state of complexity theory, a proof of
+  L[1/3] optimality would most likely come from:
+
+  (i)  A NEW computational model that captures the essential features
+       of factoring algorithms more precisely than generic ring
+       algorithms (perhaps "smooth-number algorithms" or
+       "relation-finding algorithms" as a formal class).
+
+  (ii) A CONDITIONAL result: "L[1/3] is optimal among algorithms
+       that [use smooth numbers / find relations / work in number
+       fields / ...]," i.e., a barrier result CONDITIONAL on the
+       algorithmic paradigm.
+
+  (iii) An UNCONDITIONAL lower bound using a new proof technique that
+        bypasses the relativization and natural proofs barriers.
+        This would be a major breakthrough in complexity theory
+        independent of its implications for factoring.
+
+────────────────────────────────────────────────────────────────────────
+3.4  THE FUNDAMENTAL TENSION
+────────────────────────────────────────────────────────────────────────
+
+We can now precisely state the fundamental tension that any
+barrier-breaking approach must resolve:
+
+TENSION 1: COMPUTABILITY VS. INFORMATION
+
+  To carry information about p, a structure must be SENSITIVE to p.
+  But p is hidden behind CRT, so sensitivity requires "seeing
+  through" CRT. Yet any structure that sees through CRT can be
+  used to COMPUTE p, meaning the structure itself encodes a
+  factoring algorithm. The tension: the structure must encode
+  information about p WITHOUT encoding p explicitly — it must
+  carry PARTIAL information that can be efficiently AMPLIFIED.
+
+TENSION 2: EFFICIENCY VS. GENERALITY
+
+  An efficient structure (polynomial-time constructible) must be
+  algebraically "simple" (bounded degree, bounded dimension).
+  But simple algebraic structures over Z/NZ decompose via CRT.
+  The tension: the structure must be simple enough to construct
+  efficiently, yet complex enough to resist CRT decomposition.
+
+TENSION 3: ALGEBRAIC VS. ANALYTIC
+
+  Algebraic information (group orders, class numbers, Frobenius
+  eigenvalues) is exact but hard to compute. Analytic information
+  (L-function values, density estimates, probabilistic bounds)
+  is approximate but easier to access. The tension: the structure
+  must bridge the algebraic-analytic divide, extracting exact
+  factoring information from approximate computations at sub-L[1/3]
+  cost.
+
+RESOLUTION OF TENSIONS (IF POSSIBLE):
+
+  A structure that resolves all three tensions would likely be:
+
+  - GLOBAL rather than local (avoids pointwise CRT decomposition)
+  - ALGEBRAIC-ANALYTIC hybrid (combines exact and approximate info)
+  - NON-FUNCTORIAL from Z/NZ (avoids automatic CRT decomposition)
+  - COMPOSABLE via non-commutative or non-linear operations
+    (avoids GF(2) bottleneck)
+  - CONNECTED to smoothness but not DEPENDENT on it (uses smooth
+    numbers as auxiliary tools, not as the primary information
+    source)
+
+  Whether such a structure exists is the fundamental open question
+  of factoring complexity.
+
+
+══════════════════════════════════════════════════════════════════════════
+SECTION 4: RECOMMENDED RESEARCH DIRECTIONS
+══════════════════════════════════════════════════════════════════════════
+
+Based on the analysis in Sections 1-3, we prioritize research
+directions by three criteria:
+  (a) NOVELTY: How far is this from well-explored territory?
+  (b) FALSIFIABILITY: Can we quickly test whether the approach
+      has any chance of working?
+  (c) POTENTIAL IMPACT: If successful, would it break L[1/3] or
+      just improve the constant?
+
+Directions are listed in decreasing order of overall priority.
+
+────────────────────────────────────────────────────────────────────────
+4.1  [PRIORITY: HIGHEST]
+     DYNAMICAL SYSTEMS AND ORBIT COMPLEXITY OVER Z/NZ
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★★★ (barely explored beyond Pollard rho)
+Falsifiability: ★★★★☆ (concrete computational experiments possible)
+Potential impact: ★★★☆☆ (might improve exponent; unclear if below 1/3)
+
+THESIS: The orbit structure of polynomial dynamical systems
+f: Z/NZ → Z/NZ contains more information about the factorization
+than has been extracted by existing algorithms.
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. For f(x) = x² + c and random c, study the FULL orbit graph
+     Γ_f(N) (the functional graph of f on Z/NZ). This graph has
+     connected components, cycle lengths, and tail lengths that
+     encode information about p and q through the lcm structure:
+
+       cycle_length_N = lcm(cycle_length_p, cycle_length_q)
+
+  2. QUESTION: Can the DISTRIBUTION of cycle lengths and tail
+     lengths in Γ_f(N) — over many random choices of c — reveal
+     more than O(1) bits about p per dynamical system?
+
+  3. QUANTITATIVE TARGET: If the cycle length distribution reveals
+     Ω(log log N) bits per system, and each system can be partially
+     analyzed in poly(log N) time, then O(n / log log n) systems
+     suffice, giving total time O(n · poly(n) / log log n) — still
+     not subexponential, but this would be a NEW paradigm different
+     from smooth-number methods.
+
+  4. DEEPER DIRECTION: Consider HIGHER-DIMENSIONAL dynamical systems
+     F: (Z/NZ)^k → (Z/NZ)^k. The orbit structure in dimension k
+     might reveal exponentially more information per orbit as k grows.
+     The cost per orbit step grows as poly(k), so the tradeoff
+     between information and cost is the key question.
+
+  5. CONNECTION TO ARITHMETIC DYNAMICS: The Mandelbrot set over
+     finite fields has been studied (Bridy, Jones, et al.), and
+     there are connections to Galois theory and algebraic number
+     theory. These connections are UNEXPLORED for factoring.
+
+WHY THIS DIRECTION IS PROMISING:
+  - Dynamical systems over Z/NZ have a lcm structure that is
+    genuinely more tractable than full CRT opacity.
+  - The functional graph Γ_f(N) is a NON-ALGEBRAIC structure
+    derived from Z/NZ, so it doesn't automatically inherit CRT.
+  - Computational experiments can be done immediately and
+    inexpensively.
+
+WHY IT MIGHT FAIL:
+  - Orbit lengths are typically O(√N) = O(2^{n/2}), which is
+    exponential. Extracting information from PARTIAL orbits
+    (without computing the full cycle) is the challenge.
+  - The lcm structure might not provide more than O(1) bits
+    without computing full orbits.
+
+────────────────────────────────────────────────────────────────────────
+4.2  [PRIORITY: HIGH]
+     DERIVED ALGEBRAIC INVARIANTS: K-THEORY, THH, AND TC
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★★★ (essentially unexplored for factoring)
+Falsifiability: ★★☆☆☆ (requires heavy mathematical machinery)
+Potential impact: ★★★★★ (could be paradigm-breaking if any invariant works)
+
+THESIS: Higher algebraic K-theory and topological Hochschild homology
+of Z/NZ might carry factoring information that is not CRT-decomposable.
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. COMPUTE K_n(Z/NZ) for small n (n = 0, 1, 2, 3):
+     - K₀(Z/NZ) ≅ Z² (known: two indecomposable projectives)
+     - K₁(Z/NZ) ≅ (Z/NZ)* (known: the units)
+     - K₂(Z/NZ) = ? (not known in closed form for general N)
+     - K₃(Z/NZ) = ? (deeply connected to algebraic topology)
+
+  2. QUESTION: Does K₂(Z/NZ) carry information beyond what is in
+     K₀ and K₁? Specifically, is the natural map
+       K₂(Z/NZ) → K₂(Z/pZ) × K₂(Z/qZ)
+     an isomorphism, or does it have a nontrivial kernel/cokernel?
+
+     If the kernel is nontrivial, it would be a "global" invariant
+     of Z/NZ that does NOT decompose via CRT — exactly what we need.
+
+  3. TOPOLOGICAL HOCHSCHILD HOMOLOGY (THH):
+     THH(Z/NZ) is a spectrum (in the sense of stable homotopy theory)
+     whose homotopy groups π_*(THH(Z/NZ)) might carry non-CRT
+     information. The Bökstedt spectral sequence relates THH to
+     Hochschild homology, which is more computable.
+
+  4. TOPOLOGICAL CYCLIC HOMOLOGY (TC):
+     TC(Z/NZ) → K(Z/NZ) is an approximation to K-theory that is
+     sometimes MORE computable. If TC(Z/NZ) carries non-CRT
+     information and is computable in sub-L[1/3] time, this would
+     be a breakthrough.
+
+WHY THIS DIRECTION IS PROMISING:
+  - K-theory is specifically designed to capture "global" algebraic
+    invariants that go beyond local/CRT decomposition.
+  - The exact sequences in K-theory (Mayer-Vietoris, localization)
+    relate K(Z/NZ) to K(Z) and K(Z/pZ) in non-trivial ways that
+    might be exploitable.
+  - THH and TC are computable (in principle) and have been
+    computed for simple rings.
+
+WHY IT MIGHT FAIL:
+  - K-theory of Z/NZ very likely DOES decompose via CRT at all
+    levels: K_n(R × S) ≅ K_n(R) × K_n(S) for product rings.
+    Since Z/NZ ≅ Z/pZ × Z/qZ (as rings via CRT), we get
+    K_n(Z/NZ) ≅ K_n(Z/pZ) × K_n(Z/qZ). This is an immediate
+    consequence of the Morita invariance and product formula in
+    K-theory.
+
+  COUNTER-ARGUMENT: The isomorphism Z/NZ ≅ Z/pZ × Z/qZ requires
+  KNOWING p and q to be EXPLICIT. K_n(Z/NZ) can be computed
+  (in principle) from Z/NZ alone, while K_n(Z/pZ) × K_n(Z/qZ)
+  cannot. So while the abstract groups are isomorphic, COMPUTING
+  the isomorphism IS the factoring problem. The question is
+  whether the COMPUTATION of K_n reveals the factorization as
+  a byproduct.
+
+  REALITY CHECK: This is likely to hit the same barrier as class
+  groups (Section 2.5) — the invariant CONTAINS the factorization
+  but COMPUTING it costs ≥ L[1/3]. However, this has not been
+  formally established for all K-theoretic invariants.
+
+────────────────────────────────────────────────────────────────────────
+4.3  [PRIORITY: HIGH]
+     NON-SMOOTHNESS SUBEXPONENTIAL PARADIGMS
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★★☆ (conceptually clear but technically unexplored)
+Falsifiability: ★★★★★ (new algorithm or impossibility proof)
+Potential impact: ★★★★★ (breaks the smoothness paradigm entirely)
+
+THESIS: Is there a subexponential factoring algorithm that does NOT
+rely on finding smooth numbers?
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. FORMALIZE the class of "smooth-number algorithms" as a
+     computational model. Define precisely what it means for an
+     algorithm to "rely on smooth numbers" (e.g., the algorithm
+     must at some point produce integers that are tested for
+     smoothness, and the algorithm's running time depends on
+     the smoothness probability via the Dickman function).
+
+  2. PROVE that L[1/3] is optimal within this formal class.
+     This would be a CONDITIONAL lower bound: "among smooth-number
+     algorithms, L[1/3] is optimal." This is likely provable with
+     current techniques and would be a significant result.
+
+  3. EXPLORE non-smooth paradigms:
+     (a) REPRESENTATION-THEORETIC: Can factoring be reduced to
+         finding a specific representation of a group related to N?
+     (b) GEOMETRIC: Can factoring be reduced to finding a specific
+         point on a variety defined by N?
+     (c) TOPOLOGICAL: Can factoring be reduced to computing a
+         topological invariant (genus, fundamental group, homology)
+         of a space derived from N?
+     (d) DYNAMICAL: Can factoring be reduced to computing properties
+         of a dynamical system derived from N? (overlap with 4.1)
+
+  4. Each non-smooth paradigm should be ANALYZED: what is the
+     computational cost of the relevant operation, and how much
+     factoring information does it yield?
+
+WHY THIS DIRECTION IS PROMISING:
+  - The smooth-number paradigm has been the ONLY subexponential
+    approach for 50+ years. Proving it optimal (within its class)
+    would be a landmark result. Finding a non-smooth alternative
+    would be even more significant.
+  - The formal class of smooth-number algorithms is likely
+    definable and analyzable with current mathematical tools.
+
+────────────────────────────────────────────────────────────────────────
+4.4  [PRIORITY: MEDIUM-HIGH]
+     GLOBAL-TO-LOCAL: THE SPECTRAL APPROACH TO Z/NZ
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★☆☆ (spectral methods are known, but specific applications aren't)
+Falsifiability: ★★★★☆ (concrete computations possible)
+Potential impact: ★★★☆☆ (might improve constant, unlikely to change exponent)
+
+THESIS: The SPECTRAL THEORY of operators on L²(Z/NZ) or related
+spaces might provide factoring information that is not captured by
+pointwise evaluation.
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. Consider the CONVOLUTION OPERATOR T_f : L²(Z/NZ) → L²(Z/NZ)
+     defined by T_f(g) = f * g for some fixed function f.
+     The eigenvalues of T_f are the DFT coefficients of f, and
+     these carry information about the additive structure of Z/NZ.
+
+  2. Now consider MULTIPLICATIVE convolution:
+     M_f(g)(x) = Σ_{yz=x} f(y)g(z)
+     This operator's spectrum reflects the MULTIPLICATIVE structure.
+
+  3. QUESTION: Can the JOINT spectrum of additive and multiplicative
+     convolution operators on L²(Z/NZ) reveal the factorization?
+
+     This is related to the sum-product phenomenon (Section 2.17)
+     but in a more structured (spectral) form.
+
+  4. UNCERTAINTY PRINCIPLE APPROACH: The additive and multiplicative
+     Fourier transforms on Z/NZ satisfy uncertainty principles.
+     These uncertainty principles are DIFFERENT for Z/NZ than for
+     Z/pZ (because Z/NZ has zero divisors). Can this difference
+     be exploited?
+
+────────────────────────────────────────────────────────────────────────
+4.5  [PRIORITY: MEDIUM]
+     PRISMATIC AND MOTIVIC APPROACHES
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★★★ (cutting-edge mathematics, untouched for factoring)
+Falsifiability: ★☆☆☆☆ (very difficult to compute anything)
+Potential impact: ★★★★★ (if it works, completely new paradigm)
+
+THESIS: Prismatic cohomology (Bhatt-Scholze) provides a UNIFIED
+framework for p-adic cohomology theories. Could there be a
+"prismatic" invariant of Z/NZ that does not require choosing a prime?
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. QUESTION: Can the prismatic site of Spec(Z/NZ) be defined
+     and computed without knowing p and q? The prismatic site is
+     built from prisms (δ-rings), and prisms over Z/NZ might have
+     a richer structure than the simple CRT decomposition.
+
+  2. ABSOLUTE PRISMATIC COHOMOLOGY: The absolute prismatic site
+     (Bhatt-Lurie) is defined intrinsically, without choosing a
+     base prime. Its cohomology groups for Spec(Z/NZ) might carry
+     factoring information.
+
+  3. MOTIVIC COHOMOLOGY OF Z/NZ: Are there motivic invariants
+     (e.g., motivic homotopy groups π_{p,q}^{mot}(Spec(Z/NZ)))
+     that encode the factorization in a computationally accessible
+     way?
+
+WHY THIS DIRECTION IS SPECULATIVE BUT IMPORTANT:
+  - Prismatic cohomology is specifically designed to handle the
+    "choose a prime" problem in a unified way — exactly the
+    problem that p-adic methods face in factoring.
+  - If ANY cohomological invariant of Z/NZ avoids CRT decomposition,
+    the prismatic framework is the most likely place to find it.
+  - This is a 50-year horizon direction: the mathematics is still
+    being developed.
+
+────────────────────────────────────────────────────────────────────────
+4.6  [PRIORITY: MEDIUM]
+     ENTROPY AND INFORMATION-THEORETIC FACTORING
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★★☆ (information theory rarely applied to factoring)
+Falsifiability: ★★★★★ (concrete bounds can be computed)
+Potential impact: ★★★☆☆ (likely lower bounds rather than algorithms)
+
+THESIS: Apply information-theoretic tools (entropy, mutual information,
+channel capacity) to PRECISELY quantify the per-operation information
+yield of factoring algorithms.
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. MODEL the factoring problem as a CHANNEL: the "channel" is
+     Z/NZ, the "input" is an operation we perform, and the "output"
+     is the result. The "message" is p. What is the CAPACITY of
+     this channel?
+
+  2. For specific operations (modular arithmetic, exponentiation,
+     smoothness testing), COMPUTE the mutual information:
+       I(output; p | N, operation)
+
+  3. DERIVE a general bound: for ANY operation computable in time T,
+     the mutual information about p is at most f(T) bits, where f
+     is some function.
+
+  4. PROVE (or disprove): f(T) = O(T / L[1/3]) for T ≤ L[1/3].
+     This would show that L[1/3] operations are necessary to
+     extract n/2 bits.
+
+────────────────────────────────────────────────────────────────────────
+4.7  [PRIORITY: MEDIUM-LOW]
+     QUANTUM-CLASSICAL HYBRID APPROACHES
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★☆☆☆ (active research area)
+Falsifiability: ★★★☆☆ (requires quantum hardware or strong simulation)
+Potential impact: ★★★★☆ (reduce quantum resources for factoring)
+
+THESIS: Could a small quantum computation (poly(log N) qubits) provide
+a "boost" that helps a classical algorithm beat L[1/3]?
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. Regev's algorithm (2023) uses O(√n) qubits and O(√n) quantum
+     modular exponentiations (each O(n^2) gates), with classical
+     post-processing via lattice reduction. This shows quantum-
+     classical hybrids can factor N.
+
+  2. QUESTION: What is the minimum quantum resource (qubits, gates,
+     depth) needed to provide a "quantum advantage" for factoring
+     beyond L[1/3]?
+
+  3. Can SHALLOW quantum circuits (constant or logarithmic depth)
+     provide any information about p that is inaccessible classically?
+
+  4. This connects to the question of whether BQP ≠ BPP restricted
+     to the factoring problem.
+
+────────────────────────────────────────────────────────────────────────
+4.8  [PRIORITY: LOW BUT FOUNDATIONAL]
+     FORMAL LOWER BOUNDS FOR FACTORING
+────────────────────────────────────────────────────────────────────────
+
+Novelty: ★★★☆☆ (long-standing open problem)
+Falsifiability: ★★★★★ (a proof is a proof)
+Potential impact: ★★★★★ (resolves the question definitively)
+
+THESIS: Prove conditional or unconditional lower bounds for factoring
+that go beyond the generic model.
+
+SPECIFIC RESEARCH PROGRAM:
+
+  1. Define a RICHER computational model that captures the key
+     features of NFS-type algorithms (smooth number finding,
+     lattice reduction, GF(2) linear algebra) and prove L[1/3]
+     optimality within this model.
+
+  2. Prove that factoring requires super-polynomial time in the
+     ALGEBRAIC COMPUTATION TREE model (not just the generic ring
+     model).
+
+  3. Connect factoring lower bounds to well-studied complexity
+     classes (e.g., prove that sub-L[1/3] factoring implies
+     collapse of some complexity class).
+
+
+══════════════════════════════════════════════════════════════════════════
+SECTION 5: SYNTHESIS AND CONCLUSIONS
+══════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────
+5.1  THE META-THEOREM
+────────────────────────────────────────────────────────────────────────
+
+After analyzing ~360 approaches across 20 structural families, we can
+state the following informal meta-theorem:
+
+META-THEOREM (informal):
+  Any classical factoring algorithm using:
+    (i)   algebraic structures "over" Z/NZ (modules, algebras, varieties)
+    (ii)  smooth number detection as the information extraction mechanism
+    (iii) GF(2) linear algebra as the combination mechanism
+  has running time ≥ L[1/3, c] for some constant c > 0.
+
+  This meta-theorem is NOT proven, but every known algorithm falls
+  within its scope, and the three conditions correspond precisely
+  to the three deepest barriers (CRT opacity, smoothness bottleneck,
+  GF(2) bottleneck).
+
+COROLLARY: To break L[1/3], an algorithm must violate at least one
+of conditions (i), (ii), or (iii).
+
+────────────────────────────────────────────────────────────────────────
+5.2  THE FIVE-REQUIREMENT SPECIFICATION (SUMMARY)
+────────────────────────────────────────────────────────────────────────
+
+A barrier-breaking mathematical structure S(N) must satisfy:
+
+  R1. COMPUTABILITY: Constructible from N in poly(n) space, L[α] time
+      for α < 1/3.
+
+  R2. INFORMATION DENSITY: Each evaluation yields > O(1) bits about p.
+
+  R3. COMPOSABILITY: Evaluations compose algebraically with
+      super-additive information gain.
+
+  R4. CRT-OPACITY AVOIDANCE: Construction and composition do not
+      require knowing p.
+
+  R5. SUB-L[1/3] CONSTRUCTIBILITY: All operations cost < L[1/3].
+
+  Additionally, S(N) should be:
+
+  P1. NOT a structure "over" Z/NZ (to avoid automatic CRT decomposition).
+
+  P2. NOT dependent on smooth numbers (to avoid the Dickman function
+      bottleneck).
+
+  P3. NOT combining information via GF(2) (to avoid the linear
+      algebra bottleneck).
+
+────────────────────────────────────────────────────────────────────────
+5.3  THE HONEST ASSESSMENT
+────────────────────────────────────────────────────────────────────────
+
+After this comprehensive analysis, the honest assessment is:
+
+1. THE L[1/3] BARRIER IS VERY LIKELY REAL for all "natural" factoring
+   algorithms. The convergence of all 360 approaches to the same
+   exponent, from vastly different mathematical starting points, is
+   strong evidence that L[1/3] captures a deep truth about the
+   computational complexity of factoring over Z.
+
+2. THE BARRIER IS NOT PROVEN. There is a genuine logical gap between
+   "every known algorithm achieves L[1/3]" and "every possible
+   algorithm achieves L[1/3]." This gap might be closeable
+   (proving L[1/3] optimality) or exploitable (finding a better
+   algorithm).
+
+3. THE MOST PROMISING DIRECTIONS are those that attack conditions
+   (i)-(iii) of the meta-theorem:
+   - Dynamical systems (attack condition (i): not "over" Z/NZ)
+   - Non-smoothness paradigms (attack condition (ii))
+   - Derived algebraic invariants (attack condition (i) and (iii))
+
+4. THE HARDEST BARRIER IS CRT OPACITY (R4). This barrier is not
+   merely a consequence of current techniques — it reflects the
+   fundamental algebraic structure of Z/NZ as a product ring.
+   Breaking this barrier likely requires mathematical objects
+   that do not yet exist in our current algebraic toolkit.
+
+5. THE FUNCTION FIELD ANALOGY provides both hope and despair:
+   - HOPE: Factoring is polynomial-time over F_q[T], showing that
+     L[1/3] is not information-theoretically necessary.
+   - DESPAIR: The reason factoring is easy over F_q[T] (Frobenius)
+     has no Z-analogue, and the "rigidity" of Z versus F_q[T] is
+     a fundamental number-theoretic phenomenon that may be
+     impassable by any algorithmic technique.
+
+6. A PROOF OF L[1/3] OPTIMALITY would be a major achievement in
+   complexity theory, likely requiring new proof techniques beyond
+   current oracle/generic methods. This might be approachable via
+   conditional results (optimality within specific algorithm classes)
+   rather than unconditional results.
+
+────────────────────────────────────────────────────────────────────────
+5.4  FINAL CHARACTERIZATION
+────────────────────────────────────────────────────────────────────────
+
+The barrier-breaking object, if it exists, would be a mathematical
+structure that:
+
+  "Extracts global, non-CRT-decomposable information about Z/NZ
+   at super-constant rate per evaluation, using a non-smooth,
+   non-GF(2) composition mechanism, all constructible in time
+   o(L[1/3])."
+
+In the language of the five barriers:
+
+  It breaks B1 (L[1/3] wall) by finding information FASTER.
+  It bridges B2 (archimedean/non-archimedean gap) by using neither.
+  It avoids B3 (GF(2) bottleneck) by composing non-linearly.
+  It penetrates B4 (CRT opacity) by being non-functorial from Z/NZ.
+  It overcomes B5 (Z-rigidity) by accessing structure Z doesn't
+    obviously have.
+
+No known mathematical object satisfies all five. Whether one EXISTS
+is, in our assessment, the deepest open question in algorithmic
+number theory — and one whose resolution, in either direction, would
+transform our understanding of the boundary between algebra,
+analysis, and computation.
+
+══════════════════════════════════════════════════════════════════════════
+END OF ANALYSIS
+══════════════════════════════════════════════════════════════════════════

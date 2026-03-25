@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~362 approaches investigated. None improved the L-exponent.
+~367 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -333,6 +333,10 @@ Why not higher:
 - **Additive-multiplicative relations (a·b+c≡0 mod N)**: Finding smooth triples reduces to finding smooth c = -(a·b) mod N where c is size ~N (worse than QS's ~√N). Exponent vectors still live in GF(2)^k. Non-zero-mod-N partial relations hit factors with probability 1/√N (exponential). Ring structure Z/NZ fully mined by existing methods.
 - **Algebraic geometry of xy=N**: Genus 0, no abelian structure, no nontrivial H¹. Local invariants at small primes give N mod l (= trial division). Global invariants (point counts, Picard group, étale cohomology) all require CRT decomposition = factoring. ECM works for number-theoretic reasons (smooth group orders), not algebraic geometry per se.
 - **Constraint propagation / belief propagation**: BP on modular-constraint factor graph converges for small N but below condensation threshold (Sigma < 0). No useful information extracted. Phase transition vs constraint bound B shows factoring becomes "solvable" only when B exceeds information-theoretic threshold (Coppersmith). CSP approach exponential.
+- **Analytic continuation of divisor Dirichlet series**: F(s) = (1+p^{-s})(1+q^{-s}) encodes factors as zeros at 2πi/ln(p) spacing. BUT: evaluating F(s) requires enumerating divisors (= factoring). All analytic approaches (Abel summation, character sums, Ramanujan sums) achieve O(√N) at best, equivalent to trial division. No computational advantage.
+- **Sieve in alternative number systems**: Gaussian Z[i], Eisenstein Z[ω], Hurwitz quaternions H all analyzed. Quaternion reduced norm is degree-2 (L[1/2]), strictly worse than NFS's optimized degree. Higher-dim sieving adds volume overhead without improving smoothness. All representations produce norms ≥ NFS norms for factoring-encoding elements. NFS polynomial selection IS the optimal sieve across all known number systems.
+- **Error-correcting code / syndrome decoding analogy**: Factor graph has girth 4 with Θ(n) variable degrees — violates all LDPC decodability conditions. Code rate ≈ 1, only O(log n) bits of primality redundancy — exponential gap from the O(n) needed for efficient decoding. Fundamentally broken information-theoretic structure.
+- **Symbolic dynamics of multiplication-by-N map**: Transfer operator spectrum, Ruelle zeta function, and symbolic dynamics of T_N: x → Nx mod 1 all decompose via CRT. Detectable invariants (entropy, periodic points) give information already available from N itself. Non-trivial invariants require O(N) computation.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
