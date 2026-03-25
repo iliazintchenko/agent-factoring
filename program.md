@@ -27,14 +27,15 @@ For each investigator, create a working directory, copy in whatever files they n
 ```bash
 mkdir -p /tmp/inv-N
 cp semiprimes.json /tmp/inv-N/   # plus any other files they need
-cd /tmp/inv-N && nohup bash -c 'claude -p "<task description>" \
+TIMEOUT_CMD=$(command -v timeout || command -v gtimeout)
+cd /tmp/inv-N && nohup $TIMEOUT_CMD --kill-after=30 900 \
+  claude -p '<task description>' \
   --dangerously-skip-permissions --verbose --output-format text \
-  > log.txt 2>&1; \
-  pkill -P $$ 2>/dev/null' &
+  > log.txt 2>&1 &
 echo $! > pid.txt
 ```
 
-Note: the `bash -c` wrapper ensures that when the investigator's Claude process exits, `pkill -P $$` kills any child processes it spawned (compiled programs, Python scripts, etc.). This prevents orphan processes from accumulating.
+Note: the 15-minute timeout (900s) prevents investigators from running forever. `--kill-after=30` sends SIGKILL if SIGTERM doesn't work. The timeout command kills the entire process group, including any child processes (compiled programs, Python scripts). Use `timeout` on Linux, `gtimeout` on macOS (from `brew install coreutils`).
 
 The task description should be specific enough that the investigator knows exactly what to do, but open enough that they can discover unexpected things. Include:
 - What question to investigate
