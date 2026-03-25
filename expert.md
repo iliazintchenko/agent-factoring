@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~523 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~526 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~523 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~526 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~523 approaches investigated. None improved the L-exponent.
+~526 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -456,6 +456,9 @@ Why 2-3% (lowered from initial estimate):
 - **Fargues-Scholze geometrization**: The geometric Langlands at local level does NOT provide algorithmic shortcuts. The Fargues-Fontaine curve at a "bad prime" l|N reveals l, but identifying bad primes IS factoring. All geometric objects (Bun_G, Hecke stacks, eigensheaves) decompose via CRT or require factoring to access. Prismatic cohomology (the most "prime-independent" framework) still reduces to Z/pZ × Z/qZ computations. The construction is a structural theorem about the SHAPE of Langlands, not a computational tool.
 - **PFR / additive combinatorics for smooth numbers**: Smooth numbers have 10-27% smaller additive doubling than random, and their exponent vectors have 2-33% smaller sumsets in F_2^k. But PFR's polynomial bounds (K^{12}) are too large to yield algorithmic improvements. Kelley-Meka 3-AP bounds: smooth numbers have 2-5× AP enrichment over random, but this IS the sieve structure (already exploited). Multiplication-addition barrier: DL ↔ factoring equivalence prevents additive combinatorics from contributing beyond what multiplicative structure already provides.
 - **Galois cohomology of Z/NZ**: Ext^1(Z/NZ, Z/NZ) = Z/NZ (decomposes via CRT). Brauer group Br(Z/NZ) = 0 (finite commutative ring). H^i(G, (Z/NZ)*) for Galois G decomposes via CRT for all i. Fundamental trichotomy: every cohomological invariant is either (1) trivially computable but CRT-decomposed, (2) encodes factoring but is as hard to compute as factoring, or (3) is defined in terms of the factoring (circular). No "sweet spot" where an invariant encodes enough info to factor but is computable without factoring.
+- **Algebraic statistics of sieve matrices**: BP on sieve matrix factor graph fails (short cycles, symmetry, high rate). ML estimation of null space fails (null space is not a function of marginals). Toric warm starts: column statistics do not predict null space membership. O(n) bits of statistical summary cannot determine O(d·n) bits of null space. Current methods (Block Lanczos, Wiedemann, SGE) already exploit the computationally relevant aspect (sparsity).
+- **Height theory / Arakelov for NFS elements**: Height spectrum of Z[alpha] determined by |N|, not factorization. Arakelov bound gives minimum norm for non-trivial elements — LLL/BKZ already approaches this. NFS sieving explores elements near the Arakelov bound systematically. Height perspective CONFIRMS NFS optimality rather than suggesting improvements. Smoothness is non-archimedean, invisible to heights.
+- **Selberg/Arthur trace formula**: Both spectral and geometric sides encode factoring info. Geometric side: class numbers h(D) with D involving p,q. Spectral side: new/old form dimensions involve φ(N), σ_0(N). Selberg zeta function partial evaluation requires O(√N) geodesic terms. The trace formula is a mathematical identity relating two descriptions of the same object — both require the factors to evaluate. Provides structural understanding of prime/semiprime difference but zero computational shortcut.
 
 ### Witt-Frobenius near-miss
 
