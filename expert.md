@@ -167,6 +167,7 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 **Violating Z-rigidity (barrier #5):**
 - Z has no non-trivial ring endomorphism. But what about near-endomorphisms, or endomorphisms of structures that are not rings but faithfully encode factoring? The Deuring correspondence was explored but only through three specific channels — endomorphism ring computation is circular, BUT the correspondence also connects to modular polynomials, class polynomials, and j-invariant arithmetic, which were not deeply explored computationally.
 - Quaternion algebras over Q ramified at p have computable structure (Brandt matrices were tested and found N-independent for small primes). But Pizer's Ramanujan graphs and the connection to Hecke operators on quaternion algebras (not modular forms) remain only lightly explored.
+- **Hilbert class polynomials**: H_D(x) mod N can be computed without knowing the factorization. For N=pq, H_D splits differently mod p vs mod q when (D/p) ≠ (D/q), so gcd(H_D(x), x^N - x) mod N could reveal a factor. For the 13 discriminants with class number 1, the cost is O(log N) — polynomial. What specifically goes wrong? This specific computational angle was not tested.
 
 **Violating CRT opacity (barrier #4):**
 - CRT composition is opaque to all tested approaches. But the tensor decomposition investigation found the rank-2 structure IS detectable — it's just destroyed by mod-N wrapping for samples > √N. What if there's a way to work with structured samples that avoid wrapping? This would require a non-random sampling strategy correlated with the CRT decomposition — which sounds circular, but iterative/adaptive approaches might gradually accumulate partial CRT information.
@@ -174,6 +175,7 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 
 **Approximate / relaxed approaches:**
 - Every approach tested sought exact algebraic properties (exact smoothness, exact homomorphisms). What about probabilistic or approximate variants with controlled error? For example: approximate smooth relations (values that are "almost smooth" — smooth except for a bounded number of medium primes) combined in a way that the medium primes cancel statistically rather than exactly.
+- **Almost-smooth algebraic cancellation**: If relation R1 has cofactor r and R2 has cofactor r² mod N, then R1² · R2⁻¹ eliminates r. More generally, if cofactors r1,r2,r3 satisfy r1^e1 · r2^e2 · r3^e3 = 1 mod N, relations combine. Finding such exponents is a DL problem — but what if cofactors from the QS sieve have statistical structure (e.g., f(x) and f(x+kr) have related cofactors)? Also: LLL on the log-lattice of cofactors could find short integer vectors that "smooth out" cofactors. Neither angle was tested.
 - The batch GCD investigation showed sequential sieving wins for standard candidates. But batch GCD on algebraically structured candidate sets (not random, not sequential) was not tested.
 
 **Cross-disciplinary connections not yet explored:**
