@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~482 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~487 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~482 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~487 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~482 approaches investigated. None improved the L-exponent.
+~487 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -416,6 +416,12 @@ Why 2-3% (lowered from initial estimate):
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
+
+- **δ-rings and prismatic cohomology**: Z is the INITIAL δ-ring (φ = id, trivial Frobenius). On Z/NZ, φ_p(x) = x^p is nontrivial but every invariant reduces to Pollard p-1 (fixed points), Pollard rho (orbits), or CRT factoring (idempotents). Prismatic site of Z/NZ decomposes via CRT into per-factor components. δ-map δ_p(x) = (x-x^p)/p causes EXPONENTIAL size increase (|δ_p(x)| ≈ |x|^p/p), destroying smoothness — opposite of FFS where Frobenius + reduction decreases degree. The archimedean absolute value on Q vs non-archimedean degree on F_q[t] is the deep reason. Prismatic framework formalizes Frobenius lifts but does not create new endomorphisms.
+- **Skolem-Mahler-Lech linear recurrences mod N**: Zero set of order-k recurrence mod N decomposes via CRT: S_N = S_p ∩ S_q. GCD hit rate (finding n where gcd(a_n, N) > 1) scales as O(1/p) — expected first hit at position O(p), completely infeasible for large N. Pollard rho achieves O(√p) via birthday paradox; recurrences have NO birthday analog. Period T_N = lcm(T_p, T_q); extracting T_p requires factoring T_N — equivalent to Pollard p-1 when T_p divides |GL(2,Z/pZ)| = p(p-1)²(p+1). No strategy for initial conditions outperformed random. Partial period information from poly(log N) terms is indistinguishable SP vs prime.
+- **Brumer-Stark units / explicit class field theory**: Genus theory for Q(√(-N)): 2-rank of Cl(-4N) = ω(N)-1 gives exactly 1 genus character for N=pq, but cannot distinguish which factor each Legendre symbol belongs to. Hilbert class polynomial H_{-4N}(x) factorization mod l reveals (D/l) = (-4/l)(p/l)(q/l) but individual symbols inaccessible. Dasgupta-Kakde explicit Brumer-Stark construction is dominated by class group computation: O(N^{1/5+ε}) under GRH = L[1, 1/5], strictly worse than L[1/3]. Partial Brumer-Stark info (θ mod small primes) requires O(N)-term character sums whose CRT decomposition needs knowing p,q. Heegner point approach similarly circular. The CRT structure that would make class field computations efficient IS the factoring problem.
+- **Perfectoid tilting for factoring**: Tilting is a LOCAL operation (one prime at a time); factoring is a GLOBAL problem. Z_p ⊗ Z/NZ ≅ Z/pZ (localization at p already factors N). p^n-th roots mod N exist iff gcd(p^n, φ(N))|ord(x) — detecting this IS group-order testing (Pollard p-1). The tilt = lim_{←,x↦x^p} A/pA requires computing the FULL inverse limit of Frobenius, which classically costs O(N). Insight: Shor's quantum algorithm is precisely "efficient computation of the perfectoid tilt" — quantum parallelism evaluates O(N) Frobenius iterates in O(log N) time. This is the cleanest known explanation of the quantum advantage for factoring. All approaches (Witt vectors, Fargues-Fontaine, derived prismatic, THH/TC) decompose via CRT.
+- **Recursive lattice descent for NFS large primes**: Log-lattice approach (sum(e_i·ln(p_i)) ≈ ln(L)) finds good CONTINUOUS approximations but cannot produce EXACT multiplicative relations. B-smooth numbers are exponentially sparse; a random large prime L has no non-trivial smooth factorization by definition. Even 170-dimensional LLL (B=1000) produces 0 exact matches across all tested configurations. The continuous/discrete gap is fundamental: log-ratio error ε gives multiplicative ratio e^ε, which for large L is enormous. Recursive Coppersmith (iterate lattice with partial info feedback) fails because 0 bits are recovered at each step (confirmed: n/4 threshold is sharp).
 
 ### Witt-Frobenius near-miss
 
