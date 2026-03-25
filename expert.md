@@ -114,7 +114,7 @@ Why not higher:
 
 ## Explored directions
 
-~330 approaches investigated. None improved the L-exponent.
+~337 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -141,6 +141,9 @@ Why not higher:
 - **Lattice on O_K**: Norms ~N^{1/2} (exponential), only (ln N)^{1/3} vectors. Rank-2 wins.
 - **Schnorr lattice tower / BKZ**: Minkowski bound gives α→0 as k→∞, but SVP in dimension k takes 2^Ω(k). BKZ → L[1, c] (worse than NFS). LLL cannot achieve α<1/2.
 - **Higher-order residues GF(k)**: Factor base shrinks by 1/(k-1), info/relation peaks at k=2. GF(2) optimal.
+- **k-th power congruences (GF(k) LA)**: For x^k≡y^k mod N with k>2, cyclotomic factorization gives more GCD chances. But GF(k) LA still needs π(B)+1 smooth relations regardless of k. Direct k-th power probability drops exponentially with π(B). GF(k) kernel has same dimension as GF(2); extra bits/relation don't reduce relation count. No improvement over k=2.
+- **Non-maximal order norms Z[cα]**: Conductor c inflates norms by c^{d(d-1)/2}. For rank-1 sieving, equivalent to restricting b to multiples of c — strictly fewer candidates. Z[cα] ⊂ O_K means fewer elements, not more. Strictly worse than standard NFS.
+- **Quaternion algebra reduced norms for sieving**: a²+b²+lc²+ld² is degree-2 in 4 variables with norm ~M². Smoothness within ~6% of random integers at matched size. 4-variable freedom gives C^{1/2} scaling but encoding factoring info (norm ≡ 0 mod N) forces norms ≥ N, losing advantage. Reduces to QS-class L[1/2].
 - **Smooth bit-patterns**: Boolean classifier finds shallow artifacts (2nd MSB bias) that diminish at crypto sizes.
 - **LLL on cofactor log-lattice**: Smoothness is discrete; continuous log-lattice optimization targets wrong objective. 0 smooth combinations found. LP matching (exact collision) remains optimal.
 - **Cofactor correlation in QS**: Cofactors at nearby positions completely independent. GCD rate = 0. Log-size correlation r < 0.02. Confirms standard independence assumption.
@@ -305,13 +308,16 @@ Why not higher:
 - **Quantum annealing / QUBO**: Gap closes exponentially. D-Wave best: 23-bit. Scaling 2^{-0.6l}.
 - **SAT/SMT**: Works but exponential. Z3 > raw SAT. Wall at 40-50 bits.
 - **Amortized factoring of K semiprimes**: 0/41 relations transferable. Each N independent.
+- **Approximate Frobenius x→x^l mod N**: Orbit structure of x→x^l decomposes via CRT; cross-prime correlations between orbit lengths for different l reduce to Pollard-type methods. Witt-Frobenius (a₀^l, a₁^l,...) reduces to independent power maps per component. Fixed-point density ~1/N, undetectable by sampling. Composed Frobenius x^{2^k} vs x^{3^k} IS Pollard variant. Frobenius error (a+b)^l - a^l - b^l only useful when l IS a factor (circular).
+- **Adaptive structured sampling for CRT probing**: Tested 11 sampling strategies (random, geometric, polynomial, AP, adaptive/SVD, quadratic residues, Fermat neighborhood, smooth numbers) across 20-30 digit semiprimes. NO strategy accumulates CRT information faster than random. MI per sample ~0.04 bits regardless of strategy. Mod-N wrapping barrier robust: any sampling over Z/NZ generates CRT components that are deterministic functions of Z/NZ values. Structured sampling helps only via ALGEBRAIC DEPENDENCIES (smoothness, group structure) — which IS what factoring algorithms already exploit.
+- **p-adic descent for factoring**: l-adic valuations v_l(N-k) provide exactly ZERO bits about p individually (any unit works in product). Newton polygon of x²-Sx+N over Q_l has slopes (0,0) for all l — both roots are l-adic units. CRT across primes gives nothing. Product formula: ALL info about p lives at archimedean place and place l=p, neither accessible without knowing p. No "partial Frobenius" exists because no algebraic operation on Z reduces size while preserving multiplicative structure.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
 
 ### Witt-Frobenius near-miss
 
-p-th power is an approximate ring endomorphism with error O(p). Witt formalism makes this precise. But for composite N, no single polynomial works — CRT decomposition required. **Closest known analog to Z-Frobenius**, but precision loss is fundamental.
+p-th power is an approximate ring endomorphism with error O(p). Witt formalism makes this precise. But for composite N, no single polynomial works — CRT decomposition required. **Closest known analog to Z-Frobenius**, but precision loss is fundamental. Computational experiments confirmed: Witt-Frobenius on truncated Witt vectors reduces to independent power maps per component, providing no new structure. The p-adic analysis showed that ALL information about primes lives at the archimedean place, making descent impossible.
 
 ## Open directions
 
@@ -324,4 +330,4 @@ Can a single smooth relation yield >1 independent constraint? The algebraic obje
 Z has no non-trivial ring endomorphism. What about endomorphisms of structures that faithfully encode factoring but are not rings? The Deuring correspondence connects to modular polynomials, class polynomials, and j-invariant arithmetic — explored through specific channels but not exhaustively. The Witt-Frobenius near-miss suggests there may be other approximate endomorphisms worth investigating.
 
 **Iterative CRT information accumulation (barrier #4 — CRT opacity):**
-Tensor decomposition found rank-2 CRT structure IS detectable — destroyed only by mod-N wrapping for samples > √N. Could structured (non-random) sampling avoid wrapping? Would need a sampling strategy correlated with CRT decomposition — sounds circular, but iterative/adaptive approaches might gradually accumulate partial information.
+CLOSED. Systematic testing of 11 structured sampling strategies (geometric, polynomial, adaptive/SVD, quadratic residues, smooth numbers, etc.) showed NO strategy accumulates CRT information faster than random sampling. MI per sample ~0.04 bits regardless of strategy. The mod-N wrapping barrier is robust: structured sampling helps only through algebraic dependencies (smoothness, group structure), which IS what existing factoring algorithms already exploit. No new approach possible through generic CRT probing.
