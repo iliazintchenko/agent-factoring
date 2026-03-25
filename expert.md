@@ -37,7 +37,7 @@ Quaternion algebras: norm is a² + b² + c² + d², degree 4 overall but still *
 
 **Key constraint**: NFS achieves L[1/3] not by having a better norm, but by splitting the problem across two different norm maps (rational and algebraic) and requiring simultaneous smoothness. Adding more number fields (multi-image NFS) only improves L[1/3] constants, not the exponent. To beat L[1/3], you'd need either a fundamentally different splitting mechanism or an approach that avoids smoothness-based norms entirely.
 
-## Why L[1/3] is the fundamental classical barrier
+## Why L[1/3] is the current classical barrier (but likely not the final one)
 
 Every known approach falls into one of three categories:
 
@@ -86,7 +86,9 @@ The quasi-polynomial DLP breakthrough in small characteristic does NOT transfer 
 - OR a new algebraic framework beyond GF(2) exponent-parity that extracts >1 bit per relation
 - OR a "descent" mechanism for Z: an endomorphism-like map that reduces "complexity" of elements recursively. Z has no non-trivial ring endomorphism (it's the initial object in Ring), which is WHY Frobenius descent fails over Z.
 
-**Concrete target**: L[1/4] requires norm sizes N^{1/d²} instead of N^{1/d}. Verified by optimization: plugging N^{1/d²} into the NFS balance shifts cubic→quartic. Nested number field norms don't achieve this (composition = full norm, an invariant). This is the PRECISE mathematical barrier.
+**Concrete target**: L[1/4] requires norm sizes N^{1/d²} instead of N^{1/d}. Verified by optimization: plugging N^{1/d²} into the NFS balance shifts cubic→quartic. Nested number field norms don't achieve this (composition = full norm, an invariant). This is the precise mathematical barrier *within the current framework*.
+
+**Important**: No one has proved L[1/3] is a hard lower bound. The barrier is empirical and heuristic — every known approach hits it, but that doesn't mean every *possible* approach does. The historical progression L[1] → L[1/2] → L[1/3] took decades at each step, and each breakthrough came from an unexpected direction (polynomial structure for QS, number field norms for NFS). The next breakthrough will likely come from a similarly unexpected connection.
 
 ## Explored directions (no improvement found yet)
 
@@ -105,6 +107,9 @@ The quasi-polynomial DLP breakthrough in small characteristic does NOT transfer 
 - **Batch GCD collision rate**: Drops from 11.3% (40d) to 0.93% (60d). Constant-factor improvement only.
 - **Multiplicative lattice relations (MLR)**: LLL finds small P(e) mod N, but CRT entanglement means small mod N ≠ small mod p. Confirms Schnorr is theoretically limited.
 - **Correlated norms across number fields**: Measured ~15% positive correlation at 40 digits, but entirely SIZE BIAS (both norms are functions of the same (a,b) coordinates), NOT algebraic correlation. Effect weakens at larger N. Already fully exploited by lattice sieving. Cannot be amplified beyond current NFS techniques.
+- **Additive structure of power residues via CRT**: Full enumeration with tiny primes shows power residue sets decompose via CRT but reconstructing the decomposition from the combined set requires evaluating Jacobi sums mod N, which is as hard as factoring.
+- **Eigenvalue structure of matrices over Z/NZ**: Eigenvalues DO leak factoring information (they decompose via CRT). But computing eigenvalues over Z/NZ requires polynomial root-finding mod N, which reduces to known methods (Berlekamp → p-1 condition). No new attack beyond p-1/ECM.
+- **QS cofactor product smoothness (random self-reducibility)**: For standard 1-LP QS, cofactor products cannot provide additional relations — cofactors are prime by necessity, and their products are not smooth.
 
 **Group-order approaches explored:**
 - **ECM for balanced semiprimes**: L[1/2] in N. Not competitive above ~55 digits.
