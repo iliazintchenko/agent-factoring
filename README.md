@@ -14,7 +14,6 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
                               │                 │
                               │ expert.md       │
                               │ library/        │
-                              │ experiments.log │
                               └───────┬─────────┘
                         git pull/push │
                  ┌────────────┬───────┴─────────┬─────────────┐

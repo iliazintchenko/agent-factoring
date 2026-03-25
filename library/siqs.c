@@ -1,7 +1,8 @@
 /*
- * Self-Initializing Quadratic Sieve (SIQS) for factoring semiprimes.
- * Uses GMP for big integer arithmetic.
- * Targets 30-40 digit semiprimes.
+ * Basic Quadratic Sieve (QS) for factoring semiprimes.
+ * NOT a true SIQS — uses single polynomial with shifted starting points.
+ * L[1/2] baseline implementation. Uses GMP.
+ * Factors 30-46 digit semiprimes.
  */
 
 #include <stdio.h>

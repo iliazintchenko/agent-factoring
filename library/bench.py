@@ -3,7 +3,7 @@
 Benchmark a factoring binary against semiprimes.
 Usage: python3 bench.py <binary> <approach_name> [sizes...]
 If no sizes specified, runs all sizes from 30-100.
-Records to experiments.log.
+Prints results to stdout.
 """
 import json, subprocess, sys, os, time
 from datetime import datetime
@@ -11,7 +11,6 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 SEMIPRIMES = REPO / "semiprimes.json"
-LOG = REPO / "experiments.log"
 
 def run_one(binary, n, timeout=295):
     """Run binary on a single number. Returns (factor, elapsed) or (None, elapsed)."""
@@ -72,12 +71,8 @@ def main():
             factor, elapsed, stderr = run_one(binary, n)
             ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if factor:
-                with open(LOG, "a") as f:
-                    f.write(f"[{ts}] size: {size} | approach: {approach} | time: {elapsed:.3f}s | notes: found factor {factor}\n")
                 worst = max(worst, elapsed)
             else:
-                with open(LOG, "a") as f:
-                    f.write(f"[{ts}] size: {size} | approach: {approach} | time: FAIL | notes: no factor for {n[:20]}...\n")
                 all_ok = False
                 break  # no point continuing this size
 

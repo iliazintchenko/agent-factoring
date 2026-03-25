@@ -37,7 +37,7 @@ echo $! > pid.txt
 
 The `perl -e 'setpgrp(0,0); exec @ARGV'` wrapper puts everything in a single process group. When the investigator finishes or times out, ALL descendant processes (Python scripts, compiled programs, multiprocessing workers) are killed automatically. To kill an investigator early: `kill -- -$(cat /tmp/inv-N/pid.txt)`.
 
-Choose the timeout (SECONDS) based on the task: 600 for pure theory, 1800-3600 for heavy computation. Use your judgment — if an investigator is doing something promising, give it more time. If you kill an investigator early, check if it has partial findings worth saving.
+Choose the timeout (SECONDS) based on the task: 300-3600. Max 1 hour. If you kill an investigator early, check if it has partial findings worth saving.
 
 The task description should be specific enough that the investigator knows exactly what to do, but open enough that they can discover unexpected things. Include:
 - What question to investigate
@@ -77,18 +77,13 @@ When an investigator finishes (process exits) or you kill it:
 3. Extract any useful insights — theoretical conclusions, dead ends proved, experimental observations
 4. Update expert.md with the findings (insights only, not implementation details)
 5. If they produced useful code, copy it to library/ in the main repo
-6. Log what was investigated and what was found in experiments.log
-7. Delete the working directory completely: `rm -rf /tmp/inv-N` — do not reuse directories, always start fresh
+6. Delete the working directory completely: `rm -rf /tmp/inv-N` — do not reuse directories, always start fresh
 8. Launch a new investigator in that slot
 
 MAINTAINING THE REPO:
 
-- **expert.md** should contain only theoretical insights, explored directions with conclusions, and open directions. No implementation details, no timing tables, no parameter values, no build commands. If you find yourself writing about a .c file or a benchmark result, stop — that doesn't belong here. Keep it internally consistent: don't list a direction as "open" if you've already concluded it doesn't work. Remove duplicates. Periodically review the whole file and clean it up — merge similar entries, remove redundancy, ensure the "open directions" section only contains genuinely unexplored ideas.
+- **expert.md** should contain only theoretical insights, explored directions with conclusions, and open directions. No implementation details, no timing tables, no parameter values, no build commands. If you find yourself writing about a .c file or a benchmark result, stop — that doesn't belong here. Keep it internally consistent: don't list a direction as "open" if you've already concluded it doesn't work. Remove duplicates. Periodically review the whole file and clean it up — merge similar entries, remove redundancy, ensure the "open directions" section only contains genuinely unexplored ideas. **Update the "Probability estimate" section** whenever significant new evidence arrives — adjust the percentage and rationale.
 - **library/** should contain only code that implements genuinely novel approaches. Remove any L[1/2] or L[1/3] implementations that accumulate.
-- **experiments.log** tracks what you investigated and what you found. Format:
-  ```
-  [YYYY-MM-DD HH:MM:SS] task: <what was assigned> | result: <what was found> | conclusion: <dead end / promising / inconclusive>
-  ```
 - **Always git pull before committing and git push after committing.** Every single time. Your work is lost if you don't push — if the instance dies, uncommitted and unpushed work disappears. Run `git pull --rebase && git add -A && git commit -m '...' && git push` as a single sequence.
 
 RULES:

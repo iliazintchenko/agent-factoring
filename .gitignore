@@ -17,3 +17,4 @@ library/*
 !library/*.py
 !library/*.sh
 !library/*.md
+!library/*.txt
