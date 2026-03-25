@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~392 approaches investigated. None improved the L-exponent.
+~397 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -358,6 +358,10 @@ Why not higher:
 - **Selberg sieve for smoothness**: The Selberg sieve is optimized for EXCLUDING primes (upper bound sieve). Running it "in reverse" for smoothness detection doesn't improve on Dickman — the optimal sieve weights converge to the same density estimate.
 - **Circle method for factoring**: The resonance T(d,N) = π(N)² iff d|N is beautiful but trivially a divisibility check. Singular series S(N) encodes factors but computing it requires the factors. The additive-to-multiplicative bridge runs in the wrong direction for factoring.
 - **Floor-division sequence discrepancy**: {⌊kN/m⌋ mod N} is perfectly structured when m|N, generically quasi-random otherwise — no intermediate regime. Cross-correlation with complementary factor is maximal but requires testing m=p to observe. O(B²) search dominated by trivial m·d=N check.
+- **Power residue codes / QR codes mod N**: Minimum distance d_min = (p-1)(q-1)/4 or (p-1)(q+1)/4 — directly encodes factoring info. But computing d_min requires knowing p,q. Jacobi autocorrelation structure verified but recovery IS factoring.
+- **Adelic methods**: Adele ring A_Q "knows" every factorization but knowledge stored in index set (the primes), not in algebraic/topological structure. Product formula ensures gains at one place offset by losses at others. Hardness persists in full adelic setting — robust across all mathematical frameworks.
+- **Digit distribution of √N**: Digits of √N are pseudorandom (consistent with normality conjecture). Symbolic √N = √p·√q does not translate to digit-level structure due to non-local carry propagation. Factoring info "dissolved" into carries.
+- **MPC / oblivious transfer complexity**: MPC communication tracks circuit complexity (polynomial for factoring), while time complexity is sub-exponential. Separation shows MPC cannot resolve factoring's complexity status. Oblivious transfer historically connected to factoring (Rabin) but provides no new bounds.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
