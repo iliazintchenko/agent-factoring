@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~377 approaches investigated. None improved the L-exponent.
+~382 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -345,6 +345,9 @@ Why not higher:
 - **Gao et al. second vector technique**: Elegant constant-factor improvement to deterministic factoring (N^{1/5} → improved). Does NOT and CANNOT reduce the n/4 partial information requirement for Coppersmith — different complexity class. No path to sub-L[1/3].
 - **Rigorous L[1/3] gap**: Lee-Venkatesan proved L[1/3] for the sieving phase. Remaining gaps: (1) algebraic square root extraction in L[1/3] time, (2) independence of smoothness events, (3) class group/unit group computation. A provably L[1/3] algorithm is tantalizingly close — the resulting algorithm would be NFS-like with different analysis.
 - **Deformation theory of Z/NZ**: HH^2(Z/NZ) deformation space SPLITS via CRT — the dimensions of factors reveal p and q. But computing HH^2 over Z/NZ requires the CRT decomposition = factoring. All deformation invariants (Hochschild cohomology, cotangent complex, automorphism groups) decompose via CRT. The deformation theory framework provides NO computational shortcut.
+- **Interactive proofs / sum-check for factoring**: Self-reducibility of factoring doesn't help algorithmically (random → random, no simplification). Sum-check can verify smooth-number counts but verification is easier than search. Proof complexity: factoring unsatisfiability proofs must be superpolynomial under crypto assumptions (feasible interpolation). IPS/algebraic proofs face natural proof barriers. No interactive technique bypasses the search-vs-verification gap.
+- **Algebraic complexity theory (VP/VNP, tau conjecture)**: Factor polynomial F_N(x) = Σ_{d|N} x^d has exponential degree, falls outside standard VP/VNP. Tau conjecture connects factoring hardness to VP ≠ VNP via Lipton. Algebraic natural proofs barrier potentially obstructs circuit lower bounds. Most promising: Koiran's real tau conjecture connecting root-counting to depth-4 circuits.
+- **Special Galois groups for NFS (abelian, CM, solvable)**: Galois structure (splitting patterns, Artin reciprocity) does NOT change L-exponent — only affects constant c. Cyclotomic polynomials give SNFS-like advantage only for special-form N. Abelian extensions have structured factor bases but same smoothness probabilities. CM fields have no computational advantage for general semiprimes.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
