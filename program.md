@@ -27,12 +27,15 @@ For each investigator, create a working directory, copy in whatever files they n
 ```bash
 mkdir -p /tmp/inv-N
 cp semiprimes.json /tmp/inv-N/   # plus any other files they need
-cd /tmp/inv-N && nohup timeout --kill-after=30 SECONDS \
+cd /tmp/inv-N && perl -e 'setpgrp(0,0); exec @ARGV' \
+  timeout --kill-after=30 SECONDS \
   claude -p '<task description>' \
   --dangerously-skip-permissions --verbose --output-format text \
   > log.txt 2>&1 &
 echo $! > pid.txt
 ```
+
+The `perl -e 'setpgrp(0,0); exec @ARGV'` wrapper puts everything in a single process group. When the investigator finishes or times out, ALL descendant processes (Python scripts, compiled programs, multiprocessing workers) are killed automatically. To kill an investigator early: `kill -- -$(cat /tmp/inv-N/pid.txt)`.
 
 Choose the timeout (SECONDS) based on the task: 600 for pure theory, 1800-3600 for heavy computation. Use your judgment — if an investigator is doing something promising, give it more time. If you kill an investigator early, check if it has partial findings worth saving.
 
@@ -69,7 +72,7 @@ Kill an investigator if you see:
 - Going in circles debugging the same issue
 
 When an investigator finishes (process exits) or you kill it:
-1. Kill any orphan child processes: `pkill -P $(cat /tmp/inv-N/pid.txt) 2>/dev/null`
+1. Kill the process group: `kill -- -$(cat /tmp/inv-N/pid.txt) 2>/dev/null`
 2. Read `findings.txt` and/or the end of `log.txt`
 3. Extract any useful insights — theoretical conclusions, dead ends proved, experimental observations
 4. Update expert.md with the findings (insights only, not implementation details)
