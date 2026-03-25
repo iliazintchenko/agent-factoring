@@ -1,5 +1,6 @@
 #!/bin/bash
 # Run PI agent locally
+# Launch:   ./run_local.sh
 # Detach:   Ctrl-b d
 # Reattach: tmux attach -t factoring
 # Kill:     tmux kill-session -t factoring; pkill -f 'claude -p'
