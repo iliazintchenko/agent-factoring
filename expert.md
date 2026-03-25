@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~412 approaches investigated. None improved the L-exponent.
+~417 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -381,6 +381,11 @@ Why not higher:
 - **Integer programming for xy=N**: Branch-and-bound with hyperbola-specific cuts. The hyperbola xy=N has O(d(N)) integer points. Cutting planes reduce feasible region but cannot avoid exhaustive search over √N candidates. No polynomial convergence possible.
 - **L[1/3] universality theorem**: The exponent 1/3 arises inevitably from Dickman function + 2-parameter optimization (smoothness bound + polynomial degree). This is analogous to universality in statistical mechanics (critical exponents). Proved: any sieve-based algorithm with k parameters achieves L[1/(k+1)]. NFS has k=2 → 1/3. Breaking it requires k=3 (a third degree of freedom) or a non-sieve paradigm.
 - **Succinct data structures for factoring**: The precomputation bound S·T ≥ L[2/3] constrains space-time tradeoffs. Succinct representations require S ≥ L[2/3]/T — for sub-L[1/3] query time, preprocessing exceeds L[1/3]. No amortization across N values (each N independent).
+- **HoTT / cubical type theory**: Univalence says Z/NZ and Z/pZ × Z/qZ are "the same" but this is classification not computation. Computing the CRT isomorphism IS factoring. Cubical type theory makes the isomorphism compute once you have it, but finding it is the bottleneck.
+- **Simultaneous diophantine approximation (LLL)**: Simultaneous approximation of (N^{1/3}, N^{2/3}) via LLL gives relations but norm sizes match or exceed standard NFS. The multi-dim CF approach (Jacobi-Perron) already confirmed this — complex conjugates ruin the estimate.
+- **ML on exponent matrix structure**: GNN/matrix completion on sparse F₂ matrix cannot predict kernel vectors — the kernel is a global property determined by the full rank structure. No local structural pattern in the matrix predictive of kernel membership. Reduces to Block Lanczos.
+- **Non-abelian class field theory for factoring**: Representation-theoretic structure of Gal(K/Q) for splitting field of x^d - N faces the same multiplicative mixing barrier. Langlands program organizes and relates arithmetic data, does not compute it more efficiently.
+- **Higher reciprocity laws (cubic, quartic)**: Quadratic reciprocity is computable without factoring (via Jacobi symbol / GCD-like reduction). Higher reciprocity (cubic in Z[ω], quartic in Z[i]) CANNOT be computed mod N without knowing factors — the norm map from Z[ω] to Z involves the factorization. Unique computational gift of degree 2.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
