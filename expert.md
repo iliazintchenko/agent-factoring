@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~513 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~518 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~513 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~518 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~513 approaches investigated. None improved the L-exponent.
+~518 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -447,6 +447,10 @@ Why 2-3% (lowered from initial estimate):
 - **Number field tower descent for NFS**: Tower Q ⊂ K_1 ⊂ K_2 tested for degrees 3,4,6. Descent map N_{K/L} is LINEAR on exponent vectors — merges conjugate ideals. Key finding: tower descent produces NO new independent relations. L-level dependencies are REDUNDANT (arise from forgetting conjugate distinction). Every L-dependency lifts to a K-dependency. Tower helps in TNFS for DLP (better polynomial selection) but NOT for integer factoring (norms and sieving unchanged). The size reduction per descent step is bounded by extension degree (constant), unlike FFS where Frobenius reduces by factor q.
 - **Beyond GF(2) exponent exploitation**: GF(k) kernel for k=2,3,5,7: same number of relations needed (pi(B)+1) regardless of k. GCD success rate: squares give P=1/2 (universal because gcd(2,p-1)=2 for all odd p). Cubic gives P = 1/3 or 2/3 depending on p mod 3. Higher k strictly worse because gcd(k,p-1) is non-universal. LLL on integer exponent matrix: short vectors found but correspond to products of KNOWN relations — no new information. The 1-bit-per-relation bound is a theorem within congruence-of-squares, proven via the universality of order-2 elements.
 - **Meta-analysis of barrier structure**: The 5 barriers decompose into APPROACH-DEPENDENT (B1, B2, B3 — could be evaded by novel framework) and STRUCTURAL (B4, B5 — any classical algorithm must confront). B4 (CRT opacity) is the MASTER BARRIER: B1,B2,B3 are consequences when restricted to sieve methods. B5 (Z-rigidity) is the deepest: explains why FFS techniques fail over Z. Minimal barrier set: {B4, B5} implies all others. Most plausible breakthrough direction: high-dimensional abelian varieties with rich endomorphism rings over Z/NZ. No 2023-2026 mathematical development brings sub-L[1/3] significantly closer, though Fargues-Scholze geometrization provides new conceptual frameworks.
+- **Non-commutative arithmetic / matrix groups**: GL(n, Z/NZ) = GL(n, Z/pZ) x GL(n, Z/qZ) by CRT — the group decomposes. PROVED: every polynomial-time computable invariant of matrices over Z/NZ is a polynomial function of entries, which respects CRT. Non-decomposing invariants (orders, word length) are computationally intractable. No "moderately hard" middle ground exists: either polynomial (decomposes) or search-hard. Matrix M^{p-1} = I test reduces to Pollard p-1. Word map evaluations in GL(2) reveal factors with O(1/p) probability per evaluation. Quaternion algebras split at odd primes → same barrier.
+- **BBS pseudorandomness distinguishers**: BBS security is EQUIVALENT to factoring (QR reduction, confirmed tight). Every distinguisher reduces to detecting the BBS period, which grows exponentially. Linear complexity ratio LC/n converges to 0.50 (random) by 32 bits. Spectral analysis: no exploitable peaks. Higher-order correlations: zero signal. Next-bit prediction advantage: zero above noise for N > 24 bits. Distinguishing and extracting are different problems, and even distinguishing fails at cryptographic sizes. PRG-based approaches offer no advantage over direct algebraic methods.
+- **Sparse polynomials / lacunary series**: Carry propagation in p*q destroys factor sparsity: products of two sparse numbers have HW ≈ n/2. N's sparsity is independent of factor sparsity. Cyclotomic factoring (gcd(Phi_k(2), N)) reduces to Pollard p-1. ISD for GF(2) kernel: complexity 2^{O(n/log n)} worse than Gaussian O(n³). Coppersmith + sparse factor enumeration: polynomial for t-sparse factors when second bit position < n/4 (~49% of 2-sparse cases). But general semiprimes have no sparse factor structure.
+- **Third homomorphism / third NFS channel**: Systematic analysis of all candidate third channels: (1) Second number field = MNFS, improves constant only; (2) p-adic = circular (choosing p IS factoring); (3) Function field = circular; (4) Adelic = product formula constrains, no independent info; (5) Modular forms = Hecke eigenvalues at level N are the factors (circular). CONJECTURE: among algorithms based on smooth values of norms from number fields (the "smooth number paradigm"), GNFS is asymptotically optimal at L[1/3]. The algebraic structure of Z provably cannot support a third independent smoothness channel due to the product formula and characteristic barrier.
 
 ### Witt-Frobenius near-miss
 
