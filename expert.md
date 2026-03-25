@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~432 approaches investigated. None improved the L-exponent.
+~437 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -397,6 +397,11 @@ Why not higher:
 - **Differential privacy / noisy GCD**: DP noise calibrated to range N while signal at √N — quadratic gap insurmountable. Mean of noisy gcd values converges to correct E[gcd] but this single number cannot be inverted to recover factors. Exponential mechanism useful only at ε≥3, above any meaningful threshold.
 - **Valuation theory of Q(√N) / Pell units**: Fundamental unit of Z[√N] encodes CF expansion of √N. Computing it requires O(√N) work at minimum. h(4N) relates to divisor function σ(N)=(1+p)(1+q) via class number formula, but computing h(4N) IS as hard as factoring. No advantage over NFS.
 - **2026 literature survey**: No classical sub-L[1/3] algorithm found. Notable new work: Friedlander-Granville smooth number equidistribution improvements, Pinnacle quantum architecture reducing qubit estimates, TNFS acceleration for DLP in pairing fields. JVG quantum algorithm claim debunked.
+- **Random self-reducibility exploitation**: Self-reduction relates complexities but does not improve them. N → N·r² preserves factors; iterating does not make factoring easier. Self-reduction is a REDUCTION technique, not an ALGORITHMIC technique.
+- **Multilinear maps for factoring**: Ideal k-linear maps would enable joint period extraction from k elements, potentially giving sub-exponential factoring. But: (1) ideal MLMs don't exist (all candidates have weak-map attacks), (2) even ideal MLMs would give the factoring algorithm the structure of Shor's algorithm (period-finding via multilinear evaluation), confirming the quantum advantage rather than bypassing it.
+- **p-adic L-functions / Iwasawa theory**: p-adic zeta interpolates ζ(1-n) beautifully. But evaluation at p|N requires knowing p. Iwasawa main conjecture relates L-values to class groups — both computationally hard. The p-adic world provides encoding informationally equivalent to the original problem, not lossy.
+- **Property testing for ring structure**: Testing "N has exactly 2 factors" or "balanced factorization" requires the full L[1/3] complexity. Only primality (polynomial) and small factor detection (ECM/L[1/2]) are sub-L[1/3]. Full factorization comes "for free" at the L[1/3] threshold.
+- **Categorical Galois theory (Janelidze)**: The Galois groupoid of Z/NZ in CommRing carries the same information as the CRT decomposition. Categorical generalization provides a higher vantage point but no new computational force. Descent data = idempotents = factoring.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
