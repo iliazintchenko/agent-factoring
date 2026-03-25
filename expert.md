@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~526 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~530 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~526 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~530 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~526 approaches investigated. None improved the L-exponent.
+~530 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -459,6 +459,10 @@ Why 2-3% (lowered from initial estimate):
 - **Algebraic statistics of sieve matrices**: BP on sieve matrix factor graph fails (short cycles, symmetry, high rate). ML estimation of null space fails (null space is not a function of marginals). Toric warm starts: column statistics do not predict null space membership. O(n) bits of statistical summary cannot determine O(d·n) bits of null space. Current methods (Block Lanczos, Wiedemann, SGE) already exploit the computationally relevant aspect (sparsity).
 - **Height theory / Arakelov for NFS elements**: Height spectrum of Z[alpha] determined by |N|, not factorization. Arakelov bound gives minimum norm for non-trivial elements — LLL/BKZ already approaches this. NFS sieving explores elements near the Arakelov bound systematically. Height perspective CONFIRMS NFS optimality rather than suggesting improvements. Smoothness is non-archimedean, invisible to heights.
 - **Selberg/Arthur trace formula**: Both spectral and geometric sides encode factoring info. Geometric side: class numbers h(D) with D involving p,q. Spectral side: new/old form dimensions involve φ(N), σ_0(N). Selberg zeta function partial evaluation requires O(√N) geodesic terms. The trace formula is a mathematical identity relating two descriptions of the same object — both require the factors to evaluate. Provides structural understanding of prime/semiprime difference but zero computational shortcut.
+- **Noetherian / ideal structure of smooth number monoid**: Primary decomposition of the "smooth ideal" I in Z[x_1,...,x_k] reveals CRT decomposition, but computing it requires Groebner bases (doubly exponential) or equivalent-to-factoring subroutines. Unifying lens: QS, Shor, Pollard p-1, ECM are all strategies for computing aspects of the same primary decomposition. No known way to exploit the constrained multiplicative structure for faster decomposition.
+- **Modular representation theory of (Z/NZ)***: l-modular representations detect l | (p-1) vs l ∤ (q-1) asymmetry via the l-Sylow rank. But this IS Pollard p-1 in representation-theoretic language. Brauer character table dimensions form a "signature" encoding the smooth part of p-1 and q-1, but extracting individual components requires factoring. Elegant reinterpretation, no new algorithm.
+- **Analytic rank of quadratic twists E^{(N)}**: Root numbers and analytic ranks are FUNCTIONS OF N ALONE — the Kronecker symbol chi_N is fully determined by N without factoring. The decomposition chi_N = chi_p · chi_q requires knowing p,q. Every analytic invariant of E^{(N)} is computable from N directly. Dead end at the most fundamental level.
+- **Sato-Tate distribution over Z/NZ**: Point counts #E(Z/NZ) = #E(F_p) · #E(F_q) by CRT. Normalized traces for semiprimes violate the Hasse bound [-1,1] with overwhelming probability — a TRIVIALLY detectable signal distinguishing SP from prime. But this is just checking if N is prime, not factoring it. Kurtosis difference (2 vs 2.5) real but weaker. Computing point counts over Z/NZ via Schoof is polynomial in log(N) but impractical compared to existing methods.
 
 ### Witt-Frobenius near-miss
 
