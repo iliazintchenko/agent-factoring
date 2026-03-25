@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~498 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~503 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~498 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~503 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~498 approaches investigated. None improved the L-exponent.
+~503 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -432,6 +432,11 @@ Why 2-3% (lowered from initial estimate):
 - **Arithmetic dynamics / arboreal Galois**: Pollard rho is O(N^{1/4}) and OPTIMAL among generic group algorithms (Shoup lower bound). All polynomial iteration schemes operate within the generic group model. Multi-map birthday (k independent maps) gives O(N^{1/4}/√k) but O(k²) pairwise GCDs make it strictly worse per unit work. Dynatomic polynomials: gcd(Φ_n(f,x), N) reduces to group-order testing. Preimage tree variance ratio SP/prime ≈ 3x but computing preimage trees requires solving x²≡a mod N = factoring. Postcritical orbits reduce to p-1/p+1. Novel ideas (resultant, discriminant, commutator) all 0% success for ≥30-bit.
 - **Smooth number construction via algebraic dependencies**: Products of known smooth relations are DEPENDENT (GF(2) vectors are sums). Independence barrier: the only way to generate independent relations is to evaluate the polynomial at NEW points, reverting to Dickman-predicted rates. EC point addition: x-coordinate smoothness not preserved by group law. Number field norm multiplication preserves smoothness but gives dependent relations. Smooth rewriting paths either produce dependent relations (multiplication) or require new evaluations (addition/subtraction). The Dickman function reflects the multiplicative structure of Z, not a limitation of current methods.
 - **Subspace designs for GF(2) LA**: Subspace-design-based Wiedemann achieves O(n²·s/w) — same as standard Block Lanczos/Wiedemann. Graph decomposition of factor base matrix not viable (no block structure). SGE + Block Lanczos gives practical constant-factor improvement (f~2-5x). LA phase already well-optimized; no method beats O(n²·s/w) for sparse GF(2) matrices. The LA phase does NOT determine the L-exponent — sieving dominates.
+- **Approximate algebraic geometry over Z/NZ**: Epsilon-variety V_eps = {x : |f(x) mod N| < eps·N} has density |V_eps|/N = 2·eps, UNIVERSAL regardless of factorization type. CRT decomposition of V_eps does encode factoring info but computing it requires the factorization. Bezout-type bounds for epsilon-intersections show no SP/prime gap. Global properties (density, volume) are universal; local properties (specific short vectors) carry factoring info but reduce to Coppersmith. Clean separation: aggregate statistics cannot distinguish factorization structures.
+- **AD / gradient methods for factoring**: p-adic Newton converges to sqrt(N) in Z_l but finding "bad primes" l=p,q IS factoring. Soft smoothness landscape has noise-like autocorrelation (~0); gradient ascent finds partially divisible values, not smooth ones. Smoothness is CONJUNCTIVE (all primes ≤ B divide), while gradient optimizes ADDITIVE objectives — fundamental mismatch. The sieve IS the optimal algorithm for smooth number detection: exploits additive log structure and periodic divisibility structure with massive parallelism. No continuous relaxation matches.
+- **Higher reciprocity / explicit Langlands beyond GL(1)**: Cubic reciprocity (N/pi)_3 = (p/pi)_3·(q/pi)_3 in Z[omega] — product computable, individual symbols are not. Multi-curve EC approach: a_N(E) = a_p(E)·a_q(E) but k curves give k equations with k+1 unknowns (underdetermination GROWTH theorem — more curves make it harder, not easier). Sato-Tate product moments depend only on N, not on factorization, ruling out ALL moment-based tests. Rankin-Selberg L-functions face same computational gap. Langlands base change preserves multiplicativity ambiguity. The Langlands correspondence is structural, not computational — it maps factoring to an isomorphic problem on the automorphic side.
+- **Oracle separation / query complexity**: NFS uses 6 operations beyond the generic ring model: polynomial selection (reads N's digits), smoothness testing (integer property), sieving (consecutive-integer structure), LLL (Euclidean geometry), GF(2) LA, and algebraic square root. These explain the gap: generic ring Ω(N^{1/3}) vs NFS L[1/3]. Decision tree depth for factoring is Θ(n) (trivial — must read all input bits). Certificate complexity: compositeness O(1) bits, primality Θ(n) bits. The DT model captures input complexity, not computational complexity.
+- **Thin groups / super-approximation / Apollonian**: Apollonian curvatures have essentially RANDOM smoothness (ratio to Dickman 0.94-1.06). Super-approximation ensures pseudo-random behavior mod N — exactly what factoring algorithms need to AVOID. Zaremba-style bounded partial quotients trade approximation quality for algebraic structure but this tradeoff does NOT help smoothness. Markoff triples mod N: 0 factor revelations in all tests. BGS sieve detects primes in orbits but not smooth numbers useful for factoring. Thin group expansion property is adversarial to factoring.
 
 ### Witt-Frobenius near-miss
 
