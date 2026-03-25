@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~357 approaches investigated. None improved the L-exponent.
+~362 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -329,6 +329,10 @@ Why not higher:
 - **Hybrid factoring (smoothness + group-order + algebraic)**: L[1/4] requires a THIRD independent smoothness source. All candidates fail: MNFS improves c not exponent, class/unit groups already exploited by NFS, multiplicative orders wrong domain, ECM on cofactors sub-dominant (L[1/6]), isogeny structures no smoothness connection. Only function fields have a third source (Frobenius).
 - **Quantum-inspired dequantization**: Classical periodogram for period r costs O(r·(log N)²) — WORSE than trial division. Compressed sensing needs O(r·log r) samples. Tang-style doesn't apply (Shor exploits multiplicative group, not low-rank structure). Ω(√r) classical lower bound is tight. The quantum advantage is genuine.
 - **Special semiprimes bootstrap**: Pr[p-1 is L_p[1/3,1]-smooth] ≈ 10^{-12} to 10^{-34} at crypto sizes. ECM already optimally exploits the union of all group-order special cases at L[1/2]. Union of polynomial-many exponentially-rare events has total probability → 0. No positive-density subset of semiprimes admits sub-L[1/3] factoring via known structural properties.
+- **Expander graph combinatorics**: Cayley graph Cay((Z/NZ)*, S) properties split into: (a) GLOBAL (girth, diameter, expansion) — encode factoring info but require O(N) computation, (b) LOCAL (random walks, collision times, clustering) — efficiently computable but reduce to Pollard rho/p-1/ECM. No middle ground. Graph reformulation is exactly algebraic methods in graph language.
+- **Additive-multiplicative relations (a·b+c≡0 mod N)**: Finding smooth triples reduces to finding smooth c = -(a·b) mod N where c is size ~N (worse than QS's ~√N). Exponent vectors still live in GF(2)^k. Non-zero-mod-N partial relations hit factors with probability 1/√N (exponential). Ring structure Z/NZ fully mined by existing methods.
+- **Algebraic geometry of xy=N**: Genus 0, no abelian structure, no nontrivial H¹. Local invariants at small primes give N mod l (= trial division). Global invariants (point counts, Picard group, étale cohomology) all require CRT decomposition = factoring. ECM works for number-theoretic reasons (smooth group orders), not algebraic geometry per se.
+- **Constraint propagation / belief propagation**: BP on modular-constraint factor graph converges for small N but below condensation threshold (Sigma < 0). No useful information extracted. Phase transition vs constraint bound B shows factoring becomes "solvable" only when B exceeds information-theoretic threshold (Coppersmith). CSP approach exponential.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
