@@ -122,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~442 approaches investigated. None improved the L-exponent.
+~447 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -406,6 +406,11 @@ Why not higher:
 - **Classical QEC analog for factoring**: QEC preserves superpositions; the computational advantage lives in the superposition, not the error correction. "Classical QEC" is an illuminating oxymoron: redundant classical computation of modular exponentiation provides fault tolerance but not speedup. The quantum-classical gap is in information encoding, not error resilience.
 - **CFSG / group structure properties of (Z/NZ)***: The exponent lcm(p-1,q-1) can be computed probabilistically (Pollard lambda) in O(√(exponent)) time. The Frattini subgroup, socle, and automorphism group all decompose via CRT. The Jacobi symbol provides 1-dimensional shadow of the full group structure — "the shadow has exactly one dimension fewer, and that missing dimension IS the factorization."
 - **Étale K-theory of Z/NZ**: K^ét_0 = Z^{ω(N)} (computing IS factoring). Higher K-groups: K^ét_1(Z/NZ) = (Z/NZ)*, K^ét_2 = 0. All decompose via CRT. Quillen-Lichtenbaum (= Rost-Voevodsky) relates to motivic cohomology, which also decomposes. K-theory unifies known algorithms (p-1 = K₁, ECM = K₀ of curves, QS/NFS = K₁ via smooth relations) but provides no new computational shortcut.
+- **Extremal graph theory on factor base graph**: Turán-type bounds on the factor base graph relate to NFS performance but the graph is well-modeled by random graphs with prescribed degree sequences. No structural feature exploitable beyond what random-graph analysis already gives. Weighted hypergraph model natural but doesn't change L-exponent.
+- **Multi-variable Diophantine equations for factoring**: Four-square x²+y²+z²+w²=N always solvable but decomposition doesn't reveal factors. Pell x²-Ny²=1 has regulator related to class number — computing either IS factoring. All multi-variable approaches that encode factoring either solve in exponential time or have cost dominated by the factoring step.
+- **Fourier analysis on (Z/NZ)***: Characters require knowing φ(N) = factoring. Partial Fourier info (power sums Σf(x)^k) accessible but carries O(1/√N) signal. Character sum bounds (Burgess) give the best estimates but don't improve on NFS. Smooth number equidistribution in residue classes (Fouvry-Tenenbaum) validates NFS heuristics.
+- **Algorithmic information theory / sophistication**: Sophistication of semiprimes is O(log n) (polynomial in bit length) — the "regularity" is simple. But sophistication measures regularity structure, not accessibility. "Identifying the regularity" vs "computing how to decompose" is precisely the gap that factoring hardness represents.
+- **MCTS / heuristic search for factoring**: Factoring constraint is DETERMINISTIC (carry chain), not statistical. Constraint propagation determines all feasible branches; MCTS redundantly re-discovers feasibility via random rollouts. No value function gradient exists — the landscape is information-theoretically flat until the exact answer is found.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
