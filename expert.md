@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~367 approaches investigated. None improved the L-exponent.
+~372 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -337,6 +337,10 @@ Why not higher:
 - **Sieve in alternative number systems**: Gaussian Z[i], Eisenstein Z[ω], Hurwitz quaternions H all analyzed. Quaternion reduced norm is degree-2 (L[1/2]), strictly worse than NFS's optimized degree. Higher-dim sieving adds volume overhead without improving smoothness. All representations produce norms ≥ NFS norms for factoring-encoding elements. NFS polynomial selection IS the optimal sieve across all known number systems.
 - **Error-correcting code / syndrome decoding analogy**: Factor graph has girth 4 with Θ(n) variable degrees — violates all LDPC decodability conditions. Code rate ≈ 1, only O(log n) bits of primality redundancy — exponential gap from the O(n) needed for efficient decoding. Fundamentally broken information-theoretic structure.
 - **Symbolic dynamics of multiplication-by-N map**: Transfer operator spectrum, Ruelle zeta function, and symbolic dynamics of T_N: x → Nx mod 1 all decompose via CRT. Detectable invariants (entropy, periodic points) give information already available from N itself. Non-trivial invariants require O(N) computation.
+- **Nonlinear non-algebraic maps (digits, Collatz, bit reversal)**: All tested non-algebraic functions have noise-floor mutual information with x mod p. The representative problem is irrelevant (we can compute any f(x) for x in [0,N)). Composition doesn't help. Non-algebraic operations cannot break CRT opacity — the hardness is structural/algebraic, not representational.
+- **CRT descent with inequality/primality pruning**: Branching factor per prime l is (l-1)/l ≈ 1 after inequality constraint. Cumulative pruning only 1/ln(B) — logarithmic, not geometric. 10000 primes provide ~4 bits about p. For 512-bit RSA need primes up to exp(2^{256}). Provides NO asymptotic improvement over trial division.
+- **Randomized linear algebra for F₂ kernel**: Sketching, Kaczmarz, sparse recovery, Laplacian solvers all fail over F₂ — exploit continuous structure (gradients, distances) that doesn't exist over F₂. O(B²/w) Block Lanczos appears essentially optimal. SVD-based rounding shows R↔F₂ null space correlation (interesting structural observation) but SVD costs O(B³).
+- **ML for sieve acceleration**: AUC 0.80-0.87 with full features but features cost as much as the sieve itself. Cheap features (magnitude, position) give AUC 0.59 (near chance). The sieve IS the optimal feature extractor for smoothness. Any useful skip rate (>75%) loses >34% of smooth relations. Model doesn't generalize across N. ML cannot improve on the sieve because the sieve IS already the optimal ML model for smoothness detection.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
