@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~382 approaches investigated. None improved the L-exponent.
+~387 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -348,6 +348,11 @@ Why not higher:
 - **Interactive proofs / sum-check for factoring**: Self-reducibility of factoring doesn't help algorithmically (random → random, no simplification). Sum-check can verify smooth-number counts but verification is easier than search. Proof complexity: factoring unsatisfiability proofs must be superpolynomial under crypto assumptions (feasible interpolation). IPS/algebraic proofs face natural proof barriers. No interactive technique bypasses the search-vs-verification gap.
 - **Algebraic complexity theory (VP/VNP, tau conjecture)**: Factor polynomial F_N(x) = Σ_{d|N} x^d has exponential degree, falls outside standard VP/VNP. Tau conjecture connects factoring hardness to VP ≠ VNP via Lipton. Algebraic natural proofs barrier potentially obstructs circuit lower bounds. Most promising: Koiran's real tau conjecture connecting root-counting to depth-4 circuits.
 - **Special Galois groups for NFS (abelian, CM, solvable)**: Galois structure (splitting patterns, Artin reciprocity) does NOT change L-exponent — only affects constant c. Cyclotomic polynomials give SNFS-like advantage only for special-form N. Abelian extensions have structured factor bases but same smoothness probabilities. CM fields have no computational advantage for general semiprimes.
+- **Langlands program**: Langlands correspondence connects automorphic forms to Galois representations. Factoring info IS encoded everywhere in the Langlands landscape, but every extraction method either presupposes the answer or reduces to known hard computation. The program describes correspondence (existence/uniqueness), not computation. No algorithmic handle.
+- **Convex optimization / SDP for factoring**: Lasserre SDP relaxation has exponential integrality gap. Rounding success probability decays exponentially with n. O(n²) independent constraints needed for moment matrix convergence — essentially requires knowing factorization. SDP hierarchy cannot converge in polynomial rounds for factoring (consistent with factoring ∉ BPP).
+- **Random multi-curve point counts**: For affine points, CRT multiplicativity holds perfectly. Multi-curve joint point counts carry information via CRT decomposition, but accessing individual components requires knowing p,q. Multi-curve approach reduces to running ECM on each curve independently. No advantage from joint analysis.
+- **Representation stability / plethysm**: FI-modules describe the PE (stable/forward) direction; factoring requires the PL (inverse) direction. Partition anomalies in Rademacher terms encode factors but detection requires exponential search. Categorified plethysm is genuinely unexplored but far beyond current mathematics.
+- **Coppersmith without partial info**: LLL on Coppersmith lattice with s₀=0 (no prior info) produces vectors indistinguishable from random — 0 bits recovered across all tested dimensions. Iterative feedback (recover bits → refeed) fails because 0 bits are recovered at each step. Confirms n/4 partial info threshold is sharp.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
