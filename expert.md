@@ -114,7 +114,7 @@ Why not higher:
 
 ## Explored directions
 
-~337 approaches investigated. None improved the L-exponent.
+~342 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -144,6 +144,8 @@ Why not higher:
 - **k-th power congruences (GF(k) LA)**: For x^k≡y^k mod N with k>2, cyclotomic factorization gives more GCD chances. But GF(k) LA still needs π(B)+1 smooth relations regardless of k. Direct k-th power probability drops exponentially with π(B). GF(k) kernel has same dimension as GF(2); extra bits/relation don't reduce relation count. No improvement over k=2.
 - **Non-maximal order norms Z[cα]**: Conductor c inflates norms by c^{d(d-1)/2}. For rank-1 sieving, equivalent to restricting b to multiples of c — strictly fewer candidates. Z[cα] ⊂ O_K means fewer elements, not more. Strictly worse than standard NFS.
 - **Quaternion algebra reduced norms for sieving**: a²+b²+lc²+ld² is degree-2 in 4 variables with norm ~M². Smoothness within ~6% of random integers at matched size. 4-variable freedom gives C^{1/2} scaling but encoding factoring info (norm ≡ 0 mod N) forces norms ≥ N, losing advantage. Reduces to QS-class L[1/2].
+- **Resultant smoothness**: Res(f-a, g-b) is the PRODUCT of deg(g) norm evaluations. Smoothness probability is the PRODUCT (not sum) of individual smoothness probabilities, making resultants strictly WORSE than using norms directly. For balanced polynomials d=e=3: resultant size matches norm product, no advantage.
+- **Smooth number cascade/avalanche structure**: Divisors of smooth numbers are sums of GF(2) vectors (non-square divisors = GF(2) addition). Consecutive smooth values provide same rank growth as random. Full exponent vectors carry more info than GF(2) but extra info doesn't help factoring. The 1-bit-per-relation bound is AIRTIGHT within congruence-of-squares: each smooth relation is exactly one row in the GF(2) matrix regardless of richness.
 - **Smooth bit-patterns**: Boolean classifier finds shallow artifacts (2nd MSB bias) that diminish at crypto sizes.
 - **LLL on cofactor log-lattice**: Smoothness is discrete; continuous log-lattice optimization targets wrong objective. 0 smooth combinations found. LP matching (exact collision) remains optimal.
 - **Cofactor correlation in QS**: Cofactors at nearby positions completely independent. GCD rate = 0. Log-size correlation r < 0.02. Confirms standard independence assumption.
@@ -311,6 +313,9 @@ Why not higher:
 - **Approximate Frobenius x→x^l mod N**: Orbit structure of x→x^l decomposes via CRT; cross-prime correlations between orbit lengths for different l reduce to Pollard-type methods. Witt-Frobenius (a₀^l, a₁^l,...) reduces to independent power maps per component. Fixed-point density ~1/N, undetectable by sampling. Composed Frobenius x^{2^k} vs x^{3^k} IS Pollard variant. Frobenius error (a+b)^l - a^l - b^l only useful when l IS a factor (circular).
 - **Adaptive structured sampling for CRT probing**: Tested 11 sampling strategies (random, geometric, polynomial, AP, adaptive/SVD, quadratic residues, Fermat neighborhood, smooth numbers) across 20-30 digit semiprimes. NO strategy accumulates CRT information faster than random. MI per sample ~0.04 bits regardless of strategy. Mod-N wrapping barrier robust: any sampling over Z/NZ generates CRT components that are deterministic functions of Z/NZ values. Structured sampling helps only via ALGEBRAIC DEPENDENCIES (smoothness, group structure) — which IS what factoring algorithms already exploit.
 - **p-adic descent for factoring**: l-adic valuations v_l(N-k) provide exactly ZERO bits about p individually (any unit works in product). Newton polygon of x²-Sx+N over Q_l has slopes (0,0) for all l — both roots are l-adic units. CRT across primes gives nothing. Product formula: ALL info about p lives at archimedean place and place l=p, neither accessible without knowing p. No "partial Frobenius" exists because no algebraic operation on Z reduces size while preserving multiplicative structure.
+- **CRT tree search (function field analogy)**: For each small prime l, p·q ≡ N mod l gives ~l possible values for p mod l. Cross-constraints between primes don't prune: branching factor is multiplicative across primes, tree grows exponentially. The approach reduces to exhaustive search of O(√N) candidates.
+- **Matrix Frobenius normal form gap**: Char poly ≠ min poly over Z/NZ DOES encode factoring info in principle, but computing it requires LA mod N. Factor leakage during Gaussian elimination is exactly random GCD at rate O(1/min(p,q)). All matrix families (companion, circulant, geometric, nilpotent, random) identical at ~12% for tiny factors. Scales as O(1/p), equivalent to trial division. No structural advantage over random GCD.
+- **Modular forms at composite level N=pq**: Old/new decomposition encodes factorization. Hecke eigenvalues at l|N satisfy |a_l| = l^{(k-2)/2} (ramification signature). BUT: dimension formula uses ψ(N) = N∏(1+1/p), Eichler-Selberg trace formula involves divisor sums of N — all computations require knowing factors. Computing the space requires O(N) minimum. Modular forms framework provides theoretical insight but no computational shortcut.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
