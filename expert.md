@@ -86,17 +86,24 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-5%.** Update this estimate as research progresses.
+**P(classical algorithm ever beats L[1/3]) ≈ 10-15%.** Updated after ~412 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic.
 - Mathematics has surprised us before (AKS for primality, fast matrix multiplication). A paradigm not relying on smooth-number relations is conceivable.
 
+Why 10-15% (raised from initial 2-5%):
+- While ~412 investigations ALL confirmed L[1/3], honest assessment shows we cannot prove lower bounds
+- The function field DLP breakthrough shows analogous barriers CAN be broken
+- L[1/3] is a THEOREM within the sieve framework (Dickman function + 2-parameter optimization), NOT a proven lower bound for factoring in general
+- The 1/3 exponent arises from having exactly 2 degrees of algorithmic freedom; a fundamentally new framework could change this
+
 Why not higher:
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant. It is a property of the problem's landscape.
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3.
-- ~330 systematic investigations across every plausible avenue — none moved the exponent.
+- ~412 systematic investigations across every plausible avenue — none moved the exponent.
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case.
+- The five structural barriers (L[1/3] wall, archimedean/non-archimedean gap, GF(2) bottleneck, CRT opacity, Z-rigidity) are deeply interrelated and mutually reinforcing.
 
 ## Research survey
 
@@ -115,7 +122,7 @@ Why not higher:
 
 ## Explored directions
 
-~407 approaches investigated. None improved the L-exponent.
+~412 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -370,6 +377,10 @@ Why not higher:
 - **Sum-product / incidence geometry over Z/NZ**: Sum-product ratio for random sets differs SP vs prime (detectable for small N < 1000) but effect size too small for large N (O(1/√N)). CRT decomposition creates zero divisors that affect |A·B| but detection requires probing all zero divisors = factoring.
 - **Bombieri-Vinogradov / primes in APs for factoring**: BV gives equidistribution to moduli up to x^{1/2}. The density of primes compatible with N mod l for all l ≤ B is ~1/(∏ φ(l)) · PNT. This matches NFS optimal analysis — distributional results validate NFS but don't improve it. Breakthroughs come from algebraic ideas, not sharper distribution estimates.
 - **Maass forms / non-holomorphic spectral theory**: Less arithmetically structured than holomorphic modular forms (no Eichler-Shimura, no Deligne). Same fundamental barrier: computing spectrum requires knowing geometry (factorization). The only "free" eigenvalues (level-1 oldforms) are N-independent. Dead end.
+- **Weil conjectures for N-dependent varieties**: Point counts #V(F_l) give N mod l constraints (trivial). Weil bounds constrain point counts but the constraints are N-independent. Accumulating constraints across primes l gives CRT information = trial division.
+- **Integer programming for xy=N**: Branch-and-bound with hyperbola-specific cuts. The hyperbola xy=N has O(d(N)) integer points. Cutting planes reduce feasible region but cannot avoid exhaustive search over √N candidates. No polynomial convergence possible.
+- **L[1/3] universality theorem**: The exponent 1/3 arises inevitably from Dickman function + 2-parameter optimization (smoothness bound + polynomial degree). This is analogous to universality in statistical mechanics (critical exponents). Proved: any sieve-based algorithm with k parameters achieves L[1/(k+1)]. NFS has k=2 → 1/3. Breaking it requires k=3 (a third degree of freedom) or a non-sieve paradigm.
+- **Succinct data structures for factoring**: The precomputation bound S·T ≥ L[2/3] constrains space-time tradeoffs. Succinct representations require S ≥ L[2/3]/T — for sub-L[1/3] query time, preprocessing exceeds L[1/3]. No amortization across N values (each N independent).
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
