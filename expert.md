@@ -158,7 +158,7 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 
 ## Open directions
 
-~310 approaches have been investigated. Five structural barriers have been identified (see library/top5_insights.txt). A breakthrough would need to violate at least one. These directions remain open:
+~310 approaches have been investigated. Five structural barriers have been identified (see library/insights.txt). A breakthrough would need to violate at least one. These directions remain open:
 
 **Violating the GF(2) bottleneck (barrier #3):**
 - Every known method extracts 1 bit per relation via exponent-parity. A different algebraic coincidence that leaks more information per relation could change the exponent. Higher-residue symbols, K-theory classes, and Brauer group elements were tested and reduced back to GF(2) — but not all algebraic structures have been explored. What about relations over GF(3) that DON'T use the cube sieve? The cube sieve was tested and failed, but it's one specific construction, not the only way to use ternary structure.
