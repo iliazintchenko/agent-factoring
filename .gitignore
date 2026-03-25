@@ -18,3 +18,4 @@ library/*
 !library/*.sh
 !library/*.md
 !library/*.txt
+!library/*.json

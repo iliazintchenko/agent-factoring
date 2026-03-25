@@ -9,8 +9,7 @@ import json, subprocess, sys, os, time
 from datetime import datetime
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
-SEMIPRIMES = REPO / "semiprimes.json"
+SEMIPRIMES = Path(__file__).resolve().parent / "semiprimes.json"
 
 def run_one(binary, n, timeout=295):
     """Run binary on a single number. Returns (factor, elapsed) or (None, elapsed)."""

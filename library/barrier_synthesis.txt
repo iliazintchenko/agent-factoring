@@ -4,7 +4,7 @@
 ══════════════════════════════════════════════════════════════════════════
 
   A synthesis of ~360 explored algorithmic approaches to integer
-  factoring, the five structural barriers they encounter, and a
+  factoring, the structural barriers they encounter, and a
   precise specification of what a hypothetical barrier-breaking
   mathematical object would need to satisfy.
 
@@ -33,7 +33,7 @@ Throughout this document:
     - Best heuristic variant:          L[1/3, (32/9)^{1/3}]  ≈  L[1/3, 1.526]
     - No classical algorithm achieves:  L[α] for any α < 1/3
 
-  The five structural barriers (from the synthesis of ~360 approaches):
+  The structural barriers (from the synthesis of ~360 approaches):
 
     B1. L[1/3] Wall — all known relation-finding strategies produce
         relations at cost ≥ L[1/3] per useful bit of information.
@@ -1848,6 +1848,17 @@ META-THEOREM (informal):
 COROLLARY: To break L[1/3], an algorithm must violate at least one
 of conditions (i), (ii), or (iii).
 
+THE CAUSAL CHAIN: The barriers form a causal sequence:
+  Z is rigid (B5) → CRT composition is opaque (B4) → algorithms are
+  forced into binarized search (B3) → which cannot be shortcut
+  metrically (B2) → manifesting as the L[1/3] complexity wall (B1).
+
+THE QUANTUM EXCEPTION: Shor's algorithm bypasses this chain by
+synthetically creating an endomorphism (the QFT over Z/NZ) that Z
+does not naturally possess, exploiting quantum superposition to
+circumvent the classical rigidity constraint (B5). This is why the
+quantum advantage for factoring is qualitative, not merely quantitative.
+
 ────────────────────────────────────────────────────────────────────────
 5.2  THE FIVE-REQUIREMENT SPECIFICATION (SUMMARY)
 ────────────────────────────────────────────────────────────────────────
@@ -1933,7 +1944,7 @@ structure that:
    non-GF(2) composition mechanism, all constructible in time
    o(L[1/3])."
 
-In the language of the five barriers:
+In the language of the barriers:
 
   It breaks B1 (L[1/3] wall) by finding information FASTER.
   It bridges B2 (archimedean/non-archimedean gap) by using neither.
@@ -1942,7 +1953,7 @@ In the language of the five barriers:
   It overcomes B5 (Z-rigidity) by accessing structure Z doesn't
     obviously have.
 
-No known mathematical object satisfies all five. Whether one EXISTS
+No known mathematical object satisfies all barriers. Whether one EXISTS
 is, in our assessment, the deepest open question in algorithmic
 number theory — and one whose resolution, in either direction, would
 transform our understanding of the boundary between algebra,

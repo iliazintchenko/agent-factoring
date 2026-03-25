@@ -2,7 +2,7 @@
 
 ## Research Documents
 
-- **insights.txt** — The definitive top 5 theoretical insights from ~330 investigated approaches: (1) L[1/3] structural barrier from α=1/(k+1), (2) archimedean/non-archimedean size gap, (3) 1-bit-per-relation GF(2) bottleneck, (4) CRT opacity, (5) Z-rigidity (no endomorphism). Includes synthesis showing how all five interrelate.
+- **barrier_synthesis.txt** — Formal analysis of the L[1/3] barrier: requirements (R1-R5) a barrier-breaking structure must satisfy, 20 structural families analyzed against them, gap analysis, candidate object types, meta-theorem, and 8 prioritized research directions.
 - **open_problems.txt** — 15 specific open mathematical problems whose resolution would advance factoring research.
 
 ## Implementations

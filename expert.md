@@ -427,7 +427,7 @@ p-th power is an approximate ring endomorphism with error O(p). Witt formalism m
 
 ## Open directions
 
-Five structural barriers identified so far (see library/insights.txt): (1) L[1/3] structural wall, (2) archimedean/non-archimedean gap, (3) GF(2) bottleneck, (4) CRT opacity, (5) Z-rigidity. Every investigated approach ran into at least one. A breakthrough could violate one, or could come from an entirely unexpected direction that sidesteps them all. These are the open directions we see:
+Five structural barriers identified so far (see library/barrier_synthesis.txt): (1) L[1/3] structural wall, (2) archimedean/non-archimedean gap, (3) GF(2) bottleneck, (4) CRT opacity, (5) Z-rigidity. Every investigated approach ran into at least one. A breakthrough could violate one, or could come from an entirely unexpected direction that sidesteps them all. These are the open directions we see:
 
 **Super-smoothness (barrier #3 — GF(2) bottleneck):**
 Can a single smooth relation yield >1 independent constraint? The algebraic object must be richer than "exponent vector mod k" for ANY k, since changing the target field doesn't help. Would need a fundamentally different algebraic coincidence.
