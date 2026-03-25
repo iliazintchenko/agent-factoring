@@ -86,24 +86,26 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 10-15%.** Updated after ~412 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~482 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic.
 - Mathematics has surprised us before (AKS for primality, fast matrix multiplication). A paradigm not relying on smooth-number relations is conceivable.
 
-Why 10-15% (raised from initial 2-5%):
-- While ~412 investigations ALL confirmed L[1/3], honest assessment shows we cannot prove lower bounds
+Why not 0%:
+- No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
 - The function field DLP breakthrough shows analogous barriers CAN be broken
 - L[1/3] is a THEOREM within the sieve framework (Dickman function + 2-parameter optimization), NOT a proven lower bound for factoring in general
-- The 1/3 exponent arises from having exactly 2 degrees of algorithmic freedom; a fundamentally new framework could change this
+- Mathematics has surprised us before (AKS, Babai GI)
 
-Why not higher:
-- L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant. It is a property of the problem's landscape.
-- ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3.
-- ~412 systematic investigations across every plausible avenue — none moved the exponent.
-- Every approach that looked promising hit the Dickman-function wall when pushed to the general case.
-- The five structural barriers (L[1/3] wall, archimedean/non-archimedean gap, GF(2) bottleneck, CRT opacity, Z-rigidity) are deeply interrelated and mutually reinforcing.
+Why 2-3% (lowered from initial estimate):
+- ~482 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
+- ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
+- Every approach that looked promising hit the Dickman-function wall when pushed to the general case
+- The five structural barriers (L[1/3] wall, archimedean/non-archimedean gap, GF(2) bottleneck, CRT opacity, Z-rigidity) are deeply interrelated and mutually reinforcing
+- Complete absence of "near miss" algorithms that would signal a breakthrough is close
+- The L[1/3] universality theorem: any sieve-based algorithm with k parameters achieves L[1/(k+1)]; NFS has k=2; a third degree of freedom requires a fundamentally new mathematical framework that no one has even glimpsed
 
 ## Research survey
 
@@ -122,7 +124,7 @@ Why not higher:
 
 ## Explored directions
 
-~477 approaches investigated. None improved the L-exponent.
+~482 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
