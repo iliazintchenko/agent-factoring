@@ -115,7 +115,7 @@ Why not higher:
 
 ## Explored directions
 
-~397 approaches investigated. None improved the L-exponent.
+~402 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -362,6 +362,10 @@ Why not higher:
 - **Adelic methods**: Adele ring A_Q "knows" every factorization but knowledge stored in index set (the primes), not in algebraic/topological structure. Product formula ensures gains at one place offset by losses at others. Hardness persists in full adelic setting — robust across all mathematical frameworks.
 - **Digit distribution of √N**: Digits of √N are pseudorandom (consistent with normality conjecture). Symbolic √N = √p·√q does not translate to digit-level structure due to non-local carry propagation. Factoring info "dissolved" into carries.
 - **MPC / oblivious transfer complexity**: MPC communication tracks circuit complexity (polynomial for factoring), while time complexity is sub-exponential. Separation shows MPC cannot resolve factoring's complexity status. Oblivious transfer historically connected to factoring (Rabin) but provides no new bounds.
+- **Proof complexity / feasible interpolation**: Factoring tautologies have polynomial-size Resolution/Frege proofs. Feasible interpolation (Krajíček): if proofs are short AND interpolation is feasible, factoring is easy. Under crypto assumptions, proofs in strong systems must be superpolynomial (or interpolation infeasible). No algorithmic leverage.
+- **Compressed exponent vector search**: Exponent vectors divorced from algebraic context carry zero information about N. The smoothness bottleneck exists precisely because it extracts information about N's algebraic structure. Working entirely in compressed domain = trying to factor with no input about N.
+- **Arakelov intersection theory for NFS poly selection**: Arithmetic Hilbert function and metrized line bundles provide theoretical LOWER BOUNDS on polynomial quality but classical lattice geometry (Minkowski, Banaszczyk) gives same bounds without Arakelov machinery. Framework is beautiful but orthogonal to NFS polynomial selection.
+- **Quantum walk advantage analysis**: Shor's speedup is QUALITATIVE (exponential), not QUANTITATIVE (polynomial overhead). The advantage comes from coherent superposition enabling O(1) evaluations at O(N) points simultaneously. No classical technique (random walks, Markov chains, spectral methods) can approximate this sub-exponentially. The gap O(√r) classical vs O(polylog r) quantum is provably tight in the generic group model.
 - **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. Required block β~O(√n) → 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: LLL finds weight ~34-48 vectors vs Gauss's 31-61. O(d³) LLL vs O(rc²/64) Gauss — lattice worse at all scales.
 - **Sparse congruences via ISD**: ISD complexity 2^{O(n/log n)} worse than Gauss O(n³).
