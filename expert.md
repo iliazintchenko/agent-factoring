@@ -164,6 +164,9 @@ Sieving: O(1) amortized per candidate but requires sequential memory access. Ber
 - **Schnorr lattice (2021 claim)**: Refuted experimentally by Ducas (CWI), 0/1000 relations. Never published at peer-reviewed venue.
 - **GNFS L[1/3, 1.923] unchanged since 1990s**: RSA-250 (Feb 2020) remains factoring record. All progress is in practical constants (better sieving, batch smoothness).
 - **NFS L[1/3] is HEURISTIC, not proven**: Best rigorous bound is L[1/2] (Lenstra-Pomerance 1992). Lee-Venkatesan (2017) proved L[1/3] only for randomized variant finding square congruences. Key unproven assumptions: smoothness heuristic ("norms behave like random integers"), independence of smoothness events, monogenic field, square root step.
+- **Regev lattice classically intractable**: The Regev 2023 lattice (dimension O(√n)) is indistinguishable from random q-ary lattices by BKZ. Classical cost 2^{Θ(√n)} is strictly worse than GNFS 2^{O(n^{1/3})}. No exploitable algebraic structure for classical algorithms.
+- **GF(2) reduction is optimal**: Z-lattice dependencies are a SUBSET of GF(2) dependencies. SNF invariant factors are all 1 or 2 — no higher-order structure. The mod-2 reduction RELAXES constraints to increase the solution space. Confirmed: 1-bit/relation is a feature, not a bottleneck, within the congruence-of-squares framework.
+- **L[1/3]↔L[1/2] gap**: Most promising path to closing: complete the Lee-Venkatesan program by proving the congruence-to-factor extraction step works in L[1/3] time. Requires showing randomized NFS explores enough algebraic structure to produce non-trivial gcd's. Medium-term: extend smooth number equidistribution (currently proved for AP to moduli ~x^{5/8}) to polynomial values. Deep obstruction: parity problem in sieve theory.
 
 ## Open directions
 
