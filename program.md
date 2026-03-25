@@ -27,21 +27,22 @@ For each investigator, create a working directory, copy in whatever files they n
 ```bash
 mkdir -p /tmp/inv-N
 cp semiprimes.json /tmp/inv-N/   # plus any other files they need
-cd /tmp/inv-N && nohup timeout --kill-after=30 900 \
+cd /tmp/inv-N && nohup timeout --kill-after=30 SECONDS \
   claude -p '<task description>' \
   --dangerously-skip-permissions --verbose --output-format text \
   > log.txt 2>&1 &
 echo $! > pid.txt
 ```
 
-Note: the 15-minute timeout (900s) prevents investigators from running forever. `--kill-after=30` sends SIGKILL if SIGTERM doesn't work. The timeout command kills the entire process group, including any child processes (compiled programs, Python scripts).
+Choose the timeout (SECONDS) based on the task: 600 for pure theory, 1800-3600 for heavy computation. Use your judgment — if an investigator is doing something promising, give it more time. If you kill an investigator early, check if it has partial findings worth saving.
 
 The task description should be specific enough that the investigator knows exactly what to do, but open enough that they can discover unexpected things. Include:
 - What question to investigate
 - What tools are available (GMP, GMP-ECM, etc.)
 - What concrete first step to take
-- What to write to `findings.txt` when done
-- A time expectation ("this should take about 10-15 minutes")
+- **Write findings to `findings.txt` INCREMENTALLY** — append results as you go, don't wait until the end. If the process is killed mid-run, partial findings should still be there.
+- A time expectation matching the timeout you chose
+- **"Write findings to findings.txt incrementally — append as you go, not all at the end"** (include this literally in every task prompt)
 
 Example good tasks:
 - "Investigate whether the Deuring correspondence between supersingular elliptic curves and maximal orders in quaternion algebras ramified at p can leak information about p when working over Z/NZ. Start by implementing point-counting on random curves over Z/NZ for 20-digit semiprimes. Use GMP. Write findings to findings.txt."
