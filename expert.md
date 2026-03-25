@@ -86,7 +86,7 @@ All sub-exponential factoring approaches are index-calculus methods hitting the 
 
 ## Probability estimate
 
-**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~508 systematic investigations.
+**P(classical algorithm ever beats L[1/3]) ≈ 2-3%** (80% CI [0.5%, 8%]). Updated after ~513 systematic investigations.
 
 Why not 0%:
 - No proof that L[1/3] is a hard lower bound — the barrier is empirical, not information-theoretic
@@ -95,7 +95,7 @@ Why not 0%:
 - Mathematics has surprised us before (AKS, Babai GI, fast matrix multiplication)
 
 Why 2-3% (lowered from initial estimate):
-- ~508 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
+- ~513 systematic investigations across every plausible mathematical avenue — NONE moved the exponent
 - L[1/3] emerges independently in NFS, FFS analogues, and every index-calculus variant — it is a universal property
 - ~35 years of effort by hundreds of mathematicians have improved only c, never the exponent 1/3
 - Every approach that looked promising hit the Dickman-function wall when pushed to the general case
@@ -120,7 +120,7 @@ Why 2-3% (lowered from initial estimate):
 
 ## Explored directions
 
-~508 approaches investigated. None improved the L-exponent.
+~513 approaches investigated. None improved the L-exponent.
 
 ### Smoothness-based (all L[1/2] or L[1/3])
 
@@ -442,6 +442,11 @@ Why 2-3% (lowered from initial estimate):
 - **Cohomological obstructions for smooth numbers**: Smooth Selmer group concept investigated. Class number h of NFS number field Q(alpha) moderately correlates with sieve yield (discriminant provides additional predictive power beyond alpha score). However, correlation is with CONSTANTS not EXPONENTS — optimizing polynomial selection using algebraic invariants improves c in L[1/3, c] but cannot change the 1/3. The Hasse-principle analogy breaks: smoothness is not a local-to-global property (a number can be smooth mod every prime yet not globally smooth). No cohomological obstruction defined.
 - **GI / Babai-style techniques**: Cayley graph Cay((Z/NZ)*, S) spectrum has smaller normalized spectral gap for semiprimes (0.29) vs primes (0.42) — weak statistical distinguisher but unreliable. Eigenvalue bilinear structure E[i,j] encodes factorization but decomposing eigenvalue multiset into tensor factors requires knowing φ(p)×φ(q) dimensions = factoring. WL refinement stabilizes at a partition that does NOT reveal factors. Power graph and multiplication graph automorphism groups decompose via CRT. The factoring-to-GI reduction fails because ring structure is too rich: any graph encoding either preserves CRT (circular) or loses factoring info.
 - **Effective abc / Baker theory for factoring**: abc bound on p+q given N=pq is trivially satisfied (quality ~1/3, not ~1). Baker lower bound |log(p/q)| > exp(-C*log²N) is astronomically weaker than useful. S-unit equation approach: number of solutions to a+b=N with S-smooth a,b gives upper bound that matches QS complexity (the approach IS QS). Smooth-sum density for balanced semiprimes: Pr[p+q is B-smooth] drops exponentially with log(N)/log(B). Direction mismatch: abc gives LOWER bounds on radical while factoring needs UPPER bounds on smoothness.
+- **Algebraic K-theory / cyclotomic trace / THH/TC**: K_1(Z/NZ) = (Z/NZ)*, K_2(Z/NZ) decomposes via CRT. Dennis trace, cyclotomic trace, TR tower, Witt vectors, Nil K-theory, lambda/Adams operations, chromatic localizations ALL decompose via CRT. The cyclotomic Frobenius on TR is part of functorial structure — it decomposes. NK_i terms (Bass-Heller-Swan) are trivial for finite rings. The only non-decomposable info comes from RELATIVE constructions K_*(Z, NZ) which reduce to φ(N). All these invariants are functors respecting the CRT isomorphism — definitively negative.
+- **Short interval smooth numbers / analytic NT**: Smooth values of QS/NFS polynomials follow a Poisson process at scales below the smoothness bound. No hidden clustering exists. The only structure is CRT (root alignment mod primes), which the sieve ALREADY fully exploits. Selberg sieve weights show zero correlation with actual smoothness. Special-q lattice sieve IS guided sieving from short-interval theory. Murphy's alpha IS polynomial-selection from root density. State-of-the-art implementations (CADO-NFS, msieve) already embody all relevant theoretical insights.
+- **Number field tower descent for NFS**: Tower Q ⊂ K_1 ⊂ K_2 tested for degrees 3,4,6. Descent map N_{K/L} is LINEAR on exponent vectors — merges conjugate ideals. Key finding: tower descent produces NO new independent relations. L-level dependencies are REDUNDANT (arise from forgetting conjugate distinction). Every L-dependency lifts to a K-dependency. Tower helps in TNFS for DLP (better polynomial selection) but NOT for integer factoring (norms and sieving unchanged). The size reduction per descent step is bounded by extension degree (constant), unlike FFS where Frobenius reduces by factor q.
+- **Beyond GF(2) exponent exploitation**: GF(k) kernel for k=2,3,5,7: same number of relations needed (pi(B)+1) regardless of k. GCD success rate: squares give P=1/2 (universal because gcd(2,p-1)=2 for all odd p). Cubic gives P = 1/3 or 2/3 depending on p mod 3. Higher k strictly worse because gcd(k,p-1) is non-universal. LLL on integer exponent matrix: short vectors found but correspond to products of KNOWN relations — no new information. The 1-bit-per-relation bound is a theorem within congruence-of-squares, proven via the universality of order-2 elements.
+- **Meta-analysis of barrier structure**: The 5 barriers decompose into APPROACH-DEPENDENT (B1, B2, B3 — could be evaded by novel framework) and STRUCTURAL (B4, B5 — any classical algorithm must confront). B4 (CRT opacity) is the MASTER BARRIER: B1,B2,B3 are consequences when restricted to sieve methods. B5 (Z-rigidity) is the deepest: explains why FFS techniques fail over Z. Minimal barrier set: {B4, B5} implies all others. Most plausible breakthrough direction: high-dimensional abelian varieties with rich endomorphism rings over Z/NZ. No 2023-2026 mathematical development brings sub-L[1/3] significantly closer, though Fargues-Scholze geometrization provides new conceptual frameworks.
 
 ### Witt-Frobenius near-miss
 
