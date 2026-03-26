@@ -374,7 +374,6 @@ Why 2-3% (lowered from initial estimate):
 - **Classical QEC analog**: Computational advantage lives in superposition, not error correction.
 - **AIT / sophistication**: Sophistication O(log n). Measures regularity structure, not accessibility.
 - **Oracle separation / query complexity**: NFS uses 6 operations beyond generic ring model explaining the gap. DT model captures input complexity, not computational.
-
 - **Hypercontractivity / global functions**: CRT opacity means no efficiently computable operation independently affects the two coordinates. Deep principle: algebraic structure ≠ computational access.
 - **Non-malleable extractors / two-source extraction**: Extracted bits carry zero factoring information. GF(2) LA already extracts the MAXIMUM.
 - **Beyond GF(2) exponent exploitation**: Same π(B)+1 relations needed for all k. GCD success for k>2 strictly worse (non-universal gcd(k,p-1)).
@@ -438,7 +437,6 @@ Why 2-3% (lowered from initial estimate):
 - **Extremal graph theory on factor base**: Well-modeled by random graphs.
 - **DP / noisy GCD**: Quadratic gap insurmountable.
 - **PPAD / Nash equilibria**: Constant-rank bimatrix games still PPAD-hard.
-- **Regev 2023 lattice classically**: BKZ identical on Regev vs random q-ary. 2^{Θ(√n)} > GNFS.
 - **Lattice LA for null space**: Lattice worse at all scales.
 - **Sparse congruences via ISD**: 2^{O(n/log n)} worse than Gauss O(n³).
 - **PFR / additive combinatorics for smooth numbers**: PFR bounds too large. Kelley-Meka 3-AP IS the sieve. Multiplication-addition barrier.
