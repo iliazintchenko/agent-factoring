@@ -11,35 +11,34 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 *(Currently runs on a single EC2 instance. Multi-machine via shared filesystem is planned but untested.)*
 
 ```
-                         ┌───────────────────────┐
-                         │     Master Agent      │
-                         │                       │
-                         │  program.md           │
-                         │  expert.md            │
-                         │  docs/ + code/        │
-                         └───────────┬───────────┘
-                                     │ launches via ssh
-                    ┌────────────────┼────────────────┐
-                    │                │                │
-             ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐
-             │    VM 1     │ │    VM 2     │ │    VM 3     │
-             │             │ │             │ │             │
-             │ Inv 1  Inv 2│ │ Inv 3  Inv 4│ │   Inv 5    │
-             │  ↓      ↓   │ │  ↓      ↓   │ │     ↓      │
-             │ C/Py  C/Py  │ │ C/Py  C/Py  │ │   C/Py     │
-             └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
-                    │               │               │
-                    └───────────────┼───────────────┘
-                                    │
-                         ┌──────────▼──────────┐
-                         │  Shared Filesystem  │
-                         │  (EFS / NFS mount)  │
-                         │                     │
-                         │  inv-1/findings.txt │
-                         │  inv-2/findings.txt │
-                         │  inv-3/findings.txt │
-                         │  ...                │
-                         └─────────────────────┘
+              ┌───────────────────────┐
+              │     Master Agent      │
+              │                       │
+              │  program.md           │
+              │  expert.md            │◄──────────────────────┐
+              │  docs/ + code/        │                       │
+              └───────────┬───────────┘                       │
+                          │ launches via ssh                  │ reads
+          ┌───────────────┼───────────────┐                   │
+          │               │               │                   │
+   ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐           │
+   │    VM 1     │ │    VM 2     │ │    VM 3     │  ...       │
+   │             │ │             │ │             │           │
+   │ Inv 1 Inv 2│ │ Inv 3 Inv 4│ │   Inv 5    │           │
+   │  ↓     ↓   │ │  ↓     ↓   │ │     ↓      │           │
+   │ C/Py C/Py  │ │ C/Py C/Py  │ │   C/Py     │           │
+   └──────┬──────┘ └──────┬──────┘ └──────┬──────┘           │
+          │               │               │                   │
+          └───────────────┼───────────────┘                   │
+                          │ writes                            │
+               ┌──────────▼──────────┐                        │
+               │  Shared Filesystem  │                        │
+               │  (EFS / NFS mount)  │────────────────────────┘
+               │                     │
+               │  inv-1/findings.txt │
+               │  inv-2/findings.txt │
+               │  ...                │
+               └─────────────────────┘
 ```
 
 ## Local setup
