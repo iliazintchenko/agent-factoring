@@ -119,7 +119,7 @@ Why 2-3% (lowered from initial estimate):
 - **GNFS L[1/3, 1.923] unchanged since 1990s**: RSA-250 (Feb 2020) remains record. All progress in practical constants.
 - **NFS L[1/3] is HEURISTIC, not proven**: Best rigorous bound is L[1/2] (Lenstra-Pomerance 1992). Lee-Venkatesan (2017) proved L[1/3] only for finding square congruences. Key unproven assumptions: smoothness heuristic, independence of smoothness events, monogenic field, square root step.
 - **2024-2026 literature survey**: No algorithm has improved the classical L-exponent since GNFS (early 1990s). Every sub-L[1/3] claim debunked or retracted (Schnorr 2021, Yan et al., Chen quantum LWE, JVG quantum). Notable new work: Stange 2022 (index calculus bridge), Gao et al. 2025 (rank-3 lattice second vector — elegant but no path to sub-L[1/3]), Gorodetsky 2023 (Dickman phase transition at y=(log x)^{3/2}), Pascadi 2025 (smooth number equidistribution to moduli x^{5/8}), Tao 2025 (max-entropy framework for smooth number anatomy), Friedlander-Granville smooth number improvements, Pinnacle quantum architecture. None change the L-exponent.
-- **Rigorous L[1/3] gap**: Lee-Venkatesan proved L[1/3] for sieving phase. Remaining gaps: (1) algebraic square root extraction in L[1/3] time, (2) independence of smoothness events, (3) class group/unit group computation. A provably L[1/3] algorithm is tantalizingly close.
+- **Rigorous L[1/3] gap**: Lee-Venkatesan proved L[1/3] for sieving phase. Remaining gaps: (1) algebraic square root extraction in L[1/3] time, (2) independence of smoothness events, (3) class group/unit group computation. Most promising path: complete Lee-Venkatesan by proving congruence-to-factor extraction in L[1/3] time. Medium-term: extend smooth number equidistribution to polynomial values. Deep obstruction: parity problem in sieve theory.
 - **Regev lattice classically intractable**: Dimension O(√n), indistinguishable from random q-ary lattices by BKZ. Classical cost 2^{Θ(√n)} strictly worse than GNFS.
 - **GF(2) reduction is optimal**: Z-lattice dependencies are a SUBSET of GF(2) dependencies. SNF invariant factors all 1 or 2. Mod-2 reduction RELAXES constraints to increase the solution space. 1-bit/relation is a feature within congruence-of-squares.
 
@@ -374,7 +374,7 @@ Why 2-3% (lowered from initial estimate):
 - **Classical QEC analog**: Computational advantage lives in superposition, not error correction.
 - **AIT / sophistication**: Sophistication O(log n). Measures regularity structure, not accessibility.
 - **Oracle separation / query complexity**: NFS uses 6 operations beyond generic ring model explaining the gap. DT model captures input complexity, not computational.
-- **Sumcheck / algebraic proof systems**: Divisibility has no low-degree polynomial representation. Interactive proofs amplify verification, not search — this is a theorem.
+
 - **Hypercontractivity / global functions**: CRT opacity means no efficiently computable operation independently affects the two coordinates. Deep principle: algebraic structure ≠ computational access.
 - **Non-malleable extractors / two-source extraction**: Extracted bits carry zero factoring information. GF(2) LA already extracts the MAXIMUM.
 - **Beyond GF(2) exponent exploitation**: Same π(B)+1 relations needed for all k. GCD success for k>2 strictly worse (non-universal gcd(k,p-1)).
