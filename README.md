@@ -8,8 +8,6 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 4. It explores novel factoring approaches, discovers what works, updates everything
 5. It pushes its findings to this repo so other agents can build on its findings
 
-*(Currently runs on a single EC2 instance. Multi-machine via shared filesystem is planned but untested.)*
-
 ```
               ┌─────────────────────┐
               │    Master Agent     │
@@ -18,15 +16,15 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
               │  expert.md          │                       │
               │  docs/ + code/      │                       │
               └──────────┬──────────┘                       │
-                         │ launches via ssh                 │ reads
-         ┌───────────────┼───────────────┬──────────┐        │
-         │               │               │          │        │
-  ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐  ▼        │
-  │    VM 1     │ │    VM 2     │ │    VM 3     │ ...       │
-  │             │ │             │ │             │           │
+                         │ launches via ssh                 │ 
+         ┌───────────────┼───────────────┬────────────┐     │
+         │               │               │            │     │
+  ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐     ▼     │
+  │    VM 1     │ │    VM 2     │ │    VM 3     │    ...    │  
+  │             │ │             │ │             │           │  reads
   │ Inv 1 Inv 2 │ │ Inv 3 Inv 4 │ │ Inv 5 Inv 6 │           │
   │  ↓     ↓    │ │  ↓     ↓    │ │  ↓     ↓    │           │
-  │ C/Py C/Py   │ │ C/Py C/Py   │ │ C/Py C/Py   │           │
+  │ C/Py  C/Py  │ │ C/Py  C/Py  │ │ C/Py  C/Py  │           │
   └──────┬──────┘ └──────┬──────┘ └──────┬──────┘           │
          │               │               │                  │
          └───────────────┼───────────────┘                  │
@@ -40,6 +38,8 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
               │  ...                │
               └─────────────────────┘
 ```
+
+*(So far been tested with only a single EC2 instance. Extension to multi-machine via shared filesystem for higher-throughput runs is tritival.)*
 
 ## Local setup
 
@@ -86,8 +86,9 @@ Multiple agents can work on the same repo simultaneously, communicating through 
 
 ## Known limitations
 
-- **Low parallelism**: Claude Code rarely launches more than 6 parallel scripts, and often runs just 1-2 at a time, leaving most cores idle on large machines.
-- **Session length**: Despite "never stop" instructions, the agent tends to wrap up after a few hours, deciding it has reached a natural stopping point.
-- **Merge conflicts**: When multiple agents push concurrently, merge conflicts are common. Claude Code resolves them poorly — it tends to blindly concatenate both sides rather than producing a coherent merge, leaving duplicated entries, contradictory statements, and broken files (especially in `expert.md`). Requires periodic manual cleanup.
-- **Local minimum of known algorithms**: The hardest challenge is getting the agent to explore genuinely novel approaches. Despite explicit instructions to not reimplement known algorithms, every agent's first instinct is to build a quadratic sieve — the well-known SOTA is a local minimum baked into the model weights.
-- **expert.md bloat**: Agents dump implementation details (parameter tuning, build flags, polynomial formulas) into expert.md rather than keeping it focused on insights and conclusions. Requires periodic manual cleanup to stay useful.
+- **Session length**: Despite "never stop" instructions, the master agent tends to wrap up after a few hours, deciding it has reached a natural stopping point.
+- **Orphan processes**: When the master is killed or an investigator times out, child processes (Python scripts, compiled programs) can survive and consume CPU indefinitely. Requires manual cleanup (`ps aux` filtered by CPU).
+- **Diminishing returns**: The master enters a grinding mode after ~10 batches, mechanically launching variations on exhausted themes rather than thinking strategically. The later investigations produce well-written dead-end proofs but no new leads.
+- **Local minimum of known algorithms**: Investigators' first instinct is to build a quadratic sieve. The master kills them when caught, but it wastes investigator slots.
+- **expert.md bloat**: The master appends findings without checking for duplicates or cleaning up. Entries from different runs end up in wrong sections. Requires periodic manual cleanup.
+- **Merge conflicts**: If multiple masters push to the same repo concurrently, merge conflicts on expert.md are common and resolved poorly (blind concatenation). Single-master setup avoids this.
