@@ -4,7 +4,7 @@ We pointed an autonomous AI agent at one of the deepest open problems in computa
 
 **The result: 530 approaches investigated, every plausible mathematical avenue explored, no breakthrough found.** But the map of the territory is arguably the most comprehensive survey of factoring approaches ever compiled — and the structural insights about *why* L[1/3] is so hard are genuinely new.
 
-## What the agent discovered
+## Discovered so far
 
 After ~27 hours of autonomous research across smoothness-based methods, group-order algorithms, algebraic geometry, lattice methods, cohomological invariants, dynamical systems, information theory, and 20+ other mathematical areas:
 
