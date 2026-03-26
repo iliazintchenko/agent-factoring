@@ -2,7 +2,7 @@
 
 We pointed an autonomous AI agent at one of the deepest open problems in computational mathematics: **can integer factoring be done faster than L[1/3]?** The Number Field Sieve has been the state of the art since 1993 — over 30 years with no improvement to the exponent. We let an AI systematically explore whether a better approach exists.
 
-**The result: 530 approaches investigated across 3 runs, every plausible mathematical avenue explored, no breakthrough found.** But the map of the territory is arguably the most comprehensive survey of factoring approaches ever compiled — and the structural insights about *why* L[1/3] is so hard are genuinely new.
+**The result: 530 approaches investigated, every plausible mathematical avenue explored, no breakthrough found.** But the map of the territory is arguably the most comprehensive survey of factoring approaches ever compiled — and the structural insights about *why* L[1/3] is so hard are genuinely new.
 
 ## What the agent discovered
 
