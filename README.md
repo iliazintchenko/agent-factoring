@@ -1,4 +1,4 @@
-An autonomous AI agent that teaches itself to become the world's top expert on semiprime factoring. Given a list of balanced semiprimes from 30 to 100 digits, 5 random ones of each size, it discovers novel strategies and iteratively refines its toolbox to reduce runtime on a single CPU core. The runtime for a given size is taken as the longest wallclock time across the set of 5 semiprimes of this size. 
+An autonomous AI agent that teaches itself to become the world's top expert on semiprime factoring. Given a list of balanced semiprimes from 30 to 100 digits, 5 random ones of each size, it discovers novel strategies and iteratively refines its toolbox to reduce runtime on a single CPU core. The runtime for a given size is taken as the longest wallclock time across the set of 5 semiprimes of this size.
 
 ## How it works
 
@@ -11,34 +11,34 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 *(Currently runs on a single EC2 instance. Multi-machine via shared filesystem is planned but untested.)*
 
 ```
-              ┌───────────────────────┐
-              │     Master Agent      │
-              │                       │
-              │  program.md           │
-              │  expert.md            │◄──────────────────────┐
-              │  docs/ + code/        │                       │
-              └───────────┬───────────┘                       │
-                          │ launches via ssh                  │ reads
-          ┌───────────────┼───────────────┐                   │
-          │               │               │                   │
-   ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐           │
-   │    VM 1     │ │    VM 2     │ │    VM 3     │  ...       │
-   │             │ │             │ │             │           │
-   │ Inv 1 Inv 2│ │ Inv 3 Inv 4│ │   Inv 5    │           │
-   │  ↓     ↓   │ │  ↓     ↓   │ │     ↓      │           │
-   │ C/Py C/Py  │ │ C/Py C/Py  │ │   C/Py     │           │
-   └──────┬──────┘ └──────┬──────┘ └──────┬──────┘           │
-          │               │               │                   │
-          └───────────────┼───────────────┘                   │
-                          │ writes                            │
-               ┌──────────▼──────────┐                        │
-               │  Shared Filesystem  │                        │
-               │  (EFS / NFS mount)  │────────────────────────┘
-               │                     │
-               │  inv-1/findings.txt │
-               │  inv-2/findings.txt │
-               │  ...                │
-               └─────────────────────┘
+            ┌─────────────────────┐
+            │    Master Agent     │
+            │                     │
+            │  program.md         │◄────────────────┐
+            │  expert.md          │                 │
+            │  docs/ + code/      │                 │
+            └──────────┬──────────┘                 │
+                       │ launches via ssh           │ reads
+         ┌─────────────┼─────────────┐              │
+         │             │             │              │
+  ┌──────▼──────┐ ┌────▼────┐ ┌──────▼──────┐      │
+  │    VM 1     │ │  VM 2   │ │    VM 3     │ ...  │
+  │             │ │         │ │             │      │
+  │ Inv 1 Inv 2│ │ Inv 3   │ │ Inv 4 Inv 5│      │
+  │  ↓     ↓   │ │  ↓      │ │  ↓     ↓   │      │
+  │ C/Py C/Py  │ │ C/Py    │ │ C/Py C/Py  │      │
+  └──────┬──────┘ └────┬────┘ └──────┬──────┘      │
+         │             │             │              │
+         └─────────────┼─────────────┘              │
+                       │ writes                     │
+            ┌──────────▼──────────┐                 │
+            │  Shared Filesystem  │                 │
+            │  (EFS / NFS mount)  │─────────────────┘
+            │                     │
+            │  inv-1/findings.txt │
+            │  inv-2/findings.txt │
+            │  ...                │
+            └─────────────────────┘
 ```
 
 ## Local setup
