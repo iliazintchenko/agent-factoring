@@ -10,12 +10,10 @@
 __pycache__/
 gmon.out
 
-# Compiled binaries in library (keep only source)
-library/*
-!library/*.c
-!library/*.h
-!library/*.py
-!library/*.sh
-!library/*.md
-!library/*.txt
-!library/*.json
+# Compiled binaries in code (keep only source)
+code/*
+!code/*.c
+!code/*.h
+!code/*.py
+!code/*.sh
+!code/*.json

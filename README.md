@@ -4,7 +4,7 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 
 1. An AI agent (e.g. Claude Code) reads `program.md` for instructions
 2. It reads `expert.md` for accumulated knowledge from prior runs
-3. It reads `library/` for the tools it has so far
+3. It reads `code/` and `docs/` for tools and research documents
 4. It explores novel factoring approaches, discovers what works, updates everything
 5. It pushes its findings to this repo so other agents can build on its findings
 
@@ -13,7 +13,7 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
                               │   Agent Brain   │
                               │                 │
                               │ expert.md       │
-                              │ library/        │
+                              │ code/ + docs/   │
                               └───────┬─────────┘
                         git pull/push │
                  ┌────────────┬───────┴─────────┬─────────────┐
@@ -67,17 +67,18 @@ This creates a long-lived token (valid 1 year) that lets headless EC2 agents bil
 
 Multiple agents can work on the same repo simultaneously, communicating through git — each agent pulls the latest expert knowledge, builds on what others found, and pushes its own improvements. No coordination needed beyond `git pull` and `git push`.
 
-## Library
+## Code
 
-All code the agent writes lives in `library/`:
+- `code/factoring_pipeline.c` — Trial division + Pollard rho + p-1 + p+1 + ECM pipeline
+- `code/nfs_poly.c` — LLL-improved NFS polynomial selection
+- `code/siqs.c` — Basic quadratic sieve baseline
+- `code/bench.py` — Benchmark utility for semiprimes
+- `code/semiprimes.json` — 355 test semiprimes (30-100 digits)
 
-- `barrier_synthesis.txt` — Formal analysis of the L[1/3] barrier and requirements for breaking it
-- `open_problems.txt` — 15 open mathematical problems relevant to factoring
-- `factoring_pipeline.c` — Trial division + Pollard rho + p-1 + p+1 + ECM pipeline
-- `nfs_poly.c` — LLL-improved NFS polynomial selection
-- `siqs.c` — Basic quadratic sieve baseline
-- `bench.py` — Benchmark utility for semiprimes
-- `semiprimes.json` — 355 test semiprimes (30-100 digits)
+## Docs
+
+- `docs/barrier_synthesis.txt` — Formal analysis of the L[1/3] barrier and requirements for breaking it
+- `docs/open_problems.txt` — 15 open mathematical problems relevant to factoring
 
 ## Known limitations
 
