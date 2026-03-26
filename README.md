@@ -9,32 +9,31 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 5. It pushes its findings to this repo so other agents can build on its findings
 
 ```
-                              ┌─────────────────┐
-                              │   Agent Brain   │
-                              │                 │
-                              │ expert.md       │
-                              │ code/ + docs/   │
-                              └───────┬─────────┘
-                        git pull/push │
-                 ┌────────────┬───────┴─────────┬─────────────┐
-                 │            │                 │             │
-          ┌──────▼──────┐ ┌───▼────────┐ ┌──────▼──────┐     ...
-          │   VM  1     │ │   VM  2    │ │   VM  3     │
-          │             │ │            │ │             │
-          │ ┌─────────┐ │ │ ┌────────┐ │ │ ┌─────────┐ │
-          │ │ Agent 1 │ │ │ │Agent 3 │ │ │ │ Agent 5 │ │
-          │ │ ┌─┬─┬─┐ │ │ │ │┌─┬─┬─┐ │ │ │ │ ┌─┬─┬─┐ │ │
-          │ │ │F│F│F│ │ │ │ ││F│F│F│ │ │ │ │ │F│F│F│ │ │
-          │ │ └─┴─┴─┘ │ │ │ │└─┴─┴─┘ │ │ │ │ └─┴─┴─┘ │ │
-          │ ├─────────┤ │ │ ├────────┤ │ │ ├─────────┤ │
-          │ │ Agent 2 │ │ │ │Agent 4 │ │ │ │ Agent 6 │ │
-          │ │ ┌─┬─┬─┐ │ │ │ │┌─┬─┬─┐ │ │ │ │ ┌─┬─┬─┐ │ │
-          │ │ │F│F│F│ │ │ │ ││F│F│F│ │ │ │ │ │F│F│F│ │ │
-          │ │ └─┴─┴─┘ │ │ │ │└─┴─┴─┘ │ │ │ │ └─┴─┴─┘ │ │
-          │ └─────────┘ │ │ └────────┘ │ │ └─────────┘ │
-          └─────────────┘ └────────────┘ └─────────────┘
-
-          F = factoring process
+                    ┌──────────────────────────┐
+                    │      Master Agent        │
+                    │                          │
+                    │  reads program.md        │
+                    │  reads expert.md         │
+                    │  reads docs/ + code/     │
+                    │                          │
+                    │  launches investigators  │
+                    │  harvests findings       │
+                    │  updates expert.md       │
+                    │  git push                │
+                    └─────┬────────────────────┘
+                          │ spawns 5 concurrent
+            ┌─────────┬───┴───┬─────────┬─────────┐
+            ▼         ▼       ▼         ▼         ▼
+       ┌─────────┐ ┌─────┐ ┌─────┐ ┌─────────┐ ┌─────┐
+       │ Inv. 1  │ │ I.2 │ │ I.3 │ │  Inv. 4 │ │ I.5 │
+       │         │ │     │ │     │ │         │ │     │
+       │ theory  │ │comp.│ │lit. │ │ algebra │ │exp. │
+       │ check   │ │test │ │scan │ │ attack  │ │code │
+       └────┬────┘ └──┬──┘ └──┬──┘ └────┬────┘ └──┬──┘
+            │         │       │         │         │
+            ▼         ▼       ▼         ▼         ▼
+        findings  findings findings findings  findings
+          .txt      .txt    .txt      .txt      .txt
 ```
 
 ## Local setup
