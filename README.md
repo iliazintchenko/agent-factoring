@@ -8,32 +8,38 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
 4. It explores novel factoring approaches, discovers what works, updates everything
 5. It pushes its findings to this repo so other agents can build on its findings
 
+*(Currently runs on a single EC2 instance. Multi-machine via shared filesystem is planned but untested.)*
+
 ```
-                    ┌──────────────────────────┐
-                    │      Master Agent        │
-                    │                          │
-                    │  reads program.md        │
-                    │  reads expert.md         │
-                    │  reads docs/ + code/     │
-                    │                          │
-                    │  launches investigators  │
-                    │  harvests findings       │
-                    │  updates expert.md       │
-                    │  git push                │
-                    └─────┬────────────────────┘
-                          │ spawns 5 concurrent
-            ┌─────────┬───┴───┬─────────┬─────────┐
-            ▼         ▼       ▼         ▼         ▼
-       ┌─────────┐ ┌─────┐ ┌─────┐ ┌─────────┐ ┌─────┐
-       │ Inv. 1  │ │ I.2 │ │ I.3 │ │  Inv. 4 │ │ I.5 │
-       │         │ │     │ │     │ │         │ │     │
-       │ theory  │ │comp.│ │lit. │ │ algebra │ │exp. │
-       │ check   │ │test │ │scan │ │ attack  │ │code │
-       └────┬────┘ └──┬──┘ └──┬──┘ └────┬────┘ └──┬──┘
-            │         │       │         │         │
-            ▼         ▼       ▼         ▼         ▼
-        findings  findings findings findings  findings
-          .txt      .txt    .txt      .txt      .txt
+                         ┌───────────────────────┐
+                         │     Master Agent      │
+                         │                       │
+                         │  program.md           │
+                         │  expert.md            │
+                         │  docs/ + code/        │
+                         └───────────┬───────────┘
+                                     │ launches via ssh
+                    ┌────────────────┼────────────────┐
+                    │                │                │
+             ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐
+             │    VM 1     │ │    VM 2     │ │    VM 3     │
+             │             │ │             │ │             │
+             │ Inv 1  Inv 2│ │ Inv 3  Inv 4│ │   Inv 5    │
+             │  ↓      ↓   │ │  ↓      ↓   │ │     ↓      │
+             │ C/Py  C/Py  │ │ C/Py  C/Py  │ │   C/Py     │
+             └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
+                    │               │               │
+                    └───────────────┼───────────────┘
+                                    │
+                         ┌──────────▼──────────┐
+                         │  Shared Filesystem  │
+                         │  (EFS / NFS mount)  │
+                         │                     │
+                         │  inv-1/findings.txt │
+                         │  inv-2/findings.txt │
+                         │  inv-3/findings.txt │
+                         │  ...                │
+                         └─────────────────────┘
 ```
 
 ## Local setup
