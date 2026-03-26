@@ -23,7 +23,7 @@ These form a **causal chain**: Z is rigid (#5) -> CRT is opaque (#4) -> search i
 
 ## How it works
 
-A master agent (Claude Code) reads `program.md` for its research directive, `expert.md` for accumulated knowledge, and `docs/` for formal barrier analysis. It then spawns 5 concurrent investigator subprocesses, each exploring a specific mathematical question. When an investigator finishes, the master harvests its findings into `expert.md` and launches a replacement. This runs continuously.
+A master agent (Claude Code) reads `program.md` for its research directive, `expert.md` for accumulated knowledge, and `docs/` for formal barrier analysis. It spawns concurrent investigator subprocesses, each exploring a specific mathematical question. When an investigator finishes, the master harvests its findings into `expert.md` and launches a replacement. This runs continuously.
 
 ```
               ┌─────────────────────┐
