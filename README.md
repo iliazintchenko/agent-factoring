@@ -1,14 +1,14 @@
 # Can an AI break the L[1/3] barrier in integer factoring?
 
-We pointed an autonomous AI agent at one of the deepest open problems in computational mathematics: **can integer factoring be done faster than L[1/3]?** The Number Field Sieve has been the state of the art since 1993 — over 30 years with no improvement to the exponent. We let an AI systematically explore whether a better approach exists.
+AI agent attempts to solve one of the deepest open problems in computational mathematics: **can integer factoring be done faster than L[1/3]?** The Number Field Sieve has been the state of the art since 1993 — over 30 years with no improvement to the exponent. We let an AI systematically explore whether a better approach exists.
 
-**The result: 530 approaches investigated, every plausible mathematical avenue explored, no breakthrough found.** But the map of the territory is arguably the most comprehensive survey of factoring approaches ever compiled — and the structural insights about *why* L[1/3] is so hard are genuinely new.
+**Live probability estimate**: P(classical algorithm ever beats L[1/3]) ~ **2-3%**.
 
 ## Discovered so far
 
-After ~27 hours of autonomous research across smoothness-based methods, group-order algorithms, algebraic geometry, lattice methods, cohomological invariants, dynamical systems, information theory, and 20+ other mathematical areas:
+**530 approaches investigated over ~27 hours of autonomous research across smoothness-based methods, group-order algorithms, algebraic geometry, lattice methods, cohomological invariants, dynamical systems, information theory, and 20+ other mathematical areas.** No scaling breakthrough yet, but has produced arguably the most comprehensive survey of factoring approaches ever compiled. The structural insights about *why* L[1/3] is so hard are genuinely new.
 
-**Five structural barriers** explain why every approach fails:
+**Identified five structural barriers** explain why every approach fails:
 1. **L[1/3] wall** — any sieve with k parameters achieves L[1/(k+1)]; NFS has k=2
 2. **Archimedean/non-archimedean gap** — integer size can't be iteratively reduced like polynomial degree
 3. **GF(2) bottleneck** — each smooth relation yields exactly 1 bit; proved tight via universality of order-2 elements
@@ -18,8 +18,6 @@ After ~27 hours of autonomous research across smoothness-based methods, group-or
 These form a **causal chain**: Z is rigid (#5) -> CRT is opaque (#4) -> search is binarized (#3) -> no metric shortcut (#2) -> L[1/3] wall (#1).
 
 **The key meta-theorem** (informal): any algorithm using (i) algebraic structures over Z/NZ, (ii) smooth number detection, and (iii) GF(2) linear algebra achieves at best L[1/3]. Breaking through requires violating at least one of these three conditions.
-
-**Probability estimate**: P(classical algorithm ever beats L[1/3]) ~ 2-3%.
 
 ## How it works
 
