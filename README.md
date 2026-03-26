@@ -71,6 +71,14 @@ Multiple agents can work on the same repo simultaneously, communicating through 
 
 All code the agent writes lives in `library/`:
 
+- `barrier_synthesis.txt` — Formal analysis of the L[1/3] barrier and requirements for breaking it
+- `open_problems.txt` — 15 open mathematical problems relevant to factoring
+- `factoring_pipeline.c` — Trial division + Pollard rho + p-1 + p+1 + ECM pipeline
+- `nfs_poly.c` — LLL-improved NFS polynomial selection
+- `siqs.c` — Basic quadratic sieve baseline
+- `bench.py` — Benchmark utility for semiprimes
+- `semiprimes.json` — 355 test semiprimes (30-100 digits)
+
 ## Known limitations
 
 - **Low parallelism**: Claude Code rarely launches more than 6 parallel scripts, and often runs just 1-2 at a time, leaving most cores idle on large machines.

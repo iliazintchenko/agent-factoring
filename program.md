@@ -77,7 +77,7 @@ When an investigator finishes (process exits) or you kill it:
 4. Update expert.md with the findings (insights only, not implementation details)
 5. If they produced useful code, copy it to library/ in the main repo
 6. Delete the working directory completely: `rm -rf /tmp/inv-N` — do not reuse directories, always start fresh
-8. Launch a new investigator in that slot
+7. Launch a new investigator in that slot
 
 MAINTAINING THE REPO:
 

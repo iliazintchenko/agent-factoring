@@ -6,7 +6,6 @@ If no sizes specified, runs all sizes from 30-100.
 Prints results to stdout.
 """
 import json, subprocess, sys, os, time
-from datetime import datetime
 from pathlib import Path
 
 SEMIPRIMES = Path(__file__).resolve().parent / "semiprimes.json"
@@ -68,7 +67,6 @@ def main():
         all_ok = True
         for n in nums:
             factor, elapsed, stderr = run_one(binary, n)
-            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if factor:
                 worst = max(worst, elapsed)
             else:

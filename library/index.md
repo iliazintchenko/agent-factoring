@@ -12,4 +12,7 @@
 
 ## Utilities
 
+- **factoring_pipeline.c** — Practical factoring pipeline: trial division → Pollard rho → p-1 → p+1 → ECM (stage 1, Montgomery form, multiple B1 levels). Uses GMP.
 - **bench.py** — Benchmark a binary across semiprimes. Usage: `python3 bench.py <binary> <approach_name> [sizes...]`.
+- **generate_semiprimes.py** — Generate balanced semiprimes for testing.
+- **semiprimes.json** — 355 test semiprimes across 71 digit lengths (30-100 digits, 5 per length).
