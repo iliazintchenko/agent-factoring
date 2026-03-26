@@ -1,12 +1,29 @@
-An autonomous AI agent that teaches itself to become the world's top expert on semiprime factoring. Given a list of balanced semiprimes from 30 to 100 digits, 5 random ones of each size, it discovers novel strategies and iteratively refines its toolbox to reduce runtime on a single CPU core. The runtime for a given size is taken as the longest wallclock time across the set of 5 semiprimes of this size.
+# Can an AI break the L[1/3] barrier in integer factoring?
+
+We pointed an autonomous AI agent at one of the deepest open problems in computational mathematics: **can integer factoring be done faster than L[1/3]?** The Number Field Sieve has been the state of the art since 1993 — over 30 years with no improvement to the exponent. We let an AI systematically explore whether a better approach exists.
+
+**The result: 530 approaches investigated across 3 runs, every plausible mathematical avenue explored, no breakthrough found.** But the map of the territory is arguably the most comprehensive survey of factoring approaches ever compiled — and the structural insights about *why* L[1/3] is so hard are genuinely new.
+
+## What the agent discovered
+
+After ~27 hours of autonomous research across smoothness-based methods, group-order algorithms, algebraic geometry, lattice methods, cohomological invariants, dynamical systems, information theory, and 20+ other mathematical areas:
+
+**Five structural barriers** explain why every approach fails:
+1. **L[1/3] wall** — any sieve with k parameters achieves L[1/(k+1)]; NFS has k=2
+2. **Archimedean/non-archimedean gap** — integer size can't be iteratively reduced like polynomial degree
+3. **GF(2) bottleneck** — each smooth relation yields exactly 1 bit; proved tight via universality of order-2 elements
+4. **CRT opacity** — every computable invariant of Z/NZ either decomposes via CRT or costs as much as factoring
+5. **Z-rigidity** — Z has no non-trivial ring endomorphism, which is why Frobenius descent (the key to function field breakthroughs) can't work over the integers
+
+These form a **causal chain**: Z is rigid (#5) -> CRT is opaque (#4) -> search is binarized (#3) -> no metric shortcut (#2) -> L[1/3] wall (#1).
+
+**The key meta-theorem** (informal): any algorithm using (i) algebraic structures over Z/NZ, (ii) smooth number detection, and (iii) GF(2) linear algebra achieves at best L[1/3]. Breaking through requires violating at least one of these three conditions.
+
+**Probability estimate**: P(classical algorithm ever beats L[1/3]) ~ 2-3%.
 
 ## How it works
 
-1. An AI agent (e.g. Claude Code) reads `program.md` for instructions
-2. It reads `expert.md` for accumulated knowledge from prior runs
-3. It reads `code/` and `docs/` for tools and research documents
-4. It explores novel factoring approaches, discovers what works, updates everything
-5. It pushes its findings to this repo so other agents can build on its findings
+A master agent (Claude Code) reads `program.md` for its research directive, `expert.md` for accumulated knowledge, and `docs/` for formal barrier analysis. It then spawns 5 concurrent investigator subprocesses, each exploring a specific mathematical question. When an investigator finishes, the master harvests its findings into `expert.md` and launches a replacement. This runs continuously.
 
 ```
               ┌─────────────────────┐
@@ -16,11 +33,11 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
               │  expert.md          │                       │
               │  docs/ + code/      │                       │
               └──────────┬──────────┘                       │
-                         │ launches via ssh                 │ 
+                         │ launches via ssh                 │
          ┌───────────────┼───────────────┬────────────┐     │
          │               │               │            │     │
   ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐     ▼     │
-  │    VM 1     │ │    VM 2     │ │    VM 3     │    ...    │  
+  │    VM 1     │ │    VM 2     │ │    VM 3     │    ...    │
   │             │ │             │ │             │           │  reads
   │ Inv 1 Inv 2 │ │ Inv 3 Inv 4 │ │ Inv 5 Inv 6 │           │
   │  ↓     ↓    │ │  ↓     ↓    │ │  ↓     ↓    │           │
@@ -39,56 +56,58 @@ An autonomous AI agent that teaches itself to become the world's top expert on s
               └─────────────────────┘
 ```
 
-*(So far been tested with only a single EC2 instance. Extension to multi-machine via shared filesystem for higher-throughput runs is tritival.)*
+*(So far tested on a single EC2 instance. Extension to multi-machine via shared filesystem is trivial.)*
 
-## Local setup
+## What's in the repo
+
+**Knowledge base:**
+- `expert.md` — 530 investigated approaches with conclusions, organized by category. The core reference.
+- `docs/barrier_synthesis.txt` — Formal analysis of the L[1/3] barrier: five requirements a barrier-breaking structure must satisfy, 20 structural families analyzed, a meta-theorem, and 8 prioritized research directions.
+- `docs/open_problems.txt` — 15 formally stated open mathematical problems whose resolution would advance factoring.
+
+**Agent instructions:**
+- `program.md` — The master agent's directive: how to launch investigators, what to look for, when to kill, how to harvest.
+
+**Code:**
+- `code/factoring_pipeline.c` — Trial division + Pollard rho + p-1 + p+1 + ECM pipeline (GMP)
+- `code/nfs_poly.c` — LLL-improved NFS polynomial selection (GMP)
+- `code/siqs.c` — Basic quadratic sieve baseline (GMP)
+- `code/bench.py` — Benchmark utility across 355 semiprimes (30-100 digits)
+
+## Running it yourself
 
 ```bash
-# Install dependencies (macOS)
+# macOS
 brew install gmp ecm cmake hwloc
 
-# Install dependencies (Ubuntu/Debian)
-sudo apt install gcc g++ libgmp-dev libecm-dev cmake make libhwloc-dev python3-flask python3-requests
+# Ubuntu/Debian
+sudo apt install gcc g++ libgmp-dev libecm-dev cmake make libhwloc-dev
 
-# Run locally
+# Run locally (launches in tmux)
 ./run_local.sh
+
+# Or deploy to EC2
+./run_ec2.sh --host ec2-user@<ip>
 ```
 
-## EC2 deploy
+Requires a `.env` with `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) and `GITHUB_ACCESS_TOKEN`.
 
-```bash
-# Launch on EC2 (handles everything: installs deps, clones repo, launches agents in tmux)
-./run_ec2.sh --host ec2-user@<ip> --agents <num_agents>
-```
+## Selected highlights from 530 investigations
 
-Requires a `.env` file with `CLAUDE_CODE_OAUTH_TOKEN` and `GITHUB_ACCESS_TOKEN`.
+- **Shor = the perfectoid tilt**: Shor's quantum algorithm is precisely "efficient computation of the perfectoid tilt" — quantum parallelism evaluates O(N) Frobenius iterates in O(log N) time. This is the cleanest known explanation of the quantum advantage for factoring.
 
-To generate the OAuth token (uses your Claude Pro/Max subscription, not API billing):
-```bash
-claude setup-token
-```
-This creates a long-lived token (valid 1 year) that lets headless EC2 agents bill against your subscription. It does not rotate or invalidate existing tokens.
+- **Third channel systematically closed**: All 5 candidates for a third NFS smoothness source (second number field, p-adic, function field, adelic, modular forms) are either circular or reduce to MNFS constant improvements. Z provably cannot support a third independent smoothness channel.
 
-Multiple agents can work on the same repo simultaneously, communicating through git — each agent pulls the latest expert knowledge, builds on what others found, and pushes its own improvements. No coordination needed beyond `git pull` and `git push`.
+- **The cohomological trichotomy**: Every cohomological invariant of Z/NZ falls into exactly one of three categories: (1) computable but CRT-decomposed, (2) encodes factoring but costs >= factoring, or (3) circular. No sweet spot exists.
 
-## Code
+- **1-bit-per-relation is a theorem**: Proved tight within congruence-of-squares via universality of order-2 elements. GF(k) for any k > 2 is strictly worse.
 
-- `code/factoring_pipeline.c` — Trial division + Pollard rho + p-1 + p+1 + ECM pipeline
-- `code/nfs_poly.c` — LLL-improved NFS polynomial selection
-- `code/siqs.c` — Basic quadratic sieve baseline
-- `code/bench.py` — Benchmark utility for semiprimes
-- `code/semiprimes.json` — 355 test semiprimes (30-100 digits)
-
-## Docs
-
-- `docs/barrier_synthesis.txt` — Formal analysis of the L[1/3] barrier and requirements for breaking it
-- `docs/open_problems.txt` — 15 open mathematical problems relevant to factoring
+- **Tower descent axiomatics**: Precisely characterized the 4 requirements for FFS-style descent over Z — all impossible. The deep reason: in function fields, "degree" and "complexity" are independent parameters; in number fields they are the same.
 
 ## Known limitations
 
-- **Session length**: Despite "never stop" instructions, the master agent tends to wrap up after a few hours, deciding it has reached a natural stopping point.
-- **Orphan processes**: When the master is killed or an investigator times out, child processes (Python scripts, compiled programs) can survive and consume CPU indefinitely. Requires manual cleanup (`ps aux` filtered by CPU).
-- **Diminishing returns**: The master enters a grinding mode after ~10 batches, mechanically launching variations on exhausted themes rather than thinking strategically. The later investigations produce well-written dead-end proofs but no new leads.
-- **Local minimum of known algorithms**: Investigators' first instinct is to build a quadratic sieve. The master kills them when caught, but it wastes investigator slots.
-- **expert.md bloat**: The master appends findings without checking for duplicates or cleaning up. Entries from different runs end up in wrong sections. Requires periodic manual cleanup.
-- **Merge conflicts**: If multiple masters push to the same repo concurrently, merge conflicts on expert.md are common and resolved poorly (blind concatenation). Single-master setup avoids this.
+- **Session length**: The master wraps up after a few hours despite "never stop" instructions.
+- **Orphan processes**: Investigator child processes can survive timeouts. Requires manual cleanup.
+- **Diminishing returns**: After ~10 batches, the master enters grinding mode — mechanically launching variations rather than thinking strategically.
+- **Local minimum**: Investigators' first instinct is to build a quadratic sieve. The master kills them when caught, but it wastes slots.
+- **expert.md bloat**: The master appends without deduplicating. Requires periodic manual cleanup.
